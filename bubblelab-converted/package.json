@@ -10,7 +10,7 @@
     "lint": "eslint src --ext ts,tsx",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:contract": "vitest run src/lib/openevolveApi.test.ts",
+    "test:contract": "vitest run src/tests/contract",
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {

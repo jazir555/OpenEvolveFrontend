@@ -1,18 +1,19 @@
 // Datapizza Pipeline Hook
 // React hook for running Datapizza pipelines
 //
-// INTEGRATION STATUS: Partial Implementation
-// - Currently: Returns mock pipeline results
-// - Required: DataPizza backend API with pipeline endpoints
-// - Required: Integration with datapizza pipeline modules
+// INTEGRATION STATUS: Production Implementation
+// - Uses DatapizzaClient for all API calls
+// - Follows Federation Constitution laws
+// - Configurable mock fallback for development (set DATAPIZZA_USE_MOCK=true)
 //
 // SETUP INSTRUCTIONS:
-// 1. Create FastAPI endpoints for pipeline execution
-// 2. Configure DATAPIZZA_API_URL in environment
-// 3. Implement full pipeline: validation -> chunking -> embedding -> vector storage
+// 1. Configure DATAPIZZA_BASE_URL in environment
+// 2. Configure DATAPIZZA_TIMEOUT_MS in environment
+// 3. Set DATAPIZZA_USE_MOCK=true for development without API
 
 import { useCallback, useState } from 'react';
 import { DatapizzaPipelineResult } from '../types/plugin-types';
+import { DatapizzaClient } from '../services/DatapizzaClient';
 
 interface DatapizzaPipelineOptions {
   pipelineType?: 'standard' | 'advanced' | 'custom';
@@ -25,7 +26,7 @@ interface DatapizzaPipelineOptions {
   skipEmbedding?: boolean;
 }
 
-export function useDatapizzaPipeline() {
+export function useDatapizzaPipeline(client?: DatapizzaClient) {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<string>('');
@@ -44,19 +45,8 @@ export function useDatapizzaPipeline() {
       const startTime = Date.now();
 
       try {
-        const apiUrl = process.env.DATAPIZZA_API_URL || '/api/datapizza';
-
-        // Prepare pipeline configuration
-        const config = {
-          data_source: dataSource,
-          pipeline_type: options.pipelineType || 'standard',
-          chunk_size: options.chunkSize || 1000,
-          overlap_size: options.overlapSize || 200,
-          embedding_model: options.embeddingModel || 'default',
-          vector_store: options.vectorStore || 'default',
-          skip_validation: options.skipValidation || false,
-          skip_embedding: options.skipEmbedding || false,
-        };
+        // Check if mock mode is enabled (for development)
+        const useMock = process.env.DATAPIZZA_USE_MOCK === 'true';
 
         // Simulate pipeline progress
         const steps = [
@@ -76,70 +66,17 @@ export function useDatapizzaPipeline() {
             setCurrentStep(step.name);
             currentStepIndex++;
           }
-        }, 1000);
+        }, useMock ? 1000 : 2000);
 
-        try {
-          // Attempt real API call
-          const response = await fetch(`${apiUrl}/pipeline`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(process.env.DATAPIZZA_API_KEY && {
-                'Authorization': `Bearer ${process.env.DATAPIZZA_API_KEY}`,
-              }),
-            },
-            body: JSON.stringify(config),
-            signal: AbortSignal.timeout(300000), // 5 minute timeout for pipeline
-          });
-
-          clearInterval(progressInterval);
-          setProgress(100);
-          setCurrentStep('Completed');
-
-          if (!response.ok) {
-            throw new Error(`Pipeline execution failed: ${response.status} ${response.statusText}`);
-          }
-
-          const result = await response.json();
-
-          return {
-            success: true,
-            pipelineId: result.pipeline_id || `pipeline_${Date.now()}`,
-            dataSource,
-            processedData: result.processed_data || {
-              recordsProcessed: result.records_processed || 0,
-              chunksCreated: result.chunks_created || 0,
-              embeddingsGenerated: result.embeddings_generated || 0,
-              vectorStoreUpdated: result.vector_store_updated !== false,
-            },
-            confidenceScore: result.confidence_score || 0.95,
-            pipelineType: options.pipelineType || 'standard',
-            dataDomain: result.data_domain || 'structured',
-            errors: result.errors || [],
-            warnings: result.warnings || [],
-            executionTime: Date.now() - startTime,
-            metadata: {
-              timestamp: new Date().toISOString(),
-              processingSteps: result.processing_steps || [
-                'validation',
-                'chunking',
-                'embedding',
-                'vector_storage',
-              ],
-              dataSource,
-              ...result.metadata,
-            },
-            timestamp: new Date(),
-          };
-        } catch (apiError) {
-          clearInterval(progressInterval);
-          setProgress(100);
-          setCurrentStep('Completed (mock)');
-
-          console.warn('Datapizza pipeline API not available, using mock data:', apiError);
+        if (useMock) {
+          console.warn('Datapizza mock mode enabled - set DATAPIZZA_USE_MOCK=false to use real API');
 
           // Simulate pipeline execution time
           await new Promise(resolve => setTimeout(resolve, 5000));
+
+          clearInterval(progressInterval);
+          setProgress(100);
+          setCurrentStep('Completed (mock)');
 
           // Generate mock pipeline results
           const mockProcessedData = {
@@ -160,7 +97,7 @@ export function useDatapizzaPipeline() {
             errors: [],
             warnings: [
               'Using mock pipeline execution - Datapizza API not configured',
-              'Set DATAPIZZA_API_URL environment variable for real pipeline execution',
+              'Set DATAPIZZA_USE_MOCK=false and configure DATAPIZZA_BASE_URL',
             ],
             executionTime: Date.now() - startTime,
             metadata: {
@@ -171,6 +108,64 @@ export function useDatapizzaPipeline() {
             },
             timestamp: new Date(),
           };
+        }
+
+        // Use real DatapizzaClient
+        if (!client) {
+          throw new Error(
+            'DatapizzaClient not provided. Either pass a client to the hook or set DATAPIZZA_USE_MOCK=true for development.'
+          );
+        }
+
+        try {
+          const result = await client.runPipeline({
+            dataSource,
+            pipelineType: options.pipelineType || 'standard',
+            parameters: {
+              chunk_size: options.chunkSize || 1000,
+              overlap_size: options.overlapSize || 200,
+              embedding_model: options.embeddingModel || 'default',
+              vector_store: options.vectorStore || 'default',
+              skip_validation: options.skipValidation || false,
+              skip_embedding: options.skipEmbedding || false,
+            },
+          });
+
+          clearInterval(progressInterval);
+          setProgress(100);
+          setCurrentStep('Completed');
+
+          return {
+            success: result.success,
+            pipelineId: result.pipelineId,
+            dataSource,
+            processedData: {
+              recordsProcessed: 0, // API doesn't return this detail
+              chunksCreated: 0,
+              embeddingsGenerated: 0,
+              vectorStoreUpdated: true,
+            },
+            confidenceScore: result.status === 'completed' ? 1.0 : 0.5,
+            pipelineType: result.pipelineType,
+            dataDomain: 'structured',
+            errors: result.error ? [result.error] : [],
+            warnings: [],
+            executionTime: Date.now() - startTime,
+            metadata: {
+              timestamp: new Date().toISOString(),
+              processingSteps: ['validation', 'chunking', 'embedding', 'vector_storage'],
+              dataSource,
+              status: result.status,
+              startedAt: result.startedAt,
+              completedAt: result.completedAt,
+            },
+            timestamp: new Date(),
+          };
+        } catch (apiError) {
+          clearInterval(progressInterval);
+          setProgress(100);
+          setCurrentStep('Failed');
+          throw apiError;
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -201,7 +196,7 @@ export function useDatapizzaPipeline() {
         setCurrentStep('');
       }
     },
-    []
+    [client]
   );
 
   return { runPipeline, isRunning, progress, currentStep, error };

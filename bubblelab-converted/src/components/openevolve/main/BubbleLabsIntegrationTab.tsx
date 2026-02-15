@@ -172,8 +172,9 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="ace" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="workflows" className="w-full">
+        <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="ace">ACE</TabsTrigger>
           <TabsTrigger value="z3">Z3</TabsTrigger>
           <TabsTrigger value="roma">ROMA</TabsTrigger>
@@ -181,6 +182,65 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="lean">LeanAide</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="workflows" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Workflow Templates</CardTitle>
+              <CardDescription>
+                Pre-built workflows that combine multiple BubbleLabs capabilities
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded border p-3">
+                  <h4 className="font-medium">Research Assistant</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Search knowledge base, analyze results, and generate insights
+                  </p>
+                  <Badge variant="secondary">RAGBits + Datapizza</Badge>
+                </div>
+                <div className="rounded border p-3">
+                  <h4 className="font-medium">Data Analysis Pipeline</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Process raw data through ETL pipeline and generate analytics
+                  </p>
+                  <Badge variant="secondary">Datapizza + RAGBits</Badge>
+                </div>
+                <div className="rounded border p-3">
+                  <h4 className="font-medium">Proof Verification</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Verify mathematical theorems using Z3 and LeanAide
+                  </p>
+                  <Badge variant="secondary">Z3 + LeanAide</Badge>
+                </div>
+                <div className="rounded border p-3">
+                  <h4 className="font-medium">Knowledge Extraction</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Extract structured knowledge from unstructured documents
+                  </p>
+                  <Badge variant="secondary">Knowledge + RAGBits</Badge>
+                </div>
+                <div className="rounded border p-3">
+                  <h4 className="font-medium">Problem Solving</h4>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Analyze complex problems and generate solutions
+                  </p>
+                  <Badge variant="secondary">ROMA + Z3</Badge>
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  // Navigate to workflow execution tab
+                  const tabElement = document.querySelector('[value="workflow-execution"]') as HTMLElement;
+                  tabElement?.click();
+                }}
+              >
+                Open Workflow Executor
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="ace" className="mt-4 space-y-4">
           <Card>

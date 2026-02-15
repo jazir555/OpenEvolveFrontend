@@ -9,6 +9,8 @@
     "build": "tsc && vite build",
     "dev": "vite dev",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "test:contract": "vitest run src/tests/contract",
     "lint": "eslint . --ext .ts,.tsx",
     "prepare": "husky install"
   },

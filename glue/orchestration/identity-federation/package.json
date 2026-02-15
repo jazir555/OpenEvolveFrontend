@@ -1,0 +1,29 @@
+{
+  "name": "@openevolve/identity-federation",
+  "version": "1.0.0",
+  "description": "Identity federation components for OpenEvolve - OIDC, header injection, and user sync",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "identity",
+    "federation",
+    "oidc",
+    "authentication",
+    "oauth2",
+    "sso",
+    "keycloak",
+    "auth0"
+  ],
+  "author": "OpenEvolve Federation Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

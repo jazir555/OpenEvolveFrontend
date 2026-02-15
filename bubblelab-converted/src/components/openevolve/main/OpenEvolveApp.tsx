@@ -46,9 +46,11 @@ import { WorkflowLifecycleTab } from './WorkflowLifecycleTab';
 import { MakerStudioTab } from './MakerStudioTab';
 import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
 import { LeanAideTab } from './LeanAideTab';
+import { WorkflowExecutionTab } from './WorkflowExecutionTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { apiLogger } from '../../../glue/lib/structuredLogger';
+import { useBubbleLabIntegration } from '@/hooks/useBubbleLabIntegration';
 
 interface OpenEvolveAppState {
   protocolText: string;
@@ -65,6 +67,20 @@ interface OpenEvolveAppState {
 
 export const OpenEvolveApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('evolution');
+
+  // Initialize BubbleLab integration
+  const { isInitialized: integrationReady, error: integrationError } = useBubbleLabIntegration({
+    ragbits: {
+      serverUrl: process.env.NEXT_PUBLIC_RAGBITS_URL || 'http://localhost:3000/ragbits',
+      enabled: true
+    },
+    datapizza: {
+      serverUrl: process.env.NEXT_PUBLIC_DATAPIZZA_URL || 'http://localhost:3000/datapizza',
+      enabled: true
+    },
+    autoStart: true
+  });
+
   const [state, setState] = useState<OpenEvolveAppState>({
     protocolText: '# Sample Protocol\n\nThis is a sample protocol for testing purposes.',
     evolutionRunning: false,
@@ -100,6 +116,21 @@ export const OpenEvolveApp: React.FC = () => {
   const updateState = (updates: Partial<OpenEvolveAppState>) => {
     setState(prev => ({ ...prev, ...updates }));
   };
+
+  // Show loading state while integration initializes
+  if (!integrationReady) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-sm text-muted-foreground">Initializing OpenEvolve...</p>
+          {integrationError && (
+            <p className="text-sm text-red-500">Error: {integrationError.message}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -156,6 +187,7 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="maker-studio">Maker Studio</TabsTrigger>
                 <TabsTrigger value="knowledge-explorer">Knowledge Explorer</TabsTrigger>
                 <TabsTrigger value="leanaide">LeanAide</TabsTrigger>
+                <TabsTrigger value="workflow-execution">Workflow Executor</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -346,6 +378,10 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="leanaide" className="mt-6">
                 <LeanAideTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-execution" className="mt-6">
+                <WorkflowExecutionTab />
               </TabsContent>
             </Tabs>
           </div>

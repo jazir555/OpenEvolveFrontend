@@ -1,18 +1,19 @@
 // Datapizza Query Hook
 // React hook for querying data with Datapizza
 //
-// INTEGRATION STATUS: Partial Implementation
-// - Currently: Returns mock data with proper structure
-// - Required: DataPizza backend API
-// - Required: FastAPI wrapper around datapizza Python library
+// INTEGRATION STATUS: Production Implementation
+// - Uses DatapizzaClient for all API calls
+// - Follows Federation Constitution laws
+// - Configurable mock fallback for development (set DATAPIZZA_USE_MOCK=true)
 //
 // SETUP INSTRUCTIONS:
-// 1. Create a FastAPI server (see docs/DataPizza/SETUP.md)
-// 2. Configure DATAPIZZA_API_URL in environment
-// 3. Ensure API key is set if authentication is enabled
+// 1. Configure DATAPIZZA_BASE_URL in environment
+// 2. Configure DATAPIZZA_TIMEOUT_MS in environment
+// 3. Set DATAPIZZA_USE_MOCK=true for development without API
 
 import { useCallback, useState } from 'react';
 import { DatapizzaQueryResult } from '../types/plugin-types';
+import { DatapizzaClient } from '../services/DatapizzaClient';
 
 interface DatapizzaQueryOptions {
   dataSource?: string;
@@ -21,7 +22,7 @@ interface DatapizzaQueryOptions {
   includeMetadata?: boolean;
 }
 
-export function useDatapizzaQuery() {
+export function useDatapizzaQuery(client?: DatapizzaClient) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,57 +34,11 @@ export function useDatapizzaQuery() {
       const startTime = Date.now();
 
       try {
-        // Check if API URL is configured
-        const apiUrl = process.env.DATAPIZZA_API_URL || '/api/datapizza';
+        // Check if mock mode is enabled (for development)
+        const useMock = process.env.DATAPIZZA_USE_MOCK === 'true';
 
-        // Prepare request payload
-        const payload = {
-          query,
-          data_source: options.dataSource || 'default',
-          max_results: options.maxResults || 10,
-          threshold: options.threshold || 0.7,
-          include_metadata: options.includeMetadata !== false,
-        };
-
-        // Attempt to call real API
-        try {
-          const response = await fetch(`${apiUrl}/query`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(process.env.DATAPIZZA_API_KEY && {
-                'Authorization': `Bearer ${process.env.DATAPIZZA_API_KEY}`,
-              }),
-            },
-            body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(process.env.DATAPIZZA_TIMEOUT ? parseInt(process.env.DATAPIZZA_TIMEOUT) : 30000),
-          });
-
-          if (!response.ok) {
-            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-          }
-
-          const data = await response.json();
-
-          return {
-            success: true,
-            query,
-            results: data.results || [],
-            confidenceScore: data.confidence_score || 0.0,
-            processingTime: Date.now() - startTime,
-            errors: data.errors || [],
-            warnings: data.warnings || [],
-            metadata: {
-              timestamp: new Date().toISOString(),
-              queryType: data.query_type || 'semantic',
-              dataSources: [options.dataSource || 'default_source'],
-              ...data.metadata,
-            },
-            timestamp: new Date(),
-          };
-        } catch (apiError) {
-          // API not available - return enhanced mock data
-          console.warn('Datapizza API not available, using mock data:', apiError);
+        if (useMock) {
+          console.warn('Datapizza mock mode enabled - set DATAPIZZA_USE_MOCK=false to use real API');
 
           // Simulate processing delay
           await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
@@ -122,7 +77,7 @@ export function useDatapizzaQuery() {
             errors: [],
             warnings: [
               'Using mock data - Datapizza API not configured',
-              'Set DATAPIZZA_API_URL environment variable for real queries',
+              'Set DATAPIZZA_USE_MOCK=false and configure DATAPIZZA_BASE_URL',
             ],
             metadata: {
               timestamp: new Date().toISOString(),
@@ -133,6 +88,44 @@ export function useDatapizzaQuery() {
             timestamp: new Date(),
           };
         }
+
+        // Use real DatapizzaClient
+        if (!client) {
+          throw new Error(
+            'DatapizzaClient not provided. Either pass a client to the hook or set DATAPIZZA_USE_MOCK=true for development.'
+          );
+        }
+
+        const result = await client.queryData({
+          query,
+          dataSource: options.dataSource,
+          limit: options.maxResults || 10,
+          offset: 0,
+        });
+
+        // Map API response to hook format
+        return {
+          success: result.success,
+          query,
+          results: result.results.map(r => ({
+            id: r.id,
+            score: r.score,
+            data: r.data,
+          })),
+          confidenceScore: result.results.length > 0
+            ? Math.max(...result.results.map(r => r.score))
+            : 0.0,
+          processingTime: Date.now() - startTime,
+          errors: [],
+          warnings: [],
+          metadata: {
+            timestamp: new Date().toISOString(),
+            queryType: 'semantic',
+            dataSources: [options.dataSource || 'default_source'],
+            totalCount: result.totalCount,
+          },
+          timestamp: new Date(),
+        };
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
@@ -156,7 +149,7 @@ export function useDatapizzaQuery() {
         setIsLoading(false);
       }
     },
-    []
+    [client]
   );
 
   return { queryData, isLoading, error };
