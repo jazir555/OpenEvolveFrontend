@@ -11,6 +11,7 @@ import time
 import threading
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Callable, Union
+from collections import OrderedDict
 from functools import wraps
 from dataclasses import dataclass
 import sqlite3
@@ -48,13 +49,14 @@ class CacheEntry:
 
 
 class LRUCache:
-    """Simple LRU cache implementation for caching expensive operations"""
+    """
+    Optimized LRU cache implementation using OrderedDict for O(1) performance.
+    """
     
     def __init__(self, max_size: int = 1000, default_ttl: int = 3600):
         self.max_size = max_size
         self.default_ttl = default_ttl
-        self._cache: Dict[str, CacheEntry] = {}
-        self._access_order: List[str] = []  # Track access order for LRU
+        self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self._lock = threading.RLock()
     
     def get(self, key: str) -> Optional[Any]:
@@ -68,14 +70,10 @@ class LRUCache:
             # Check if expired
             if entry.is_expired():
                 del self._cache[key]
-                if key in self._access_order:
-                    self._access_order.remove(key)
                 return None
             
             # Update access order and hit count
-            if key in self._access_order:
-                self._access_order.remove(key)
-            self._access_order.append(key)
+            self._cache.move_to_end(key)
             entry.hits += 1
             
             return entry.value
@@ -83,30 +81,33 @@ class LRUCache:
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Set a value in cache with optional TTL"""
         with self._lock:
-            ttl = ttl or self.default_ttl
-            
-            # If cache is full, remove least recently used item
+            # If key already exists, update it
+            if key in self._cache:
+                self._cache.move_to_end(key)
+                entry = self._cache[key]
+                entry.value = value
+                entry.ttl = ttl or self.default_ttl
+                entry.created_at = datetime.now()
+                return
+
+            # If cache is full, remove least recently used item (first item in OrderedDict)
             if len(self._cache) >= self.max_size:
-                lru_key = self._access_order.pop(0) if self._access_order else next(iter(self._cache.keys()))
-                del self._cache[lru_key]
+                self._cache.popitem(last=False)
             
             # Create new cache entry
             entry = CacheEntry(
                 key=key,
                 value=value,
                 created_at=datetime.now(),
-                ttl=ttl
+                ttl=ttl or self.default_ttl
             )
             self._cache[key] = entry
-            self._access_order.append(key)
     
     def invalidate(self, key: str) -> bool:
         """Invalidate a specific cache entry"""
         with self._lock:
             if key in self._cache:
                 del self._cache[key]
-                if key in self._access_order:
-                    self._access_order.remove(key)
                 return True
             return False
     
@@ -114,7 +115,6 @@ class LRUCache:
         """Clear all cache entries"""
         with self._lock:
             self._cache.clear()
-            self._access_order.clear()
     
     def stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
@@ -140,6 +140,10 @@ class LLMResponseCache:
     
     def _generate_key(self, content: str, model_params: Dict[str, Any]) -> str:
         """Generate a unique cache key based on content and model parameters"""
+        # Optimization: Use a faster key generation for simple cases
+        if not model_params:
+            return hashlib.sha256(content.encode()).hexdigest()
+
         cache_input = {
             'content': content,
             'model': model_params.get('model', ''),
@@ -147,6 +151,7 @@ class LLMResponseCache:
             'max_tokens': model_params.get('max_tokens', 1000),
             'top_p': model_params.get('top_p', 1.0),
         }
+        # Use sort_keys for consistent hashing
         cache_str = json.dumps(cache_input, sort_keys=True)
         return hashlib.sha256(cache_str.encode()).hexdigest()
     
@@ -198,12 +203,14 @@ class DatabaseOptimizer:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         
-        # Optimize connection settings
+        # Optimize connection settings for performance
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
-        conn.execute("PRAGMA temp_store=memory")
-        conn.execute("PRAGMA mmap_size=268435456")  # 256MB memory mapping
+        conn.execute("PRAGMA cache_size=-128000")  # Increased to 128MB cache
+        conn.execute("PRAGMA temp_store=MEMORY")   # Use RAM for temporary storage
+        conn.execute("PRAGMA mmap_size=536870912")  # Increased to 512MB memory mapping
+        conn.execute("PRAGMA page_size=4096")
+        conn.execute("PRAGMA threads=4")
         
         return conn
     

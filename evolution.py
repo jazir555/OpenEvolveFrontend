@@ -862,8 +862,24 @@ class ContentEvaluator:
         comparisons = 0
 
         for i in range(len(population)):
+            p1 = population[i]
+            len1 = len(p1)
             for j in range(i + 1, len(population)):
-                similarity = difflib.SequenceMatcher(None, population[i], population[j]).ratio()
+                p2 = population[j]
+                len2 = len(p2)
+
+                # Performance optimization: skip expensive SequenceMatcher if strings are of
+                # vastly different lengths, as they cannot be very similar.
+                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                if len1 > 0 and len2 > 0:
+                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                    if max_possible_ratio < 0.2: # Very different lengths
+                        similarity = max_possible_ratio * 0.5 # Heuristic
+                    else:
+                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                else:
+                    similarity = 0.0
+
                 total_similarity += similarity
                 comparisons += 1
 

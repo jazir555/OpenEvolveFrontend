@@ -27,7 +27,7 @@ import os
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class FunctionProfile:
     """Profile data for a single function"""
     name: str

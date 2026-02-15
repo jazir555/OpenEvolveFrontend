@@ -6,6 +6,7 @@ Provides validation, presets, and persistence for OpenEvolve configuration
 
 import json
 import os
+import functools
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -790,12 +791,14 @@ class ParameterSchema:
             **kwargs
         )
     
+    @functools.lru_cache(maxsize=256)
     def get_parameter(self, name: str) -> Optional[Parameter]:
-        """Get parameter definition"""
+        """Get parameter definition (memoized)"""
         return self.parameters.get(name)
     
+    @functools.lru_cache(maxsize=1)
     def get_categories(self) -> List[str]:
-        """Get all parameter categories"""
+        """Get all parameter categories (memoized)"""
         return list(set(p.category for p in self.parameters.values()))
     
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
@@ -971,8 +974,14 @@ class ParameterPersistence:
 class ParameterManager:
     """Main parameter management class"""
 
+    # Static cache for schema to avoid redundant initializations
+    _cached_schema: Optional[ParameterSchema] = None
+
     def __init__(self, config_dir: str = ".openevolve"):
-        self.schema = ParameterSchema()
+        if ParameterManager._cached_schema is None:
+            ParameterManager._cached_schema = ParameterSchema()
+
+        self.schema = ParameterManager._cached_schema
         self.validator = ParameterValidator(self.schema)
         self.preset_manager = PresetManager()
         self.persistence = ParameterPersistence(config_dir)
