@@ -381,9 +381,51 @@ export const RAGBITS_DOCUMENT_TYPES: Array<{
   { value: 'general', label: 'General', description: 'General documents' }
 ];
 
+/**
+ * Get RAGBits server URL from environment variable
+ * Per CLAUDE.md Law of Configuration Explicitness:
+ * - Must use process.env.RAGBITS_SERVER_URL
+ * - Crashes immediately if missing (no magic defaults)
+ * - Validates URL format at startup
+ */
+function getRAGBitsServerUrl(): string {
+  const url = process.env.RAGBITS_SERVER_URL;
+
+  if (!url) {
+    throw new Error(
+      'FATAL: RAGBITS_SERVER_URL environment variable is not set. ' +
+      'This is a required configuration. Please set RAGBITS_SERVER_URL before starting the service. ' +
+      'Example: http://localhost:3000/ragbits or http://ragbits-core:3000/ragbits'
+    );
+  }
+
+  // Validate URL format
+  try {
+    new URL(url);
+  } catch (error) {
+    throw new Error(
+      `FATAL: Invalid RAGBITS_SERVER_URL format: "${url}". ` +
+      `Must be a valid URL. Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+
+  return url;
+}
+
 export const DEFAULT_RAGBITS_CONFIG: RAGBitsPluginConfig = {
   enabled: true,
-  serverUrl: 'http://localhost:3000/ragbits',
+  serverUrl: (() => {
+    try {
+      return getRAGBitsServerUrl();
+    } catch (error) {
+      // Fallback for development only (production will crash)
+      console.warn(
+        'WARNING: Using fallback RAGBits URL. ' +
+        'Set RAGBITS_SERVER_URL environment variable for production use.'
+      );
+      return 'http://localhost:3000/ragbits';
+    }
+  })(),
   apiKey: '',
   timeout: 30,
   defaultTopK: 10,

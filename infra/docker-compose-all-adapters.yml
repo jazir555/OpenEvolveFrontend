@@ -1,0 +1,785 @@
+# OpenEvolve Federation Complete Docker Compose Configuration
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars (NO MAGIC DEFAULTS)
+# - Service names: Use Docker service names for discovery
+# - Timeouts: All operations bounded
+# - Health checks: All services have /health endpoints
+#
+# Usage:
+#   docker-compose -f docker-compose-all-adapters.yml up -d      # Start all services
+#   docker-compose -f docker-compose-all-adapters.yml up <svc>   # Start specific service
+#   docker-compose -f docker-compose-all-adapters.yml down        # Stop all services
+#   docker-compose -f docker-compose-all-adapters.yml logs -f    # View logs
+#
+# Environment Configuration:
+#   Create a .env file in this directory with all required variables
+#   See .env.example for template
+
+version: '3.8'
+
+services:
+  # ========================================
+  # Core Infrastructure
+  # ========================================
+  event-bus:
+    image: redis:7-alpine
+    container_name: federation-event-bus
+    hostname: event-bus
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - TZ=UTC
+    networks:
+      - federation-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - redis-data:/data
+
+  # ========================================
+  # Python Adapters
+  # ========================================
+  curie-globalchem:
+    build:
+      context: ..
+      dockerfile: glue/adapters/curie-globalchem-integration/Dockerfile
+    container_name: curie-globalchem-adapter
+    hostname: curie-globalchem
+    ports:
+      - "${CURIE_GLOBALCHEM_PORT:-5000}:5000"
+    environment:
+      # REQUIRED - Service will crash if missing
+      - CURIE_GLOBALCHEM_API_URL=${CURIE_GLOBALCHEM_API_URL}
+      - CURIE_GLOBALCHEM_API_KEY=${CURIE_GLOBALCHEM_API_KEY}
+
+      # Optional with defaults
+      - CURIE_GLOBALCHEM_TIMEOUT_MS=${CURIE_GLOBALCHEM_TIMEOUT_MS:-30000}
+      - CURIE_GLOBALCHEM_MAX_RETRIES=${CURIE_GLOBALCHEM_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      # Event bus configuration
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=curie-globalchem
+
+    volumes:
+      - curie-data:/data
+      - ../glue/adapters/curie-globalchem-integration:/app/glue/adapters/curie-globalchem-integration:ro
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  lmql-dspy:
+    build:
+      context: ..
+      dockerfile: glue/adapters/lmql-dspy-integration/Dockerfile
+    container_name: lmql-dspy-adapter
+    hostname: lmql-dspy
+    ports:
+      - "${LMQL_DSPY_PORT:-5001}:5001"
+    environment:
+      # REQUIRED
+      - LMQL_DSPY_API_URL=${LMQL_DSPY_API_URL}
+      - LMQL_DSPY_API_KEY=${LMQL_DSPY_API_KEY}
+
+      # Optional
+      - LMQL_DSPY_TIMEOUT_MS=${LMQL_DSPY_TIMEOUT_MS:-30000}
+      - LMQL_DSPY_MAX_RETRIES=${LMQL_DSPY_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=lmql-dspy
+
+    volumes:
+      - lmql-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-dee:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-dee/Dockerfile
+    container_name: rese-dee-adapter
+    hostname: rese-dee
+    ports:
+      - "${RESE_DEE_PORT:-8001}:8001"
+    environment:
+      # DEE configuration
+      - EXPLORATION_DEPTH=${RESE_DEE_EXPLORATION_DEPTH:-10}
+      - MCTS_ITERATIONS=${RESE_DEE_MCTS_ITERATIONS:-1000}
+      - MCTS_EXPLORATION_CONSTANT=${RESE_DEE_MCTS_EXPLORATION_CONSTANT:-1.414}
+      - CONVERGENCE_THRESHOLD=${RESE_DEE_CONVERGENCE_THRESHOLD:-0.001}
+      - EXPLORATION_TIMEOUT_MS=${RESE_DEE_EXPLORATION_TIMEOUT_MS:-10000}
+      - MAX_HYPOTHESES=${RESE_DEE_MAX_HYPOTHESES:-100}
+      - PATTERN_RECOGNITION_THRESHOLD=${RESE_DEE_PATTERN_RECOGNITION_THRESHOLD:-0.7}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-dee
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-lltl:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-lltl/Dockerfile
+    container_name: rese-lltl-adapter
+    hostname: rese-lltl
+    ports:
+      - "${RESE_LLTDL_PORT:-8002}:8002"
+    environment:
+      # LLTL configuration
+      - LLTL_ENCODING_DIM=${RESE_LLTDL_ENCODING_DIM:-128}
+      - LLTL_USE_POSITIONAL=${RESE_LLTDL_USE_POSITIONAL:-true}
+      - LLTL_USE_TYPE_EMBEDDING=${RESE_LLTDL_USE_TYPE_EMBEDDING:-true}
+      - LLTL_USE_CATEGORY_EMBEDDING=${RESE_LLTDL_USE_CATEGORY_EMBEDDING:-true}
+      - LLTL_MAX_SEQUENCE_LENGTH=${RESE_LLTDL_MAX_SEQUENCE_LENGTH:-512}
+      - LLTL_CACHE_SIZE=${RESE_LLTDL_CACHE_SIZE:-1000}
+      - LLTL_DEFAULT_LOSS_TYPE=${RESE_LLTDL_DEFAULT_LOSS_TYPE:-mse}
+      - LLTL_COMBINATION_STRATEGY=${RESE_LLTDL_COMBINATION_STRATEGY:-weighted_sum}
+      - LLTL_NORMALIZE_WEIGHTS=${RESE_LLTDL_NORMALIZE_WEIGHTS:-true}
+      - LLTL_LEARNING_RATE=${RESE_LLTDL_LEARNING_RATE:-0.001}
+      - LLTL_TIMEOUT_MS=${RESE_LLTDL_TIMEOUT_MS:-3000}
+
+      # Advanced features
+      - LLTL_ENABLE_RTREE=${RESE_LLTDL_ENABLE_RTREE:-false}
+      - LLTL_ENABLE_LSH=${RESE_LLTDL_ENABLE_LSH:-false}
+      - LLTL_ENABLE_HAG=${RESE_LLTDL_ENABLE_HAG:-false}
+      - LLTL_CONTRADICTION_THRESHOLD=${RESE_LLTDL_CONTRADICTION_THRESHOLD:-0.8}
+      - LLTL_MAX_CONTRADICTIONS=${RESE_LLTDL_MAX_CONTRADICTIONS:-1000}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-lltl
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-phase2:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-phase2/Dockerfile
+    container_name: rese-phase2-adapter
+    hostname: rese-phase2
+    ports:
+      - "${RESE_PHASE2_PORT:-8004}:8004"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-phase2
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-phase4:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-phase4/Dockerfile
+    container_name: rese-phase4-adapter
+    hostname: rese-phase4
+    ports:
+      - "${RESE_PHASE4_PORT:-8006}:8006"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-phase4
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-verification:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-verification/Dockerfile
+    container_name: rese-verification-adapter
+    hostname: rese-verification
+    ports:
+      - "${RESE_VERIFICATION_PORT:-8007}:8007"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-verification
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-z3-bridge:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-z3-bridge/Dockerfile
+    container_name: rese-z3-bridge-adapter
+    hostname: rese-z3-bridge
+    ports:
+      - "${RESE_Z3_BRIDGE_PORT:-8008}:8008"
+    environment:
+      - Z3_SOLVER_PATH=${Z3_SOLVER_PATH:-/usr/bin/z3}
+      - Z3_TIMEOUT_MS=${Z3_TIMEOUT_MS:-30000}
+      - Z3_MAX_MEMORY_MB=${Z3_MAX_MEMORY_MB:-4096}
+      - Z3_MAX_RETRIES=${Z3_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-z3-bridge
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-leanaide-workflow:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-leanaide-workflow/Dockerfile
+    container_name: rese-leanaide-workflow-adapter
+    hostname: rese-leanaide-workflow
+    ports:
+      - "${RESE_LEANAIDE_WORKFLOW_PORT:-8009}:8009"
+    environment:
+      - LEANAIDE_API_URL=${RESE_LEANAIDE_API_URL}
+      - LEANAIDE_TIMEOUT_MS=${RESE_LEANAIDE_TIMEOUT_MS:-30000}
+      - LEANAIDE_MAX_RETRIES=${RESE_LEANAIDE_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-leanaide-workflow
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # TypeScript/Node.js Adapters
+  # ========================================
+  bubblelab:
+    build:
+      context: ..
+      dockerfile: glue/adapters/bubblelab-adapter/Dockerfile
+    container_name: bubblelab-adapter
+    hostname: bubblelab
+    ports:
+      - "${BUBBLELAB_PORT:-3001}:3001"
+    environment:
+      # REQUIRED
+      - BUBBLELAB_API_URL=${BUBBLELAB_API_URL}
+      - BUBBLELAB_API_KEY=${BUBBLELAB_API_KEY}
+
+      # Optional
+      - BUBBLELAB_TIMEOUT_MS=${BUBBLELAB_TIMEOUT_MS:-30000}
+      - BUBBLELAB_MAX_RETRIES=${BUBBLELAB_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${BUBBLELAB_PORT:-3001}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=bubblelab
+
+    volumes:
+      - bubblelab-data:/data
+      - bubblelab-logs:/var/log/bubblelab-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  graphiti:
+    build:
+      context: ..
+      dockerfile: glue/adapters/graphiti-adapter/Dockerfile
+    container_name: graphiti-adapter
+    hostname: graphiti
+    ports:
+      - "${GRAPHITI_PORT:-3000}:3000"
+    environment:
+      # REQUIRED
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+
+      # Optional
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - TIMEOUT_MS=${GRAPHITI_TIMEOUT_MS:-30000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=graphiti
+
+    volumes:
+      - graphiti-data:/data
+      - graphiti-logs:/var/log/graphiti-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  icr:
+    build:
+      context: ..
+      dockerfile: glue/adapters/icr-adapter/Dockerfile
+    container_name: icr-adapter
+    hostname: icr
+    ports:
+      - "${ICR_PORT:-3002}:3002"
+    environment:
+      # REQUIRED
+      - ICR_API_URL=${ICR_API_URL}
+      - ICR_API_KEY=${ICR_API_KEY:-}
+
+      # Optional
+      - ICR_TIMEOUT_MS=${ICR_TIMEOUT_MS:-30000}
+      - ICR_MAX_RETRIES=${ICR_MAX_RETRIES:-3}
+      - ICR_RETRY_DELAY_MS=${ICR_RETRY_DELAY_MS:-1000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${ICR_PORT:-3002}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=icr
+
+    volumes:
+      - icr-data:/data
+      - icr-logs:/var/log/icr-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  leanaide:
+    build:
+      context: ..
+      dockerfile: glue/adapters/leanaide-adapter/Dockerfile
+    container_name: leanaide-adapter
+    hostname: leanaide
+    ports:
+      - "${LEANAIDE_PORT:-3006}:3006"
+    environment:
+      # REQUIRED
+      - LEANAIDE_API_URL=${LEANAIDE_API_URL}
+
+      # Optional
+      - LEANAIDE_TIMEOUT_MS=${LEANAIDE_TIMEOUT_MS:-30000}
+      - LEANAIDE_MAX_RETRIES=${LEANAIDE_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${LEANAIDE_PORT:-3006}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=leanaide
+
+    volumes:
+      - leanaide-data:/data
+      - leanaide-logs:/var/log/leanaide-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  openevolve:
+    build:
+      context: ..
+      dockerfile: glue/adapters/openevolve-adapter/Dockerfile
+    container_name: openevolve-adapter
+    hostname: openevolve
+    ports:
+      - "${OPENEVOLVE_PORT:-3003}:3003"
+    environment:
+      # REQUIRED
+      - OPENEVOLVE_API_URL=${OPENEVOLVE_API_URL}
+      - OPENEVOLVE_API_KEY=${OPENEVOLVE_API_KEY}
+
+      # Optional
+      - OPENEVOLVE_TIMEOUT_MS=${OPENEVOLVE_TIMEOUT_MS:-30000}
+      - OPENEVOLVE_MAX_RETRIES=${OPENEVOLVE_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${OPENEVOLVE_PORT:-3003}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=openevolve
+
+    volumes:
+      - openevolve-data:/data
+      - openevolve-logs:/var/log/openevolve-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ragbits-graphiti-sync:
+    build:
+      context: ..
+      dockerfile: glue/adapters/ragbits-graphiti-sync/Dockerfile
+    container_name: ragbits-graphiti-sync-adapter
+    hostname: ragbits-graphiti-sync
+    ports:
+      - "${RAGBITS_GRAPHITI_SYNC_PORT:-3010}:3010"
+    environment:
+      # REQUIRED
+      - RAGBITS_API_URL=${RAGBITS_API_URL}
+      - GRAPHITI_API_URL=${GRAPHITI_API_URL}
+
+      # Optional
+      - SYNC_TIMEOUT_MS=${RAGBITS_GRAPHITI_SYNC_TIMEOUT_MS:-30000}
+      - SYNC_INTERVAL_MS=${RAGBITS_GRAPHITI_SYNC_INTERVAL_MS:-60000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${RAGBITS_GRAPHITI_SYNC_PORT:-3010}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=ragbits-graphiti-sync
+
+    volumes:
+      - ragbits-graphiti-sync-data:/data
+      - ragbits-graphiti-sync-logs:/var/log/ragbits-graphiti-sync-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rese-sce:
+    build:
+      context: ..
+      dockerfile: glue/adapters/rese-sce/Dockerfile
+    container_name: rese-sce-adapter
+    hostname: rese-sce
+    ports:
+      - "${RESE_SCE_PORT:-8003}:8003"
+    environment:
+      # SCE configuration
+      - SCE_CONTRADICTION_DETECTION=${RESE_SCE_CONTRADICTION_DETECTION:-true}
+      - SCE_FORMAL_VERIFICATION=${RESE_SCE_FORMAL_VERIFICATION:-true}
+      - SCE_TIMEOUT_MS=${RESE_SCE_TIMEOUT_MS:-5000}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=rese-sce
+
+    volumes:
+      - rese-data:/data
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  vectordb:
+    build:
+      context: ..
+      dockerfile: glue/adapters/vectordb-adapter/Dockerfile
+    container_name: vectordb-adapter
+    hostname: vectordb
+    ports:
+      - "${VECTORDB_PORT:-3004}:3004"
+    environment:
+      # REQUIRED
+      - VECTORDB_TYPE=${VECTORDB_TYPE}
+      - VECTORDB_API_URL=${VECTORDB_API_URL}
+      - VECTORDB_API_KEY=${VECTORDB_API_KEY}
+
+      # Optional
+      - VECTORDB_TIMEOUT_MS=${VECTORDB_TIMEOUT_MS:-30000}
+      - VECTORDB_MAX_RETRIES=${VECTORDB_MAX_RETRIES:-3}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${VECTORDB_PORT:-3004}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=vectordb
+
+    volumes:
+      - vectordb-data:/data
+      - vectordb-logs:/var/log/vectordb-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  z3:
+    build:
+      context: ..
+      dockerfile: glue/adapters/z3-adapter/Dockerfile
+    container_name: z3-adapter
+    hostname: z3
+    ports:
+      - "${Z3_PORT:-3005}:3005"
+    environment:
+      # Z3 configuration
+      - Z3_SOLVER_PATH=${Z3_SOLVER_PATH:-/usr/bin/z3}
+      - Z3_TIMEOUT_MS=${Z3_TIMEOUT_MS:-30000}
+      - Z3_MAX_MEMORY_MB=${Z3_MAX_MEMORY_MB:-4096}
+      - Z3_MAX_RETRIES=${Z3_MAX_RETRIES:-3}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - SERVICE_PORT=${Z3_PORT:-3005}
+      - TZ=UTC
+
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=z3
+
+    volumes:
+      - z3-data:/data
+      - z3-logs:/var/log/z3-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Orchestration Layer
+  # ========================================
+  # orchestrator:
+  #   build:
+  #     context: ..
+  #     dockerfile: glue/orchestration/Dockerfile
+  #   container_name: federation-orchestrator
+  #   hostname: orchestrator
+  #   ports:
+  #     - "${ORCHESTRATOR_PORT:-8080}:8080"
+  #   environment:
+  #     - PIPELINE_TIMEOUT_MS=${PIPELINE_TIMEOUT_MS:-300000}
+  #     - MAX_RETRIES=${MAX_RETRIES:-3}
+  #     - CIRCUIT_BREAKER_THRESHOLD=${CIRCUIT_BREAKER_THRESHOLD:-5}
+  #     - DLQ_MAX_SIZE=${DLQ_MAX_SIZE:-1000}
+  #     - LOG_LEVEL=${LOG_LEVEL:-INFO}
+  #     - LOG_FORMAT=${LOG_FORMAT:-json}
+  #     - TZ=UTC
+  #     - EVENT_BUS_URL=redis://event-bus:6379
+  #   volumes:
+  #     - orchestrator-data:/data
+  #   networks:
+  #     - federation-network
+  #   depends_on:
+  #     event-bus:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+  federation-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  # Infrastructure
+  redis-data:
+
+  # Adapter data volumes
+  curie-data:
+  lmql-data:
+  rese-data:
+  bubblelab-data:
+  graphiti-data:
+  icr-data:
+  leanaide-data:
+  openevolve-data:
+  ragbits-graphiti-sync-data:
+  vectordb-data:
+  z3-data:
+  orchestrator-data:
+
+  # Adapter log volumes
+  bubblelab-logs:
+  graphiti-logs:
+  icr-logs:
+  leanaide-logs:
+  openevolve-logs:
+  ragbits-graphiti-sync-logs:
+  vectordb-logs:
+  z3-logs:

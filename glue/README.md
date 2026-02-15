@@ -99,3 +99,51 @@ All logs must be JSON Lines with:
 
 **Bad:** `console.log("Error happened")`
 **Good:** `logger.error({ msg: "User Sync Failed", error: err.message, correlation_id: ctx.id, retry_count: 2 })`
+
+## Environment Configuration
+
+All environment variables are documented in the following files:
+
+- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - Complete registry of all environment variables
+- **[../.env.schema](../.env.schema)** - Schema template with all variables and defaults
+- **[lib/env-schema.ts](./lib/env-schema.ts)** - TypeScript schema for validation
+- **[lib/env-validator.ts](./lib/env-validator.ts)** - Validation library
+
+### Quick Start
+
+1. Copy the schema:
+   ```bash
+   cp .env.schema .env
+   ```
+
+2. Fill in required values (application crashes if missing):
+   - `SECRET_KEY` or `JWT_SECRET` - Generate with: `python -c "import secrets; print(secrets.token_hex(32))"`
+   - `NEO4J_PASSWORD` - If using Graphiti
+   - `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - If using LLM features
+   - All `*_API_URL` and `*_API_KEY` variables for adapters you're using
+
+3. Validate configuration (automatic on startup):
+   ```typescript
+   import { validateEnvWithTypes } from './lib/env-validator';
+   import { getSchemaForComponent } from './lib/env-schema';
+
+   const config = validateEnvWithTypes(getSchemaForComponent('graphiti'));
+   ```
+
+### Required Variables (Application Crashes if Missing)
+
+See the [complete documentation](./ENVIRONMENT_VARIABLES.md) for full details, but at minimum:
+- `SECRET_KEY` or `JWT_SECRET` - Application security key
+- Database password (if using database)
+- All `*_API_KEY` variables for services you're connecting to
+- All `*_API_URL` variables for services you're connecting to
+
+### Configuration Validation
+
+Following the **Law of Configuration Explicitness**:
+- NO magic defaults
+- All values must be explicitly set via environment variables
+- Application crashes immediately with clear error if required vars are missing
+- Type validation at startup (ports, URLs, booleans, numbers)
+
+See [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) for complete documentation.

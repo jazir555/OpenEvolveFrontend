@@ -60,7 +60,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
             <input
               type="number"
               value={config.timeout || 30}
-              onChange={(e) => setConfig({ ...config, timeout: parseInt(e.target.value) })}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                setConfig({ ...config, timeout: isNaN(value) ? 30 : value });
+              }}
               min="1"
               max="300"
             />
@@ -75,7 +78,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
             <input
               type="number"
               value={config.defaultTopK}
-              onChange={(e) => setConfig({ ...config, defaultTopK: parseInt(e.target.value) })}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                setConfig({ ...config, defaultTopK: isNaN(value) ? 10 : value });
+              }}
               min="1"
               max="100"
             />
@@ -85,7 +91,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
             <input
               type="number"
               value={config.defaultScoreThreshold}
-              onChange={(e) => setConfig({ ...config, defaultScoreThreshold: parseFloat(e.target.value) })}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                setConfig({ ...config, defaultScoreThreshold: isNaN(value) ? 0.7 : value });
+              }}
               min="0"
               max="1"
               step="0.1"
@@ -128,7 +137,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
             <input
               type="number"
               value={config.indexingBatchSize}
-              onChange={(e) => setConfig({ ...config, indexingBatchSize: parseInt(e.target.value) })}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                setConfig({ ...config, indexingBatchSize: isNaN(value) ? 100 : value });
+              }}
               min="1"
               max="1000"
             />
@@ -164,7 +176,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
                 <input
                   type="number"
                   value={config.cacheTTLSeconds}
-                  onChange={(e) => setConfig({ ...config, cacheTTLSeconds: parseInt(e.target.value) })}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setConfig({ ...config, cacheTTLSeconds: isNaN(value) ? 3600 : value });
+                  }}
                   min="60"
                   max="86400"
                 />
@@ -174,7 +189,10 @@ export const RAGBitsConfigPanel: React.FC<RAGBitsConfigPanelProps> = ({
                 <input
                   type="number"
                   value={config.maxSearchTime}
-                  onChange={(e) => setConfig({ ...config, maxSearchTime: parseInt(e.target.value) })}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setConfig({ ...config, maxSearchTime: isNaN(value) ? 15 : value });
+                  }}
                   min="1"
                   max="300"
                 />

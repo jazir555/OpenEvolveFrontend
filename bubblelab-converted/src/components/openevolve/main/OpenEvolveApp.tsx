@@ -48,6 +48,7 @@ import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
 import { LeanAideTab } from './LeanAideTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { apiLogger } from '../../../glue/lib/structuredLogger';
 
 interface OpenEvolveAppState {
   protocolText: string;
@@ -83,7 +84,10 @@ export const OpenEvolveApp: React.FC = () => {
       try {
         setState(JSON.parse(savedState));
       } catch (e) {
-        console.error('Failed to parse saved state', e);
+        apiLogger.error('Failed to parse saved state', e as Error, {
+          component: 'OpenEvolveApp',
+          action: 'initialize_state'
+        });
       }
     }
   }, []);

@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import type { RAGBitsSearchPanelProps } from '../types/plugin-types';
+import { useRAGBitsPlugin } from '../utils/createRAGBitsPlugin';
+import { ragbitsLogger } from '../../../glue/lib/structuredLogger';
 
 export const RAGBitsSearchPanel: React.FC<RAGBitsSearchPanelProps> = ({
   initialQuery = '',
@@ -17,6 +19,8 @@ export const RAGBitsSearchPanel: React.FC<RAGBitsSearchPanelProps> = ({
   const [enableReranking, setEnableReranking] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
+  const plugin = useRAGBitsPlugin();
+
   const handleSearch = async () => {
     if (!query.trim()) {
       return;
@@ -24,28 +28,41 @@ export const RAGBitsSearchPanel: React.FC<RAGBitsSearchPanelProps> = ({
 
     setIsSearching(true);
 
+    const correlationId = `search-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     try {
-      // This would typically call the plugin's search method
-      const result = {
-        success: true,
+      ragbitsLogger.info('Starting RAGBits search', {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        target_service: 'ragbits-server',
+        query_length: query.length,
+        top_k: topK,
+        score_threshold: scoreThreshold
+      });
+
+      // Call the plugin's search method
+      const result = await plugin.search({
         query,
-        results: [],
-        totalResults: 0,
-        executionTime: 0,
-        metadata: {
-          searchType: enableHybridSearch ? 'hybrid' : 'semantic',
-          vectorStoreUsed: 'unknown',
-          rerankingApplied: enableReranking,
-          cacheHit: false
-        },
-        errors: [],
-        warnings: [],
-        timestamp: new Date()
-      };
+        topK,
+        scoreThreshold,
+        enableHybridSearch,
+        enableReranking
+      });
+
+      ragbitsLogger.info('RAGBits search completed successfully', {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        results_count: result.results.length,
+        execution_time: result.executionTime
+      });
 
       onResult(result);
     } catch (error) {
-      console.error('Search failed:', error);
+      ragbitsLogger.error('RAGBits search failed', error as Error, {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        query_length: query.length
+      });
     } finally {
       setIsSearching(false);
     }

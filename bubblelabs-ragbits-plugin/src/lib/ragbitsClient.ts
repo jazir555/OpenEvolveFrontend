@@ -1,5 +1,8 @@
 // RAGBits Client
 // Handles HTTP communication with the RAGBits server
+// Updated with structured logging, validation, and proper error handling
+
+import { ragbitsLogger, LogContext } from '../../../glue/lib/structuredLogger';
 
 export interface RagbitsClientConfig {
   serverUrl: string;
@@ -9,9 +12,11 @@ export interface RagbitsClientConfig {
 
 export class RagbitsClient {
   private config: RagbitsClientConfig;
+  private correlationId: string;
 
   constructor(config: RagbitsClientConfig) {
     this.config = config;
+    this.correlationId = `ragbits-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
@@ -19,19 +24,44 @@ export class RagbitsClient {
    */
   configure(config: Partial<RagbitsClientConfig>): void {
     this.config = { ...this.config, ...config };
+    ragbitsLogger.info('RAGBits client configuration updated', {
+      correlation_id: this.correlationId,
+      target_service: 'ragbits',
+      has_api_key: !!this.config.apiKey
+    });
   }
 
   /**
    * Test connection to RAGBits server
    */
   async testConnection(): Promise<boolean> {
+    const context: LogContext = {
+      correlation_id: this.correlationId,
+      source_service: 'ragbits-plugin',
+      target_service: 'ragbits-server',
+      operation: 'test_connection'
+    };
+
     try {
+      ragbitsLogger.info('Testing RAGBits connection', context);
+
       const response = await this.fetch('/health', {
         method: 'GET',
       });
+
+      if (response.ok) {
+        ragbitsLogger.info('RAGBits connection successful', context);
+      } else {
+        ragbitsLogger.warn('RAGBits connection failed', {
+          ...context,
+          status: response.status,
+          status_text: response.statusText
+        });
+      }
+
       return response.ok;
     } catch (error) {
-      console.error('RAGBits connection test failed:', error);
+      ragbitsLogger.error('RAGBits connection test failed', error as Error, context);
       return false;
     }
   }
@@ -47,19 +77,46 @@ export class RagbitsClient {
     enableHybridSearch?: boolean;
     enableReranking?: boolean;
   }): Promise<any> {
-    const response = await this.fetch('/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
+    const context: LogContext = {
+      correlation_id: this.correlationId,
+      source_service: 'ragbits-plugin',
+      target_service: 'ragbits-server',
+      operation: 'search',
+      query_length: request.query?.length
+    };
 
-    if (!response.ok) {
-      throw new Error(`Search failed: ${response.statusText}`);
+    try {
+      ragbitsLogger.info('Executing RAGBits search', context);
+
+      const response = await this.fetch('/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        ragbitsLogger.error('RAGBits search failed', new Error(errorText), {
+          ...context,
+          status: response.status,
+          status_text: response.statusText
+        });
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      ragbitsLogger.info('RAGBits search successful', {
+        ...context,
+        result_count: result.results?.length || 0
+      });
+
+      return result;
+    } catch (error) {
+      ragbitsLogger.error('RAGBits search error', error as Error, context);
+      throw error;
     }
-
-    return response.json();
   }
 
   /**

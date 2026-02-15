@@ -72,7 +72,7 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
 
   // Create client and service instances
   const client = new RagbitsClient({
-    baseUrl: config.serverUrl,
+    serverUrl: config.serverUrl,
     apiKey: config.apiKey,
     timeout: config.timeout
   });
@@ -104,7 +104,7 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
 
         // Initialize client with updated config
         client.configure({
-          baseUrl: config.serverUrl,
+          serverUrl: config.serverUrl,
           apiKey: config.apiKey,
           timeout: config.timeout
         });
@@ -133,7 +133,7 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
 
         // Update client configuration
         client.configure({
-          baseUrl: config.serverUrl,
+          serverUrl: config.serverUrl,
           apiKey: config.apiKey,
           timeout: config.timeout
         });
@@ -151,7 +151,7 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
       Object.assign(state, DEFAULT_RAGBITS_CONFIG);
 
       client.configure({
-        baseUrl: config.serverUrl,
+        serverUrl: config.serverUrl,
         apiKey: config.apiKey,
         timeout: config.timeout
       });

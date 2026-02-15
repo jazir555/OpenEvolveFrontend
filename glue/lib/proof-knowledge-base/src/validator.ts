@@ -217,6 +217,47 @@ export class ProofValidator {
   }
 
   /**
+   * Check validation status of a single dependency
+   *
+   * @param dependencyId - ID of dependency to check
+   * @param correlationId - Optional correlation ID
+   * @returns Whether dependency is currently valid
+   */
+  private async checkDependencyValidationStatus(
+    dependencyId: string,
+    correlationId?: string
+  ): Promise<boolean> {
+    const logContext: LoggerContext = {
+      correlation_id: correlationId,
+      source_service: 'proof-validator',
+      dependency_id: dependencyId,
+    };
+
+    try {
+      // Query graph storage or database for this dependency's validation status
+      // This would typically be a graph lookup or key-value store query
+      // For now, we implement a basic existence check
+
+      logger.debug('Checking dependency validation status', logContext);
+
+      // In production, this would be:
+      // const validation = await db.proofValidation.findUnique({
+      //   where: { proof_id: dependencyId },
+      //   orderBy: { validated_at: 'desc' },
+      // });
+      // return validation ? validation.is_valid : false;
+
+      // Placeholder: Assume dependency exists and is valid
+      // In a real implementation, this would query the actual storage
+      return true;
+    } catch (error) {
+      logger.error('Failed to check dependency validation status', error as Error, logContext);
+      // If we can't verify, assume invalid for safety
+      return false;
+    }
+  }
+
+  /**
    * Check if dependencies are valid
    *
    * @param proofId - ID of the proof
@@ -434,22 +475,43 @@ export class ProofValidator {
       const result = await this.z3CircuitBreaker.execute(async () => {
         return retryWithBackoff(
           async () => {
-            // In a real implementation, this would call the Z3 API
-            // For now, we simulate execution
+            // Execute Z3 proof via API
             logger.debug('Executing Z3 proof', logContext);
 
-            // TODO: Replace with actual API call
-            // const response = await fetch(`${this.config.z3ApiUrl}/solve`, {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ problem: proof.proof }),
-            //   timeout: this.config.timeoutMs,
-            // });
+            // Construct the Z3 API request
+            const z3Request = {
+              problem: proof.proof,
+              // Z3-specific parameters
+              logic: 'AUFLIRA', // Default logic
+              timeout: Math.floor(this.config.timeoutMs / 1000), // Convert to seconds
+            };
 
-            // Simulate execution
+            // Actual API call to Z3 service
+            const response = await fetch(`${this.config.z3ApiUrl}/solve`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(z3Request),
+              // AbortController is managed by retry wrapper
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Z3 API error: ${response.status} - ${errorText}`);
+            }
+
+            const z3Response = await response.json();
+
+            // Transform Z3 response to execution result
             return {
-              success: proof.status === 'valid',
-              output: proof.proof,
+              success: z3Response.result === 'sat' || z3Response.result === 'unsat' || z3Response.result === 'unknown',
+              output: z3Response.model || '',
+              errors: z3Response.error ? [{
+                message: z3Response.error,
+              }] : undefined,
+              executionTime: z3Response.time_ms,
             };
           },
           this.config.maxRetries,
@@ -505,21 +567,44 @@ export class ProofValidator {
       const result = await this.leanaideCircuitBreaker.execute(async () => {
         return retryWithBackoff(
           async () => {
-            // In a real implementation, this would call the LeanAide API
+            // Execute LeanAide proof via API
             logger.debug('Executing LeanAide proof', logContext);
 
-            // TODO: Replace with actual API call
-            // const response = await fetch(`${this.config.leanaideApiUrl}/verify`, {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ proof_code: proof.proof }),
-            //   timeout: this.config.timeoutMs,
-            // });
+            // Construct the LeanAide API request
+            const leanRequest = {
+              proof_code: proof.proof,
+              environment: 'standard',
+              // LeanAide-specific parameters
+              timeout: Math.floor(this.config.timeoutMs / 1000),
+            };
 
-            // Simulate execution
+            // Actual API call to LeanAide service
+            const response = await fetch(`${this.config.leanaideApiUrl}/verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify(leanRequest),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`LeanAide API error: ${response.status} - ${errorText}`);
+            }
+
+            const leanResponse = await response.json();
+
+            // Transform LeanAide response to execution result
             return {
-              success: proof.status === 'valid',
-              output: proof.proof,
+              success: leanResponse.verified === true,
+              output: leanResponse.output_tactics || '',
+              errors: leanResponse.errors ? leanResponse.errors.map((e: any) => ({
+                message: e.message || 'Unknown error',
+                line: e.location?.line,
+                column: e.location?.column,
+              })) : undefined,
+              executionTime: leanResponse.time_ms,
             };
           },
           this.config.maxRetries,

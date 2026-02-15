@@ -1,0 +1,136 @@
+# Docker Compose Configuration for Auth Sidecar
+#
+# Following CLAUDE.md Federation Constitution:
+# - Law of Configuration Explicitness: All values via environment variables
+# - Service names used for discovery
+# - Network isolation with shared network
+
+version: '3.8'
+
+services:
+  # Auth Sidecar - OAuth2-Proxy
+  # This sidecar sits in front of core projects to provide centralized authentication
+  auth-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openevolve/auth-sidecar:latest
+    container_name: auth-sidecar
+    restart: unless-stopped
+
+    # Environment variables (Law of Configuration Explicitness)
+    environment:
+      # OIDC Provider Configuration (REQUIRED)
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      OIDC_AUTHORIZATION_ENDPOINT: ${OIDC_AUTHORIZATION_ENDPOINT}
+      OIDC_TOKEN_ENDPOINT: ${OIDC_TOKEN_ENDPOINT}
+      OIDC_JWKS_URI: ${OIDC_JWKS_URI}
+      OIDC_USERINFO_ENDPOINT: ${OIDC_USERINFO_ENDPOINT}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+      OIDC_CALLBACK_URL: ${OIDC_CALLBACK_URL}
+      OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
+
+      # Cookie Configuration
+      COOKIE_NAME: ${COOKIE_NAME:-_oauth2_proxy}
+      COOKIE_SECRET: ${COOKIE_SECRET:?FATAL: COOKIE_SECRET not set}
+      COOKIE_EXPIRE: ${COOKIE_EXPIRE:-168h}
+      COOKIE_REFRESH: ${COOKIE_REFRESH:-1h}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COOKIE_HTTPONLY: ${COOKIE_HTTPONLY:-true}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+      COOKIE_DOMAINS: ${COOKIE_DOMAINS:-.openevolve.local}
+
+      # Session Configuration
+      SESSION_MINIMAL: ${SESSION_MINIMAL:-false}
+
+      # Upstream Configuration (the protected service)
+      UPSTREAM_SERVICE: ${UPSTREAM_SERVICE}
+      UPSTREAM_PORT: ${UPSTREAM_PORT}
+
+      # Server Configuration
+      OAUTH2_PROXY_PORT: ${OAUTH2_PROXY_PORT:-4180}
+      METRICS_PORT: ${METRICS_PORT:-4181}
+
+      # Header Injection (X-Remote-User strategy)
+      PASS_ACCESS_TOKEN: ${PASS_ACCESS_TOKEN:-true}
+      PASS_AUTHORIZATION_HEADER: ${PASS_AUTHORIZATION_HEADER:-true}
+      PASS_USER_HEADERS: ${PASS_USER_HEADERS:-true}
+      SET_XAUTHREQUEST: ${SET_XAUTHREQUEST:-true}
+
+      # Skip auth for health checks
+      # Add paths that should bypass authentication
+
+      # SSL Configuration
+      SSL_INSECURE_SKIP_VERIFY: ${SSL_INSECURE_SKIP_VERIFY:-false}
+
+      # Timeout Configuration (Law of Configuration Explicitness)
+      REQUEST_TIMEOUT: ${REQUEST_TIMEOUT:-30s}
+
+      # Logging Configuration
+      STANDARD_LOGGING: "true"
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      REQUEST_LOGGING: ${REQUEST_LOGGING:-true}
+      AUTH_LOGGING: ${AUTH_LOGGING:-true}
+
+      # Force HTTPS
+      FORCE_HTTPS: ${FORCE_HTTPS:-true}
+
+      # Metrics
+      METRICS_ENABLED: ${METRICS_ENABLED:-true}
+
+      # Banner/Footer (optional)
+      BANNER_MESSAGE: ${BANNER_MESSAGE:-}
+      FOOTER_MESSAGE: ${FOOTER_MESSAGE:-}
+
+    # Ports
+    ports:
+      - "${OAUTH2_PROXY_PORT:-4180}:4180"  # Main proxy port
+      - "${METRICS_PORT:-4181}:4181"        # Metrics port
+
+    # Networks (shared with core projects)
+    networks:
+      - federation-network
+
+    # Health check (Law of Runtime Truth)
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/health-check.sh"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Example: Core project behind auth sidecar
+  # This shows how to connect a core project to the auth sidecar
+  # example-core-project:
+  #   image: openevolve/example-core:latest
+  #   container_name: example-core-project
+  #   restart: unless-stopped
+  #   environment:
+  #     # Core project configuration
+  #     APP_PORT: 8080
+  #   networks:
+  #     - federation-network
+  #   # No exposed ports - accessible only through auth sidecar
+  #   depends_on:
+  #     auth-sidecar:
+  #       condition: service_healthy
+
+networks:
+  federation-network:
+    driver: bridge
+    name: openevolve-federation
+
+volumes:
+  # Persistent volumes if needed
+  auth-sidecar-data:

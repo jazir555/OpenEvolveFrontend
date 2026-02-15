@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { apiLogger } from '../../../glue/lib/structuredLogger';
 
 type GithubUser = {
   login: string;
@@ -38,7 +39,10 @@ type CommitEntry = {
   url?: string;
 };
 
-const GITHUB_API_BASE = "https://api.github.com";
+// Law of Configuration Explicitness: API base from environment
+const GITHUB_API_BASE = typeof process !== 'undefined' && process.env?.GITHUB_API_BASE
+  ? process.env.GITHUB_API_BASE
+  : "https://api.github.com";
 
 const readStorage = <T,>(key: string, fallback: T): T => {
   try {
@@ -55,8 +59,11 @@ const readStorage = <T,>(key: string, fallback: T): T => {
 const writeStorage = (key: string, value: unknown) => {
   try {
     globalThis.localStorage?.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore storage errors
+  } catch (error) {
+    apiLogger.warn('Failed to write to localStorage', {
+      key,
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 };
 
@@ -135,30 +142,47 @@ const GithubIntegrationTab: React.FC = () => {
     if (!token) {
       throw new Error("GitHub token is required.");
     }
-    const response = await fetch(`${GITHUB_API_BASE}${path}`, {
-      ...options,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(options.headers ?? {}),
-      },
-    });
-    const text = await response.text();
-    let data: any = text;
+
+    // MANDATORY: All HTTP requests must have a timeout (Law 3.2)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = text;
-    }
-    if (!response.ok) {
-      const error = new Error(
-        data?.message || `GitHub request failed (${response.status})`,
-      ) as Error & { status?: number };
-      error.status = response.status;
+      const response = await fetch(`${GITHUB_API_BASE}${path}`, {
+        ...options,
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          ...(options.headers ?? {}),
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const text = await response.text();
+      let data: any = text;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = text;
+      }
+      if (!response.ok) {
+        const error = new Error(
+          data?.message || `GitHub request failed (${response.status})`,
+        ) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('GitHub API request timeout after 30 seconds');
+      }
       throw error;
     }
-    return data;
   };
 
   const authenticate = async () => {
@@ -331,8 +355,10 @@ const GithubIntegrationTab: React.FC = () => {
                   setToken(value);
                   try {
                     globalThis.localStorage?.setItem("openevolve_github_token", value);
-                  } catch {
-                    // ignore storage errors
+                  } catch (error) {
+                    apiLogger.warn('Failed to persist GitHub token to localStorage', {
+                      error: error instanceof Error ? error.message : String(error)
+                    });
                   }
                 }}
                 placeholder="ghp_..."

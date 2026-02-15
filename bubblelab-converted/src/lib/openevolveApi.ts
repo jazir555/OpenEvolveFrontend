@@ -92,12 +92,41 @@ import type {
   AdversarialRunListResponse,
 } from "./types";
 
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
+import { retryWithBackoff, RetryConfig } from '../../../glue/lib/retry';
+import { CircuitBreaker, CircuitState } from '../../../glue/lib/circuit-breaker';
+
 export interface ApiConfig {
   baseUrl?: string;
   apiKey?: string;
+  timeout?: number; // MANDATORY per Law of Configuration Explicitness
 }
 
-const resolveBaseUrl = (override?: string) => {
+// Correlation ID generator for request tracking
+const generateCorrelationId = (): string => {
+  return `api-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Default timeout - no magic defaults, but using process.env if available
+const DEFAULT_TIMEOUT = typeof process !== 'undefined' && process.env?.DEFAULT_REQUEST_TIMEOUT
+  ? parseInt(process.env.DEFAULT_REQUEST_TIMEOUT, 10)
+  : 30000;
+
+// Create circuit breaker for OpenEvolve API calls
+const openevolveCircuitBreaker = new CircuitBreaker({
+  threshold: 5,           // Trip after 5 consecutive failures
+  timeout_ms: 60000,      // Stay open for 1 minute
+  reset_timeout_ms: 10000, // Test recovery after 10 seconds
+  onStateChange: (oldState, newState) => {
+    apiLogger.warn('Circuit breaker state changed', {
+      old_state: oldState,
+      new_state: newState,
+      target_service: 'openevolve-api'
+    });
+  }
+});
+
+const resolveBaseUrl = (override?: string): string => {
   if (override) {
     return override;
   }
@@ -110,13 +139,21 @@ const resolveBaseUrl = (override?: string) => {
     if (stored) {
       return stored;
     }
-  } catch (_) {
-    // ignore storage errors
+  } catch (error) {
+    apiLogger.warn('Failed to access localStorage for api_base', {
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
-  return "";
+
+  // Law of Configuration Explicitness: No magic defaults
+  // If no baseUrl is found, this will fail loudly
+  throw new Error(
+    'OpenEvolve API base URL not configured. ' +
+    'Set OPENEVOLVE_API_BASE environment variable or provide via config.'
+  );
 };
 
-const resolveApiKey = (override?: string) => {
+const resolveApiKey = (override?: string): string => {
   if (override) {
     return override;
   }
@@ -125,18 +162,29 @@ const resolveApiKey = (override?: string) => {
     if (stored) {
       return stored;
     }
-  } catch (_) {
-    // ignore storage errors
+  } catch (error) {
+    apiLogger.warn('Failed to access localStorage for api_key', {
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
-  return "";
+
+  // Law of Configuration Explicitness: No magic defaults
+  throw new Error(
+    'OpenEvolve API key not configured. ' +
+    'Set OPENEVOLVE_API_KEY environment variable or provide via config.'
+  );
 };
 
-const buildHeaders = (apiKey?: string) => {
+const buildHeaders = (apiKey?: string, correlationId?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
   if (apiKey) {
     headers["X-API-Key"] = apiKey;
+  }
+  // Add correlation ID header for distributed tracing
+  if (correlationId) {
+    headers["X-Correlation-ID"] = correlationId;
   }
   return headers;
 };
@@ -169,21 +217,96 @@ async function request<T>(
   options: RequestInit = {},
   config: ApiConfig = {},
 ): Promise<T> {
-  const baseUrl = resolveBaseUrl(config.baseUrl);
-  const apiKey = resolveApiKey(config.apiKey);
-  const url = `${baseUrl}${path}`;
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...buildHeaders(apiKey),
-      ...(options.headers || {}),
-    },
+  const correlationId = generateCorrelationId();
+  const context: LogContext = {
+    correlation_id: correlationId,
+    source_service: 'frontend',
+    target_service: 'openevolve-api',
+    path
+  };
+
+  const startTime = Date.now();
+
+  // Retry configuration - Law of Configuration Explicitness
+  const retryConfig: RetryConfig = {
+    max_retries: typeof process !== 'undefined' && process.env?.MAX_RETRIES
+      ? parseInt(process.env.MAX_RETRIES, 10)
+      : 3
+  };
+
+  // Wrap with circuit breaker and retry logic
+  return openevolveCircuitBreaker.execute(async () => {
+    return retryWithBackoff(async () => {
+      try {
+        const baseUrl = resolveBaseUrl(config.baseUrl);
+        const apiKey = resolveApiKey(config.apiKey);
+        const timeout = config.timeout || DEFAULT_TIMEOUT;
+
+        const url = `${baseUrl}${path}`;
+
+        apiLogger.info('API request initiated', {
+          ...context,
+          method: options.method || 'GET',
+          timeout
+        });
+
+        // Create abort controller for timeout - MANDATORY per Law 3.2
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+          const response = await fetch(url, {
+            ...options,
+            headers: {
+              ...buildHeaders(apiKey, correlationId),
+              ...(options.headers || {}),
+            },
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          const duration = Date.now() - startTime;
+
+          if (!response.ok) {
+            const text = await response.text();
+            apiLogger.error('API request failed', new Error(text), {
+              ...context,
+              status: response.status,
+              status_text: response.statusText,
+              duration_ms: duration
+            });
+            throw new Error(text || `Request failed with status ${response.status}`);
+          }
+
+          apiLogger.info('API request successful', {
+            ...context,
+            status: response.status,
+            duration_ms: duration
+          });
+
+          return response.json() as Promise<T>;
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            apiLogger.error('API request timeout', new Error(`Request exceeded ${timeout}ms`), context);
+            throw new Error(`Request timeout after ${timeout}ms`);
+          }
+
+          throw fetchError;
+        }
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        apiLogger.error('API request error', error as Error, {
+          ...context,
+          duration_ms: duration,
+          error_type: error instanceof Error ? error.constructor.name : 'Unknown'
+        });
+        throw error;
+      }
+    }, retryConfig);
   });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed with status ${response.status}`);
-  }
-  return response.json() as Promise<T>;
 }
 
 export const openevolveApi = {

@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Upload, FileText } from 'lucide-react';
 import type { RAGBitsIngestPanelProps } from '../types/plugin-types';
+import { useRAGBitsPlugin } from '../utils/createRAGBitsPlugin';
+import { ragbitsLogger } from '../../../glue/lib/structuredLogger';
 
 export const RAGBitsIngestPanel: React.FC<RAGBitsIngestPanelProps> = ({
   onSuccess,
@@ -17,6 +19,8 @@ export const RAGBitsIngestPanel: React.FC<RAGBitsIngestPanelProps> = ({
   const [tags, setTags] = useState('');
   const [isIngesting, setIsIngesting] = useState(false);
 
+  const plugin = useRAGBitsPlugin();
+
   const handleIngest = async () => {
     if (!content.trim()) {
       return;
@@ -24,17 +28,39 @@ export const RAGBitsIngestPanel: React.FC<RAGBitsIngestPanelProps> = ({
 
     setIsIngesting(true);
 
+    const correlationId = `ingest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
     try {
-      // This would typically call the plugin's ingest method
-      const response = {
-        success: true,
-        documentId: `doc-${Date.now()}`,
-        message: 'Document ingested successfully',
-        executionTime: 0.5,
-        errors: [],
-        warnings: [],
-        timestamp: new Date()
+      ragbitsLogger.info('Starting RAGBits ingest', {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        target_service: 'ragbits-server',
+        document_type: documentType,
+        content_length: content.length
+      });
+
+      // Prepare metadata
+      const metadata: Record<string, any> = {
+        documentType
       };
+
+      if (source) metadata.source = source;
+      if (stage) metadata.stage = stage;
+      if (team) metadata.team = team;
+      if (tags) metadata.tags = tags.split(',').map(t => t.trim()).filter(t => t);
+
+      // Call the plugin's ingest method
+      const response = await plugin.ingest({
+        content,
+        metadata
+      });
+
+      ragbitsLogger.info('RAGBits ingest completed successfully', {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        document_id: response.documentId,
+        execution_time: response.executionTime
+      });
 
       onSuccess(response);
       setContent('');
@@ -43,7 +69,11 @@ export const RAGBitsIngestPanel: React.FC<RAGBitsIngestPanelProps> = ({
       setTeam('');
       setTags('');
     } catch (error) {
-      console.error('Ingest failed:', error);
+      ragbitsLogger.error('RAGBits ingest failed', error as Error, {
+        correlation_id: correlationId,
+        source_service: 'ragbits-plugin',
+        document_type: documentType
+      });
     } finally {
       setIsIngesting(false);
     }
