@@ -16,9 +16,9 @@
  * - search.executed: Search has been executed
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
-import { eventBus as defaultEventBus, type EventBus } from '../../../glue/orchestration/event-bus';
-import type { Event, EventSubscription } from '../../../glue/orchestration/event-types';
+import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
+import { eventBus as defaultEventBus, type EventBus } from '../../../../orchestration/event-bus';
+import type { Event, EventSubscription } from '../../../../orchestration/event-types';
 import type { PluginInterface } from './plugin-registry';
 import type { WorkflowDefinition, WorkflowExecutionResult } from './workflow-orchestrator';
 
@@ -289,52 +289,61 @@ class PluginEventIntegration {
   setupCrossPluginHandlers(): void {
     // When knowledge is indexed, notify search plugins to refresh
     this.eventBus.subscribe('knowledge.indexed', async (event) => {
+        const eventData = this.asEventData(event);
         apiLogger.info('Knowledge indexed, notifying search plugins', {
           ...this.correlationContext,
-          document_id: event.data.documentId
+          document_id: eventData.documentId
         });
 
         // Publish refresh event for search plugins
         await this.eventBus.publish(
           this.buildEvent('search.refresh', 'plugin-event-integration', {
-            documentId: event.data.documentId,
-            documentType: event.data.documentType,
+            documentId: eventData.documentId,
+            documentType: eventData.documentType,
           }),
         );
       });
 
     // When data is processed, trigger analytics
     this.eventBus.subscribe('data.processed', async (event) => {
+        const eventData = this.asEventData(event);
         apiLogger.info('Data processed, triggering analytics', {
           ...this.correlationContext,
-          processing_type: event.data.processingType
+          processing_type: eventData.processingType
         });
 
         // Publish analytics event
         await this.eventBus.publish(
           this.buildEvent('analytics.track', 'plugin-event-integration', {
-            processingType: event.data.processingType,
-            inputSize: event.data.inputSize,
-            outputSize: event.data.outputSize,
-            duration: event.data.duration,
+            processingType: eventData.processingType,
+            inputSize: eventData.inputSize,
+            outputSize: eventData.outputSize,
+            duration: eventData.duration,
           }),
         );
       });
 
     // When workflow fails, trigger alert
     this.eventBus.subscribe('workflow.failed', async (event) => {
+        const eventData = this.asEventData(event);
+        const workflowId =
+          typeof eventData.workflowId === 'string' ? eventData.workflowId : 'unknown';
+        const executionId =
+          typeof eventData.executionId === 'string' ? eventData.executionId : 'unknown';
+        const errorMessage =
+          typeof eventData.error === 'string' ? eventData.error : String(eventData.error ?? 'Unknown error');
         apiLogger.warn('Workflow failed, triggering alert', {
           ...this.correlationContext,
-          workflow_id: event.data.workflowId,
-          execution_id: event.data.executionId
+          workflow_id: workflowId,
+          execution_id: executionId
         });
 
         // Publish alert event
         await this.eventBus.publish(
           this.buildEvent('alert.workflow', 'plugin-event-integration', {
-            workflowId: event.data.workflowId,
-            executionId: event.data.executionId,
-            error: event.data.error,
+            workflowId,
+            executionId,
+            error: errorMessage,
             severity: 'high',
           }),
         );
@@ -397,6 +406,13 @@ class PluginEventIntegration {
       data,
       metadata: {},
     } as Event;
+  }
+
+  private asEventData(event: Event): Record<string, unknown> {
+    if (event.data && typeof event.data === 'object') {
+      return event.data as Record<string, unknown>;
+    }
+    return {};
   }
 }
 

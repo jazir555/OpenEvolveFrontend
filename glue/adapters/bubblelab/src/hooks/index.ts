@@ -12,6 +12,6 @@ export {
 } from './useBubbleLabIntegration';
 
 export type {
-  BubbleLabIntegrationConfig,
   UseBubbleLabIntegrationResult
 } from './useBubbleLabIntegration';
+export type { BubbleLabIntegrationConfig } from '../lib/plugin-integration';

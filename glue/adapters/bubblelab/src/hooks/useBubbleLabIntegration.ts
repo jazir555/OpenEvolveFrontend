@@ -6,23 +6,12 @@
  */
 
 import { useEffect, useState } from 'react';
-import { initializeBubbleLabIntegration, getBubbleLabIntegration } from '../../../orchestration/workflow-system/plugin-integration';
-import type { BubbleLabIntegration } from '../../../orchestration/workflow-system/plugin-integration';
-
-export interface BubbleLabIntegrationConfig {
-  ragbits?: {
-    serverUrl: string;
-    apiKey?: string;
-    enabled?: boolean;
-  };
-  datapizza?: {
-    serverUrl: string;
-    apiKey?: string;
-    enabled?: boolean;
-  };
-  autoStart?: boolean;
-  healthCheckInterval?: number;
-}
+import {
+  initializeBubbleLabIntegration,
+  getBubbleLabIntegration,
+  type BubbleLabIntegration,
+  type BubbleLabIntegrationConfig
+} from '../lib/plugin-integration';
 
 export interface UseBubbleLabIntegrationResult {
   integration: BubbleLabIntegration | null;

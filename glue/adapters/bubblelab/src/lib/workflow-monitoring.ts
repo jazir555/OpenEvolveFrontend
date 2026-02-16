@@ -5,7 +5,7 @@
  * Provides observability into workflow performance and failures.
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
+import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
 import type { WorkflowDefinition, WorkflowExecutionResult, WorkflowContext } from './workflow-orchestrator';
 
 export interface WorkflowMetrics {
@@ -68,7 +68,7 @@ class WorkflowMonitor {
     };
 
     // Load existing metrics from localStorage
-    if (this.config.persistToLocalStorage) {
+    if (this.config.persistToLocalStorage && this.hasLocalStorage()) {
       this.loadFromStorage();
     }
 
@@ -82,7 +82,8 @@ class WorkflowMonitor {
    * Record workflow start
    */
   recordWorkflowStart(context: WorkflowContext): void {
-    if (!this.config.enabled || Math.random() > this.config.sampleRate) {
+    const sampleRate = this.config.sampleRate ?? 1;
+    if (!this.config.enabled || Math.random() > sampleRate) {
       return;
     }
 
@@ -146,7 +147,7 @@ class WorkflowMonitor {
     this.enforceHistorySize();
 
     // Persist to storage
-    if (this.config.persistToLocalStorage) {
+    if (this.config.persistToLocalStorage && this.hasLocalStorage()) {
       this.saveToStorage();
     }
 
@@ -371,7 +372,7 @@ class WorkflowMonitor {
       }
     }
 
-    if (this.config.persistToLocalStorage) {
+    if (this.config.persistToLocalStorage && this.hasLocalStorage()) {
       this.saveToStorage();
     }
 
@@ -388,7 +389,7 @@ class WorkflowMonitor {
     this.workflowMetrics.clear();
     this.stepMetrics.clear();
 
-    if (this.config.persistToLocalStorage) {
+    if (this.config.persistToLocalStorage && this.hasLocalStorage()) {
       this.saveToStorage();
     }
 
@@ -465,6 +466,10 @@ class WorkflowMonitor {
 
     return JSON.stringify(data, null, 2);
   }
+
+  private hasLocalStorage(): boolean {
+    return typeof globalThis.localStorage !== 'undefined';
+  }
 }
 
 // Global singleton instance
@@ -491,4 +496,3 @@ export function resetWorkflowMonitor(): void {
 }
 
 export { WorkflowMonitor };
-export type { WorkflowMetrics, StepMetrics, TelemetryConfig };

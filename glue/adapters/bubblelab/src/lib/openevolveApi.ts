@@ -95,9 +95,9 @@ import type {
   AdversarialRunListResponse,
 } from "./types";
 
-import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
-import { retryWithBackoff, RetryConfig } from '../../../glue/lib/retry';
-import { CircuitBreaker, CircuitState } from '../../../glue/lib/circuit-breaker';
+import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
+import { retryWithBackoff, RetryConfig } from '../../../../lib/retry';
+import { CircuitBreaker, CircuitState } from '../../../../lib/circuit-breaker';
 
 export interface ApiConfig {
   baseUrl?: string;
@@ -891,8 +891,6 @@ export const openevolveApi = {
     request<Record<string, unknown>>("/sovereign/health", {}, config),
   listSovereignProblems: (config?: ApiConfig) =>
     request<{ problems: Record<string, unknown>[] }>("/sovereign/problems", {}, config),
-  listSovereignPlans: (config?: ApiConfig) =>
-    request<{ plans: Record<string, unknown>[] }>("/sovereign/plans", {}, config),
 
   // Suggestions
   getContentSuggestions: (payload: Record<string, unknown>, config?: ApiConfig) =>

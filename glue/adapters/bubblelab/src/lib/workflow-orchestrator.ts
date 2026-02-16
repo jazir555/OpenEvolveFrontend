@@ -28,8 +28,8 @@
  * }
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
-import { retryWithBackoff, RetryConfig } from '../../../glue/lib/retry';
+import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
+import { retryWithBackoff, RetryConfig } from '../../../../lib/retry';
 import { getPluginRegistry, type PluginInterface } from './plugin-registry';
 import type { PluginRegistry } from './plugin-registry';
 import { getWorkflowMonitor } from './workflow-monitoring';
@@ -91,6 +91,11 @@ interface StepExecutionResult {
   duration: number;
 }
 
+interface WorkflowStepExecutionAggregate {
+  results: Map<string, unknown>;
+  errors: Array<{ stepId: string; error: string }>;
+}
+
 class WorkflowOrchestrator {
   private registry: PluginRegistry;
   private activeWorkflows = new Map<string, WorkflowContext>();
@@ -116,6 +121,14 @@ class WorkflowOrchestrator {
     workflow: WorkflowDefinition,
     input: Record<string, unknown> = {}
   ): Promise<WorkflowExecutionResult> {
+    const validation = this.validateWorkflow(workflow);
+    if (!validation.valid) {
+      throw new Error(`Invalid workflow: ${validation.errors.join('; ')}`);
+    }
+
+    // Fail fast on invalid dependency graphs (e.g., circular dependencies).
+    const executionOrder = this.topologicalSort(workflow.steps);
+
     const executionId = `exec-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const startTime = Date.now();
 
@@ -148,36 +161,53 @@ class WorkflowOrchestrator {
 
     try {
       // Execute steps in dependency order
-      const stepResults = await this.executeSteps(workflow, context);
+      const stepExecution = await this.executeSteps(workflow, context, executionOrder);
+      const stepResults = stepExecution.results;
 
       // Map final outputs
       context.output = this.mapOutputs(workflow, context);
 
-      context.status = 'completed';
+      const workflowStatus: WorkflowExecutionResult['status'] =
+        stepExecution.errors.length > 0 && stepResults.size === 0 ? 'failed' : 'completed';
+      context.status = workflowStatus === 'failed' ? 'failed' : 'completed';
       const duration = Date.now() - startTime;
 
-      apiLogger.info('Workflow completed successfully', {
-        ...this.correlationContext,
-        workflow_id: workflow.id,
-        execution_id: executionId,
-        duration_ms: duration
-      });
+      if (workflowStatus === 'failed') {
+        apiLogger.warn('Workflow completed with no successful steps', {
+          ...this.correlationContext,
+          workflow_id: workflow.id,
+          execution_id: executionId,
+          duration_ms: duration
+        });
+      } else {
+        apiLogger.info('Workflow completed successfully', {
+          ...this.correlationContext,
+          workflow_id: workflow.id,
+          execution_id: executionId,
+          duration_ms: duration
+        });
+      }
 
       const result = {
         executionId,
         workflowId: workflow.id,
-        status: 'completed' as const,
+        status: workflowStatus,
         duration,
         results: context.output,
         stepResults,
-        errors: []
+        errors: stepExecution.errors
       };
 
       // Record completion in monitor
       this.monitor.recordWorkflowCompletion(context, result);
 
-      // Emit workflow completed event
-      await this.eventIntegration.emitWorkflowCompleted(result);
+      if (workflowStatus === 'failed') {
+        const firstError = stepExecution.errors[0]?.error || 'Workflow execution failed';
+        await this.eventIntegration.emitWorkflowFailed(workflow.id, executionId, firstError);
+      } else {
+        // Emit workflow completed event
+        await this.eventIntegration.emitWorkflowCompleted(result);
+      }
 
       return result;
     } catch (error) {
@@ -219,13 +249,11 @@ class WorkflowOrchestrator {
    */
   private async executeSteps(
     workflow: WorkflowDefinition,
-    context: WorkflowContext
-  ): Promise<Map<string, unknown>> {
+    context: WorkflowContext,
+    executionOrder: WorkflowStep[]
+  ): Promise<WorkflowStepExecutionAggregate> {
     const results = new Map<string, unknown>();
     const errors: Array<{ stepId: string; error: string }> = [];
-
-    // Build dependency graph and determine execution order
-    const executionOrder = this.topologicalSort(workflow.steps);
 
     for (const step of executionOrder) {
       // Check if step should be executed
@@ -288,7 +316,7 @@ class WorkflowOrchestrator {
       }
     }
 
-    return results;
+    return { results, errors };
   }
 
   /**

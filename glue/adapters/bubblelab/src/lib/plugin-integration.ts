@@ -21,7 +21,7 @@
  * ```
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
+import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
 import { getPluginRegistry, type PluginRegistry } from './plugin-registry';
 import { getWorkflowOrchestrator, type WorkflowOrchestrator } from './workflow-orchestrator';
 import { getPluginEventIntegration } from './plugin-events';
@@ -159,7 +159,10 @@ class BubbleLabIntegration {
           server_url: this.config.ragbits?.serverUrl
         });
       } catch (error) {
-        apiLogger.warn('RAGBits plugin not available', error as Error, this.correlationContext);
+        apiLogger.warn('RAGBits plugin not available', {
+          ...this.correlationContext,
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 
@@ -180,7 +183,10 @@ class BubbleLabIntegration {
           server_url: this.config.datapizza?.serverUrl
         });
       } catch (error) {
-        apiLogger.warn('Datapizza plugin not available', error as Error, this.correlationContext);
+        apiLogger.warn('Datapizza plugin not available', {
+          ...this.correlationContext,
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
     }
 
@@ -356,4 +362,4 @@ export async function resetBubbleLabIntegration(): Promise<void> {
 }
 
 export { BubbleLabIntegration };
-export type { BubbleLabIntegrationConfig, IntegrationState };
+export type { IntegrationState };

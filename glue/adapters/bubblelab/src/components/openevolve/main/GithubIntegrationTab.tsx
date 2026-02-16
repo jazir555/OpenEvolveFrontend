@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiLogger } from '../../../glue/lib/structuredLogger';
+import { apiLogger } from '../../../../../../lib/structuredLogger';
 
 type GithubUser = {
   login: string;

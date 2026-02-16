@@ -49,7 +49,7 @@ import { LeanAideTab } from './LeanAideTab';
 import { WorkflowExecutionTab } from './WorkflowExecutionTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { apiLogger } from '../../../glue/lib/structuredLogger';
+import { apiLogger } from '../../../../../../lib/structuredLogger';
 import { useBubbleLabIntegration } from '../../hooks/useBubbleLabIntegration';
 
 interface OpenEvolveAppState {

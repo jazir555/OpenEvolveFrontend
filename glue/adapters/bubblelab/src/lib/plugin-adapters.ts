@@ -347,5 +347,3 @@ export class OpenEvolveApiAdapter implements PluginInterface {
     return await this.api.bubblelabsAnalyticsDashboard({ apiKey: this.config.apiKey });
   }
 }
-
-export type { RAGBitsPluginAdapter, DatapizzaPluginAdapter, OpenEvolveApiAdapter };
