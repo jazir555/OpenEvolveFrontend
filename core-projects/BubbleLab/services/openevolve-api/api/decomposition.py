@@ -7,6 +7,7 @@ Provides problem analysis + decomposition planning.
 from pathlib import Path
 import sys
 from typing import Optional, Dict, Any
+from datetime import datetime, timezone
 
 import structlog
 from fastapi import APIRouter, HTTPException
@@ -292,3 +293,159 @@ async def create_decomposition_plan(request: DecompositionPlanRequest):
         "problem": problem.to_dict(),
         "plan": plan.to_dict(),
     }
+
+
+# ============================================================================
+# DECOMPOSITION EXECUTION ENDPOINTS
+# ============================================================================
+
+# In-memory execution tracking (in production, use Redis or database)
+_decomposition_executions: dict[str, dict] = {}
+
+
+@router.post("/workflows/{workflow_id}/execute-decomposition", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
+async def execute_decomposition(workflow_id: str, payload: dict) -> dict:
+    """
+    Execute a decomposition plan for the given workflow.
+
+    This endpoint starts an asynchronous decomposition execution and returns
+    an execution_id for tracking progress.
+    """
+    try:
+        # Create execution record
+        execution_id = f"decomp_exec_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
+
+        execution = {
+            "execution_id": execution_id,
+            "workflow_id": workflow_id,
+            "status": "started",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "problem_statement": payload.get("problem_statement", ""),
+            "content_type": payload.get("content_type", "text_general"),
+            "decomposition_method": payload.get("decomposition_method", "hierarchical"),
+            "granularity": payload.get("granularity", "medium"),
+            "max_depth": payload.get("max_depth", 3),
+            "max_sub_problems": payload.get("max_sub_problems", 5),
+            "parameters": payload.get("parameters", {}),
+            "sub_problems_completed": 0,
+            "sub_problems_total": 0,
+            "current_sub_problem": None,
+            "results": None
+        }
+
+        _decomposition_executions[execution_id] = execution
+
+        logger.info(
+            "decomposition_execution_started",
+            execution_id=execution_id,
+            workflow_id=workflow_id,
+            decomposition_method=payload.get("decomposition_method")
+        )
+
+        # In production, this would trigger an async task
+        execution["status"] = "running"
+
+        return {
+            "execution_id": execution_id,
+            "status": "started",
+            "workflow_id": workflow_id
+        }
+
+    except Exception as e:
+        logger.error(
+            "decomposition_execution_start_failed",
+            workflow_id=workflow_id,
+            error=str(e),
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start decomposition execution: {str(e)}"
+        )
+
+
+@router.get("/decomposition/executions/{execution_id}/status", response_model=dict)
+async def get_decomposition_execution_status(execution_id: str) -> dict:
+    """Get the status of a decomposition execution."""
+    try:
+        if execution_id not in _decomposition_executions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Execution '{execution_id}' not found"
+            )
+
+        execution = _decomposition_executions[execution_id]
+
+        logger.debug(
+            "decomposition_execution_status_retrieved",
+            execution_id=execution_id,
+            status=execution["status"]
+        )
+
+        return {
+            "execution_id": execution_id,
+            "status": execution["status"],
+            "workflow_id": execution["workflow_id"],
+            "sub_problems_completed": execution["sub_problems_completed"],
+            "sub_problems_total": execution["sub_problems_total"],
+            "current_sub_problem": execution.get("current_sub_problem"),
+            "results": execution.get("results"),
+            "created_at": execution["created_at"],
+            "updated_at": execution["updated_at"]
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "decomposition_execution_status_failed",
+            execution_id=execution_id,
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get execution status"
+        )
+
+
+@router.get("/decomposition/executions", response_model=dict)
+async def list_decomposition_executions(workflow_id: str = None) -> dict:
+    """List all decomposition executions, optionally filtered by workflow ID."""
+    try:
+        executions = list(_decomposition_executions.values())
+
+        if workflow_id:
+            executions = [e for e in executions if e["workflow_id"] == workflow_id]
+
+        logger.debug(
+            "decomposition_executions_listed",
+            total=len(executions),
+            workflow_filter=workflow_id
+        )
+
+        # Return only basic info for listing
+        executions_summary = [
+            {
+                "execution_id": e["execution_id"],
+                "status": e["status"],
+                "workflow_id": e["workflow_id"],
+                "created_at": e["created_at"]
+            }
+            for e in executions
+        ]
+
+        return {
+            "executions": executions_summary,
+            "total": len(executions)
+        }
+
+    except Exception as e:
+        logger.error(
+            "decomposition_executions_listing_failed",
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list executions"
+        )

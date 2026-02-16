@@ -986,6 +986,31 @@ export interface BubbleLabsActionResponse {
   [key: string]: unknown;
 }
 
+export interface BubbleLabsControlCatalogResponse {
+  success: boolean;
+  components: Record<string, string[]>;
+  auto_discovery?: {
+    enabled?: boolean;
+    summary?: Record<string, unknown>;
+    components?: Record<string, string[]>;
+  };
+}
+
+export interface BubbleLabsControlDiscoverResponse extends BubbleLabsActionResponse {
+  discovered_components?: number;
+  discovered_actions?: number;
+  scanned_paths?: string[];
+  indexed_components?: number;
+}
+
+export interface BubbleLabsControlExecuteResponse extends BubbleLabsActionResponse {
+  component?: string;
+  action?: string;
+  result?: Record<string, unknown>;
+  available_actions?: string[];
+  catalog?: Record<string, string[]>;
+}
+
 export const createDefaultTeam = (): Team => ({
   name: "",
   role: "Blue",

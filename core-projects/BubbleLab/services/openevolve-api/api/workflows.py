@@ -780,3 +780,179 @@ def _build_execution_result(workflow: WorkflowResponse, execution: Dict[str, Any
         completed_at=completed_at.isoformat() if completed_at else None,
         duration_seconds=duration_seconds,
     )
+
+
+# ============================================================================
+# WORKFLOW TEMPLATE EXECUTION ENDPOINTS
+# ============================================================================
+
+# In-memory template execution tracking
+_workflow_template_executions: dict[str, dict] = {}
+
+
+@router.post("/workflow-templates/{template_id}/execute", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
+async def execute_workflow_template(template_id: str, payload: dict) -> dict:
+    """
+    Execute a workflow template with the given parameters.
+
+    This endpoint starts an asynchronous workflow template execution and returns
+    an execution_id for tracking progress.
+    """
+    try:
+        # Validate template_id
+        valid_templates = [
+            "research-assistant",
+            "data-analysis-pipeline",
+            "proof-verification",
+            "knowledge-extraction",
+            "problem-solving",
+            "gauntlet-execution",
+            "decomposition-execution",
+            "gauntlet-decomposition-integrated"
+        ]
+
+        if template_id not in valid_templates:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workflow template '{template_id}' not found. Valid templates: {', '.join(valid_templates)}"
+            )
+
+        # Create execution record
+        execution_id = f"template_exec_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
+
+        execution = {
+            "execution_id": execution_id,
+            "template_id": template_id,
+            "status": "started",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "parameters": payload.get("parameters", {}),
+            "callback_url": payload.get("callback_url"),
+            "current_step": None,
+            "completed_steps": [],
+            "results": None,
+            "error": None
+        }
+
+        _workflow_template_executions[execution_id] = execution
+
+        logger.info(
+            "workflow_template_execution_started",
+            execution_id=execution_id,
+            template_id=template_id,
+            parameters_keys=list(payload.get("parameters", {}).keys())
+        )
+
+        # In production, this would trigger an async task
+        execution["status"] = "running"
+
+        return {
+            "execution_id": execution_id,
+            "status": "started",
+            "template_id": template_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_template_execution_start_failed",
+            template_id=template_id,
+            error=str(e),
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start workflow template execution: {str(e)}"
+        )
+
+
+@router.get("/workflow-templates/executions/{execution_id}/status", response_model=dict)
+async def get_workflow_template_execution_status(execution_id: str) -> dict:
+    """Get the status of a workflow template execution."""
+    try:
+        if execution_id not in _workflow_template_executions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Execution '{execution_id}' not found"
+            )
+
+        execution = _workflow_template_executions[execution_id]
+
+        logger.debug(
+            "workflow_template_execution_status_retrieved",
+            execution_id=execution_id,
+            template_id=execution["template_id"],
+            status=execution["status"]
+        )
+
+        return {
+            "execution_id": execution_id,
+            "status": execution["status"],
+            "template_id": execution["template_id"],
+            "current_step": execution.get("current_step"),
+            "completed_steps": execution["completed_steps"],
+            "results": execution.get("results"),
+            "error": execution.get("error"),
+            "created_at": execution["created_at"],
+            "updated_at": execution["updated_at"]
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_template_execution_status_failed",
+            execution_id=execution_id,
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get execution status"
+        )
+
+
+@router.post("/workflow-templates/executions/{execution_id}/stop", response_model=dict, status_code=status.HTTP_200_OK)
+async def stop_workflow_template_execution(execution_id: str) -> dict:
+    """Stop a running workflow template execution."""
+    try:
+        if execution_id not in _workflow_template_executions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Execution '{execution_id}' not found"
+            )
+
+        execution = _workflow_template_executions[execution_id]
+
+        if execution["status"] not in ["started", "running"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Execution '{execution_id}' is not running (status: {execution['status']})"
+            )
+
+        execution["status"] = "stopped"
+        execution["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        logger.info(
+            "workflow_template_execution_stopped",
+            execution_id=execution_id,
+            template_id=execution["template_id"]
+        )
+
+        return {
+            "status": "stopped",
+            "execution_id": execution_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_template_execution_stop_failed",
+            execution_id=execution_id,
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to stop execution"
+        )

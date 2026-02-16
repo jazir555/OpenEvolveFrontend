@@ -24,7 +24,7 @@ import {
   ApiResponse,
   ListQueryParams,
 } from '../types/api';
-import { OPENEVOLVE_API_BASE_URL } from '../env';
+import { OPENEVOLVE_API_BASE_URL, OPENEVOLVE_API_KEY } from '../env';
 
 // ============================================================================
 // Configuration
@@ -35,6 +35,21 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   'http://localhost:8001';
 const API_TIMEOUT = 30000; // 30 seconds
+
+const resolveOpenEvolveApiKey = (): string | undefined => {
+  if (OPENEVOLVE_API_KEY && OPENEVOLVE_API_KEY.trim().length > 0) {
+    return OPENEVOLVE_API_KEY.trim();
+  }
+  try {
+    const stored = globalThis.localStorage?.getItem('openevolve_api_key');
+    if (stored && stored.trim().length > 0) {
+      return stored.trim();
+    }
+  } catch {
+    // ignore localStorage access errors
+  }
+  return undefined;
+};
 
 // ============================================================================
 // API Client Class
@@ -75,10 +90,12 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const apiKey = resolveOpenEvolveApiKey();
     const config: RequestInit = {
       ...options,
       headers: {
         ...this.defaultHeaders,
+        ...(apiKey ? { 'X-API-Key': apiKey } : {}),
         ...options.headers,
       },
     };

@@ -62,6 +62,9 @@ import type {
   BubbleLabsStatusResponse,
   BubbleLabsInitializeResponse,
   BubbleLabsActionResponse,
+  BubbleLabsControlCatalogResponse,
+  BubbleLabsControlDiscoverResponse,
+  BubbleLabsControlExecuteResponse,
   VersionEntry,
   VersionCompareResult,
   ValidationRule,
@@ -981,6 +984,23 @@ export const openevolveApi = {
     request<BubbleLabsStatusResponse>("/bubblelabs/status", {}, config),
   initializeBubblelabs: (config?: ApiConfig) =>
     request<BubbleLabsInitializeResponse>("/bubblelabs/initialize", { method: "POST" }, config),
+  bubblelabsControlCatalog: (config?: ApiConfig) =>
+    request<BubbleLabsControlCatalogResponse>("/bubblelabs/control/catalog", {}, config),
+  bubblelabsControlDiscover: (payload: { force?: boolean } = {}, config?: ApiConfig) =>
+    request<BubbleLabsControlDiscoverResponse>(
+      "/bubblelabs/control/discover",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsControlExecute: (
+    payload: { component: string; action: string; payload?: Record<string, unknown> },
+    config?: ApiConfig,
+  ) =>
+    request<BubbleLabsControlExecuteResponse>(
+      "/bubblelabs/control/execute",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
   bubblelabsAceSkillbook: (payload: { name: string; skills: Array<Record<string, unknown>> }, config?: ApiConfig) =>
     request<BubbleLabsActionResponse>(
       "/bubblelabs/ace/skillbook",
@@ -1216,4 +1236,139 @@ export const openevolveApi = {
     request<AdversarialRunStatus>(`/adversarial/runs/${encodeURIComponent(runId)}`, {}, config),
   stopAdversarialRun: (runId: string, config?: ApiConfig) =>
     request<{ status: string }>(`/adversarial/runs/${encodeURIComponent(runId)}/stop`, { method: "POST" }, config),
+
+  // Gauntlet execution endpoints
+  executeGauntlet: (gauntletName: string, payload: {
+    content: string;
+    content_type?: string;
+    evolution_mode?: string;
+    parameters?: Record<string, unknown>;
+  }, config?: ApiConfig) =>
+    request<EvolutionRunResponse>(
+      `/gauntlets/${encodeURIComponent(gauntletName)}/execute`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getGauntletExecutionStatus: (executionId: string, config?: ApiConfig) =>
+    request<EvolutionRunStatus>(
+      `/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
+      {},
+      config,
+    ),
+  listGauntletExecutions: (gauntletName?: string, config?: ApiConfig) => {
+    const params = new URLSearchParams();
+    if (gauntletName) params.set("gauntlet_name", gauntletName);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request<{ executions: Array<EvolutionRunStatus> }>(
+      `/gauntlets/executions${suffix}`,
+      {},
+      config,
+    );
+  },
+
+  // Decomposition execution endpoints
+  executeDecomposition: (workflowId: string, payload: {
+    problem_statement: string;
+    content_type?: string;
+    decomposition_method?: string;
+    granularity?: string;
+    max_depth?: number;
+    max_sub_problems?: number;
+    parameters?: Record<string, unknown>;
+  }, config?: ApiConfig) =>
+    request<{ execution_id: string; status: string }>(
+      `/workflows/${encodeURIComponent(workflowId)}/execute-decomposition`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getDecompositionExecutionStatus: (executionId: string, config?: ApiConfig) =>
+    request<{
+      execution_id: string;
+      status: string;
+      sub_problems_completed: number;
+      sub_problems_total: number;
+      current_sub_problem?: string;
+      results?: Record<string, unknown>;
+    }>(
+      `/decomposition/executions/${encodeURIComponent(executionId)}/status`,
+      {},
+      config,
+    ),
+  listDecompositionExecutions: (workflowId?: string, config?: ApiConfig) => {
+    const params = new URLSearchParams();
+    if (workflowId) params.set("workflow_id", workflowId);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return request<{ executions: Array<{ execution_id: string; status: string; created_at: string }> }>(
+      `/decomposition/executions${suffix}`,
+      {},
+      config,
+    );
+  },
+
+  // Workflow template execution endpoints
+  executeWorkflowTemplate: (templateId: string, payload: {
+    parameters: Record<string, unknown>;
+    callback_url?: string;
+  }, config?: ApiConfig) =>
+    request<{ execution_id: string; status: string; template_id: string }>(
+      `/workflow-templates/${encodeURIComponent(templateId)}/execute`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getWorkflowTemplateExecutionStatus: (executionId: string, config?: ApiConfig) =>
+    request<{
+      execution_id: string;
+      status: string;
+      template_id: string;
+      current_step?: string;
+      completed_steps: string[];
+      results?: Record<string, unknown>;
+      error?: string;
+    }>(
+      `/workflow-templates/executions/${encodeURIComponent(executionId)}/status`,
+      {},
+      config,
+    ),
+  stopWorkflowTemplateExecution: (executionId: string, config?: ApiConfig) =>
+    request<{ status: string }>(
+      `/workflow-templates/executions/${encodeURIComponent(executionId)}/stop`,
+      { method: "POST" },
+      config,
+    ),
+
+  // Unified execution status endpoint
+  getExecutionStatus: (executionType: 'gauntlet' | 'decomposition' | 'workflow-template', executionId: string, config?: ApiConfig) => {
+    switch (executionType) {
+      case 'gauntlet':
+        return request<EvolutionRunStatus>(
+          `/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
+          {},
+          config,
+        );
+      case 'decomposition':
+        return request<{
+          execution_id: string;
+          status: string;
+          sub_problems_completed: number;
+          sub_problems_total: number;
+        }>(
+          `/decomposition/executions/${encodeURIComponent(executionId)}/status`,
+          {},
+          config,
+        );
+      case 'workflow-template':
+        return request<{
+          execution_id: string;
+          status: string;
+          current_step?: string;
+          completed_steps: string[];
+        }>(
+          `/workflow-templates/executions/${encodeURIComponent(executionId)}/status`,
+          {},
+          config,
+        );
+      default:
+        throw new Error(`Unknown execution type: ${executionType}`);
+    }
+  },
 };

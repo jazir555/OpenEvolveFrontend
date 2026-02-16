@@ -388,6 +388,12 @@ describe('OpenEvolve API Client', () => {
       expect(openevolveApi.getGauntlet).toBeDefined();
     });
 
+    it('should export control plane methods', () => {
+      expect(openevolveApi.getControlCatalog).toBeDefined();
+      expect(openevolveApi.discoverControlComponents).toBeDefined();
+      expect(openevolveApi.executeControlAction).toBeDefined();
+    });
+
     it('should export convenience functions', () => {
       expect(executeEvolution).toBeDefined();
       expect(executeAdversarial).toBeDefined();

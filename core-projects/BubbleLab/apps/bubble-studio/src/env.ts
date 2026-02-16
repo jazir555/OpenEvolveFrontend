@@ -20,6 +20,8 @@ export const API_BASE_URL: string = resolveApiBaseUrl();
 export const OPENEVOLVE_API_BASE_URL: string = (
   import.meta.env.VITE_OPENEVOLVE_API_URL || 'http://localhost:8001'
 ).replace(/\/$/, '');
+export const OPENEVOLVE_API_KEY: string | undefined = import.meta.env
+  .VITE_OPENEVOLVE_API_KEY;
 
 export const CLERK_PUBLISHABLE_KEY: string | undefined = import.meta.env
   .VITE_CLERK_PUBLISHABLE_KEY;

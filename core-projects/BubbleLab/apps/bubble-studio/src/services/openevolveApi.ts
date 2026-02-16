@@ -156,6 +156,34 @@ export interface GauntletResponse {
   created_at: string;
 }
 
+export interface BubbleLabsControlCatalogResponse {
+  success: boolean;
+  components: Record<string, string[]>;
+  auto_discovery?: {
+    enabled?: boolean;
+    summary?: Record<string, unknown>;
+    components?: Record<string, string[]>;
+  };
+}
+
+export interface BubbleLabsControlDiscoveryResponse {
+  success: boolean;
+  discovered_components?: number;
+  discovered_actions?: number;
+  scanned_paths?: string[];
+  indexed_components?: number;
+  [key: string]: unknown;
+}
+
+export interface BubbleLabsControlExecuteResponse {
+  success: boolean;
+  component?: string;
+  action?: string;
+  result?: Record<string, unknown>;
+  error?: string;
+  [key: string]: unknown;
+}
+
 // ==================== API Client ====================
 
 /**
@@ -452,6 +480,65 @@ export const openevolveApi = {
     });
 
     return openevolveApiClient.get<GauntletResponse>(`/api/gauntlets/${gauntletId}`);
+  },
+
+  // ==================== BubbleLabs Control Plane ====================
+
+  /**
+   * Get unified BubbleLabs/OpenEvolve control catalog.
+   */
+  getControlCatalog: async (): Promise<BubbleLabsControlCatalogResponse> => {
+    logger.debug({
+      msg: 'Fetching BubbleLabs control catalog',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<BubbleLabsControlCatalogResponse>(
+      '/bubblelabs/control/catalog'
+    );
+  },
+
+  /**
+   * Refresh auto-discovered control components.
+   */
+  discoverControlComponents: async (
+    force = false
+  ): Promise<BubbleLabsControlDiscoveryResponse> => {
+    logger.info({
+      msg: 'Refreshing BubbleLabs control discovery',
+      component: 'openevolveApi',
+      force,
+    });
+
+    return openevolveApiClient.post<BubbleLabsControlDiscoveryResponse>(
+      '/bubblelabs/control/discover',
+      { force }
+    );
+  },
+
+  /**
+   * Execute a control action for a component.
+   */
+  executeControlAction: async (
+    component: string,
+    action: string,
+    payload: Record<string, unknown> = {}
+  ): Promise<BubbleLabsControlExecuteResponse> => {
+    logger.info({
+      msg: 'Executing BubbleLabs control action',
+      component: 'openevolveApi',
+      control_component: component,
+      control_action: action,
+    });
+
+    return openevolveApiClient.post<BubbleLabsControlExecuteResponse>(
+      '/bubblelabs/control/execute',
+      {
+        component,
+        action,
+        payload,
+      }
+    );
   },
 };
 

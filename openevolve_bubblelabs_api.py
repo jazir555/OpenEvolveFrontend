@@ -11,22 +11,17 @@ import logging
 import threading
 import time
 from typing import Dict, Any, List, Optional, Callable, Set, Union
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from enum import Enum
 import uuid
 
 logger = logging.getLogger(__name__)
 
-from openevolve.kernel.schema import WorkflowState, PlanStatus, Team, GauntletDefinition
+from openevolve.kernel.schema import WorkflowState
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
-from workflow_engine import run_sovereign_workflow
-from evolution import run_evolution_loop
-# from adversarial_testing import run_adversarial_process  # COMMENTED: Function may not exist
-from api_server import team_manager, gauntlet_manager  # Import managers only
 from parameter_manager import ParameterManager
 from analytics_manager import AnalyticsManager
-from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Import state machine validation
 try:
@@ -245,8 +240,14 @@ class OpenEvolveBubbleLabsIntegration:
         self.parameter_manager = ParameterManager()
         self.analytics_manager = AnalyticsManager()
         self.event_callbacks: Dict[str, List[Callable]] = {}
-        # ACE Bridge for Recursive Feedback
-        self.ace_bridge = ACECrewAIWorkflowBridge(enable_learning=True)
+        # ACE bridge is optional; do not fail integration init if unavailable.
+        self.ace_bridge = None
+        try:
+            from ace_crewai_bridge import ACECrewAIWorkflowBridge
+
+            self.ace_bridge = ACECrewAIWorkflowBridge(enable_learning=True)
+        except Exception as exc:  # pragma: no cover - optional dependency path
+            logger.warning("ACE bridge unavailable; reflection disabled: %s", exc)
 
     def trigger_ace_reflection(self, workflow_state: WorkflowState, failure_details: str):
         """
@@ -257,6 +258,8 @@ class OpenEvolveBubbleLabsIntegration:
             failure_details: Description of the failure
         """
         logger.info(f"Triggering ACE Reflection for workflow {workflow_state.workflow_id}")
+        if self.ace_bridge is None:
+            return
         try:
             # Create a sample describing the failure
             context = f"Workflow ID: {workflow_state.workflow_id}\nType: {workflow_state.workflow_type}\nStage: {workflow_state.current_stage}\nFailure: {failure_details}"
@@ -383,14 +386,15 @@ class OpenEvolveBubbleLabsIntegration:
 
         definition_id = str(uuid.uuid4())
 
+        safe_parameters = dict(parameters or {})
         definition = {
             "id": definition_id,
             "name": name,
             "description": description,
             "workflow_type": validated_type,  # Use validated type
-            "parameters": parameters,
+            "parameters": safe_parameters,
             "created_at": time.time(),
-            "nodes": self._generate_nodes_for_workflow_type(validated_type, parameters),
+            "nodes": self._generate_nodes_for_workflow_type(validated_type, safe_parameters),
             "edges": self._generate_edges_for_workflow_type(validated_type)
         }
 
@@ -780,10 +784,14 @@ class OpenEvolveBubbleLabsIntegration:
         # SECURITY: Apply parameters using whitelist to prevent unsafe attribute manipulation
         for param_name, param_value in final_parameters.items():
             # Validate parameter name against whitelist
-            if param_name in SAFE_PARAMETERS and hasattr(workflow_state, param_name):
+            if param_name in SAFE_PARAMETERS:
                 # Validate parameter value
                 validated_value = validate_parameter_value(param_name, param_value)
-                setattr(workflow_state, param_name, validated_value)
+                if hasattr(workflow_state, param_name):
+                    setattr(workflow_state, param_name, validated_value)
+                else:
+                    # Keep non-schema runtime knobs available to executor branches.
+                    workflow_state.openevolve_parameters[param_name] = validated_value
             elif param_name in {"domain_hint", "domain_artifacts", "web3"}:
                 workflow_state.openevolve_parameters[param_name] = param_value
             elif param_name in ["openevolve_parameters"] or param_name.startswith(("formal_", "z3_", "leanaide_")):
@@ -904,11 +912,14 @@ class OpenEvolveBubbleLabsIntegration:
         workflow_state.start_time = time.time()
 
         # Execute workflow in a background thread
-        thread = threading.Thread(target=self._execute_workflow_thread, args=(workflow_state,))
+        thread = threading.Thread(
+            target=self._execute_workflow_thread,
+            args=(workflow_state,),
+            name=f"openevolve-workflow-{instance_id[:8]}",
+        )
         thread.daemon = True
-        thread.start()
-
         self.running_threads[instance_id] = thread
+        thread.start()
 
         # Trigger event
         self._trigger_event("workflow_instance_started", {
@@ -940,38 +951,41 @@ class OpenEvolveBubbleLabsIntegration:
             # Record start time for metrics
             start_time = time.time()
 
+            def _runtime_param(name: str, default: Any = None) -> Any:
+                if hasattr(workflow_state, name):
+                    value = getattr(workflow_state, name)
+                    if value is not None:
+                        return value
+                return workflow_state.openevolve_parameters.get(name, default)
+
             # Execute based on workflow type
             if workflow_state.workflow_type == "evolution":
-                # Import with graceful fallback
-                try:
-                    from evolution import run_evolution_process
-                    run_evolution_process(
-                        content=workflow_state.problem_statement,
-                        workflow_state=workflow_state,
-                        max_iterations=workflow_state.max_iterations,
-                        population_size=workflow_state.population_size,
-                        temperature=workflow_state.temperature,
-                        top_p=workflow_state.top_p,
-                        max_tokens=workflow_state.max_tokens,
-                        frequency_penalty=workflow_state.frequency_penalty,
-                        presence_penalty=workflow_state.presence_penalty,
-                        seed=workflow_state.seed
-                    )
-                except ImportError as e:
-                    logger.error(f"Evolution module not available: {e}")
-                    raise
+                from evolution import run_evolution_loop
+
+                run_evolution_loop(
+                    current_content=workflow_state.problem_statement,
+                    max_iterations=_runtime_param("max_iterations"),
+                    population_size=_runtime_param("population_size"),
+                    temperature=_runtime_param("temperature"),
+                    top_p=_runtime_param("top_p"),
+                    max_tokens=_runtime_param("max_tokens"),
+                    frequency_penalty=_runtime_param("frequency_penalty"),
+                    presence_penalty=_runtime_param("presence_penalty"),
+                    seed=_runtime_param("seed"),
+                )
             elif workflow_state.workflow_type == "adversarial":
-                # Import with graceful fallback
-                try:
-                    from adversarial import run_adversarial_process
-                    run_adversarial_process(
-                        content=workflow_state.problem_statement,
-                        workflow_state=workflow_state
-                    )
-                except ImportError as e:
-                    logger.error(f"Adversarial module not available: {e}")
-                    raise
+                from adversarial import run_comprehensive_adversarial_testing
+
+                result = run_comprehensive_adversarial_testing(
+                    current_content=workflow_state.problem_statement,
+                    team_manager=self.team_manager,
+                    gauntlet_manager=self.gauntlet_manager,
+                )
+                if isinstance(result, dict):
+                    workflow_state.openevolve_metrics["adversarial"] = result
             elif workflow_state.workflow_type == "sovereign":
+                from workflow_engine import run_sovereign_workflow
+
                 asyncio.run(
                     run_sovereign_workflow(
                         workflow_state=workflow_state,
@@ -989,11 +1003,10 @@ class OpenEvolveBubbleLabsIntegration:
                     )
                 )
             else:
-                # Default evolution workflow
-                run_evolution_process(
-                    content=workflow_state.problem_statement,
-                    workflow_state=workflow_state
-                )
+                # "default" routes to the standard evolution loop.
+                from evolution import run_evolution_loop
+
+                run_evolution_loop(current_content=workflow_state.problem_statement)
             
             # Calculate final metrics
             workflow_state.execution_time = time.time() - start_time
@@ -1007,9 +1020,11 @@ class OpenEvolveBubbleLabsIntegration:
                 "execution_time": workflow_state.execution_time
             })
             
-        except (RuntimeError, ValueError, TypeError, KeyError) as e:
+        except Exception as e:
             workflow_state.status = WorkflowStatus.FAILED.value
             workflow_state.error_message = str(e)
+            workflow_state.end_time = time.time()
+            workflow_state.execution_time = workflow_state.end_time - start_time
             
             # Trigger ACE Reflection
             self.trigger_ace_reflection(workflow_state, str(e))
@@ -1020,6 +1035,9 @@ class OpenEvolveBubbleLabsIntegration:
                 "status": workflow_state.status,
                 "error": str(e)
             })
+        finally:
+            # Prevent stale thread references after completion/failure.
+            self.running_threads.pop(workflow_state.workflow_id, None)
 
     def pause_workflow_instance(self, instance_id: str) -> Dict[str, Any]:
         """
@@ -1116,9 +1134,8 @@ class OpenEvolveBubbleLabsIntegration:
         # Restart execution in a background thread
         thread = threading.Thread(target=self._execute_workflow_thread, args=(workflow_state,))
         thread.daemon = True
-        thread.start()
-
         self.running_threads[instance_id] = thread
+        thread.start()
 
         # Trigger event
         self._trigger_event("workflow_instance_resumed", {
@@ -1319,6 +1336,11 @@ class OpenEvolveBubbleLabsIntegration:
         for attr_name in SAFE_COPY_ATTRIBUTES:
             if hasattr(original_workflow_state, attr_name) and hasattr(workflow_state, attr_name):
                 setattr(workflow_state, attr_name, getattr(original_workflow_state, attr_name))
+
+        # Preserve runtime parameter overrides and domain context.
+        workflow_state.openevolve_parameters = dict(
+            getattr(original_workflow_state, "openevolve_parameters", {}) or {}
+        )
         
         # Reset workflow-specific attributes
         workflow_state.workflow_id = new_instance_id
@@ -1502,10 +1524,13 @@ class OpenEvolveBubbleLabsIntegration:
         updated_count = 0
         for param_name, param_value in parameters.items():
             # Validate parameter name against whitelist
-            if param_name in SAFE_PARAMETERS and hasattr(workflow_state, param_name):
+            if param_name in SAFE_PARAMETERS:
                 # Validate parameter value
                 validated_value = validate_parameter_value(param_name, param_value)
-                setattr(workflow_state, param_name, validated_value)
+                if hasattr(workflow_state, param_name):
+                    setattr(workflow_state, param_name, validated_value)
+                else:
+                    workflow_state.openevolve_parameters[param_name] = validated_value
                 updated_count += 1
             elif param_name in {"domain_hint", "domain_artifacts", "web3"}:
                 workflow_state.openevolve_parameters[param_name] = param_value

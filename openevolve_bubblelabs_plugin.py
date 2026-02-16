@@ -17,6 +17,7 @@ import time
 import uuid
 from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass
+from functools import partial
 import traceback
 
 from bubblelabs_plugin_system import (
@@ -335,10 +336,8 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
                 try:
                     await self._cleanup_task
                 except asyncio.CancelledError:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Error in {__name__}", exc_info=True)
-                    raise  # Re-raise the exception
+                    # Expected path when task is cancelled during shutdown.
+                    pass
                 self._cleanup_task = None
                 self._logger.info("Auto-cleanup task stopped")
 
@@ -686,12 +685,21 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             instances = await self._run_sync(self._integration.list_workflow_instances)
 
             for instance in instances:
-                if instance.status in ("running", "paused"):
-                    self._logger.info(f"Cancelling workflow {instance.id}")
+                if isinstance(instance, dict):
+                    instance_id = instance.get("id") or instance.get("instance_id")
+                    status = instance.get("status")
+                else:
+                    instance_id = getattr(instance, "id", None) or getattr(instance, "instance_id", None)
+                    status = getattr(instance, "status", None)
+
+                if instance_id and status in ("running", "paused"):
+                    self._logger.info(f"Cancelling workflow {instance_id}")
                     try:
-                        await self.control_workflow(instance.id, "cancel")
+                        await self.control_workflow(instance_id, "cancel")
                     except (ConnectionError, TimeoutError, RuntimeError) as e:
-                        self._logger.error(f"Error cancelling workflow {instance.id}: {e}\n{traceback.format_exc()}")
+                        self._logger.error(
+                            f"Error cancelling workflow {instance_id}: {e}\n{traceback.format_exc()}"
+                        )
 
         except (RuntimeError, ConnectionError) as e:
             self._logger.error(f"Error in _cancel_all_workflows: {e}\n{traceback.format_exc()}")
@@ -709,8 +717,10 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             Function result
         """
         try:
-            loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, func, *args, kwargs)
+            loop = asyncio.get_running_loop()
+            if kwargs:
+                return await loop.run_in_executor(None, partial(func, *args, **kwargs))
+            return await loop.run_in_executor(None, func, *args)
         except (RuntimeError, ConnectionError, TimeoutError) as e:
             self._logger.error(f"Error running sync function {func.__name__}: {e}\n{traceback.format_exc()}")
             raise
@@ -749,9 +759,13 @@ class BubbleLabsIntegrationWrapper:
         """Get or create the plugin instance."""
         if self._plugin is None:
             registry = get_plugin_registry()
-            self._plugin = await registry.load_plugin("openevolve")
-            if self._plugin:
-                await registry.start_plugin("openevolve")
+            plugin = await registry.load_plugin("openevolve")
+            if plugin is None:
+                raise RuntimeError("Failed to load 'openevolve' BubbleLabs plugin")
+            started = await registry.start_plugin("openevolve")
+            if not started:
+                raise RuntimeError("Failed to start 'openevolve' BubbleLabs plugin")
+            self._plugin = plugin
         return self._plugin
 
     def create_workflow_definition_from_openevolve(

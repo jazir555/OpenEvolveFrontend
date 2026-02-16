@@ -1,6 +1,29 @@
 import { refreshToken } from './token-refresh';
 import { toast } from 'react-toastify';
-import { API_BASE_URL } from '../env';
+import { API_BASE_URL, OPENEVOLVE_API_KEY } from '../env';
+
+export interface ApiClientConfig {
+  baseURL: string;
+  timeout?: number;
+  enableRetry?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
+}
+
+const getOpenEvolveApiKey = (): string | undefined => {
+  if (OPENEVOLVE_API_KEY && OPENEVOLVE_API_KEY.trim().length > 0) {
+    return OPENEVOLVE_API_KEY.trim();
+  }
+  try {
+    const stored = globalThis.localStorage?.getItem('openevolve_api_key');
+    if (stored && stored.trim().length > 0) {
+      return stored.trim();
+    }
+  } catch {
+    // ignore localStorage access errors
+  }
+  return undefined;
+};
 
 export interface ApiError {
   status: number;
@@ -19,11 +42,44 @@ export class ApiHttpError extends Error implements ApiError {
   }
 }
 
-class ApiClient {
+export class ApiClient {
   private baseURL: string;
+  private timeout: number;
+  private enableRetry: boolean;
+  private maxRetries: number;
+  private retryDelay: number;
 
-  constructor(baseURL: string) {
-    this.baseURL = baseURL;
+  constructor(configOrBaseURL: string | ApiClientConfig) {
+    if (typeof configOrBaseURL === 'string') {
+      this.baseURL = configOrBaseURL;
+      this.timeout = 30000;
+      this.enableRetry = false;
+      this.maxRetries = 0;
+      this.retryDelay = 1000;
+      return;
+    }
+
+    this.baseURL = configOrBaseURL.baseURL;
+    this.timeout = configOrBaseURL.timeout ?? 30000;
+    this.enableRetry = configOrBaseURL.enableRetry ?? false;
+    this.maxRetries = configOrBaseURL.maxRetries ?? 0;
+    this.retryDelay = configOrBaseURL.retryDelay ?? 1000;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private shouldRetryStatus(status: number): boolean {
+    return status === 429 || status >= 500;
+  }
+
+  private async parseErrorData(response: Response): Promise<unknown> {
+    try {
+      return await response.json();
+    } catch {
+      return await response.text();
+    }
   }
 
   // Extract a human-friendly message from various error payload shapes
@@ -68,98 +124,126 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    // Get fresh token from Clerk on every request
-    // This ensures we always have a valid, non-expired token
-
-    console.log('Making request to', endpoint);
-    const token = await refreshToken();
-
     const url = `${this.baseURL}${endpoint}`;
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-    };
+    let lastError: unknown = null;
 
-    try {
-      const response = await fetch(url, config);
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-      // Handle authentication errors
-      if (response.status === 401) {
-        let errorData: unknown;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = await response.text();
-        }
-
-        const backendMessage = this.extractErrorMessage(errorData);
-        const message =
-          backendMessage || 'Authentication failed - please log in again';
-
-        console.error('Authentication failed - user may need to log in again');
-        toast.error(message, {
-          autoClose: 4000,
-        });
-        throw new Error(message);
-      }
-
-      // Handle other HTTP errors
-      if (!response.ok) {
-        let errorData: unknown;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = await response.text();
-        }
-
-        const apiError: ApiError = {
-          status: response.status,
-          data: errorData,
+      try {
+        const token = await refreshToken();
+        const apiKey = getOpenEvolveApiKey();
+        const config: RequestInit = {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+            ...(apiKey && { 'X-API-Key': apiKey }),
+            ...options.headers,
+          },
         };
 
-        console.error('API Error:', apiError);
-        try {
-          // Suppress toast for 404
-          if (response.status !== 404) {
-            const message = this.extractErrorMessage(errorData);
-            toast.error(message || 'Request failed', {
-              autoClose: 5000,
-            });
-          }
-        } catch {
-          if (response.status !== 404) {
-            toast.error('Request failed', { autoClose: 5000 });
-          }
-        }
-        throw new ApiHttpError(response.status, errorData);
-      }
+        const fetchPromise = fetch(url, config);
+        const timeoutPromise = new Promise<Response>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Request timeout')), this.timeout);
+        });
 
-      // Handle successful responses
-      const contentType = response.headers.get('content-type');
-      if (contentType?.includes('application/json')) {
-        return await response.json();
-      } else {
-        return (await response.text()) as T;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        // Avoid duplicate toasts if already shown above
-        if (
-          !/Authentication failed/.test(error.message) &&
-          !/^HTTP \d+/.test(error.message)
-        ) {
-          toast.error(error.message || 'Network error', { autoClose: 5000 });
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
         }
-        throw error;
+
+        if (response.status === 401) {
+          const errorData = await this.parseErrorData(response);
+          const backendMessage = this.extractErrorMessage(errorData);
+          const message =
+            backendMessage || 'Authentication failed - please log in again';
+
+          console.error('Authentication failed - user may need to log in again');
+          toast.error(message, {
+            autoClose: 4000,
+          });
+          throw new Error(message);
+        }
+
+        if (!response.ok) {
+          const errorData = await this.parseErrorData(response);
+          const retriable =
+            this.enableRetry &&
+            attempt < this.maxRetries &&
+            this.shouldRetryStatus(response.status);
+
+          if (retriable) {
+            await this.sleep(this.retryDelay * (attempt + 1));
+            continue;
+          }
+
+          const apiError: ApiError = {
+            status: response.status,
+            data: errorData,
+          };
+
+          console.error('API Error:', apiError);
+          try {
+            if (response.status !== 404) {
+              const message = this.extractErrorMessage(errorData);
+              toast.error(message || 'Request failed', {
+                autoClose: 5000,
+              });
+            }
+          } catch {
+            if (response.status !== 404) {
+              toast.error('Request failed', { autoClose: 5000 });
+            }
+          }
+
+          throw new ApiHttpError(response.status, errorData);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          return await response.json();
+        }
+
+        return (await response.text()) as T;
+      } catch (error) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
+        const shouldRetryError =
+          this.enableRetry &&
+          attempt < this.maxRetries &&
+          !(error instanceof ApiHttpError) &&
+          !(error instanceof Error && /Authentication failed/.test(error.message));
+
+        if (shouldRetryError) {
+          lastError = error;
+          await this.sleep(this.retryDelay * (attempt + 1));
+          continue;
+        }
+
+        if (error instanceof Error) {
+          if (
+            !/Authentication failed/.test(error.message) &&
+            !/^HTTP \d+/.test(error.message)
+          ) {
+            toast.error(error.message || 'Network error', { autoClose: 5000 });
+          }
+          throw error;
+        }
+
+        const msg = `Network error: ${String(error)}`;
+        toast.error(msg, { autoClose: 5000 });
+        throw new Error(msg);
       }
-      const msg = `Network error: ${String(error)}`;
-      toast.error(msg, { autoClose: 5000 });
-      throw new Error(msg);
     }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+
+    throw new Error('Request failed');
   }
 
   // Streaming request for Server-Sent Events
@@ -168,6 +252,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<Response> {
     const token = await refreshToken();
+    const apiKey = getOpenEvolveApiKey();
 
     const url = `${this.baseURL}${endpoint}`;
     const config: RequestInit = {
@@ -176,6 +261,7 @@ class ApiClient {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
         ...(token && { Authorization: `Bearer ${token}` }),
+        ...(apiKey && { 'X-API-Key': apiKey }),
         ...options.headers,
       },
     };

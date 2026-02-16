@@ -7,11 +7,48 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { openevolveApi } from "../../../lib/openevolveApi";
-import type { BubbleLabsStatusResponse } from "../../../lib/types";
+import type {
+  BubbleLabsStatusResponse,
+  BubbleLabsControlCatalogResponse,
+} from "../../../lib/types";
 
 const parseJson = (value: string) => {
   if (!value.trim()) return undefined;
   return JSON.parse(value);
+};
+
+const controlPayloadTemplate = (component: string, action: string): Record<string, unknown> => {
+  if (component !== "openevolve_workflows") {
+    return {};
+  }
+
+  switch (action) {
+    case "create_definition":
+      return {
+        name: "OpenEvolve Workflow",
+        description: "Managed from BubbleLabs control tab",
+        workflow_type: "evolution",
+        parameters: {},
+      };
+    case "get_definition":
+      return { definition_id: "" };
+    case "create_instance":
+      return { definition_id: "", instance_name: "bubble-instance", inputs: {}, parameters: {} };
+    case "get_instance_status":
+      return { instance_id: "" };
+    case "start_instance":
+    case "pause_instance":
+    case "resume_instance":
+    case "stop_instance":
+    case "cancel_instance":
+    case "restart_instance":
+    case "delete_instance":
+      return { instance_id: "" };
+    case "sync_parameters":
+      return { instance_id: "", parameters: {} };
+    default:
+      return {};
+  }
 };
 
 export const BubbleLabsIntegrationTab: React.FC = () => {
@@ -50,6 +87,22 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
   const [leanTheorem, setLeanTheorem] = useState("");
 
   const [actionResult, setActionResult] = useState<Record<string, unknown> | null>(null);
+  const [controlCatalog, setControlCatalog] = useState<BubbleLabsControlCatalogResponse | null>(null);
+  const [controlComponent, setControlComponent] = useState("");
+  const [controlAction, setControlAction] = useState("");
+  const [controlPayload, setControlPayload] = useState("{}");
+
+  const controlComponents = useMemo(
+    () => Object.keys(controlCatalog?.components ?? {}).sort(),
+    [controlCatalog],
+  );
+
+  const controlActions = useMemo(() => {
+    if (!controlComponent || !controlCatalog?.components[controlComponent]) {
+      return [];
+    }
+    return [...controlCatalog.components[controlComponent]].sort();
+  }, [controlCatalog, controlComponent]);
 
   const refreshStatus = async () => {
     setErrorMessage(null);
@@ -61,9 +114,43 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
     }
   };
 
+  const refreshControlCatalog = async () => {
+    setErrorMessage(null);
+    try {
+      const response = await openevolveApi.bubblelabsControlCatalog(apiConfig);
+      setControlCatalog(response);
+    } catch (error: any) {
+      setErrorMessage(error?.message ?? "Failed to load BubbleLabs control catalog.");
+    }
+  };
+
   useEffect(() => {
     refreshStatus();
+    refreshControlCatalog();
   }, [apiConfig.apiKey]);
+
+  useEffect(() => {
+    if (!controlComponents.length) {
+      setControlComponent("");
+      return;
+    }
+    if (!controlComponents.includes(controlComponent)) {
+      setControlComponent(controlComponents[0]);
+    }
+  }, [controlComponent, controlComponents]);
+
+  useEffect(() => {
+    if (!controlActions.length) {
+      setControlAction("");
+      setControlPayload("{}");
+      return;
+    }
+    if (!controlActions.includes(controlAction)) {
+      const nextAction = controlActions[0];
+      setControlAction(nextAction);
+      setControlPayload(JSON.stringify(controlPayloadTemplate(controlComponent, nextAction), null, 2));
+    }
+  }, [controlAction, controlActions, controlComponent]);
 
   const runAction = async (fn: () => Promise<Record<string, unknown>>) => {
     setErrorMessage(null);
@@ -173,8 +260,9 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
       </Card>
 
       <Tabs defaultValue="workflows" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
+          <TabsTrigger value="control">Control</TabsTrigger>
           <TabsTrigger value="ace">ACE</TabsTrigger>
           <TabsTrigger value="z3">Z3</TabsTrigger>
           <TabsTrigger value="roma">ROMA</TabsTrigger>
@@ -237,6 +325,113 @@ export const BubbleLabsIntegrationTab: React.FC = () => {
                 }}
               >
                 Open Workflow Executor
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="control" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Unified Control Plane</CardTitle>
+              <CardDescription>
+                Dynamically execute discovered BubbleLabs and OpenEvolve integration actions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" onClick={refreshControlCatalog}>
+                  Refresh Catalog
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    runAction(async () => {
+                      const response = await openevolveApi.bubblelabsControlDiscover(
+                        { force: true },
+                        apiConfig,
+                      );
+                      await refreshControlCatalog();
+                      return response as Record<string, unknown>;
+                    })
+                  }
+                >
+                  Discover Integrations
+                </Button>
+                <Badge variant="secondary">
+                  Components: {controlComponents.length}
+                </Badge>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Component</Label>
+                  <select
+                    value={controlComponent}
+                    onChange={(event) => setControlComponent(event.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {controlComponents.length === 0 ? (
+                      <option value="">No components available</option>
+                    ) : null}
+                    {controlComponents.map((component) => (
+                      <option key={component} value={component}>
+                        {component}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Action</Label>
+                  <select
+                    value={controlAction}
+                    onChange={(event) => {
+                      const nextAction = event.target.value;
+                      setControlAction(nextAction);
+                      setControlPayload(
+                        JSON.stringify(controlPayloadTemplate(controlComponent, nextAction), null, 2),
+                      );
+                    }}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  >
+                    {controlActions.length === 0 ? (
+                      <option value="">No actions available</option>
+                    ) : null}
+                    {controlActions.map((action) => (
+                      <option key={action} value={action}>
+                        {action}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Payload (JSON)</Label>
+                <Textarea
+                  value={controlPayload}
+                  onChange={(event) => setControlPayload(event.target.value)}
+                  rows={7}
+                />
+              </div>
+
+              <Button
+                onClick={() =>
+                  runAction(async () => {
+                    const parsed = parseJson(controlPayload) ?? {};
+                    if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+                      throw new Error("Payload must be a JSON object");
+                    }
+                    return await openevolveApi.bubblelabsControlExecute(
+                      { component: controlComponent, action: controlAction, payload: parsed },
+                      apiConfig,
+                    );
+                  })
+                }
+                disabled={!controlComponent || !controlAction}
+              >
+                Execute Control Action
               </Button>
             </CardContent>
           </Card>

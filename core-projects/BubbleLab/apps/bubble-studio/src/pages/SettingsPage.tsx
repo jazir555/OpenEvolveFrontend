@@ -1,5 +1,6 @@
 import React from 'react';
 import { RedeemCouponSection } from '../components/RedeemCouponSection';
+import { OpenEvolveControlPanel } from '../components/settings/OpenEvolveControlPanel';
 
 export const SettingsPage: React.FC = () => {
   return (
@@ -23,6 +24,11 @@ export const SettingsPage: React.FC = () => {
             <div className="max-w-xl">
               <RedeemCouponSection />
             </div>
+          </section>
+
+          {/* OpenEvolve Integration Control */}
+          <section className="mb-8">
+            <OpenEvolveControlPanel />
           </section>
         </div>
       </div>

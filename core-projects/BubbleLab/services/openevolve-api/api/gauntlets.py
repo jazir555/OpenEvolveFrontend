@@ -248,10 +248,10 @@ async def delete_gauntlet(gauntlet_id: str) -> dict:
             )
 
         gauntlet_name = gauntlet_data.get("name", "Unknown")
-        
+
         # Delete from database
         db_delete_gauntlet(gauntlet_id)
-        
+
         # Remove from cache
         if gauntlet_id in _gauntlets_cache:
             del _gauntlets_cache[gauntlet_id]
@@ -275,4 +275,166 @@ async def delete_gauntlet(gauntlet_id: str) -> dict:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete gauntlet"
+        )
+
+
+# ============================================================================
+# GAUNTLET EXECUTION ENDPOINTS
+# ============================================================================
+
+# In-memory execution tracking (in production, use Redis or database)
+_gauntlet_executions: dict[str, dict] = {}
+
+
+@router.post("/{gauntlet_name}/execute", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
+async def execute_gauntlet(gauntlet_name: str, payload: dict) -> dict:
+    """
+    Execute a gauntlet with the given content.
+
+    This endpoint starts an asynchronous gauntlet execution and returns
+    an execution_id for tracking progress.
+    """
+    try:
+        # Find gauntlet by name
+        gauntlets_data = get_all_gauntlets()
+        gauntlet_data = None
+        for g in gauntlets_data:
+            if g.get("name") == gauntlet_name:
+                gauntlet_data = g
+                break
+
+        if not gauntlet_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Gauntlet '{gauntlet_name}' not found"
+            )
+
+        gauntlet = _gauntlet_from_db(gauntlet_data)
+
+        # Create execution record
+        execution_id = f"exec_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
+
+        execution = {
+            "execution_id": execution_id,
+            "gauntlet_name": gauntlet_name,
+            "gauntlet_id": gauntlet.id,
+            "status": "started",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "content": payload.get("content", ""),
+            "content_type": payload.get("content_type", "text_general"),
+            "evolution_mode": payload.get("evolution_mode", "standard"),
+            "parameters": payload.get("parameters", {}),
+            "current_round": 0,
+            "rounds_completed": [],
+            "final_result": None
+        }
+
+        _gauntlet_executions[execution_id] = execution
+
+        logger.info(
+            "gauntlet_execution_started",
+            execution_id=execution_id,
+            gauntlet_name=gauntlet_name,
+            content_length=len(payload.get("content", ""))
+        )
+
+        # In production, this would trigger an async task
+        # For now, we'll mark it as running immediately
+        execution["status"] = "running"
+
+        return {
+            "run_id": execution_id,  # For compatibility with evolution runs
+            "execution_id": execution_id,
+            "status": "started",
+            "gauntlet_name": gauntlet_name
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "gauntlet_execution_start_failed",
+            gauntlet_name=gauntlet_name,
+            error=str(e),
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start gauntlet execution: {str(e)}"
+        )
+
+
+@router.get("/executions/{execution_id}/status", response_model=dict)
+async def get_gauntlet_execution_status(execution_id: str) -> dict:
+    """Get the status of a gauntlet execution."""
+    try:
+        if execution_id not in _gauntlet_executions:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Execution '{execution_id}' not found"
+            )
+
+        execution = _gauntlet_executions[execution_id]
+
+        logger.debug(
+            "gauntlet_execution_status_retrieved",
+            execution_id=execution_id,
+            status=execution["status"]
+        )
+
+        return {
+            "run_id": execution_id,
+            "execution_id": execution_id,
+            "status": execution["status"],
+            "gauntlet_name": execution["gauntlet_name"],
+            "current_round": execution["current_round"],
+            "rounds_completed": execution["rounds_completed"],
+            "created_at": execution["created_at"],
+            "updated_at": execution["updated_at"],
+            "result": execution.get("final_result")
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "gauntlet_execution_status_failed",
+            execution_id=execution_id,
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get execution status"
+        )
+
+
+@router.get("/executions", response_model=dict)
+async def list_gauntlet_executions(gauntlet_name: str = None) -> dict:
+    """List all gauntlet executions, optionally filtered by gauntlet name."""
+    try:
+        executions = list(_gauntlet_executions.values())
+
+        if gauntlet_name:
+            executions = [e for e in executions if e["gauntlet_name"] == gauntlet_name]
+
+        logger.debug(
+            "gauntlet_executions_listed",
+            total=len(executions),
+            gauntlet_filter=gauntlet_name
+        )
+
+        return {
+            "executions": executions,
+            "total": len(executions)
+        }
+
+    except Exception as e:
+        logger.error(
+            "gauntlet_executions_listing_failed",
+            error=str(e)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list executions"
         )

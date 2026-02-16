@@ -13,12 +13,16 @@ import json
 import time
 import uuid
 import logging
+import ast
+import inspect
+import importlib.util
 from typing import Dict, Any, List, Optional, Set, Union, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import RLock
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+from pathlib import Path
 from web3_formal_evidence import build_web3_formal_evidence, verify_web3_lean_proof
 
 logger = logging.getLogger(__name__)
@@ -77,6 +81,30 @@ class ComponentStatus(Enum):
     UNAVAILABLE = "unavailable"
     LOADING = "loading"
     ERROR = "error"
+
+
+AUTO_DISCOVERY_EXCLUDED_DIRS: Set[str] = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    "node_modules",
+    "core-projects",
+    "openevolve_test_env",
+    "archive",
+    "tests",
+    "docs",
+}
+
+AUTO_DISCOVERY_DENY_WORDS: Set[str] = {
+    "delete",
+    "remove",
+    "drop",
+    "shutdown",
+    "kill",
+    "wipe",
+    "destroy",
+    "truncate",
+}
 
 
 # =============================================================================
@@ -585,6 +613,12 @@ class BubbleLabsExtendedIntegration:
         # Configuration
         config = config or {}
         self.use_cav_nlp = config.get("use_cav_nlp", True) and CAV_NLP_AVAILABLE
+        self._auto_discovery_enabled = bool(config.get("enable_auto_discovery", True))
+        self._auto_discovery_root = Path(
+            config.get("auto_discovery_root", Path(__file__).resolve().parent)
+        )
+        self._auto_discovery_index: Dict[str, Dict[str, Any]] = {}
+        self._auto_discovery_last_refresh: float = 0.0
         
         # CAV-NLP enhanced solver
         self._enhanced_solver: Optional[Any] = None
@@ -604,14 +638,340 @@ class BubbleLabsExtendedIntegration:
         self._analytics_bridge: Optional[AnalyticsIntegrationBridge] = None
         self._leanaide_bridge: Optional[LeanAideIntegrationBridge] = None
         self._security_bridge: Optional[SecurityIntegrationBridge] = None
+        self._openevolve_workflow_integration: Optional[Any] = None
         
         # Lock for thread safety
         self._lock = RLock()
+        self._initialized = False
         
         # Executor for async operations
         self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="bubblelabs")
         
         logger.info(f"BubbleLabsExtendedIntegration initialized (CAV-NLP: {self.use_cav_nlp})")
+
+    def _set_bridge(self, name: str, bridge: Optional[Any]) -> None:
+        setattr(self, f"_{name}_bridge", bridge)
+
+    def _get_bridge(self, name: str) -> Optional[Any]:
+        return getattr(self, f"_{name}_bridge", None)
+
+    def _init_bridge_by_name(self, name: str) -> Optional[Any]:
+        factories: Dict[str, Callable[[], Any]] = {
+            "ace": ACEIntegrationBridge,
+            "z3": Z3IntegrationBridge,
+            "roma": ROMAIntegrationBridge,
+            "knowledge": KnowledgeGraphIntegrationBridge,
+            "analytics": AnalyticsIntegrationBridge,
+            "leanaide": LeanAideIntegrationBridge,
+            "security": SecurityIntegrationBridge,
+        }
+        factory = factories.get(name)
+        if factory is None:
+            return None
+        try:
+            bridge = factory()
+            if bridge.status == ComponentStatus.AVAILABLE:
+                self._set_bridge(name, bridge)
+                return bridge
+        except Exception as exc:
+            logger.warning("Failed to initialize '%s' bridge: %s", name, exc)
+        self._set_bridge(name, None)
+        return None
+
+    def _ensure_initialized(self) -> None:
+        if not self._initialized:
+            self.initialize_all()
+
+    def _ensure_component_bridge(self, name: str) -> Optional[Any]:
+        bridge = self._get_bridge(name)
+        if bridge is not None:
+            return bridge
+        return self._init_bridge_by_name(name)
+
+    def _is_auto_discovery_candidate(self, file_path: Path) -> bool:
+        lower_name = file_path.name.lower()
+        if not lower_name.endswith(".py"):
+            return False
+        if "integration" not in lower_name:
+            return False
+        if not ("openevolve" in lower_name or "bubblelab" in lower_name):
+            return False
+        if lower_name.startswith("test_") or lower_name.endswith("_test.py"):
+            return False
+        if lower_name.startswith(
+            ("demo_", "analyze_", "verify_", "validate_", "quick_", "run_", "final_")
+        ):
+            return False
+        if any(part in AUTO_DISCOVERY_EXCLUDED_DIRS for part in file_path.parts):
+            return False
+        return True
+
+    def _is_safe_action_name(self, name: str) -> bool:
+        if not name or name.startswith("_"):
+            return False
+        lowered = name.lower()
+        if lowered.startswith(("test", "demo", "main", "cli")):
+            return False
+        if any(word in lowered for word in AUTO_DISCOVERY_DENY_WORDS):
+            return False
+        return True
+
+    def _extract_callable_metadata(self, node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> Dict[str, Any]:
+        args = node.args
+        positional_names = [a.arg for a in args.args]
+        keyword_only_names = [a.arg for a in args.kwonlyargs]
+        all_names = positional_names + keyword_only_names
+
+        required_positional_count = max(0, len(positional_names) - len(args.defaults))
+        required_names = positional_names[:required_positional_count]
+        kwonly_defaults = args.kw_defaults or []
+        required_names.extend(
+            kwonly_names[idx] for idx, default in enumerate(kwonly_defaults) if default is None
+        )
+
+        return {
+            "params": all_names,
+            "required": required_names,
+            "accepts_var_kw": args.kwarg is not None,
+            "is_async": isinstance(node, ast.AsyncFunctionDef),
+        }
+
+    def _discover_integration_module_files(self) -> List[Path]:
+        roots: List[Path] = [self._auto_discovery_root]
+        for child_name in ("integrations", "plugin_integrations", "glue"):
+            child = self._auto_discovery_root / child_name
+            if child.exists() and child.is_dir():
+                roots.append(child)
+
+        discovered: Set[Path] = set()
+        for root in roots:
+            try:
+                for file_path in root.rglob("*.py"):
+                    if self._is_auto_discovery_candidate(file_path):
+                        discovered.add(file_path.resolve())
+            except (FileNotFoundError, OSError) as exc:
+                logger.debug("Skipping discovery root '%s' due to scan error: %s", root, exc)
+        return sorted(discovered)
+
+    def _build_auto_discovery_index(self) -> Dict[str, Dict[str, Any]]:
+        index: Dict[str, Dict[str, Any]] = {}
+        for file_path in self._discover_integration_module_files():
+            try:
+                source = file_path.read_text(encoding="utf-8", errors="ignore")
+                tree = ast.parse(source, filename=str(file_path))
+            except Exception as exc:
+                logger.debug("Skipping discovery parse failure for %s: %s", file_path, exc)
+                continue
+
+            actions: Dict[str, Dict[str, Any]] = {}
+            class_init_requirements: Dict[str, int] = {}
+            class_nodes: Dict[str, ast.ClassDef] = {}
+
+            for node in tree.body:
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if not self._is_safe_action_name(node.name):
+                        continue
+                    actions[node.name] = {
+                        "kind": "function",
+                        **self._extract_callable_metadata(node),
+                    }
+                elif isinstance(node, ast.ClassDef):
+                    class_nodes[node.name] = node
+                    required_init_args = 0
+                    for member in node.body:
+                        if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)) and member.name == "__init__":
+                            init_args = member.args.args[1:]  # skip self
+                            defaults_len = len(member.args.defaults or [])
+                            required_init_args = max(0, len(init_args) - defaults_len)
+                            break
+                    class_init_requirements[node.name] = required_init_args
+
+            for class_name, class_node in class_nodes.items():
+                if class_init_requirements.get(class_name, 0) > 0:
+                    continue
+                for member in class_node.body:
+                    if not isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        continue
+                    if member.name in {"__init__", "__enter__", "__exit__"}:
+                        continue
+                    if not self._is_safe_action_name(member.name):
+                        continue
+                    metadata = self._extract_callable_metadata(member)
+                    # drop self from callable signature metadata
+                    if metadata["params"] and metadata["params"][0] == "self":
+                        metadata["params"] = metadata["params"][1:]
+                    if metadata["required"] and metadata["required"][0] == "self":
+                        metadata["required"] = metadata["required"][1:]
+                    actions[f"{class_name}.{member.name}"] = {
+                        "kind": "class_method",
+                        "class_name": class_name,
+                        "method_name": member.name,
+                        **metadata,
+                    }
+
+            if not actions:
+                continue
+
+            component_name = file_path.stem.lower()
+            index[component_name] = {
+                "component": component_name,
+                "module_name": file_path.stem,
+                "file_path": str(file_path),
+                "actions": actions,
+            }
+
+        return index
+
+    def refresh_auto_discovery(self, force: bool = False) -> Dict[str, Any]:
+        if not self._auto_discovery_enabled:
+            return {"success": True, "enabled": False, "components": 0, "actions": 0}
+
+        with self._lock:
+            if self._auto_discovery_index and not force:
+                action_count = sum(len(v.get("actions", {})) for v in self._auto_discovery_index.values())
+                return {
+                    "success": True,
+                    "enabled": True,
+                    "cached": True,
+                    "components": len(self._auto_discovery_index),
+                    "actions": action_count,
+                    "last_refresh": self._auto_discovery_last_refresh,
+                }
+
+            self._auto_discovery_index = self._build_auto_discovery_index()
+            self._auto_discovery_last_refresh = time.time()
+            action_count = sum(len(v.get("actions", {})) for v in self._auto_discovery_index.values())
+            return {
+                "success": True,
+                "enabled": True,
+                "cached": False,
+                "components": len(self._auto_discovery_index),
+                "actions": action_count,
+                "last_refresh": self._auto_discovery_last_refresh,
+            }
+
+    def _resolve_call_arguments(
+        self, callable_obj: Callable[..., Any], payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        if "kwargs" in payload and isinstance(payload.get("kwargs"), dict):
+            candidate_kwargs = dict(payload.get("kwargs", {}))
+        else:
+            candidate_kwargs = dict(payload)
+
+        signature = inspect.signature(callable_obj)
+        accepts_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in signature.parameters.values())
+        if accepts_var_kw:
+            return candidate_kwargs
+
+        allowed_names = set(signature.parameters.keys())
+        filtered_kwargs = {k: v for k, v in candidate_kwargs.items() if k in allowed_names}
+
+        missing = [
+            name
+            for name, param in signature.parameters.items()
+            if param.default is inspect._empty
+            and param.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+            and name not in filtered_kwargs
+        ]
+        if missing:
+            raise ValueError(f"Missing required parameters: {missing}")
+        return filtered_kwargs
+
+    def _import_module_from_file(self, file_path: str, component_name: str):
+        module_key = f"bubblelabs_autodiscovery_{component_name}"
+        spec = importlib.util.spec_from_file_location(module_key, file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load spec for {file_path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def _run_maybe_async(self, value: Any) -> Any:
+        if inspect.isawaitable(value):
+            try:
+                return asyncio.run(value)
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                try:
+                    return loop.run_until_complete(value)
+                finally:
+                    loop.close()
+        return value
+
+    def _get_openevolve_workflow_integration(self) -> Optional[Any]:
+        if self._openevolve_workflow_integration is not None:
+            return self._openevolve_workflow_integration
+        try:
+            from openevolve_bubblelabs_api import openevolve_bubblelabs_integration
+
+            self._openevolve_workflow_integration = openevolve_bubblelabs_integration
+            return self._openevolve_workflow_integration
+        except Exception as exc:
+            logger.warning("OpenEvolve workflow integration unavailable: %s", exc)
+            self._openevolve_workflow_integration = None
+            return None
+
+    def _execute_auto_discovered_action(
+        self, component: str, action: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        discovery = self.refresh_auto_discovery(force=False)
+        if not discovery.get("success", False):
+            return {"success": False, "error": "Auto-discovery unavailable"}
+
+        component_data = self._auto_discovery_index.get(component)
+        if not component_data:
+            return {
+                "success": False,
+                "error": f"Unknown component '{component}'",
+            }
+
+        action_meta = component_data.get("actions", {}).get(action)
+        if not action_meta:
+            return {
+                "success": False,
+                "error": f"Unknown action '{action}' for component '{component}'",
+                "available_actions": sorted(component_data.get("actions", {}).keys()),
+            }
+
+        try:
+            module = self._import_module_from_file(component_data["file_path"], component)
+            if action_meta.get("kind") == "function":
+                callable_obj = getattr(module, action)
+                kwargs = self._resolve_call_arguments(callable_obj, payload)
+                result = callable_obj(**kwargs)
+            else:
+                class_name = action_meta.get("class_name")
+                method_name = action_meta.get("method_name")
+                class_obj = getattr(module, class_name)
+                instance = class_obj()
+                callable_obj = getattr(instance, method_name)
+                kwargs = self._resolve_call_arguments(callable_obj, payload)
+                result = callable_obj(**kwargs)
+
+            resolved = self._run_maybe_async(result)
+            success = True
+            if isinstance(resolved, dict) and "success" in resolved:
+                success = bool(resolved.get("success"))
+            return {
+                "success": success,
+                "component": component,
+                "action": action,
+                "result": resolved,
+                "auto_discovered": True,
+            }
+        except Exception as exc:
+            logger.exception(
+                "Auto-discovered action execution failed for component=%s action=%s",
+                component,
+                action,
+            )
+            return {
+                "success": False,
+                "component": component,
+                "action": action,
+                "error": str(exc),
+                "auto_discovered": True,
+            }
     
     def initialize_all(self) -> Dict[str, Any]:
         """Initialize all component bridges."""
@@ -652,11 +1012,13 @@ class BubbleLabsExtendedIntegration:
             self._analytics_bridge = AnalyticsIntegrationBridge() if "analytics" in results and results["analytics"]["success"] else None
             self._leanaide_bridge = LeanAideIntegrationBridge() if "leanaide" in results and results["leanaide"]["success"] else None
             self._security_bridge = SecurityIntegrationBridge() if "security" in results and results["security"]["success"] else None
+            self._initialized = True
             
             return results
     
     def get_all_status(self) -> Dict[str, Any]:
         """Get status of all component integrations."""
+        self._ensure_initialized()
         with self._lock:
             components = {}
             
@@ -705,6 +1067,7 @@ class BubbleLabsExtendedIntegration:
             # CAV-NLP
             components["cav_nlp"] = self.get_cav_nlp_status()
             components["web3"] = self.get_web3_status()
+            components["openevolve_workflows"] = self.get_openevolve_workflow_status()
             
             return {
                 "total_components": len(components),
@@ -718,14 +1081,16 @@ class BubbleLabsExtendedIntegration:
     
     def ace_create_skillbook(self, name: str, skills: List[Dict]) -> Dict[str, Any]:
         """Create a new ACE skillbook."""
-        if self._ace_bridge:
-            return self._ace_bridge.create_skillbook(name, skills)
+        bridge = self._ensure_component_bridge("ace")
+        if bridge:
+            return bridge.create_skillbook(name, skills)
         return {"success": False, "error": "ACE not available"}
     
     def ace_extract_patterns(self, workflow_results: List[Dict]) -> Dict[str, Any]:
         """Extract patterns from workflow results."""
-        if self._ace_bridge:
-            return self._ace_bridge.extract_patterns(workflow_results)
+        bridge = self._ensure_component_bridge("ace")
+        if bridge:
+            return bridge.extract_patterns(workflow_results)
         return {"success": False, "error": "ACE not available"}
     
     # =========================================================================
@@ -738,14 +1103,16 @@ class BubbleLabsExtendedIntegration:
         constraints: List[str]
     ) -> Dict[str, Any]:
         """Solve constraints with Z3."""
-        if self._z3_bridge:
-            return self._z3_bridge.solve_constraints(variables, constraints)
+        bridge = self._ensure_component_bridge("z3")
+        if bridge:
+            return bridge.solve_constraints(variables, constraints)
         return {"success": False, "error": "Z3 not available"}
     
     def z3_prove_theorem(self, theorem: str) -> Dict[str, Any]:
         """Prove a theorem with Z3."""
-        if self._z3_bridge:
-            return self._z3_bridge.prove_theorem(theorem)
+        bridge = self._ensure_component_bridge("z3")
+        if bridge:
+            return bridge.prove_theorem(theorem)
         return {"success": False, "error": "Z3 not available"}
 
     # =========================================================================
@@ -1022,14 +1389,16 @@ class BubbleLabsExtendedIntegration:
     
     def roma_analyze_problem(self, problem: str, max_depth: int = 3) -> Dict[str, Any]:
         """Analyze a problem with ROMA."""
-        if self._roma_bridge:
-            return self._roma_bridge.analyze_problem(problem, max_depth)
+        bridge = self._ensure_component_bridge("roma")
+        if bridge:
+            return bridge.analyze_problem(problem, max_depth)
         return {"success": False, "error": "ROMA not available"}
     
     def roma_create_config(self, **kwargs) -> Dict[str, Any]:
         """Create ROMA configuration."""
-        if self._roma_bridge:
-            return self._roma_bridge.create_config(**kwargs)
+        bridge = self._ensure_component_bridge("roma")
+        if bridge:
+            return bridge.create_config(**kwargs)
         return {"success": False, "error": "ROMA not available"}
     
     # =========================================================================
@@ -1038,14 +1407,16 @@ class BubbleLabsExtendedIntegration:
     
     def knowledge_store_artifact(self, artifact: Dict[str, Any]) -> Dict[str, Any]:
         """Store a knowledge artifact."""
-        if self._knowledge_bridge:
-            return self._knowledge_bridge.store_artifact(artifact)
+        bridge = self._ensure_component_bridge("knowledge")
+        if bridge:
+            return bridge.store_artifact(artifact)
         return {"success": False, "error": "Knowledge Graph not available"}
     
     def knowledge_query_patterns(self, query: str) -> Dict[str, Any]:
         """Query patterns from knowledge graph."""
-        if self._knowledge_bridge:
-            return self._knowledge_bridge.query_patterns(query)
+        bridge = self._ensure_component_bridge("knowledge")
+        if bridge:
+            return bridge.query_patterns(query)
         return {"success": False, "error": "Knowledge Graph not available"}
     
     # =========================================================================
@@ -1054,14 +1425,16 @@ class BubbleLabsExtendedIntegration:
     
     def analytics_track_workflow(self, workflow_id: str, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """Track workflow metrics."""
-        if self._analytics_bridge:
-            return self._analytics_bridge.track_workflow(workflow_id, metrics)
+        bridge = self._ensure_component_bridge("analytics")
+        if bridge:
+            return bridge.track_workflow(workflow_id, metrics)
         return {"success": False, "error": "Analytics not available"}
     
     def analytics_get_dashboard(self) -> Dict[str, Any]:
         """Get analytics dashboard data."""
-        if self._analytics_bridge:
-            return self._analytics_bridge.get_dashboard()
+        bridge = self._ensure_component_bridge("analytics")
+        if bridge:
+            return bridge.get_dashboard()
         return {"success": False, "error": "Analytics not available"}
     
     # =========================================================================
@@ -1070,9 +1443,409 @@ class BubbleLabsExtendedIntegration:
     
     def leanaide_prove_theorem(self, theorem: str) -> Dict[str, Any]:
         """Prove a theorem with LeanAIDE."""
-        if self._leanaide_bridge:
-            return self._leanaide_bridge.prove_theorem(theorem)
+        bridge = self._ensure_component_bridge("leanaide")
+        if bridge:
+            return bridge.prove_theorem(theorem)
         return {"success": False, "error": "LeanAIDE not available"}
+
+    # =========================================================================
+    # OpenEvolve Workflow Control Methods
+    # =========================================================================
+
+    def get_openevolve_workflow_status(self) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {
+                "component": "OpenEvolve Workflow Engine",
+                "status": "unavailable",
+                "available": False,
+                "capabilities": [],
+            }
+        definitions = integration.list_workflow_definitions()
+        instances = integration.list_workflow_instances()
+        return {
+            "component": "OpenEvolve Workflow Engine",
+            "status": "available",
+            "available": True,
+            "capabilities": [
+                "create_definition",
+                "list_definitions",
+                "get_definition",
+                "create_instance",
+                "list_instances",
+                "get_instance_status",
+                "start",
+                "pause",
+                "resume",
+                "stop",
+                "cancel",
+                "restart",
+                "delete",
+                "sync_parameters",
+            ],
+            "counts": {
+                "definitions": len(definitions),
+                "instances": len(instances),
+            },
+        }
+
+    def openevolve_create_workflow_definition(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        try:
+            definition_id = integration.create_workflow_definition(
+                name=payload.get("name", "OpenEvolve Workflow"),
+                description=payload.get("description", ""),
+                workflow_type=payload.get("workflow_type", "sovereign"),
+                parameters=payload.get("parameters", {}) or {},
+            )
+            return {"success": True, "definition_id": definition_id}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def openevolve_list_workflow_definitions(self) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        return {"success": True, "definitions": integration.list_workflow_definitions()}
+
+    def openevolve_get_workflow_definition(self, definition_id: str) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        definition = integration.get_workflow_definition(definition_id)
+        if not definition:
+            return {"success": False, "error": f"Workflow definition {definition_id} not found"}
+        return {"success": True, "definition": definition}
+
+    def openevolve_create_workflow_instance(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        try:
+            instance_id = integration.create_workflow_instance(
+                definition_id=payload.get("definition_id", ""),
+                instance_name=payload.get("instance_name", "openevolve-instance"),
+                inputs=payload.get("inputs", {}) or {},
+                parameters=payload.get("parameters"),
+            )
+            return {"success": True, "instance_id": instance_id}
+        except Exception as exc:
+            return {"success": False, "error": str(exc)}
+
+    def openevolve_list_workflow_instances(self) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        return {"success": True, "instances": integration.list_workflow_instances()}
+
+    def openevolve_get_workflow_instance_status(self, instance_id: str) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        result = integration.get_workflow_instance_status(instance_id)
+        success = not (isinstance(result, dict) and "error" in result)
+        if success:
+            return {"success": True, "status": result}
+        return {"success": False, **result}
+
+    def openevolve_control_workflow_instance(self, instance_id: str, action: str) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        method_name_by_action = {
+            "start": "start_workflow_instance",
+            "pause": "pause_workflow_instance",
+            "resume": "resume_workflow_instance",
+            "stop": "stop_workflow_instance",
+            "cancel": "cancel_workflow_instance",
+            "restart": "restart_workflow_instance",
+            "delete": "delete_workflow_instance",
+        }
+        method_name = method_name_by_action.get(action.lower())
+        if method_name is None:
+            return {"success": False, "error": f"Unsupported workflow action '{action}'"}
+        handler = getattr(integration, method_name, None)
+        if handler is None or not callable(handler):
+            return {
+                "success": False,
+                "error": f"Workflow integration does not support action '{action}'",
+            }
+        result = handler(instance_id)
+        success = not (isinstance(result, dict) and "error" in result)
+        if isinstance(result, dict):
+            result.setdefault("success", success)
+        return result if isinstance(result, dict) else {"success": success, "result": result}
+
+    def openevolve_sync_workflow_parameters(
+        self, instance_id: str, parameters: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        integration = self._get_openevolve_workflow_integration()
+        if integration is None:
+            return {"success": False, "error": "OpenEvolve workflow integration unavailable"}
+        result = integration.sync_parameters_to_workflow(instance_id, parameters or {})
+        success = not (isinstance(result, dict) and "error" in result)
+        if isinstance(result, dict):
+            result.setdefault("success", success)
+        return result if isinstance(result, dict) else {"success": success, "result": result}
+
+    # =========================================================================
+    # Unified BubbleLabs Control Surface
+    # =========================================================================
+
+    def get_control_catalog(self) -> Dict[str, Any]:
+        """Return discoverable component actions for BubbleLabs control."""
+        self._ensure_initialized()
+        base_components = {
+            "ace": ["create_skillbook", "extract_patterns"],
+            "z3": ["solve_constraints", "prove_theorem"],
+            "roma": ["analyze_problem", "create_config"],
+            "knowledge": ["store_artifact", "query_patterns"],
+            "analytics": ["track_workflow", "get_dashboard"],
+            "leanaide": ["prove_theorem"],
+            "web3": [
+                "status",
+                "get_mcp_tool_inventory",
+                "ingest_contract_stack",
+                "ingest_slither",
+                "ingest_foundry",
+                "translate_solidity_invariant",
+                "solve_exploit_witness",
+                "audit_exploit_verification",
+            ],
+            "cav_nlp": [
+                "status",
+                "formalize_constraint",
+                "formalize_operation",
+                "hybrid_verify_constraint",
+                "export_proof_to_lean",
+            ],
+            "security": ["status"],
+            "openevolve_workflows": [
+                "status",
+                "create_definition",
+                "list_definitions",
+                "get_definition",
+                "create_instance",
+                "list_instances",
+                "get_instance_status",
+                "start_instance",
+                "pause_instance",
+                "resume_instance",
+                "stop_instance",
+                "cancel_instance",
+                "restart_instance",
+                "delete_instance",
+                "sync_parameters",
+            ],
+        }
+        discovery = self.refresh_auto_discovery(force=False)
+        auto_components = {
+            component: sorted(list(metadata.get("actions", {}).keys()))
+            for component, metadata in self._auto_discovery_index.items()
+        }
+        components = dict(base_components)
+        components.update(auto_components)
+        return {
+            "success": True,
+            "components": components,
+            "auto_discovery": {
+                "enabled": self._auto_discovery_enabled,
+                "summary": discovery,
+                "components": auto_components,
+            },
+        }
+
+    def execute_control_action(
+        self, component: str, action: str, payload: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute a component action through a unified BubbleLabs control API."""
+        payload = payload or {}
+        component_key = str(component or "").strip().lower()
+        action_key = str(action or "").strip().lower()
+
+        dispatch: Dict[str, Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]]] = {
+            "ace": {
+                "create_skillbook": lambda p: self.ace_create_skillbook(
+                    name=p.get("name", ""), skills=p.get("skills", []) or []
+                ),
+                "extract_patterns": lambda p: self.ace_extract_patterns(
+                    p.get("workflow_results", []) or []
+                ),
+            },
+            "z3": {
+                "solve_constraints": lambda p: self.z3_solve_constraints(
+                    p.get("variables", []) or [], p.get("constraints", []) or []
+                ),
+                "prove_theorem": lambda p: self.z3_prove_theorem(p.get("theorem", "")),
+            },
+            "roma": {
+                "analyze_problem": lambda p: self.roma_analyze_problem(
+                    p.get("problem", ""), int(p.get("max_depth", 3))
+                ),
+                "create_config": lambda p: self.roma_create_config(**(p.get("config", {}) or {})),
+            },
+            "knowledge": {
+                "store_artifact": lambda p: self.knowledge_store_artifact(p.get("artifact", {}) or {}),
+                "query_patterns": lambda p: self.knowledge_query_patterns(p.get("query", "")),
+            },
+            "analytics": {
+                "track_workflow": lambda p: self.analytics_track_workflow(
+                    p.get("workflow_id", ""), p.get("metrics", {}) or {}
+                ),
+                "get_dashboard": lambda p: self.analytics_get_dashboard(),
+            },
+            "leanaide": {
+                "prove_theorem": lambda p: self.leanaide_prove_theorem(p.get("theorem", "")),
+            },
+            "web3": {
+                "status": lambda p: self.get_web3_status(),
+                "get_mcp_tool_inventory": lambda p: self.web3_get_mcp_tool_inventory(),
+                "ingest_contract_stack": lambda p: self.web3_ingest_contract_stack(
+                    project_path=p.get("project_path", "."),
+                    run_fuzzing=bool(p.get("run_fuzzing", True)),
+                    slither_timeout_seconds=int(p.get("slither_timeout_seconds", 240)),
+                    forge_timeout_seconds=int(p.get("forge_timeout_seconds", 420)),
+                ),
+                "ingest_slither": lambda p: self.web3_ingest_slither(
+                    project_path=p.get("project_path", "."),
+                    timeout_seconds=int(p.get("timeout_seconds", 240)),
+                    extra_args=p.get("extra_args"),
+                ),
+                "ingest_foundry": lambda p: self.web3_ingest_foundry(
+                    project_path=p.get("project_path", "."),
+                    timeout_seconds=int(p.get("timeout_seconds", 420)),
+                    match_contract=p.get("match_contract"),
+                    match_test=p.get("match_test"),
+                    fork_url=p.get("fork_url"),
+                    extra_args=p.get("extra_args"),
+                ),
+                "translate_solidity_invariant": lambda p: self.web3_translate_solidity_invariant(
+                    statement=p.get("statement", ""),
+                    non_negative_target=bool(p.get("non_negative_target", True)),
+                    max_withdraw_expr=p.get("max_withdraw_expr"),
+                    verify_translation=bool(p.get("verify_translation", True)),
+                    assume_non_negative_amount=bool(p.get("assume_non_negative_amount", True)),
+                ),
+                "solve_exploit_witness": lambda p: self.web3_solve_exploit_witness(
+                    additional_constraints=p.get("additional_constraints"),
+                    timeout_seconds=float(p.get("timeout_seconds", 10.0)),
+                ),
+                "audit_exploit_verification": lambda p: self.web3_audit_exploit_verification(
+                    project_path=p.get("project_path", "."),
+                    run_fuzzing=bool(p.get("run_fuzzing", True)),
+                    statement=p.get("statement"),
+                    non_negative_target=bool(p.get("non_negative_target", True)),
+                    max_withdraw_expr=p.get("max_withdraw_expr"),
+                    verify_translation=bool(p.get("verify_translation", True)),
+                    assume_non_negative_amount=bool(p.get("assume_non_negative_amount", True)),
+                    additional_constraints=p.get("additional_constraints"),
+                    timeout_seconds=float(p.get("timeout_seconds", 10.0)),
+                ),
+            },
+            "cav_nlp": {
+                "status": lambda p: self.get_cav_nlp_status(),
+                "formalize_constraint": lambda p: self.formalize_extended_constraint(
+                    p.get("nl_constraint", "")
+                ),
+                "formalize_operation": lambda p: self.formalize_extended_operation(
+                    p.get("operation_description", "")
+                ),
+                "hybrid_verify_constraint": lambda p: self.hybrid_verify_extended_constraint(
+                    p.get("constraint", ""), p.get("context")
+                ),
+                "export_proof_to_lean": lambda p: self.export_proof_to_lean(
+                    p.get("constraint", ""), p.get("proof_name")
+                ),
+            },
+            "security": {
+                "status": lambda p: self._security_status(),
+            },
+            "openevolve_workflows": {
+                "status": lambda p: self.get_openevolve_workflow_status(),
+                "create_definition": lambda p: self.openevolve_create_workflow_definition(p),
+                "list_definitions": lambda p: self.openevolve_list_workflow_definitions(),
+                "get_definition": lambda p: self.openevolve_get_workflow_definition(
+                    p.get("definition_id", "")
+                ),
+                "create_instance": lambda p: self.openevolve_create_workflow_instance(p),
+                "list_instances": lambda p: self.openevolve_list_workflow_instances(),
+                "get_instance_status": lambda p: self.openevolve_get_workflow_instance_status(
+                    p.get("instance_id", "")
+                ),
+                "start_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "start"
+                ),
+                "pause_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "pause"
+                ),
+                "resume_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "resume"
+                ),
+                "stop_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "stop"
+                ),
+                "cancel_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "cancel"
+                ),
+                "restart_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "restart"
+                ),
+                "delete_instance": lambda p: self.openevolve_control_workflow_instance(
+                    p.get("instance_id", ""), "delete"
+                ),
+                "sync_parameters": lambda p: self.openevolve_sync_workflow_parameters(
+                    p.get("instance_id", ""), p.get("parameters")
+                ),
+            },
+        }
+
+        component_actions = dispatch.get(component_key)
+        if not component_actions:
+            auto_result = self._execute_auto_discovered_action(component_key, action_key, payload)
+            if auto_result.get("success") or auto_result.get("auto_discovered"):
+                return auto_result
+            return {
+                "success": False,
+                "error": f"Unknown component '{component_key}'",
+                "catalog": self.get_control_catalog().get("components", {}),
+            }
+
+        handler = component_actions.get(action_key)
+        if not handler:
+            return {
+                "success": False,
+                "error": f"Unknown action '{action_key}' for component '{component_key}'",
+                "available_actions": sorted(component_actions.keys()),
+            }
+
+        try:
+            result = handler(payload)
+            return {
+                "success": bool(result.get("success", True)) if isinstance(result, dict) else True,
+                "component": component_key,
+                "action": action_key,
+                "result": result,
+            }
+        except Exception as exc:
+            logger.exception(
+                "BubbleLabs control action failed for component=%s action=%s",
+                component_key,
+                action_key,
+            )
+            return {
+                "success": False,
+                "component": component_key,
+                "action": action_key,
+                "error": str(exc),
+            }
+
+    def _security_status(self) -> Dict[str, Any]:
+        bridge = self._ensure_component_bridge("security")
+        if bridge:
+            return bridge.get_status()
+        return {"success": False, "error": "Security bridge not available"}
     
     # =========================================================================
     # CAV-NLP Enhanced Methods

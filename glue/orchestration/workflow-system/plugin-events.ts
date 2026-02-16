@@ -11,6 +11,14 @@
  * - workflow.started: Workflow execution started
  * - workflow.completed: Workflow execution completed
  * - workflow.failed: Workflow execution failed
+ * - gauntlet.execution.started: Gauntlet execution started
+ * - gauntlet.round.completed: Gauntlet round completed
+ * - gauntlet.execution.completed: Gauntlet execution completed
+ * - gauntlet.execution.failed: Gauntlet execution failed
+ * - decomposition.execution.started: Decomposition execution started
+ * - decomposition.subproblem.solved: Sub-problem solved
+ * - decomposition.execution.completed: Decomposition execution completed
+ * - decomposition.execution.failed: Decomposition execution failed
  * - data.processed: Data has been processed
  * - knowledge.indexed: Knowledge has been indexed
  * - search.executed: Search has been executed
@@ -224,6 +232,177 @@ class PluginEventIntegration {
         workflowId,
         executionId,
         error
+      }
+    });
+  }
+
+  /**
+   * Emit gauntlet execution events
+   */
+  async emitGauntletExecutionStarted(
+    gauntletName: string,
+    executionId: string,
+    content: string
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'gauntlet.execution.started',
+      source: 'gauntlet-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        gauntletName,
+        executionId,
+        contentLength: content.length
+      }
+    });
+  }
+
+  async emitGauntletRoundCompleted(
+    gauntletName: string,
+    executionId: string,
+    roundNumber: number,
+    results: {
+      team_scores: Record<string, number>;
+      validation_results: Array<{
+        team: string;
+        approved: boolean;
+        score: number;
+        feedback: string;
+      }>;
+    }
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'gauntlet.round.completed',
+      source: 'gauntlet-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        gauntletName,
+        executionId,
+        roundNumber,
+        results
+      }
+    });
+  }
+
+  async emitGauntletExecutionCompleted(
+    gauntletName: string,
+    executionId: string,
+    finalResults: {
+      approved: boolean;
+      overall_score: number;
+      rounds_completed: number;
+      formal_verification?: boolean;
+    }
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'gauntlet.execution.completed',
+      source: 'gauntlet-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        gauntletName,
+        executionId,
+        finalResults
+      }
+    });
+  }
+
+  async emitGauntletExecutionFailed(
+    gauntletName: string,
+    executionId: string,
+    error: string,
+    roundNumber?: number
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'gauntlet.execution.failed',
+      source: 'gauntlet-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        gauntletName,
+        executionId,
+        error,
+        roundNumber
+      }
+    });
+  }
+
+  /**
+   * Emit decomposition execution events
+   */
+  async emitDecompositionStarted(
+    workflowId: string,
+    executionId: string,
+    problemStatement: string
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'decomposition.execution.started',
+      source: 'decomposition-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        workflowId,
+        executionId,
+        problemStatement
+      }
+    });
+  }
+
+  async emitDecompositionSubProblemSolved(
+    workflowId: string,
+    executionId: string,
+    subProblemId: string,
+    solution: string,
+    dependenciesSolved: string[],
+    executionTimeMs: number
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'decomposition.subproblem.solved',
+      source: 'decomposition-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        workflowId,
+        executionId,
+        subProblemId,
+        solutionLength: solution.length,
+        dependenciesSolved,
+        executionTimeMs
+      }
+    });
+  }
+
+  async emitDecompositionCompleted(
+    workflowId: string,
+    executionId: string,
+    finalSolution: string,
+    subProblemsCount: number,
+    executionTimeMs: number
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'decomposition.execution.completed',
+      source: 'decomposition-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        workflowId,
+        executionId,
+        finalSolutionLength: finalSolution.length,
+        subProblemsCount,
+        executionTimeMs
+      }
+    });
+  }
+
+  async emitDecompositionFailed(
+    workflowId: string,
+    executionId: string,
+    error: string,
+    failedSubProblemId?: string
+  ): Promise<void> {
+    this.eventBus.publish({
+      type: 'decomposition.execution.failed',
+      source: 'decomposition-orchestrator',
+      timestamp: new Date().toISOString(),
+      data: {
+        workflowId,
+        executionId,
+        error,
+        failedSubProblemId
       }
     });
   }

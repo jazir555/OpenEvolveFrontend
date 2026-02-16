@@ -346,6 +346,73 @@ export class OpenEvolveApiAdapter implements PluginInterface {
   async bubblelabsAnalyticsDashboard(): Promise<any> {
     return await this.api.bubblelabsAnalyticsDashboard({ apiKey: this.config.apiKey });
   }
+
+  // Gauntlet management methods
+  async getGauntlet(gauntletName: string): Promise<any> {
+    return await this.api.getGauntlet(gauntletName, { apiKey: this.config.apiKey });
+  }
+
+  async createGauntlet(gauntlet: any): Promise<any> {
+    return await this.api.createGauntlet(gauntlet, { apiKey: this.config.apiKey });
+  }
+
+  async updateGauntlet(gauntletName: string, gauntlet: any): Promise<any> {
+    return await this.api.updateGauntlet(gauntletName, gauntlet, { apiKey: this.config.apiKey });
+  }
+
+  // Gauntlet execution methods
+  async executeGauntlet(gauntletName: string, payload: any): Promise<any> {
+    return await this.api.executeGauntlet(gauntletName, payload, { apiKey: this.config.apiKey });
+  }
+
+  async getGauntletExecutionStatus(executionId: string): Promise<any> {
+    return await this.api.getGauntletExecutionStatus(executionId, { apiKey: this.config.apiKey });
+  }
+
+  // Decomposition execution methods
+  async executeDecomposition(workflowId: string, payload: any): Promise<any> {
+    return await this.api.executeDecomposition(workflowId, payload, { apiKey: this.config.apiKey });
+  }
+
+  async getDecompositionExecutionStatus(executionId: string): Promise<any> {
+    return await this.api.getDecompositionExecutionStatus(executionId, { apiKey: this.config.apiKey });
+  }
+
+  // Workflow management methods
+  async createWorkflow(payload: any): Promise<any> {
+    return await this.api.createWorkflow(payload, { apiKey: this.config.apiKey });
+  }
+
+  async getWorkflowPlan(workflowId: string): Promise<any> {
+    return await this.api.getWorkflowPlan(workflowId, { apiKey: this.config.apiKey });
+  }
+
+  async getWorkflowResults(workflowId: string): Promise<any> {
+    return await this.api.getWorkflowResults(workflowId, { apiKey: this.config.apiKey });
+  }
+
+  // Evolution run methods
+  async startEvolutionRun(payload: any): Promise<any> {
+    return await this.api.startEvolutionRun(payload, { apiKey: this.config.apiKey });
+  }
+
+  async getEvolutionRun(runId: string): Promise<any> {
+    return await this.api.getEvolutionRun(runId, { apiKey: this.config.apiKey });
+  }
+
+  // Workflow template execution methods
+  async executeWorkflowTemplate(templateId: string, payload: any): Promise<any> {
+    return await this.api.executeWorkflowTemplate(templateId, payload, { apiKey: this.config.apiKey });
+  }
+
+  async getWorkflowTemplateExecutionStatus(executionId: string): Promise<any> {
+    return await this.api.getWorkflowTemplateExecutionStatus(executionId, { apiKey: this.config.apiKey });
+  }
+
+  // Unified execution status method
+  async getExecutionStatus(executionType: 'gauntlet' | 'decomposition' | 'workflow-template', executionId: string): Promise<any> {
+    return await this.api.getExecutionStatus(executionType, executionId, { apiKey: this.config.apiKey });
+  }
 }
 
 export type { RAGBitsPluginAdapter, DatapizzaPluginAdapter, OpenEvolveApiAdapter };
