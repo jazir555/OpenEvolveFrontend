@@ -1372,3 +1372,35 @@ export const openevolveApi = {
     }
   },
 };
+
+/**
+ * Backward-compatible client wrapper for contract tests and legacy consumers.
+ * New code should prefer direct `openevolveApi.*` function calls.
+ */
+export class OpenEvolveClient {
+  private readonly config: ApiConfig;
+
+  constructor(config: ApiConfig = {}) {
+    this.config = config;
+  }
+
+  health() {
+    return openevolveApi.getHealth(this.config);
+  }
+
+  listTeams() {
+    return openevolveApi.listTeams(this.config);
+  }
+
+  listWorkflows() {
+    return openevolveApi.listWorkflows(this.config);
+  }
+
+  listGauntlets() {
+    return openevolveApi.listGauntlets(this.config);
+  }
+
+  controlCatalog() {
+    return openevolveApi.bubblelabsControlCatalog(this.config);
+  }
+}

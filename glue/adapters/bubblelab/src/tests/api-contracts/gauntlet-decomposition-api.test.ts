@@ -5,7 +5,7 @@
  * and follow the expected structure. Following CLAUDE.md Law of Runtime Truth.
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { openevolveApi } from '../../lib/openevolveApi';
 
 describe('Gauntlet Execution API Contract Tests', () => {
