@@ -17,7 +17,7 @@
  */
 
 import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
-import { getEventBus, type EventBus, type EventSubscriber } from '../../../glue/orchestration/event-bus';
+import { eventBus as defaultEventBus, type EventBus } from '../../../glue/orchestration/event-bus';
 import type { PluginInterface } from './plugin-registry';
 import type { WorkflowDefinition, WorkflowExecutionResult } from './workflow-orchestrator';
 
@@ -29,17 +29,22 @@ export interface PluginEvent {
   correlationId?: string;
 }
 
-export interface PluginEventSubscriber extends EventSubscriber {
+export interface PluginEventSubscriber {
+  id: string;
   plugin: string;
+  eventTypes: string[];
+  handler: (event: PluginEvent) => void | Promise<void>;
+  subscriptionIds: string[];
 }
 
 class PluginEventIntegration {
   private eventBus: EventBus;
   private subscribers = new Map<string, PluginEventSubscriber>();
+  private internalSubscriptionIds: string[] = [];
   private correlationContext: LogContext;
 
   constructor(eventBus?: EventBus) {
-    this.eventBus = eventBus || getEventBus();
+    this.eventBus = eventBus || defaultEventBus;
     this.correlationContext = {
       correlation_id: `plugin-events-${Date.now()}`,
       source_service: 'plugin-event-integration',
@@ -69,14 +74,15 @@ class PluginEventIntegration {
       id: `${pluginName}-${Date.now()}`,
       plugin: pluginName,
       eventTypes,
+      subscriptionIds: [],
       handler: async (event) => {
         try {
           const pluginEvent: PluginEvent = {
             type: event.type,
-            plugin: event.source || 'unknown',
+            plugin: (event as any).source_service || 'unknown',
             timestamp: event.timestamp,
-            data: event.data,
-            correlationId: event.correlationId
+            data: (event.data as Record<string, unknown>) || {},
+            correlationId: (event as any).correlation_id
           };
 
           await handler(pluginEvent);
@@ -92,7 +98,8 @@ class PluginEventIntegration {
 
     // Subscribe to each event type
     for (const eventType of eventTypes) {
-      this.eventBus.subscribe(eventType, subscriber);
+      const subscription = this.eventBus.subscribe(eventType, subscriber.handler as any);
+      subscriber.subscriptionIds.push(subscription.subscriptionId);
     }
 
     this.subscribers.set(`${pluginName}-sub`, subscriber);
@@ -106,8 +113,8 @@ class PluginEventIntegration {
     const subscriber = this.subscribers.get(subscriberKey);
 
     if (subscriber) {
-      for (const eventType of subscriber.eventTypes) {
-        this.eventBus.unsubscribe(eventType, subscriber.id);
+      for (const subscriptionId of subscriber.subscriptionIds) {
+        this.eventBus.unsubscribe(subscriptionId);
       }
 
       this.subscribers.delete(subscriberKey);
@@ -122,12 +129,12 @@ class PluginEventIntegration {
   /**
    * Publish an event from a plugin
    */
-  publishEvent(
+  async publishEvent(
     plugin: PluginInterface,
     eventType: string,
     data: Record<string, unknown>,
     correlationId?: string
-  ): void {
+  ): Promise<void> {
     const pluginName = plugin.metadata.name;
 
     apiLogger.debug('Publishing plugin event', {
@@ -136,20 +143,22 @@ class PluginEventIntegration {
       event_type: eventType
     });
 
-    this.eventBus.publish({
+    await this.eventBus.publish({
+      id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       type: eventType,
-      source: pluginName,
+      source_service: pluginName,
       timestamp: new Date().toISOString(),
       data,
-      correlationId: correlationId || this.correlationContext.correlation_id
-    });
+      correlation_id: correlationId || this.correlationContext.correlation_id,
+      metadata: {},
+    } as any);
   }
 
   /**
    * Emit plugin lifecycle events
    */
   async emitPluginInitialized(plugin: PluginInterface): Promise<void> {
-    this.publishEvent(plugin, 'plugin.initialized', {
+    await this.publishEvent(plugin, 'plugin.initialized', {
       metadata: plugin.metadata,
       capabilities: plugin.capabilities,
       status: plugin.getStatus()
@@ -160,7 +169,7 @@ class PluginEventIntegration {
     plugin: PluginInterface,
     error: Error
   ): Promise<void> {
-    this.publishEvent(plugin, 'plugin.error', {
+    await this.publishEvent(plugin, 'plugin.error', {
       error: error.message,
       stack: error.stack
     });
@@ -171,7 +180,7 @@ class PluginEventIntegration {
     oldStatus: string,
     newStatus: string
   ): Promise<void> {
-    this.publishEvent(plugin, 'plugin.status.changed', {
+    await this.publishEvent(plugin, 'plugin.status.changed', {
       oldStatus,
       newStatus,
       timestamp: new Date().toISOString()
@@ -186,29 +195,35 @@ class PluginEventIntegration {
     executionId: string,
     input: Record<string, unknown>
   ): Promise<void> {
-    this.eventBus.publish({
+    await this.eventBus.publish({
+      id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       type: 'workflow.started',
-      source: 'workflow-orchestrator',
+      source_service: 'workflow-orchestrator',
       timestamp: new Date().toISOString(),
       data: {
         workflowId,
         executionId,
         input
-      }
-    });
+      },
+      correlation_id: this.correlationContext.correlation_id,
+      metadata: {},
+    } as any);
   }
 
   async emitWorkflowCompleted(
     result: WorkflowExecutionResult
   ): Promise<void> {
-    this.eventBus.publish({
+    await this.eventBus.publish({
+      id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       type: 'workflow.completed',
-      source: 'workflow-orchestrator',
+      source_service: 'workflow-orchestrator',
       timestamp: new Date().toISOString(),
       data: {
         result
-      }
-    });
+      },
+      correlation_id: this.correlationContext.correlation_id,
+      metadata: {},
+    } as any);
   }
 
   async emitWorkflowFailed(
@@ -216,16 +231,19 @@ class PluginEventIntegration {
     executionId: string,
     error: string
   ): Promise<void> {
-    this.eventBus.publish({
+    await this.eventBus.publish({
+      id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       type: 'workflow.failed',
-      source: 'workflow-orchestrator',
+      source_service: 'workflow-orchestrator',
       timestamp: new Date().toISOString(),
       data: {
         workflowId,
         executionId,
         error
-      }
-    });
+      },
+      correlation_id: this.correlationContext.correlation_id,
+      metadata: {},
+    } as any);
   }
 
   /**
@@ -286,78 +304,78 @@ class PluginEventIntegration {
    */
   setupCrossPluginHandlers(): void {
     // When knowledge is indexed, notify search plugins to refresh
-    this.eventBus.subscribe('knowledge.indexed', {
-      id: 'cross-plugin-knowledge-indexed',
-      eventTypes: ['knowledge.indexed'],
-      handler: async (event) => {
-        apiLogger.info('Knowledge indexed, notifying search plugins', {
-          ...this.correlationContext,
-          document_id: event.data.documentId
-        });
+    const knowledgeIndexedSub = this.eventBus.subscribe('knowledge.indexed', async (event: any) => {
+      apiLogger.info('Knowledge indexed, notifying search plugins', {
+        ...this.correlationContext,
+        document_id: event?.data?.documentId
+      });
 
-        // Publish refresh event for search plugins
-        this.eventBus.publish({
-          type: 'search.refresh',
-          source: 'plugin-event-integration',
-          timestamp: new Date().toISOString(),
-          data: {
-            documentId: event.data.documentId,
-            documentType: event.data.documentType
-          }
-        });
-      }
+      // Publish refresh event for search plugins
+      await this.eventBus.publish({
+        id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        type: 'search.refresh',
+        source_service: 'plugin-event-integration',
+        timestamp: new Date().toISOString(),
+        data: {
+          documentId: event?.data?.documentId,
+          documentType: event?.data?.documentType
+        },
+        correlation_id: this.correlationContext.correlation_id,
+        metadata: {},
+      } as any);
     });
+    this.internalSubscriptionIds.push(knowledgeIndexedSub.subscriptionId);
 
     // When data is processed, trigger analytics
-    this.eventBus.subscribe('data.processed', {
-      id: 'cross-plugin-data-processed',
-      eventTypes: ['data.processed'],
-      handler: async (event) => {
-        apiLogger.info('Data processed, triggering analytics', {
-          ...this.correlationContext,
-          processing_type: event.data.processingType
-        });
+    const dataProcessedSub = this.eventBus.subscribe('data.processed', async (event: any) => {
+      apiLogger.info('Data processed, triggering analytics', {
+        ...this.correlationContext,
+        processing_type: event?.data?.processingType
+      });
 
-        // Publish analytics event
-        this.eventBus.publish({
-          type: 'analytics.track',
-          source: 'plugin-event-integration',
-          timestamp: new Date().toISOString(),
-          data: {
-            processingType: event.data.processingType,
-            inputSize: event.data.inputSize,
-            outputSize: event.data.outputSize,
-            duration: event.data.duration
-          }
-        });
-      }
+      // Publish analytics event
+      await this.eventBus.publish({
+        id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        type: 'analytics.track',
+        source_service: 'plugin-event-integration',
+        timestamp: new Date().toISOString(),
+        data: {
+          processingType: event?.data?.processingType,
+          inputSize: event?.data?.inputSize,
+          outputSize: event?.data?.outputSize,
+          duration: event?.data?.duration
+        },
+        correlation_id: this.correlationContext.correlation_id,
+        metadata: {},
+      } as any);
     });
+    this.internalSubscriptionIds.push(dataProcessedSub.subscriptionId);
 
     // When workflow fails, trigger alert
-    this.eventBus.subscribe('workflow.failed', {
-      id: 'cross-plugin-workflow-failed',
-      eventTypes: ['workflow.failed'],
-      handler: async (event) => {
-        apiLogger.warn('Workflow failed, triggering alert', {
-          ...this.correlationContext,
-          workflow_id: event.data.workflowId,
-          execution_id: event.data.executionId
-        });
+    const workflowFailedSub = this.eventBus.subscribe('workflow.failed', async (event: any) => {
+      apiLogger.warn('Workflow failed, triggering alert', {
+        ...this.correlationContext,
+        workflow_id: event?.data?.workflowId,
+        execution_id: event?.data?.executionId
+      });
 
-        // Publish alert event
-        this.eventBus.publish({
-          type: 'alert.workflow',
-          source: 'plugin-event-integration',
-          timestamp: new Date().toISOString(),
-          data: {
-            workflowId: event.data.workflowId,
-            executionId: event.data.executionId,
-            error: event.data.error,
-            severity: 'high'
-          }
-        });
-      }
+      // Publish alert event
+      await this.eventBus.publish({
+        id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        type: 'alert.workflow',
+        source_service: 'plugin-event-integration',
+        timestamp: new Date().toISOString(),
+        data: {
+          workflowId: event?.data?.workflowId,
+          executionId: event?.data?.executionId,
+          error: event?.data?.error,
+          severity: 'high'
+        },
+        correlation_id: this.correlationContext.correlation_id,
+        metadata: {},
+      } as any);
     });
+    this.internalSubscriptionIds.push(workflowFailedSub.subscriptionId);
 
     apiLogger.info('Cross-plugin event handlers setup complete', this.correlationContext);
   }
@@ -385,12 +403,16 @@ class PluginEventIntegration {
   destroy(): void {
     // Unsubscribe all plugin subscribers
     for (const subscriber of this.subscribers.values()) {
-      for (const eventType of subscriber.eventTypes) {
-        this.eventBus.unsubscribe(eventType, subscriber.id);
+      for (const subscriptionId of subscriber.subscriptionIds) {
+        this.eventBus.unsubscribe(subscriptionId);
       }
     }
 
     this.subscribers.clear();
+    for (const subscriptionId of this.internalSubscriptionIds) {
+      this.eventBus.unsubscribe(subscriptionId);
+    }
+    this.internalSubscriptionIds = [];
 
     apiLogger.info('Plugin Event Integration destroyed', this.correlationContext);
   }

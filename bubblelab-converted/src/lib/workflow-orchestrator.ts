@@ -148,7 +148,9 @@ class WorkflowOrchestrator {
 
     try {
       // Execute steps in dependency order
-      const stepResults = await this.executeSteps(workflow, context);
+      const stepExecution = await this.executeSteps(workflow, context);
+      const stepResults = stepExecution.results;
+      const stepErrors = stepExecution.errors;
 
       // Map final outputs
       context.output = this.mapOutputs(workflow, context);
@@ -170,7 +172,7 @@ class WorkflowOrchestrator {
         duration,
         results: context.output,
         stepResults,
-        errors: []
+        errors: stepErrors
       };
 
       // Record completion in monitor
@@ -184,6 +186,7 @@ class WorkflowOrchestrator {
       context.status = 'failed';
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const shouldRethrow = errorMessage.includes('Circular dependency');
 
       apiLogger.error('Workflow execution failed', error as Error, {
         ...this.correlationContext,
@@ -208,6 +211,10 @@ class WorkflowOrchestrator {
       // Emit workflow failed event
       await this.eventIntegration.emitWorkflowFailed(workflow.id, executionId, errorMessage);
 
+      if (shouldRethrow) {
+        throw error;
+      }
+
       return result;
     } finally {
       this.activeWorkflows.delete(executionId);
@@ -220,7 +227,10 @@ class WorkflowOrchestrator {
   private async executeSteps(
     workflow: WorkflowDefinition,
     context: WorkflowContext
-  ): Promise<Map<string, unknown>> {
+  ): Promise<{
+    results: Map<string, unknown>;
+    errors: Array<{ stepId: string; error: string }>;
+  }> {
     const results = new Map<string, unknown>();
     const errors: Array<{ stepId: string; error: string }> = [];
 
@@ -288,7 +298,10 @@ class WorkflowOrchestrator {
       }
     }
 
-    return results;
+    return {
+      results,
+      errors,
+    };
   }
 
   /**

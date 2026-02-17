@@ -175,11 +175,36 @@ class EvolutionConfiguration(BaseConfiguration if BASE_CONFIGURATION_AVAILABLE e
             self._unified_config = None
             logger.warning("BaseConfiguration not available - using fallback mode")
 
+    def __setattr__(self, name, value):
+        """Route known parameter writes into the internal parameter map."""
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+            return
+
+        params = self.__dict__.get("_parameters")
+        if isinstance(params, dict) and name in params:
+            params[name] = value
+            return
+
+        object.__setattr__(self, name, value)
+
     def __getattr__(self, name):
         """Allow attribute access to configuration parameters."""
         if name in self._parameters:
             return self._parameters[name]
         raise AttributeError(f"'EvolutionConfiguration' object has no attribute '{name}'")
+
+    @classmethod
+    def from_parameter_manager(cls, param_manager: ParameterManager, session_state: Dict[str, Any]):
+        """Create evolution configuration from parameter manager defaults and current state."""
+        defaults = param_manager.get_defaults()
+        state = session_state if isinstance(session_state, dict) else {}
+        parameters: Dict[str, Any] = {}
+
+        for param_name, param_def in param_manager.schema.parameters.items():
+            parameters[param_name] = state.get(param_name, defaults.get(param_name, param_def.default))
+
+        return cls(parameters=parameters, validate=False)
 
     @property
     def evolution_mode(self) -> str:

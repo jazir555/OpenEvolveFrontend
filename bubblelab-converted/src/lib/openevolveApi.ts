@@ -856,6 +856,16 @@ export const openevolveApi = {
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
+  syncWorkflowInstanceParameters: (
+    instanceId: string,
+    payload: { parameters: Record<string, unknown> },
+    config?: ApiConfig,
+  ) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/parameters`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
   startWorkflowInstance: (instanceId: string, config?: ApiConfig) =>
     request<Record<string, unknown>>(
       `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/start`,

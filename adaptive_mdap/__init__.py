@@ -13,6 +13,16 @@ import time
 logger = logging.getLogger(__name__)
 
 @dataclass
+class SubProblem:
+    """Represents a sub-problem to be solved."""
+    id: str = ""
+    description: str = ""
+    domain: str = "general"
+    depth: int = 1
+    dependencies: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
 class ComplexityScore:
     """Multi-dimensional complexity score."""
     overall_score: float
@@ -115,6 +125,7 @@ __all__ = [
     'AdaptiveExecutionController',
     'get_health_checker',
     'ComplexityScore',
+    'SubProblem',
     'AdaptiveWorkflowIntegration',
     'AdaptiveWorkflowConfig',
     'get_adaptive_workflow'
