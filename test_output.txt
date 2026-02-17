@@ -1,97 +1,63 @@
-============================= test session starts =============================
-platform win32 -- Python 3.11.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
-cachedir: .pytest_cache
-metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '9.0.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.12.1', 'Faker': '38.2.0', 'langsmith': '0.5.2', 'libtmux': '0.23.2', 'pyfakefs': '6.0.0', 'asyncio': '1.3.0', 'cov': '4.1.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0', 'typeguard': '4.4.4'}}
-rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
-configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
-plugins: anyio-4.12.1, Faker-38.2.0, langsmith-0.5.2, libtmux-0.23.2, pyfakefs-6.0.0, asyncio-1.3.0, cov-4.1.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0, typeguard-4.4.4
-asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
-timeout: 300.0s
-timeout method: thread
-timeout func_only: False
-collecting ... collected 25 items
+DTS integration available for enhanced multi-judge scoring
+DEBUG: sys.path in providercatalogue.py: ['DTS', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\lagrange-mapper', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations\\causal_learn\\../../projects to analyze/causal-learn', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\integrations', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\knowledge_engine', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\python311.zip', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\DLLs', 'C:\\Users\\mmeadow\\AppData\\Roaming\\Python\\Python311\\site-packages', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages', '__editable__.openevolve-0.2.15.finder.__path_hook__', 'c:\\users\\mmeadow\\documents\\openevolve\\frontend\\deepke_repo\\src', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32\\lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\Pythonwin', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend']
 
-tests/test_core_modules.py::TestConfigModule::test_config_dataclass_creation SKIPPED (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\core-
-projects\openevolve\config\__init__.py))                                 [  4%]
-tests/test_core_modules.py::TestConfigModule::test_config_load_from_yaml FAILED [  8%]
-tests/test_core_modules.py::TestConfigModule::test_config_validation PASSED [ 12%]
-tests/test_core_modules.py::TestParameterManager::test_parameter_defaults FAILED [ 16%]
-tests/test_core_modules.py::TestParameterManager::test_parameter_export FAILED [ 20%]
-tests/test_core_modules.py::TestParameterManager::test_parameter_get_set FAILED [ 24%]
-tests/test_core_modules.py::TestParameterManager::test_parameter_manager_creation PASSED [ 28%]
-tests/test_core_modules.py::TestWorkflowEngine::test_workflow_definition SKIPPED [ 32%]
-tests/test_core_modules.py::TestWorkflowEngine::test_workflow_engine_creation SKIPPED [ 36%]
-tests/test_core_modules.py::TestWorkflowEngine::test_workflow_execution SKIPPED [ 40%]
-tests/test_core_modules.py::TestWorkflowEngine::test_workflow_state_persistence SKIPPED [ 44%]
-tests/test_core_modules.py::TestAlertingSystem::test_alert_creation SKIPPED [ 48%]
-tests/test_core_modules.py::TestAlertingSystem::test_alert_dispatch SKIPPED [ 52%]
-tests/test_core_modules.py::TestAlertingSystem::test_alert_manager PASSED [ 56%]
-tests/test_core_modules.py::TestAlertingSystem::test_alert_persistence FAILED [ 60%]
-tests/test_core_modules.py::TestAnalyticsManager::test_analytics_manager_creation PASSED [ 64%]
-tests/test_core_modules.py::TestAnalyticsManager::test_metrics_collection SKIPPED [ 68%]
-tests/test_core_modules.py::TestAnalyticsManager::test_report_generation SKIPPED [ 72%]
-tests/test_core_modules.py::TestAnalyticsManager::test_track_event SKIPPED [ 76%]
-tests/test_core_modules.py::TestBackupRestore::test_backup_creation FAILED [ 80%]
-tests/test_core_modules.py::TestBackupRestore::test_backup_list FAILED   [ 84%]
-tests/test_core_modules.py::TestBackupRestore::test_backup_restore FAILED [ 88%]
-tests/test_core_modules.py::TestBatchOperations::test_batch_error_handling SKIPPED [ 92%]
-tests/test_core_modules.py::TestBatchOperations::test_batch_parallel SKIPPED [ 96%]
-tests/test_core_modules.py::TestBatchOperations::test_batch_processor SKIPPED [100%]
+================================================================================
+MDAP/MAKER-GAUNTLET INTEGRATION TEST WITH DEEPSEEK
+================================================================================
+[OK] DeepSeek API key loaded: sk-0e66b8a...
 
-================================== FAILURES ===================================
-_________________ TestConfigModule.test_config_load_from_yaml _________________
-tests\test_core_modules.py:60: in test_config_load_from_yaml
-    config = load_config(self.config_file)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-config_loader.py:875: in load_config
-    _config_loader = ConfigLoader(config_dir)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^
-config_loader.py:285: in __init__
-    self.config_file = self.config_dir / "config.yaml"
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E   TypeError: unsupported operand type(s) for /: 'str' and 'str'
-________________ TestParameterManager.test_parameter_defaults _________________
-tests\test_core_modules.py:117: in test_parameter_defaults
-    result = manager.get('nonexistent', default='default_value')
-             ^^^^^^^^^^^
-E   AttributeError: 'ParameterManager' object has no attribute 'get'
-_________________ TestParameterManager.test_parameter_export __________________
-tests\test_core_modules.py:127: in test_parameter_export
-    manager.set('export.test', 'value')
-    ^^^^^^^^^^^
-E   AttributeError: 'ParameterManager' object has no attribute 'set'
-_________________ TestParameterManager.test_parameter_get_set _________________
-tests\test_core_modules.py:104: in test_parameter_get_set
-    manager.set('test.param', 'value')
-    ^^^^^^^^^^^
-E   AttributeError: 'ParameterManager' object has no attribute 'set'
-__________________ TestAlertingSystem.test_alert_persistence __________________
-tests\test_core_modules.py:269: in test_alert_persistence
-    store = AlertStore(db_path=os.path.join(self.temp_dir, 'alerts.db'))
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E   TypeError: AlertStore() takes no arguments
-___________________ TestBackupRestore.test_backup_creation ____________________
-tests\test_core_modules.py:369: in test_backup_creation
-    manager = BackupManager(backup_dir=self.backup_dir)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-_____________________ TestBackupRestore.test_backup_list ______________________
-tests\test_core_modules.py:406: in test_backup_list
-    manager = BackupManager(backup_dir=self.backup_dir)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-____________________ TestBackupRestore.test_backup_restore ____________________
-tests\test_core_modules.py:387: in test_backup_restore
-    manager = BackupManager(backup_dir=self.backup_dir)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E   TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-=========================== short test summary info ===========================
-FAILED tests/test_core_modules.py::TestConfigModule::test_config_load_from_yaml - TypeError: unsupported operand type(s) for /: 'str' and 'str'
-FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_defaults - AttributeError: 'ParameterManager' object has no attribute 'get'
-FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_export - AttributeError: 'ParameterManager' object has no attribute 'set'
-FAILED tests/test_core_modules.py::TestParameterManager::test_parameter_get_set - AttributeError: 'ParameterManager' object has no attribute 'set'
-FAILED tests/test_core_modules.py::TestAlertingSystem::test_alert_persistence - TypeError: AlertStore() takes no arguments
-FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_creation - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_list - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-FAILED tests/test_core_modules.py::TestBackupRestore::test_backup_restore - TypeError: BackupManager.__init__() got an unexpected keyword argument 'backup_dir'
-================== 8 failed, 4 passed, 13 skipped in 41.77s ===================
+Creating MDAP/MAKER-Gauntlet integration...
+[OK] Integration created
+
+================================================================================
+TEST 1: Simple Math Problem
+================================================================================
+Problem: What is 2 + 2?
+Solution: {'answer': 4, 'code': 'def add(): return 2 + 2'}
+
+Gauntlet Type: statistical
+Gauntlet Name: adapted_statistical_1771327064
+Complexity Score: 0.036
+MDAP Strategy: direct
+Gauntlet Passed: False
+Gauntlet Score: 0.100
+Consensus Score: 0.000
+
+================================================================================
+TEST 2: Medium Complexity - Sorting Algorithm
+================================================================================
+Problem: Implement a quicksort algorithm in Python...
+Solution: 275 characters
+
+Gauntlet Type: statistical
+Complexity Score: 0.046
+MDAP Strategy: direct
+Gauntlet Passed: False
+Gauntlet Score: 0.240
+Agent Votes: 0
+Consensus Reached: False
+
+================================================================================
+TEST 3: Direct Gauntlet Execution with MAKER
+================================================================================
+Gauntlet: deepseek_test
+Solution: {'data': [1, 2, 3, 4, 5], 'operation': 'sum'}
+
+Gauntlet Passed: True
+Gauntlet Score: 0.825
+Complexity: 0.0408
+Agent Votes: 0
+Red Flags: 0
+Consensus: 0.000
+
+================================================================================
+SUMMARY
+================================================================================
+Test 1 (Simple): FAIL
+Test 2 (Medium): FAIL
+Test 3 (Direct): PASS
+
+Total: 1/3 tests passed (33.3%)
+================================================================================
+
+[WARN] Some tests failed. Check the output above.
