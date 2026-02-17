@@ -16,7 +16,7 @@
  * - search.executed: Search has been executed
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { getEventBus, type EventBus, type EventSubscriber } from '../../../glue/orchestration/event-bus';
 import type { PluginInterface } from './plugin-registry';
 import type { WorkflowDefinition, WorkflowExecutionResult } from './workflow-orchestrator';

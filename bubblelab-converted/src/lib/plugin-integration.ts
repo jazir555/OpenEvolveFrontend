@@ -21,7 +21,7 @@
  * ```
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { getPluginRegistry, type PluginRegistry } from './plugin-registry';
 import { getWorkflowOrchestrator, type WorkflowOrchestrator } from './workflow-orchestrator';
 import { getPluginEventIntegration } from './plugin-events';

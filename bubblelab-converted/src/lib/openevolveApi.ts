@@ -102,6 +102,22 @@ export interface ApiConfig {
   timeout?: number; // MANDATORY per Law of Configuration Explicitness
 }
 
+/**
+ * Backward-compatible client wrapper used by contract tests and older callers.
+ * Newer code can still use the functional `openevolveApi` export below.
+ */
+export class OpenEvolveClient {
+  private readonly config: ApiConfig;
+
+  constructor(config: ApiConfig = {}) {
+    this.config = config;
+  }
+
+  getConfig(): ApiConfig {
+    return { ...this.config };
+  }
+}
+
 // Correlation ID generator for request tracking
 const generateCorrelationId = (): string => {
   return `api-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

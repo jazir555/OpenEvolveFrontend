@@ -5,7 +5,7 @@
  * Provides observability into workflow performance and failures.
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import type { WorkflowDefinition, WorkflowExecutionResult, WorkflowContext } from './workflow-orchestrator';
 
 export interface WorkflowMetrics {

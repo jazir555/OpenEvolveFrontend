@@ -124,10 +124,11 @@ except ImportError:
     KNOWLEDGE_AVAILABLE = False
 
 try:
-    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    from adaptive_strategy_selector import get_performance_tracker
     ADAPTIVE_AVAILABLE = True
 except ImportError:
     ADAPTIVE_AVAILABLE = False
+    get_performance_tracker = None
 
 try:
     from crewai_state_management import create_state_manager, WorkflowState as CrewAIWorkflowState
@@ -331,19 +332,21 @@ def _track_api_performance(operation, success, duration_seconds, endpoint, statu
         return
 
     try:
-        tracker = StrategyPerformanceTracker.get_instance()
-        data = StrategyPerformanceData(
+        tracker = get_performance_tracker()
+        if tracker is None or not hasattr(tracker, "record_attempt"):
+            return
+
+        tracker.record_attempt(
             strategy_name=f"api_{endpoint}",
-            component_name="APIServer",
-            operation_name=operation,
-            success=success,
-            duration_seconds=duration_seconds,
+            success=bool(success),
+            quality_score=100.0 if success else 0.0,
             metadata={
                 "endpoint": endpoint,
-                "status_code": status_code
-            }
+                "status_code": status_code,
+                "operation": operation,
+                "duration_seconds": duration_seconds,
+            },
         )
-        tracker.record_execution(data)
     except Exception as e:
         logger.warning(f"Failed to track API performance: {e}")
 
@@ -438,7 +441,15 @@ except Exception as exc:
     logger.warning("Content manager unavailable: %s", exc)
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
-from workflow_engine import run_sovereign_workflow
+try:
+    from workflow_engine import run_sovereign_workflow
+    WORKFLOW_ENGINE_AVAILABLE = True
+except Exception as exc:
+    WORKFLOW_ENGINE_AVAILABLE = False
+    logger.warning("Workflow engine unavailable: %s", exc)
+
+    def run_sovereign_workflow(*_args, **_kwargs):
+        raise RuntimeError("Workflow engine unavailable in this runtime")
 from determinism_stack import (
     DeterministicPipeline,
     DeterminismConfig,
@@ -606,6 +617,7 @@ class _RunState:
 _run_lock = threading.Lock()
 _evolution_runs: Dict[str, _RunState] = {}
 _adversarial_runs: Dict[str, _RunState] = {}
+_legacy_evolutions: Dict[str, Dict[str, Any]] = {}
 
 # Auto-approval configuration (in-memory)
 AUTO_APPROVAL_CONFIG: Dict[str, Any] = {"enabled": False, "rules": []}
@@ -2000,7 +2012,102 @@ def root():
 @app.get("/health")
 def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.get("/evolutions")
+def list_legacy_evolutions(limit: int = 100, offset: int = 0):
+    """Compatibility endpoint for legacy BubbleLab contract tests."""
+    safe_limit = max(0, min(limit, 500))
+    safe_offset = max(0, offset)
+
+    evolutions = sorted(
+        _legacy_evolutions.values(),
+        key=lambda evolution: evolution.get("created_at", ""),
+        reverse=True,
+    )
+    paged = evolutions[safe_offset : safe_offset + safe_limit]
+    return {
+        "evolutions": paged,
+        "total": len(evolutions),
+        "limit": safe_limit,
+        "offset": safe_offset,
+    }
+
+
+@app.post("/evolutions")
+async def create_legacy_evolution(request: Request):
+    """Compatibility endpoint for legacy BubbleLab contract tests."""
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid JSON request body"},
+        )
+
+    if not isinstance(payload, dict):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Request body must be a JSON object"},
+        )
+
+    name = payload.get("name")
+    base_prompt = payload.get("base_prompt")
+    if not name or not isinstance(name, str):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Field 'name' is required and must be a string"},
+        )
+    if not base_prompt or not isinstance(base_prompt, str):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Field 'base_prompt' is required and must be a string"},
+        )
+
+    now = datetime.utcnow().isoformat()
+    evolution_id = f"evo-{uuid.uuid4().hex[:12]}"
+    record = {
+        "id": evolution_id,
+        "name": name,
+        "base_prompt": base_prompt,
+        "adversarial_prompt": payload.get("adversarial_prompt", ""),
+        "parameters": payload.get("parameters", {}),
+        "created_at": now,
+        "updated_at": now,
+    }
+    _legacy_evolutions[evolution_id] = record
+    return record
+
+
+@app.get("/evolutions/{evolution_id}")
+def get_legacy_evolution(evolution_id: str):
+    """Compatibility endpoint for legacy BubbleLab contract tests."""
+    record = _legacy_evolutions.get(evolution_id)
+    if record is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Evolution '{evolution_id}' not found"},
+        )
+    return record
+
+
+@app.get("/adversarial-runs")
+def list_legacy_adversarial_runs():
+    """Compatibility endpoint for legacy BubbleLab contract tests."""
+    runs = [
+        {
+            "id": run.run_id,
+            "status": run.status,
+            "created_at": run.created_at,
+        }
+        for run in _adversarial_runs.values()
+    ]
+    return {"runs": runs, "total": len(runs)}
 
 
 class TokenRequest(BaseModel):

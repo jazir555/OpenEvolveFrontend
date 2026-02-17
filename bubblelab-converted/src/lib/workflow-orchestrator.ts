@@ -28,7 +28,7 @@
  * }
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { retryWithBackoff, RetryConfig } from '../../../glue/lib/retry';
 import { getPluginRegistry, type PluginInterface } from './plugin-registry';
 import type { PluginRegistry } from './plugin-registry';

@@ -95,14 +95,15 @@ class StrategyPerformanceTracker:
         else:
             data.failure_count += 1
 
-        # Update average quality
-        total = data.total_attempts
+        # Update rolling average quality safely (first attempt included).
+        previous_attempts = data.total_attempts
+        new_attempt_count = previous_attempts + 1
         data.average_quality = (
-            (data.average_quality * (total - 1) + quality_score) / total
-        )
+            (data.average_quality * previous_attempts) + quality_score
+        ) / new_attempt_count
 
         data.last_used = datetime.now()
-        data.total_attempts += 1
+        data.total_attempts = new_attempt_count
 
         # Add to history
         self.history.append({

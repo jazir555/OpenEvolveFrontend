@@ -11,7 +11,7 @@
  * - Circuit Breaker Protection: Prevent cascading failures
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { CircuitBreaker } from '../../../glue/lib/circuit-breaker';
 
 export interface PluginMetadata {
