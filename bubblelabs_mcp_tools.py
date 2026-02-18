@@ -924,6 +924,85 @@ def get_bubblelabs_workflow_results(
         }
 
 
+@mcp_tool("search_knowledge_base")
+async def search_knowledge_base(
+    query: str,
+    top_k: int = 5,
+    api_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Search the BubbleLabs knowledge base using Ragbits.
+
+    Security: Requires authentication.
+
+    This tool performs semantic search across indexed solutions, documentation,
+    and other knowledge artifacts.
+
+    Args:
+        query: Search query string
+        top_k: Number of results to return (default: 5)
+        api_key: Optional API key for authentication
+
+    Returns:
+        Dictionary containing:
+        - success: Boolean indicating success
+        - results: List of matching documents
+        - count: Number of results found
+        - message: Status message
+
+    Example:
+        >>> results = await search_knowledge_base("How to implement authentication")
+        >>> for doc in results["results"]:
+        ...     print(doc["content"])
+    """
+    # Security: Check authentication
+    if SECURITY_AVAILABLE and api_key:
+        context = auth_manager.validate_api_key(api_key)
+        if not context or not context.authenticated:
+            logger.warning(f"Unauthorized search attempt")
+            return {
+                "success": False,
+                "error": "Authentication required",
+                "message": "Please provide valid API credentials"
+            }
+
+    if not BUBBLELABS_AVAILABLE:
+        return {
+            "success": False,
+            "error": "BubbleLabs integration not available"
+        }
+
+    try:
+        # Get shared BubbleLabs integration
+        integration = get_shared_bubblelabs()
+        
+        # Check if Ragbits is available
+        if not hasattr(integration, 'get_ragbits_integration') or not integration.get_ragbits_integration():
+            return {
+                "success": False,
+                "error": "Ragbits integration not available",
+                "message": "Knowledge base search is currently disabled"
+            }
+
+        # Run async search directly
+        results = await integration.search_knowledge(query, top_k)
+
+        return {
+            "success": True,
+            "results": results,
+            "count": len(results),
+            "message": f"Found {len(results)} results"
+        }
+
+    except Exception as e:
+        logger.error(f"Error searching knowledge base: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": f"Failed to search knowledge base: {str(e)}"
+        }
+
+
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================

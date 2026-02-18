@@ -80,6 +80,30 @@ except ImportError:
     get_valid_workflow_transitions = None
     is_terminal_workflow_status = None
 
+# Import Ragbits Integration
+try:
+    from knowledge_engine.integrations.ragbits_integration import (
+        RagbitsIntegration,
+        RagbitsResult,
+        RAGBITS_INTEGRATION_AVAILABLE
+    )
+    from knowledge_engine.integrations.roma_ragbits_integration import (
+        ROMARagbitsIntegration,
+        get_roma_ragbits_integration,
+        IndexedSolution,
+        SimilarSolution,
+        ROMA_AVAILABLE
+    )
+    RAGBITS_AVAILABLE = RAGBITS_INTEGRATION_AVAILABLE
+except ImportError:
+    RAGBITS_AVAILABLE = False
+    RagbitsIntegration = None
+    RagbitsResult = None
+    ROMARagbitsIntegration = None
+    get_roma_ragbits_integration = None
+    IndexedSolution = None
+    SimilarSolution = None
+    ROMA_AVAILABLE = False
 
 
 logger = logging.getLogger(__name__)
@@ -696,6 +720,93 @@ class BubbleLabsIntegration:
                 return {"message": f"Action '{action}' performed", "status": instance.status}
 
         return {"error": "Workflow instance not found"}
+
+    # =========================================================================
+    # Ragbits Integration
+    # =========================================================================
+    
+    def get_ragbits_integration(self):
+        """
+        Get the ROMA-Ragbits integration instance (lazy initialization).
+        
+        Returns:
+            ROMARagbitsIntegration instance or None if not available
+        """
+        if not RAGBITS_AVAILABLE:
+            # Only log warning once
+            if not hasattr(self, '_ragbits_warning_logged'):
+                logger.warning("Ragbits integration not available")
+                self._ragbits_warning_logged = True
+            return None
+        
+        if not hasattr(self, '_ragbits_integration'):
+            self._ragbits_integration = get_roma_ragbits_integration()
+            
+        return self._ragbits_integration
+
+    async def search_knowledge(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Search the knowledge base using Ragbits (Async).
+        
+        Args:
+            query: Search query
+            top_k: Number of results to return
+            
+        Returns:
+            List of matching results
+        """
+        integration = self.get_ragbits_integration()
+        if not integration:
+            return []
+            
+        return await integration.search_solutions(query, top_k)
+
+    async def retrieve_similar_solutions(
+        self, 
+        problem: str, 
+        top_k: int = 5,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve similar past solutions for a problem (Async).
+        
+        Args:
+            problem: Problem statement
+            top_k: Number of solutions to retrieve
+            filters: Optional filters
+            
+        Returns:
+            List of similar solutions (as dictionaries)
+        """
+        integration = self.get_ragbits_integration()
+        if not integration:
+            return []
+            
+        results = await integration.retrieve_similar_solutions(problem, top_k, filters)
+        return [r.to_dict() for r in results]
+
+    async def index_solution(self, solution_data: Dict[str, Any]) -> Optional[str]:
+        """
+        Index a solution or document (Async).
+        
+        Args:
+            solution_data: Dictionary containing solution data or document content
+            
+        Returns:
+            Document ID if successful, None otherwise
+        """
+        integration = self.get_ragbits_integration()
+        if not integration:
+            return None
+            
+        # Try to use generic ingestion if available
+        if integration.ragbits_integration:
+            result = await integration.ragbits_integration.ingest_documents([solution_data])
+            if result.success:
+                # Return the count as success indicator since we don't get IDs from bulk ingest easily
+                return f"indexed_{result.results[0]['ingested_count']}_docs"
+        
+        return None
 
     def get_knowledge_graph_visualization(
         self,
