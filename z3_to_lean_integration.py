@@ -877,6 +877,9 @@ def hybrid_verify(
 # Module Info
 # =============================================================================
 
+# Base integration availability flag
+BASE_INTEGRATION_AVAILABLE = Z3_AVAILABLE and LEAN4_AVAILABLE
+
 __all__ = [
     # Main classes
     "Z3ToLeanIntegration",
@@ -899,4 +902,10 @@ __all__ = [
     "translate_z3_to_lean",
     "translate_lean_to_z3",
     "hybrid_verify",
+
+    # Availability flags
+    "BASE_INTEGRATION_AVAILABLE",
+    "Z3_AVAILABLE",
+    "LEAN4_AVAILABLE",
+    "GAUNTLET_AVAILABLE",
 ]

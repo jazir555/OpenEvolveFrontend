@@ -8,7 +8,7 @@ export function useDatapizzaConfig(): [DatapizzaPluginConfig, (config: Partial<D
   const [config, setConfig] = useState<DatapizzaPluginConfig>(DEFAULT_DATAPIZZA_CONFIG);
 
   const updateConfig = (newConfig: Partial<DatapizzaPluginConfig>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
+    setConfig((prev: DatapizzaPluginConfig) => ({ ...prev, ...newConfig }));
   };
 
   return [config, updateConfig];

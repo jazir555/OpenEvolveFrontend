@@ -702,3 +702,6 @@ export type {
   OpenEvolveExecutionOptions,
   OpenEvolveExecutionResult,
   OpenEvolveExecutionStatistics,
+};
+
+export { DEFAULT_OPENEVOLVE_CONFIG, OPENEVOLVE_PLUGIN_CONSTANTS };

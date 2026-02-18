@@ -1,4 +1,12 @@
 
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * ConfigManager - Configuration export/import with StateSerializer support
+ * Supports both legacy JSON format and new MessagePack format with compression.
+ */
+
 import { globalState } from './State';
 import { ExportedConfig } from './Types';
 import { getActiveDeepthinkPipeline, setActiveDeepthinkPipelineForImport, renderActiveDeepthinkPipeline } from '../Deepthink/Deepthink';
@@ -37,6 +45,15 @@ import {
     getAutoRefineEnabled
 } from '../Routing';
 import { updateControlsState } from '../UI/Controls';
+
+// StateSerializer imports for new export/import format
+import {
+    serialize,
+    deserialize,
+    sanitizeState,
+    downloadBlob,
+    formatBytes,
+} from './StateSerializer';
 
 // DOM Elements Helpers
 const getInitialIdeaInput = () => document.getElementById('initial-idea') as HTMLTextAreaElement;
@@ -94,17 +111,39 @@ export async function exportConfiguration() {
         solutionPoolVersions: deepthinkPipelineToExport ? getSolutionPoolVersionsForExport(deepthinkPipelineToExport.id) : null
     };
 
-    const configString = JSON.stringify(config, null, 2);
-    const blob = new Blob([configString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    // Use StateSerializer for compressed MessagePack format (NEW)
+    // Falls back to JSON for backward compatibility
     const timestamp = new Date().toISOString().replace(/[:]/g, '-').split('.')[0];
-    a.download = `iterative-studio-config-${timestamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    try {
+        // Serialize with MessagePack + compression for smaller file size
+        const blob = await serialize(config, {
+            format: 'msgpack',
+            compress: true,
+            onProgress: (percent) => console.log(`Export progress: ${percent}%`)
+        });
+        
+        const filename = `iterative-studio-config-${timestamp}.msgpack.gz`;
+        downloadBlob(blob, filename);
+        
+        console.log(`[ConfigManager] Exported configuration: ${formatBytes(blob.size)} (compressed)`);
+    } catch (error) {
+        console.warn('[ConfigManager] MessagePack export failed, falling back to JSON:', error);
+        
+        // Fallback to JSON for backward compatibility
+        const configString = JSON.stringify(config, null, 2);
+        const blob = new Blob([configString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `iterative-studio-config-${timestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log(`[ConfigManager] Exported configuration (JSON fallback)`);
+    }
 }
 
 export async function handleImportConfiguration(event: Event) {
@@ -115,98 +154,127 @@ export async function handleImportConfiguration(event: Event) {
     const fileInputTarget = event.target as HTMLInputElement;
     if (!fileInputTarget.files || fileInputTarget.files.length === 0) return;
     const file = fileInputTarget.files[0];
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-        try {
-            const result = e.target?.result as string;
-            const importedConfig = JSON.parse(result) as ExportedConfig;
+    try {
+        // Try to deserialize using StateSerializer (supports MessagePack, JSON, compression)
+        const imported = await deserialize<any>(file, (percent) => {
+            console.log(`[ConfigManager] Import progress: ${percent}%`);
+        });
+        
+        // Handle both versioned and legacy formats
+        let configToRestore: any;
+        if (imported._version) {
+            // New versioned format - use data field
+            configToRestore = imported.data;
+            console.log(`[ConfigManager] Imported versioned config (v${imported._version})`);
+        } else if (imported.data) {
+            // StateSerializer wrapped format
+            configToRestore = imported.data;
+            console.log(`[ConfigManager] Imported serialized config`);
+        } else {
+            // Legacy JSON format (direct config object)
+            configToRestore = imported;
+            console.log(`[ConfigManager] Imported legacy JSON config`);
+        }
+        
+        // Sanitize the state (reset processing states, flags, etc.)
+        const sanitized = sanitizeState(configToRestore) as ExportedConfig;
+        
+        // Restore the configuration
+        await restoreConfiguration(sanitized);
+        
+        console.log(`[ConfigManager] Successfully imported configuration from ${file.name}`);
+        
+    } catch (error) {
+        console.error('[ConfigManager] Import failed:', error);
+        alert(`Import failed: ${error.message}. The file may be corrupted or in an unsupported format.`);
+    }
+}
 
-            const criticalFields: { key: keyof ExportedConfig; type: string }[] = [
-                { key: 'currentMode', type: 'string' },
-                { key: 'initialIdea', type: 'string' },
-                { key: 'selectedModel', type: 'string' },
-                { key: 'customPromptsWebsite', type: 'object' },
-                { key: 'customPromptsReact', type: 'object' }, // Added for React
-            ];
+/**
+ * Restore configuration after import.
+ * This function handles the actual state restoration after deserialization.
+ */
+async function restoreConfiguration(importedConfig: ExportedConfig) {
+    const criticalFields: { key: keyof ExportedConfig; type: string }[] = [
+        { key: 'currentMode', type: 'string' },
+        { key: 'initialIdea', type: 'string' },
+        { key: 'selectedModel', type: 'string' },
+        { key: 'customPromptsWebsite', type: 'object' },
+        { key: 'customPromptsReact', type: 'object' },
+    ];
 
-            if (!importedConfig) {
-                throw new Error("Invalid configuration: Root object is missing or not valid JSON.");
-            }
+    if (!importedConfig) {
+        throw new Error("Invalid configuration: Root object is missing.");
+    }
 
-            for (const field of criticalFields) {
-                if (!(field.key in importedConfig) || typeof importedConfig[field.key] !== field.type) {
-                    // Allow customPrompts to be potentially undefined if not present, will use defaults
-                    if (field.type === 'object' && importedConfig[field.key] === undefined) {
-                        // Removed console.warn
-                    } else {
-                        throw new Error(`Invalid configuration: Missing or malformed critical field '${field.key}'. Expected type '${field.type}', got '${typeof importedConfig[field.key]}'.`);
-                    }
-                }
-            }
-
-            globalState.currentMode = importedConfig.currentMode;
-            const modeRadio = document.querySelector(`input[name="app-mode"][value="${globalState.currentMode}"]`) as HTMLInputElement;
-            if (modeRadio) {
-                modeRadio.checked = true;
-            }
-
-            if (importedConfig.customPromptsDeepthinkState) {
-                globalState.customPromptsDeepthinkState = importedConfig.customPromptsDeepthinkState;
-            }
-            // Restore evolution convergence mode
-            if (importedConfig.currentEvolutionMode !== undefined) {
-                globalState.currentEvolutionMode = importedConfig.currentEvolutionMode;
-                // Update button states
-                const evolutionButtons = document.querySelectorAll('.evolution-convergence-button');
-                evolutionButtons.forEach(button => {
-                    const buttonValue = (button as HTMLElement).dataset.value;
-                    if (buttonValue === globalState.currentEvolutionMode) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
-                    }
-                });
-                // Update description
-                updateEvolutionModeDescription(globalState.currentEvolutionMode);
-            }
-
-            const initialIdeaInput = getInitialIdeaInput();
-            if (initialIdeaInput) {
-                initialIdeaInput.value = importedConfig.initialIdea;
-            }
-
-            if (globalState.currentMode === 'deepthink') {
-                // Deepthink mode specific initialization
+    for (const field of criticalFields) {
+        if (!(field.key in importedConfig) || typeof importedConfig[field.key] !== field.type) {
+            if (field.type === 'object' && importedConfig[field.key] === undefined) {
+                // Allow customPrompts to be potentially undefined, will use defaults
             } else {
-                globalState.currentProblemImageBase64 = null;
-                globalState.currentProblemImageMimeType = null;
+                throw new Error(`Invalid configuration: Missing or malformed critical field '${field.key}'.`);
             }
-            updateUIAfterModeChange();
+        }
+    }
 
-            // Reinitialize sidebar controls after import
-            if ((window as any).reinitializeSidebarControls) {
-                (window as any).reinitializeSidebarControls();
+    globalState.currentMode = importedConfig.currentMode;
+    const modeRadio = document.querySelector(`input[name="app-mode"][value="${globalState.currentMode}"]`) as HTMLInputElement;
+    if (modeRadio) {
+        modeRadio.checked = true;
+    }
+
+    if (importedConfig.customPromptsDeepthinkState) {
+        globalState.customPromptsDeepthinkState = importedConfig.customPromptsDeepthinkState;
+    }
+    
+    // Restore evolution convergence mode
+    if (importedConfig.currentEvolutionMode !== undefined) {
+        globalState.currentEvolutionMode = importedConfig.currentEvolutionMode;
+        const evolutionButtons = document.querySelectorAll('.evolution-convergence-button');
+        evolutionButtons.forEach(button => {
+            const buttonValue = (button as HTMLElement).dataset.value;
+            if (buttonValue === globalState.currentEvolutionMode) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
             }
+        });
+        updateEvolutionModeDescription(globalState.currentEvolutionMode);
+    }
 
-            // Restore model parameters AFTER sidebar controls are initialized
-            // Use setTimeout to ensure UI elements are fully ready
-            if (importedConfig.modelParameters) {
-                const params = importedConfig.modelParameters;
-                setTimeout(() => {
-                    const modelConfig = routingManager.getModelConfigManager();
+    const initialIdeaInput = getInitialIdeaInput();
+    if (initialIdeaInput) {
+        initialIdeaInput.value = importedConfig.initialIdea;
+    }
 
-                    // Update all parameters
-                    if (params.temperature !== undefined) modelConfig.updateParameter('temperature', params.temperature);
-                    if (params.topP !== undefined) modelConfig.updateParameter('topP', params.topP);
-                    if (params.refinementStages !== undefined) modelConfig.updateParameter('refinementStages', params.refinementStages);
-                    if (params.strategiesCount !== undefined) modelConfig.updateParameter('strategiesCount', params.strategiesCount);
-                    if (params.subStrategiesCount !== undefined) modelConfig.updateParameter('subStrategiesCount', params.subStrategiesCount);
-                    if (params.hypothesisCount !== undefined) modelConfig.updateParameter('hypothesisCount', params.hypothesisCount);
-                    if (params.redTeamAggressiveness !== undefined) modelConfig.updateParameter('redTeamAggressiveness', params.redTeamAggressiveness);
-                    if (params.refinementEnabled !== undefined) modelConfig.updateParameter('refinementEnabled', params.refinementEnabled);
-                    if (params.skipSubStrategies !== undefined) modelConfig.updateParameter('skipSubStrategies', params.skipSubStrategies);
-                    if (params.dissectedObservationsEnabled !== undefined) modelConfig.updateParameter('dissectedObservationsEnabled', params.dissectedObservationsEnabled);
+    if (globalState.currentMode !== 'deepthink') {
+        globalState.currentProblemImageBase64 = null;
+        globalState.currentProblemImageMimeType = null;
+    }
+    updateUIAfterModeChange();
+
+    // Reinitialize sidebar controls after import
+    if ((window as any).reinitializeSidebarControls) {
+        (window as any).reinitializeSidebarControls();
+    }
+
+    // Restore model parameters AFTER sidebar controls are initialized
+    if (importedConfig.modelParameters) {
+        const params = importedConfig.modelParameters;
+        setTimeout(() => {
+            const modelConfig = routingManager.getModelConfigManager();
+
+            if (params.temperature !== undefined) modelConfig.updateParameter('temperature', params.temperature);
+            if (params.topP !== undefined) modelConfig.updateParameter('topP', params.topP);
+            if (params.refinementStages !== undefined) modelConfig.updateParameter('refinementStages', params.refinementStages);
+            if (params.strategiesCount !== undefined) modelConfig.updateParameter('strategiesCount', params.strategiesCount);
+            if (params.subStrategiesCount !== undefined) modelConfig.updateParameter('subStrategiesCount', params.subStrategiesCount);
+            if (params.hypothesisCount !== undefined) modelConfig.updateParameter('hypothesisCount', params.hypothesisCount);
+            if (params.redTeamAggressiveness !== undefined) modelConfig.updateParameter('redTeamAggressiveness', params.redTeamAggressiveness);
+            if (params.refinementEnabled !== undefined) modelConfig.updateParameter('refinementEnabled', params.refinementEnabled);
+            if (params.skipSubStrategies !== undefined) modelConfig.updateParameter('skipSubStrategies', params.skipSubStrategies);
+            if (params.dissectedObservationsEnabled !== undefined) modelConfig.updateParameter('dissectedObservationsEnabled', params.dissectedObservationsEnabled);
                     if (params.iterativeCorrectionsEnabled !== undefined) modelConfig.updateParameter('iterativeCorrectionsEnabled', params.iterativeCorrectionsEnabled);
                     if (params.provideAllSolutionsToCorrectors !== undefined) modelConfig.updateParameter('provideAllSolutionsToCorrectors', params.provideAllSolutionsToCorrectors);
                     if (params.postQualityFilterEnabled !== undefined) modelConfig.updateParameter('postQualityFilterEnabled', params.postQualityFilterEnabled);

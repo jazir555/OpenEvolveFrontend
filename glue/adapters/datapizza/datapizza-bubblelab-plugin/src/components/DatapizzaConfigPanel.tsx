@@ -36,7 +36,7 @@ export function DatapizzaConfigPanel({
 
   useEffect(() => {
     if (initialConfig) {
-      setConfig(prev => ({ ...prev, ...initialConfig }));
+      setConfig((prev: DatapizzaPluginConfig) => ({ ...prev, ...initialConfig }));
     }
   }, [initialConfig]);
 
@@ -45,10 +45,10 @@ export function DatapizzaConfigPanel({
     
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      setConfig(prev => ({ ...prev, [name]: checked }));
+      setConfig((prev: DatapizzaPluginConfig) => ({ ...prev, [name]: checked }));
     } else if (name.startsWith('dataProcessingConfig.')) {
       const fieldName = name.replace('dataProcessingConfig.', '');
-      setConfig(prev => ({
+      setConfig((prev: DatapizzaPluginConfig) => ({
         ...prev,
         dataProcessingConfig: {
           ...prev.dataProcessingConfig,
@@ -57,7 +57,7 @@ export function DatapizzaConfigPanel({
       }));
     } else if (name.startsWith('agentConfigurations.')) {
       const [agent, field] = name.replace('agentConfigurations.', '').split('.') as [keyof DatapizzaPluginConfig['agentConfigurations'], string];
-      setConfig(prev => ({
+      setConfig((prev: DatapizzaPluginConfig) => ({
         ...prev,
         agentConfigurations: {
           ...prev.agentConfigurations,
@@ -68,7 +68,7 @@ export function DatapizzaConfigPanel({
         }
       }));
     } else {
-      setConfig(prev => ({ ...prev, [name]: value }));
+      setConfig((prev: DatapizzaPluginConfig) => ({ ...prev, [name]: value }));
     }
   };
 

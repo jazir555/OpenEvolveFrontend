@@ -1,10 +1,5 @@
-/**
- * LeanAide Autoformalization Plugin for BubbleLab UI
- *
- * This plugin integrates the complete LeanAide autoformalization system with predictive analytics
- * into the BubbleLab UI as a comprehensive plugin.
- */
 import React from 'react';
+import { type AutoformalizationConfig } from '../integration/autoformalizationAnalytics';
 export interface LeanAidePluginInterface {
     id: string;
     name: string;
@@ -13,19 +8,14 @@ export interface LeanAidePluginInterface {
     category: string;
     component: React.ComponentType<any>;
     icon: React.ReactNode;
-    settingsSchema?: any;
+    settingsSchema?: Record<string, unknown>;
     permissions?: string[];
 }
-export interface LeanAidePluginConfig {
-    enableAnalytics: boolean;
-    enablePredictiveFlagging: boolean;
-    enableKnowledgeGraph: boolean;
-    analyticsRefreshInterval: number;
-    maxConcurrentRequests: number;
-    cacheEnabled: boolean;
-    cacheTTL: number;
-    serverUrl: string;
-    apiKey?: string;
+export interface LeanAidePluginConfig extends AutoformalizationConfig {
+    analyticsRefreshInterval?: number;
+    maxConcurrentRequests?: number;
+    cacheEnabled?: boolean;
+    cacheTTL?: number;
 }
 export declare const DEFAULT_LEANAIDE_PLUGIN_CONFIG: LeanAidePluginConfig;
 export interface LeanAidePluginProps {
@@ -33,7 +23,6 @@ export interface LeanAidePluginProps {
     onConfigChange?: (config: LeanAidePluginConfig) => void;
     className?: string;
 }
-export declare const LeanAidePlugin: React.FC<LeanAidePluginProps>;
+export declare const LeanAidePlugin: ({ config, onConfigChange, className, }: LeanAidePluginProps) => any;
 export declare function registerLeanAidePlugin(): LeanAidePluginInterface;
-export type { LeanAidePluginInterface, LeanAidePluginConfig };
 export default LeanAidePlugin;

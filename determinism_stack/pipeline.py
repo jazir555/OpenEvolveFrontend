@@ -84,6 +84,15 @@ class DeterministicPipeline:
         self.security = SecurityLayer()
         self._sync_llm()
         self.refinement_loop = None
+        
+        # Observability integration
+        self.observability = None
+        obs_module = optional_import("monitoring_system")
+        if obs_module:
+            try:
+                self.observability = obs_module.get_observability_manager()
+            except Exception:
+                pass
 
     def _sync_llm(self) -> None:
         self.generator.llm = self.llm
@@ -104,32 +113,77 @@ class DeterministicPipeline:
         errors: List[str] = []
         schema = schema or self.config.schema
         constraints = constraints or self.config.constraints
+        
+        # Start tracing if observability is available
+        trace_context = None
+        if self.observability:
+            trace_context = self.observability.trace_operation("deterministic_pipeline_execution", {
+                "layers_enabled": self.config.enable_layers,
+                "tier": self.config.tier
+            })
 
+        try:
+            if trace_context:
+                with trace_context as span:
+                    return self._execute_layers(prompt, schema, constraints, context_document, timestamp, start, span)
+            else:
+                return self._execute_layers(prompt, schema, constraints, context_document, timestamp, start)
+        except Exception as exc:
+            errors.append(str(exc))
+            return DeterminismResult(
+                success=False,
+                output=None,
+                metadata={"layers_used": self.config.enable_layers},
+                validation={"valid": False, "issues": errors},
+                reproducibility=None,
+                execution_time=time.time() - start,
+                errors=errors
+            )
+
+    def _execute_layers(
+        self,
+        prompt: str,
+        schema: Optional[Dict[str, Any]],
+        constraints: Optional[Dict[str, Any]],
+        context_document: Optional[str],
+        timestamp: Optional[str],
+        start_time: float,
+        span: Optional[Any] = None
+    ) -> DeterminismResult:
+        errors: List[str] = []
+        subtasks = []
+        formal = {"verified": True}
+        reproducibility = None
+        output = None
+        
         try:
             # Layer 0: Pre-generation filtering (Lagrange Mapper)
             if 0 in self.config.enable_layers:
+                if span: span.add_event("layer_0_start")
                 prompt = self.filter_layer.filter(prompt, intensity=self.config.filter_intensity)
 
             # Security filtering (Internal safety)
             prompt = self.security.sanitize_input(prompt)
 
             # Layer 1: Decomposition (ROMA/MDAP/MAKER)
-            subtasks = []
             if 1 in self.config.enable_layers:
+                if span: span.add_event("layer_1_start")
                 subtasks = self.decomposer.atomize(prompt)
 
             # Layer 5: Context management (Matryoshka/RAG)
             context = None
             if context_document and 5 in self.config.enable_layers and self.config.use_context:
+                if span: span.add_event("layer_5_start")
                 context = self.context_manager.get_context(prompt, context_document).get("context")
             
             # Layer 6: Temporal Knowledge Consistency
             knowledge_context = None
             if 6 in self.config.enable_layers and self.config.use_knowledge and self.knowledge.is_available():
+                if span: span.add_event("layer_6_start")
                 try:
                     # If timestamp is provided, use temporal query
                     if timestamp:
-                        knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results)
+                        knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results, timestamp=timestamp)
                     else:
                         knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results)
                 except Exception as exc:
@@ -144,10 +198,11 @@ class DeterministicPipeline:
                 final_prompt = f"{final_prompt}\n\nSubtasks:\n- " + "\n- ".join(subtasks)
 
             # Layer 2: Constrained generation (LMQL/Outlines)
-            output: Any
             if 2 in self.config.enable_layers and schema:
+                if span: span.add_event("layer_2_start")
                 output = self.generator.generate_json(final_prompt, schema)
             elif 2 in self.config.enable_layers and constraints:
+                if span: span.add_event("layer_2_start")
                 output = self.generator.generate_with_constraints(final_prompt, str(constraints))
             else:
                 output = self.llm.generate(final_prompt)
@@ -161,6 +216,7 @@ class DeterministicPipeline:
             # Layer 3: Content Verification & Correction (Steer/Guardrails)
             validation = {"valid": True, "issues": []}
             if 3 in self.config.enable_layers:
+                if span: span.add_event("layer_3_start")
                 result = self.validator.validate_and_fix(
                     output=output,
                     schema=schema,
@@ -172,6 +228,7 @@ class DeterministicPipeline:
 
             # Layer 4: Learning & Optimization (DSPy/ACE)
             if 4 in self.config.enable_layers and self.config.use_learning:
+                if span: span.add_event("layer_4_start")
                 output = self.optimizer.execute(output, learn=False)
                 # --- Real Business Logic: Trigger ACE Learning if feedback present ---
                 # Check if output contains feedback for self-correction/learning
@@ -183,6 +240,7 @@ class DeterministicPipeline:
 
             # --- Real Business Logic: Iterative Refinement (3-team gauntlet) ---
             if self.config.use_refinement:
+                if span: span.add_event("refinement_loop_start")
                 if self.refinement_loop is None:
                     from .refinement import DeterministicRefinementLoop
                     self.refinement_loop = DeterministicRefinementLoop(self)
@@ -190,8 +248,8 @@ class DeterministicPipeline:
                 output = self.refinement_loop.refine(output, {"prompt": final_prompt})
 
             # Layer 7: Formal Verification (Z3/Lean)
-            formal = {"verified": True}
             if 7 in self.config.enable_layers and isinstance(output, dict):
+                if span: span.add_event("layer_7_start")
                 # 1. Basic logical correctness
                 formal = self.formal.verify_logical_correctness(output)
                 
@@ -209,8 +267,8 @@ class DeterministicPipeline:
                         formal["verified"] = False
 
             # Layer 8: Runtime Reproducibility (detLLM)
-            reproducibility = None
             if 8 in self.config.enable_layers:
+                if span: span.add_event("layer_8_start")
                 repro_tier = self.config.tier
                 reproducibility = self.reproducibility.check(
                     prompt=final_prompt,
@@ -227,7 +285,17 @@ class DeterministicPipeline:
             output = None
             formal = {"verified": False}
 
-        execution_time = time.time() - start
+        execution_time = time.time() - start_time
+        
+        # Record metrics if observability is available
+        if self.observability:
+            try:
+                from monitoring_system import MetricType
+                self.observability.add_custom_metric("determinism_pipeline_duration_seconds", execution_time, MetricType.HISTOGRAM)
+                self.observability.add_custom_metric("determinism_pipeline_success_total", 1 if not errors else 0, MetricType.COUNTER)
+            except Exception:
+                pass
+
         return DeterminismResult(
             success=len(errors) == 0,
             output=output,
@@ -242,6 +310,7 @@ class DeterministicPipeline:
             execution_time=execution_time,
             errors=errors,
         )
+
 
     def generate_multimodal(
         self,

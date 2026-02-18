@@ -10,7 +10,7 @@
  * - Circuit Breaker: Handles failures gracefully
  * - Retry Logic: Exponential backoff for transient failures
  */
-import { logger } from '../../../../../lib/structuredLogger';
+import { logger } from '../lib/structuredLogger';
 /**
  * Datapizza API Client
  *

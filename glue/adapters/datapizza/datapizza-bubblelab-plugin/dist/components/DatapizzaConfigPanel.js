@@ -9,18 +9,18 @@ export function DatapizzaConfigPanel({ initialConfig, onSave, onCancel, showAdva
     const [showApiKey, setShowApiKey] = useState(false);
     useEffect(() => {
         if (initialConfig) {
-            setConfig(prev => ({ ...prev, ...initialConfig }));
+            setConfig((prev) => ({ ...prev, ...initialConfig }));
         }
     }, [initialConfig]);
     const handleInputChange = (e) => {
         const { name, value, type } = e.target;
         if (type === 'checkbox') {
             const checked = e.target.checked;
-            setConfig(prev => ({ ...prev, [name]: checked }));
+            setConfig((prev) => ({ ...prev, [name]: checked }));
         }
         else if (name.startsWith('dataProcessingConfig.')) {
             const fieldName = name.replace('dataProcessingConfig.', '');
-            setConfig(prev => ({
+            setConfig((prev) => ({
                 ...prev,
                 dataProcessingConfig: {
                     ...prev.dataProcessingConfig,
@@ -30,7 +30,7 @@ export function DatapizzaConfigPanel({ initialConfig, onSave, onCancel, showAdva
         }
         else if (name.startsWith('agentConfigurations.')) {
             const [agent, field] = name.replace('agentConfigurations.', '').split('.');
-            setConfig(prev => ({
+            setConfig((prev) => ({
                 ...prev,
                 agentConfigurations: {
                     ...prev.agentConfigurations,
@@ -42,7 +42,7 @@ export function DatapizzaConfigPanel({ initialConfig, onSave, onCancel, showAdva
             }));
         }
         else {
-            setConfig(prev => ({ ...prev, [name]: value }));
+            setConfig((prev) => ({ ...prev, [name]: value }));
         }
     };
     const handleSubmit = (e) => {

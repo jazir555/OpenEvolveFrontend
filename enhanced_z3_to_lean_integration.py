@@ -962,4 +962,11 @@ __all__ = [
     "translate_with_tactics",
     "batch_verify_parallel",
     "generate_proof_certificate",
+
+    # Availability flags
+    "ENHANCED_INTEGRATION_AVAILABLE",
+    "Z3_AVAILABLE",
+    "LEAN4_AVAILABLE",
+    "BASE_INTEGRATION_AVAILABLE",
+    "CAV_NLP_AVAILABLE",
 ]

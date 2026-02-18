@@ -54,7 +54,7 @@ export function DatapizzaPipelinePanel({
   }, [initialPipelineType]);
 
   const addLog = (message: string) => {
-    setLogs(prev => [...prev, `${new Date().toISOString()} - ${message}`]);
+    setLogs((prev: string[]) => [...prev, `${new Date().toISOString()} - ${message}`]);
   };
 
   const handleRunPipeline = async () => {
@@ -149,7 +149,7 @@ export function DatapizzaPipelinePanel({
                     </label>
                     <select
                       value={pipelineType}
-                      onChange={(e) => setPipelineType(e.target.value)}
+                      onChange={(e: any) => setPipelineType(e.target.value)}
                       disabled={isRunning}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white disabled:opacity-50"
                     >
@@ -306,7 +306,7 @@ export function DatapizzaPipelinePanel({
                   {logs.length === 0 ? (
                     <div className="text-gray-400 dark:text-gray-500">No logs yet. Start the pipeline to see activity.</div>
                   ) : (
-                    logs.map((log, index) => (
+                    logs.map((log: string, index: number) => (
                       <div key={index} className="mb-1 break-words">
                         {log}
                       </div>

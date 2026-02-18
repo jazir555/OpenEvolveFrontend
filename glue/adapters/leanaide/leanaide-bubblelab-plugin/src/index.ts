@@ -1,73 +1,51 @@
-/**
- * Main Entry Point for LeanAide BubbleLab Integration
- *
- * This file provides the main exports for the complete LeanAide autoformalization
- * system with predictive analytics integration.
- */
+export {
+  default as LeanAideBubbleLabIntegration,
+  BubbleLabLeanAideIntegration,
+  BubbleLabLeanAideIntegrationLazy,
+  registerBubbleLabIntegration,
+} from './BubbleLabIntegration';
 
-// Main integration components
-export { default as LeanAideBubbleLabIntegration, LeanAideBubbleLabIntegrationProps } from './BubbleLabIntegration';
-export { BubbleLabLeanAideIntegrationLazy } from './BubbleLabIntegration';
+export type {
+  BubbleLabIntegrationProps,
+  LeanAideBubbleLabIntegrationProps,
+} from './BubbleLabIntegration';
 
-// Core autoformalization components
 export {
   LeanAideAutoformalizationEngine,
-  AutoformalizationResult,
-  AutoformalizationStrategy,
   create_leanaide_autoformalization_engine,
-  autoformalize_with_mdap_maker
+  autoformalize_with_mdap_maker,
+  EnhancedLeanAideVerification,
+  AnalyticsDashboard,
+  KnowledgeGraphIntegration,
+  useAutoformalizationAnalytics,
+  DEFAULT_ANALYTICS_CONFIG,
 } from './integration/autoformalizationAnalytics';
 
-// Enhanced verification components
-export { EnhancedLeanAideVerification, EnhancedLeanAideVerificationProps } from './integration/autoformalizationAnalytics';
+export type {
+  AutoformalizationConfig,
+  AutoformalizationEvent,
+  AutoformalizationMetrics,
+  AutoformalizationResult,
+  AutoformalizationStrategy,
+  EnhancedLeanAideVerificationProps,
+  AnalyticsDashboardProps,
+  KnowledgeGraphIntegrationProps,
+} from './integration/autoformalizationAnalytics';
 
-// Analytics components
-export { AnalyticsDashboard, AnalyticsDashboardProps } from './integration/autoformalizationAnalytics';
-
-// Knowledge graph components
-export { KnowledgeGraphIntegration, KnowledgeGraphIntegrationProps } from './integration/autoformalizationAnalytics';
-
-// Plugin system
 export {
   LeanAidePlugin,
+  PluginManager,
+  PluginManagerProvider,
+  pluginRegistry,
+  usePluginManager,
+} from './PluginSystem';
+
+export type {
   LeanAidePluginInterface,
   LeanAidePluginConfig,
   LeanAidePluginLifecycle,
-  pluginRegistry,
-  PluginManager,
-  PluginManagerProvider,
-  usePluginManager
 } from './PluginSystem';
 
-// Analytics hooks and services
-export { useAutoformalizationAnalytics } from './integration/autoformalizationAnalytics';
+export { registerLeanAidePlugin } from './plugins/LeanAidePlugin';
 
-// Types and interfaces
-export type {
-  AutoformalizationMetrics,
-  AutoformalizationEvent,
-  AutoformalizationConfig,
-  AutoformalizationStrategy as AutoformalizationStrategyType,
-  AutoformalizationResult as AutoformalizationResultType
-} from './integration/autoformalizationAnalytics';
-
-// Services
-export {
-  initializeLeanAideClient,
-  initializeRagbitsClient,
-  translateTheorem,
-  translateDefinition,
-  verifySolution,
-  elaborateCode,
-  mathQuery,
-  searchKnowledge,
-  ingestArtifact,
-  isLeanAideAvailable,
-  isRagbitsAvailable
-} from './services';
-
-// Configuration
-export { DEFAULT_ANALYTICS_CONFIG } from './integration/autoformalizationAnalytics';
-
-// Plugin registration
-export { registerBubbleLabIntegration } from './BubbleLabIntegration';
+export * from './services';

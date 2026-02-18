@@ -1203,6 +1203,12 @@ class ROMAIntegration:
         validation_scores = []
         feedback_items = []
 
+        # Initialize default values for verification result
+        overall_score = 0.0
+        threshold = self.config["verifier"]["threshold"]
+        passed = False
+        feedback = "Verification failed"
+
         # Verify each requirement
         for req_name, req_value in requirements.items():
             try:
@@ -1225,11 +1231,8 @@ class ROMAIntegration:
                 })
                 raise  # Re-raise to fail the verification
 
-        # Calculate overall score
+        # Recalculate final score and passed status based on results
         overall_score = sum(validation_scores) / len(validation_scores) if validation_scores else 0.0
-
-        # Determine if solution passes
-        threshold = self.config["verifier"]["threshold"]
         passed = overall_score >= threshold and all(requirements_met.values())
 
         # Generate feedback
@@ -1270,12 +1273,12 @@ class ROMAIntegration:
         """
         req_lower = req_name.lower()
 
-        try:
-            # Initialize default values
-            passed = True
-            score = 0.8
-            feedback = f"Requirement '{req_name}' validated with default criteria"
+        # Initialize default values (outside try block to ensure they're always defined)
+        passed = True
+        score = 0.8
+        feedback = "Requirement validated with default criteria"
 
+        try:
             # Completeness checks
             if 'completeness' in req_lower:
                 # Check if solution has sufficient content

@@ -88,7 +88,7 @@ export function RagbitsKnowledgeSearch({
         <label className="text-xs text-muted-foreground mb-2 block">Query</label>
         <input
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event: any) => setQuery(event.target.value)}
           placeholder="Search for patterns, solutions, or artifacts..."
           className="w-full rounded-md border border-muted bg-muted/20 px-3 py-2 text-sm"
         />
@@ -130,7 +130,7 @@ export function RagbitsKnowledgeSearch({
         <div className="mt-3 border-t pt-3">
           <h4 className="font-medium text-sm mb-2">Results</h4>
           <div className="space-y-2 max-h-64 overflow-auto">
-            {results.map((result, index) => (
+            {results.map((result: RagbitsSearchResult, index: number) => (
               <div key={`${index}-${result.content.slice(0, 12)}`} className="bg-muted/20 rounded-md p-2 text-xs">
                 <div className="text-muted-foreground mb-1">
                   Score: {result.score?.toFixed(3) ?? 'n/a'}

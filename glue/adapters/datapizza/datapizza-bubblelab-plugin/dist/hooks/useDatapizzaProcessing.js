@@ -27,7 +27,7 @@ export function useDatapizzaProcessing(client) {
                 console.warn('Datapizza mock mode enabled - set VITE_DATAPIZZA_USE_MOCK=false to use real API');
                 // Simulate progress updates
                 const progressInterval = setInterval(() => {
-                    setProgress(prev => Math.min(prev + 10, 90));
+                    setProgress((prev) => Math.min(prev + 10, 90));
                 }, 500);
                 // Simulate processing time
                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -71,7 +71,7 @@ export function useDatapizzaProcessing(client) {
             }
             // Simulate progress updates (real API doesn't provide progress)
             const progressInterval = setInterval(() => {
-                setProgress(prev => Math.min(prev + 5, 50));
+                setProgress((prev) => Math.min(prev + 5, 50));
             }, 1000);
             try {
                 const result = await client.processData({

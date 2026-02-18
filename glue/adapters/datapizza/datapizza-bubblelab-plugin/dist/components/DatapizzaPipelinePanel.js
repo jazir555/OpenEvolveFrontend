@@ -22,7 +22,7 @@ export function DatapizzaPipelinePanel({ dataSource, initialPipelineType, onResu
         }
     }, [initialPipelineType]);
     const addLog = (message) => {
-        setLogs(prev => [...prev, `${new Date().toISOString()} - ${message}`]);
+        setLogs((prev) => [...prev, `${new Date().toISOString()} - ${message}`]);
     };
     const handleRunPipeline = async () => {
         try {

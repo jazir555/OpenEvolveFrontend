@@ -48,7 +48,7 @@ export function useDatapizzaProcessing(client?: DatapizzaClient) {
 
           // Simulate progress updates
           const progressInterval = setInterval(() => {
-            setProgress(prev => Math.min(prev + 10, 90));
+            setProgress((prev: number) => Math.min(prev + 10, 90));
           }, 500);
 
           // Simulate processing time
@@ -100,7 +100,7 @@ export function useDatapizzaProcessing(client?: DatapizzaClient) {
 
         // Simulate progress updates (real API doesn't provide progress)
         const progressInterval = setInterval(() => {
-          setProgress(prev => Math.min(prev + 5, 50));
+          setProgress((prev: number) => Math.min(prev + 5, 50));
         }, 1000);
 
         try {

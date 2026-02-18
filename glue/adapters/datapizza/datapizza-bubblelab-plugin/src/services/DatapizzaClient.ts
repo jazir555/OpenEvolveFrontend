@@ -11,7 +11,7 @@
  * - Retry Logic: Exponential backoff for transient failures
  */
 
-import { logger, LogContext } from '../../../../../lib/structuredLogger';
+import { logger, LogContext } from '../lib/structuredLogger';
 
 export interface DatapizzaClientConfig {
   baseUrl: string;

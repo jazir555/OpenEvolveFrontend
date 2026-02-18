@@ -1,14 +1,3 @@
-/**
- * Main Integration Component for LeanAide Autoformalization with BubbleLab Analytics
- *
- * This component provides the complete integration between LeanAide's autoformalization system
- * and BubbleLab's analytics platform, offering a comprehensive dashboard for monitoring
- * and managing the autoformalization process.
- */
-import { AnalyticsDashboard, EnhancedLeanAideVerification, KnowledgeGraphIntegration, useAutoformalizationAnalytics } from './integration/autoformalizationAnalytics';
-export interface LeanAideBubbleLabIntegrationProps {
-    className?: string;
-}
-export declare function LeanAideBubbleLabIntegration({ className }: LeanAideBubbleLabIntegrationProps): any;
-export { AnalyticsDashboard, EnhancedLeanAideVerification, KnowledgeGraphIntegration, useAutoformalizationAnalytics };
-export default LeanAideBubbleLabIntegration;
+export { LeanAideBubbleLabIntegration, AnalyticsDashboard, EnhancedLeanAideVerification, KnowledgeGraphIntegration, useAutoformalizationAnalytics, } from './integration/autoformalizationAnalytics';
+export type { LeanAideBubbleLabIntegrationProps, AnalyticsDashboardProps, EnhancedLeanAideVerificationProps, KnowledgeGraphIntegrationProps, AutoformalizationConfig, AutoformalizationEvent, AutoformalizationMetrics, AutoformalizationResult, AutoformalizationStrategy, } from './integration/autoformalizationAnalytics';
+export { LeanAideBubbleLabIntegration as default } from './integration/autoformalizationAnalytics';

@@ -5,7 +5,7 @@ import { DEFAULT_DATAPIZZA_CONFIG } from '../types/plugin-types';
 export function useDatapizzaConfig() {
     const [config, setConfig] = useState(DEFAULT_DATAPIZZA_CONFIG);
     const updateConfig = (newConfig) => {
-        setConfig(prev => ({ ...prev, ...newConfig }));
+        setConfig((prev) => ({ ...prev, ...newConfig }));
     };
     return [config, updateConfig];
 }
