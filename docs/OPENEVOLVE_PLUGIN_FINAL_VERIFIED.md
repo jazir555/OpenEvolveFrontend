@@ -74,7 +74,7 @@ After comprehensive gap analysis and fixing all remaining issues, the **OpenEvol
 | **AdversarialNode** | AdversarialNode.ts | 525 | ✅ Complete |
 | **KnowledgeQueryNode** | KnowledgeQueryNode.ts | 487 | ✅ Complete |
 | **LeanAideNode** | LeanAIDENode.ts | 583 | ✅ Complete |
-| **HephaestusNode** | HephaestusNode.ts | 576 | ✅ Complete |
+| **crewaiNode** | crewaiNode.ts | 576 | ✅ Complete |
 | **MDAPNode** | MDAPNode.ts | 567 | ✅ Complete |
 | **MAKERNode** | MAKERNode.ts | 675 | ✅ Complete |
 
@@ -106,7 +106,7 @@ After comprehensive gap analysis and fixing all remaining issues, the **OpenEvol
 | **useDecomposition** | useDecomposition.ts | 383 | ✅ Required |
 | **useKnowledgeEngine** | useKnowledgeEngine.ts | 442 | ✅ Required |
 | **useLeanAIDE** | useLeanAIDE.ts | 427 | ✅ Required |
-| **useHephaestus** | useHephaestus.ts | 504 | ✅ Required |
+| **usecrewai** | usecrewai.ts | 504 | ✅ Required |
 | **useEnhancedOpenEvolveConfig** | useEnhancedOpenEvolveConfig.ts | ~200 | ✅ Required |
 | **useAnalytics** | useAnalytics.ts | ~200 | ✅ **BONUS** |
 | **useKnowledge** | useKnowledge.ts | ~200 | ✅ **BONUS** |
@@ -138,7 +138,7 @@ After comprehensive gap analysis and fixing all remaining issues, the **OpenEvol
 - ✅ Created AdversarialNode.ts (525 lines)
 - ✅ Created KnowledgeQueryNode.ts (487 lines)
 - ✅ Created LeanAIDENode.ts (583 lines)
-- ✅ Created HephaestusNode.ts (576 lines)
+- ✅ Created crewaiNode.ts (576 lines)
 - ✅ Created MDAPNode.ts (567 lines)
 - ✅ Created MAKERNode.ts (675 lines)
 
@@ -154,7 +154,7 @@ After comprehensive gap analysis and fixing all remaining issues, the **OpenEvol
 - ✅ Created useDecomposition.ts (383 lines)
 - ✅ Created useKnowledgeEngine.ts (442 lines)
 - ✅ Created useLeanAIDE.ts (427 lines)
-- ✅ Fixed useHephaestus.ts syntax error (line 279)
+- ✅ Fixed usecrewai.ts syntax error (line 279)
 
 ### Phase 4: Export & Registration Fixes
 - ✅ Fixed init.ts - Added all 7 missing nodes
@@ -226,7 +226,7 @@ import {
   AdversarialNode,
   KnowledgeQueryNode,
   LeanAideNode,
-  HephaestusNode,
+  crewaiNode,
   MDAPNode,
   MAKERNode
 } from '@openevolve/plugin/nodes';
@@ -256,7 +256,7 @@ import {
   useDecomposition,
   useKnowledgeEngine,
   useLeanAIDE,
-  useHephaestus,
+  usecrewai,
   useEnhancedOpenEvolveConfig,
   useAnalytics,      // BONUS
   useKnowledge       // BONUS
@@ -280,7 +280,7 @@ OpenEvolve-Plugin/
 │   │   ├── AdversarialNode.ts
 │   │   ├── KnowledgeQueryNode.ts
 │   │   ├── LeanAIDENode.ts
-│   │   ├── HephaestusNode.ts
+│   │   ├── crewaiNode.ts
 │   │   ├── MDAPNode.ts
 │   │   ├── MAKERNode.ts
 │   │   ├── registry.ts
@@ -301,7 +301,7 @@ OpenEvolve-Plugin/
 │   │   ├── useDecomposition.ts
 │   │   ├── useKnowledgeEngine.ts
 │   │   ├── useLeanAIDE.ts
-│   │   ├── useHephaestus.ts
+│   │   ├── usecrewai.ts
 │   │   ├── useEnhancedOpenEvolveConfig.ts
 │   │   ├── useAnalytics.ts       # BONUS
 │   │   └── useKnowledge.ts       # BONUS

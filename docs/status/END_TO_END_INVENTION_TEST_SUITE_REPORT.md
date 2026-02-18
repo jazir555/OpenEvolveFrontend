@@ -514,7 +514,7 @@ To achieve 100% test pass rates:
 
 4. **Complete Phase 4** (Advanced Integrations)
    - Integrate BubbleLabs for analytics
-   - Integrate Hephaestus for delegation
+   - Integrate crewai for delegation
    - Integrate Sovereign for QA
    - Integrate Claudiomiro/DataPizza/RAGBits
    - Integrate STEER

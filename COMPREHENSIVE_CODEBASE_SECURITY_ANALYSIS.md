@@ -127,8 +127,8 @@ Multiple files use `subprocess` with `shell=True`, creating command injection vu
 - **Curie/benchmark/exp_bench/evaluation/judge.py**: Contains `subprocess.run(f"cp {workspace_local_response_path} {output_path}", shell=True, check=True)` - line 195
 - **Curie/benchmark/exp_bench/evaluation/judge.py**: Contains `subprocess.run(f"rm -rf {workspace_local_response_path}", shell=True, check=True)` - line 198
 - **Curie/curie/tests/test_main_loop.py**: Contains `process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)` - line 45
-- **Hephaestus/src/validation/check_executors.py**: Contains `shell=True,` - line 178
-- **Hephaestus/src/validation/check_executors.py**: Contains `shell=True,` - line 230
+- **crewai/src/validation/check_executors.py**: Contains `shell=True,` - line 178
+- **crewai/src/validation/check_executors.py**: Contains `shell=True,` - line 230
 - **integrations/neuromancer/adapter.py**: Contains `shell=True` - line 504
 - **OneKE/src/models/vllm_serve.py**: Contains `subprocess.run(command, shell=True)` - line 30
 - **ROMA/src/roma_dspy/tools/terminal/toolkit.py**: Contains `shell=True,` - line 287

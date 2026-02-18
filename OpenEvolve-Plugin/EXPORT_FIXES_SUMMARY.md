@@ -20,7 +20,7 @@ Successfully fixed all broken exports and plugin definition files in the OpenEvo
   - `AdversarialNode`
   - `KnowledgeQueryNode`
   - `LeanAIDENode`
-  - `HephaestusNode`
+  - `crewaiNode`
   - `MDAPNode`
   - `MAKERNode`
 
@@ -37,7 +37,7 @@ Successfully fixed all broken exports and plugin definition files in the OpenEvo
   - `useDecomposition`
   - `useKnowledgeEngine`
   - `useLeanAIDE`
-  - `useHephaestus`
+  - `usecrewai`
 
 - ✅ Preserved all existing exports:
   - All type exports from `./types` (working)
@@ -200,7 +200,7 @@ export default OpenEvolvePlugin;
 - ❌ `AdversarialNode` - Planned for future
 - ❌ `KnowledgeQueryNode` - Planned for future
 - ❌ `LeanAIDENode` - Planned for future
-- ❌ `HephaestusNode` - Planned for future
+- ❌ `crewaiNode` - Planned for future
 - ❌ `MDAPNode` - Planned for future
 - ❌ `MAKERNode` - Planned for future
 
@@ -217,7 +217,7 @@ export default OpenEvolvePlugin;
 - ❌ `useDecomposition` - Planned for future
 - ❌ `useKnowledgeEngine` - Planned for future
 - ❌ `useLeanAIDE` - Planned for future
-- ❌ `useHephaestus` - Planned for future
+- ❌ `usecrewai` - Planned for future
 
 ---
 
@@ -230,7 +230,7 @@ To re-enable the commented exports, implement these in order:
 - [ ] Create `src/nodes/AdversarialNode.ts`
 - [ ] Create `src/nodes/KnowledgeQueryNode.ts`
 - [ ] Create `src/nodes/LeanAIDENode.ts`
-- [ ] Create `src/nodes/HephaestusNode.ts`
+- [ ] Create `src/nodes/crewaiNode.ts`
 - [ ] Create `src/nodes/MDAPNode.ts`
 - [ ] Create `src/nodes/MAKERNode.ts`
 - [ ] Export from `src/nodes/index.ts`
@@ -250,7 +250,7 @@ To re-enable the commented exports, implement these in order:
 - [ ] Create `src/hooks/useDecomposition.ts`
 - [ ] Create `src/hooks/useKnowledgeEngine.ts`
 - [ ] Create `src/hooks/useLeanAIDE.ts`
-- [ ] Create `src/hooks/useHephaestus.ts`
+- [ ] Create `src/hooks/usecrewai.ts`
 - [ ] Export from `src/hooks/index.ts`
 
 ### Phase 4: Re-enable Exports

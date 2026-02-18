@@ -13,7 +13,7 @@ export { EvolutionNode, type EvolutionMode, type EvolutionResult, type Evolution
 export { AdversarialNode, type AttackMode, type AdversarialTestResult, type AdversarialNodeConfig, } from './AdversarialNode';
 export { KnowledgeQueryNode, type QueryType, type KnowledgeQueryResult, type KnowledgeQueryNodeConfig, } from './KnowledgeQueryNode';
 export { LeanAideNode, type VerificationResult, type LeanAideNodeConfig, } from './LeanAIDENode';
-export { HephaestusNode, type HephaestusTaskType, type HephaestusResult, type HephaestusNodeConfig, } from './HephaestusNode';
+export { crewaiNode, type crewaiTaskType, type crewaiResult, type crewaiNodeConfig, } from './crewaiNode';
 export { MDAPNode, type MDAPStrategy, type MDAPNodeConfig, } from './MDAPNode';
 export { MAKERNode, type ContentType, type MAKERResult, type MAKERNodeConfig, } from './MAKERNode';
 export { ROMANode, type ROMAMode, type AgentRole, type ROMAResult, type ReasoningStep, type AgentVote, type ROMASubtask, type ROMANodeConfig, } from './ROMANode';

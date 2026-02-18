@@ -251,7 +251,7 @@ Formal Lean Code Output
 5. **Collaborative Filtering**: Learn from community formalizations
 
 ### Integration Opportunities
-1. **Hephaestus**: External service integration
+1. **crewai**: External service integration
 2. **Analytics**: Advanced monitoring and insights
 3. **Workflow Integration**: Process integration
 4. **Knowledge Graph**: Enhanced context awareness

@@ -77,7 +77,7 @@ The system represents a significant advance in automated theorem proving with st
 **Knowledge Integration:**
 - LeanAide for formal verification
 - Knowledge engine for retrieval
-- Hephaestus for orchestration
+- crewai for orchestration
 
 ---
 

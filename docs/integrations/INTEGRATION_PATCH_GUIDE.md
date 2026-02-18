@@ -304,7 +304,7 @@ if __name__ == "__main__":
   - [ ] Configure LeanAide server URL
   - [ ] Set evolutionary parameters
   - [ ] Enable/disable ROMA integration
-  - [ ] Enable/disable Hephaestus integration
+  - [ ] Enable/disable crewai integration
 
 - [ ] Deploy
   - [ ] Deploy to development environment

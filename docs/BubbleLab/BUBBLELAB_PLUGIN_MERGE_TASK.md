@@ -96,7 +96,7 @@ openevolve-bubblelab-plugin/
 - ✅ **MDAP/MAKER Integration**: Multi-domain agent orchestration
 - ✅ **Knowledge Engine**: Knowledge graph integration
 - ✅ **LeanAIDE Support**: Math formalization workflows
-- ✅ **Hephaestus Bridge**: Delegation capabilities
+- ✅ **crewai Bridge**: Delegation capabilities
 - ✅ **Node Registry System**: Dynamic node registration
 - ✅ **Configuration Panels**: Performance, security, enhanced config UI
 - ✅ **Custom Hooks**: React hooks for plugin management
@@ -109,7 +109,7 @@ DecompositionConfig, IntegrationConfig, PluginContext, etc.
 
 // Nodes
 EvolutionNode, AdversarialNode, DecompositionNode,
-KnowledgeQueryNode, LeanAIDENode, HephaestusNode,
+KnowledgeQueryNode, LeanAIDENode, crewaiNode,
 MDAPNode, MAKERNode
 
 // Components
@@ -119,7 +119,7 @@ IntegrationConfigPanel, EnhancedOpenEvolveConfigPanel
 
 // Hooks
 useOpenEvolvePlugin, useEvolution, useAdversarial,
-useDecomposition, useKnowledgeEngine, useLeanAIDE, useHephaestus
+useDecomposition, useKnowledgeEngine, useLeanAIDE, usecrewai
 
 // Utilities
 createPlugin, getPlugin, resetPlugin,

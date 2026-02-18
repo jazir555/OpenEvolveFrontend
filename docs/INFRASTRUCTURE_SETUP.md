@@ -1,9 +1,9 @@
 <<<<<<< HEAD
 # OpenEvolve Infrastructure Setup Guide
 
-**Phase 0 Foundation - Hephaestus → Vibe-Kanban Migration**
+**Phase 0 Foundation - crewai → Vibe-Kanban Migration**
 
-This guide covers setting up the core infrastructure services required for OpenEvolve operations, including the Hephaestus task management system and Vibe-Kanban integration.
+This guide covers setting up the core infrastructure services required for OpenEvolve operations, including the crewai task management system and Vibe-Kanban integration.
 
 ---
 
@@ -128,7 +128,7 @@ scripts\dev-stop.bat
 
 ### Qdrant Vector Database
 
-**Purpose:** Stores vector embeddings for semantic search, knowledge graph operations, and Hephaestus task memory.
+**Purpose:** Stores vector embeddings for semantic search, knowledge graph operations, and crewai task memory.
 
 **Key Features:**
 - High-performance vector similarity search
@@ -168,7 +168,7 @@ QDRANT_COLLECTION_PREFIX=openevolve  # Prefix for collection names
 **Schema Includes:**
 - `users` - User accounts and authentication
 - `projects` - Project metadata
-- `tasks` - Hephaestus task management
+- `tasks` - crewai task management
 - Indexes and triggers for performance
 
 **Connection Information:**
@@ -743,9 +743,9 @@ For issues specific to:
 =======
 # OpenEvolve Infrastructure Setup Guide
 
-**Phase 0 Foundation - Hephaestus → Vibe-Kanban Migration**
+**Phase 0 Foundation - crewai → Vibe-Kanban Migration**
 
-This guide covers setting up the core infrastructure services required for OpenEvolve operations, including the Hephaestus task management system and Vibe-Kanban integration.
+This guide covers setting up the core infrastructure services required for OpenEvolve operations, including the crewai task management system and Vibe-Kanban integration.
 
 ---
 
@@ -870,7 +870,7 @@ scripts\dev-stop.bat
 
 ### Qdrant Vector Database
 
-**Purpose:** Stores vector embeddings for semantic search, knowledge graph operations, and Hephaestus task memory.
+**Purpose:** Stores vector embeddings for semantic search, knowledge graph operations, and crewai task memory.
 
 **Key Features:**
 - High-performance vector similarity search
@@ -910,7 +910,7 @@ QDRANT_COLLECTION_PREFIX=openevolve  # Prefix for collection names
 **Schema Includes:**
 - `users` - User accounts and authentication
 - `projects` - Project metadata
-- `tasks` - Hephaestus task management
+- `tasks` - crewai task management
 - Indexes and triggers for performance
 
 **Connection Information:**

@@ -763,7 +763,7 @@ The End-to-End Invention System integrates **18 specialized projects** into a un
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                    STAGE 5: PHYSICS/LOGIC VALIDATION                                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
-│  │   Steer      │  │  ROMA        │  │  Hephaestus  │  │ BubbleLab   │           │
+│  │   Steer      │  │  ROMA        │  │  crewai  │  │ BubbleLab   │           │
 │  │  (Safety     │  │  (Logic      │  │  (Delegation) │  │ (Workflow)  │           │
 │  │   Validation)│  │   Checking)  │  │              │  │             │           │
 │  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘           │
@@ -870,7 +870,7 @@ These projects are fully integrated and provide the core infrastructure:
    - Formal verification integration
    - Mathematical reasoning
 
-5. **Hephaestus** - Delegation Framework
+5. **crewai** - Delegation Framework
    - Distributed task execution
    - Load balancing across agents
    - Fault tolerance and recovery
@@ -1036,7 +1036,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 1. Foundation (3 days) - Real decomposition, math formalization, physics validation
 2. Error Analysis (2 days) - Real error sources, adversarial testing
 3. SOP Generation (3 days) - Bulletproof SOPs, evolutionary optimization
-4. Advanced Integrations (4 days) - BubbleLabs, Hephaestus, Sovereign, pygraphistry, kg-gen
+4. Advanced Integrations (4 days) - BubbleLabs, crewai, Sovereign, pygraphistry, kg-gen
 5. Success Criteria (2 days) - Binary criteria, validation
 6. Testing (3 days) - Comprehensive test suite
 7. Documentation (3 days) - API guides, examples
@@ -1963,7 +1963,7 @@ See `END_TO_END_INVENTION_AGENT_TASKS.md` for complete rewrite plan.
 - ✅ ROMA - Recursive Meta-Agent
 - ✅ ragbits - GenAI Building Blocks
 - ✅ LeanAgent - Lean 4 LLM Agent (discrete math only)
-- ✅ Hephaestus - Delegation Framework
+- ✅ crewai - Delegation Framework
 - ✅ BubbleLab - Workflow Automation
 - ✅ datapizza-ai - GenAI Framework
 - ✅ claudiomiro - Development Automation
@@ -2114,7 +2114,7 @@ OpenEvolve delivers:
 
 **18 Integrated Projects** creating a system greater than the sum of its parts:
 
-1. **9 Foundation Projects** (already integrated): Steer, ROMA, ragbits, LeanAgent, Hephaestus, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
+1. **9 Foundation Projects** (already integrated): Steer, ROMA, ragbits, LeanAgent, crewai, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
 
 2. **5 Core Integration Projects** (in progress):
    - Stage 6 Knowledge Extraction (P0) - System learning from every execution

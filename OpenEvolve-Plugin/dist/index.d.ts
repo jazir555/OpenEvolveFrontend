@@ -14,7 +14,7 @@ export * from './types/plugin-types';
 export * from './types/enhanced-plugin-types';
 export * from './types/extended-plugin-types';
 export * from './types';
-export type { OpenEvolveNodeData, OpenEvolveNodeConfig, EvolutionNodeData, EvolutionConfig, EvolutionResult, EvolutionStrategy, AdversarialNodeData, AdversarialConfig, AdversarialResult, AttackStrategy, DecompositionNodeData, DecompositionConfig, DecompositionResult, DecompositionStrategy, IntegrationConfig, IntegrationResult, KnowledgeEngineConfig, LeanAIDEConfig, HephaestusConfig, OpenEvolvePlugin, PluginContext, PluginState, PluginActions, } from './types';
+export type { OpenEvolveNodeData, OpenEvolveNodeConfig, EvolutionNodeData, EvolutionConfig, EvolutionResult, EvolutionStrategy, AdversarialNodeData, AdversarialConfig, AdversarialResult, AttackStrategy, DecompositionNodeData, DecompositionConfig, DecompositionResult, DecompositionStrategy, IntegrationConfig, IntegrationResult, KnowledgeEngineConfig, LeanAIDEConfig, crewaiConfig, OpenEvolvePlugin, PluginContext, PluginState, PluginActions, } from './types';
 export * from './nodes';
 export { NodeRegistry, registerNodes, createNodeFromConfig as createNodeFromRegistryConfig, type NodeClass, type NodeMetadata, type NodeCreationConfig, type ValidationResult, type RegistrationOptions, type RegistryStats, } from './nodes/registry';
 export * from './components';

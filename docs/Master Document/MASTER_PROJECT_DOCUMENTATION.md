@@ -1013,7 +1013,7 @@ def tool_function(...):
 | ROMA | Recursive Meta-Agent decomposition | ✅ Complete |
 | RAGbits | Vector store and retrieval | ✅ Complete |
 | LeanAgent | Lean 4 LLM agent | ✅ Complete |
-| Hephaestus | Agentic workflow framework | ✅ Complete |
+| crewai | Agentic workflow framework | ✅ Complete |
 | BubbleLabs | Workflow automation platform | ✅ Complete |
 | DataPizza | Multi-agent coordination | ✅ Complete |
 | Claudiomiro | Autonomous development agent | ✅ Complete |

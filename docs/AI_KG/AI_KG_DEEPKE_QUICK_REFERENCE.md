@@ -90,7 +90,7 @@
 | Task | Effort |
 |------|--------|
 | Installation | 0.5 day |
-| Hephaestus Bridge | 2 days |
+| crewai Bridge | 2 days |
 | KnowledgeArtifact Adapter | 2 days |
 | Workflow Integration | 1.5 days |
 | Testing | 1 day |
@@ -102,7 +102,7 @@
 |------|--------|
 | Installation (MCP server) | 2 days |
 | MCP Configuration | 1 day |
-| Hephaestus Bridge | 2 days |
+| crewai Bridge | 2 days |
 | KnowledgeArtifact Adapter | 3 days |
 | Fine-Tuning (optional) | 5 days |
 | Testing | 2 days |
@@ -342,7 +342,7 @@ python predict.py
 4. ✅ Verify extraction quality
 
 ### Short-term (Week 2-3)
-1. Build Hephaestus bridges
+1. Build crewai bridges
 2. Create KnowledgeArtifact adapters
 3. Integrate with WorkflowKnowledgeExtractor
 4. End-to-end testing

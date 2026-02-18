@@ -435,7 +435,7 @@ URL: http://localhost:3000/openevolve/leanaide
 | 🧩 | Decomposition |
 | 📚 | Knowledge Engine |
 | 🤖 | LeanAide |
-| 🔧 | Hephaestus |
+| 🔧 | crewai |
 | 🏛️ | ROMA |
 | 💡 | Invention Planner |
 

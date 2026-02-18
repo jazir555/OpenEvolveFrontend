@@ -43,7 +43,7 @@ The project does not follow the "Federation Constitution" (`CLAUDE.md`) in its p
 ### E. Lean 4 Verification & Formal Discovery
 *   **Status:** ✅ **Complete Engine (110KB)**
 *   **Analysis:** A cutting-edge evolutionary logic engine. It uses a Genetic Algorithm to evolve Lean 4 proofs.
-*   **Orchestration Migration:** The system has successfully migrated from the legacy AGPL Hephaestus integration to a **MIT-licensed CrewAI** local execution layer. This transition provides full functional parity while enabling zero-latency local orchestration.
+*   **Orchestration Migration:** The system has successfully migrated from the legacy AGPL crewai integration to a **MIT-licensed CrewAI** local execution layer. This transition provides full functional parity while enabling zero-latency local orchestration.
 
 ### F. ACE & RAGBits (Retrieval & Learning)
 *   **ACE:** ✅ **Functional Core (133k Lines)**. The root-level bridge provides the learning interface.

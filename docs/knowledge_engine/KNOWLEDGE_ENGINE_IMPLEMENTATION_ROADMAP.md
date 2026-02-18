@@ -21,7 +21,7 @@ The OpenEvolve Knowledge Engine implementation aims to:
 
 1. **Build a Comprehensive Knowledge Management System**: Create a system that can extract, store, and utilize knowledge from workflow executions
 2. **Enable Continuous Learning**: Implement mechanisms for the system to learn from past experiences and improve over time
-3. **Integrate with OpenEvolve Ecosystem**: Seamlessly integrate with existing OpenEvolve components (SGDW, Lean 4, PSV, Hephaestus)
+3. **Integrate with OpenEvolve Ecosystem**: Seamlessly integrate with existing OpenEvolve components (SGDW, Lean 4, PSV, crewai)
 4. **Provide High-Performance Knowledge Retrieval**: Ensure fast and accurate knowledge retrieval for problem-solving
 5. **Establish Robust Knowledge Extraction**: Implement sophisticated knowledge extraction pipelines
 6. **Create Self-Improving Capabilities**: Build systems that can autonomously improve through knowledge accumulation
@@ -405,13 +405,13 @@ gantt
     dateFormat  YYYY-MM-DD
     section Tasks
     SGDW Integration        :a1, 2024-03-25, 2d
-    Hephaestus Integration  :a2, after a1, 2d
+    crewai Integration  :a2, after a1, 2d
     Cross-System Testing   :a3, 2024-03-25, 1d
 ```
 
 **Tasks:**
 - ✅ Complete SGDW integration for knowledge extraction
-- ✅ Implement Hephaestus integration for agent knowledge
+- ✅ Implement crewai integration for agent knowledge
 - ✅ Develop cross-system knowledge sharing mechanisms
 - ✅ Create integration testing framework
 - ✅ Set up end-to-end integration tests

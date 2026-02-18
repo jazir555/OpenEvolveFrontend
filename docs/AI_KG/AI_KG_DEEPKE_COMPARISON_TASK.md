@@ -149,7 +149,7 @@ Assess integration effort for each:
 **ai-knowledge-graph**:
 - Lightweight dependencies (networkx, pyvis)
 - Simple Python API
-- No MCP integration (needs Hephaestus bridge)
+- No MCP integration (needs crewai bridge)
 - Integration effort: 1-2 weeks
 - Primary value: Visualization for Stage 6
 
@@ -185,7 +185,7 @@ Map each project to existing integration ecosystem:
 - **Stage 6**: KnowledgeGraphVisualizer (direct fit)
 - **ACE**: Could enhance learning from execution
 - **ROMA**: Could visualize decomposition hierarchies
-- **Hephaestus**: Needs bridge for delegation
+- **crewai**: Needs bridge for delegation
 
 **DeepKE**:
 - **Stage 6**: WorkflowKnowledgeExtractor (extraction from workflow logs)
@@ -248,7 +248,7 @@ Provide clear recommendation with evidence:
 - **+1** if entity standardization adds significant value
 - **+1** if lightweight integration is preferred
 - **-1** if LLM-only extraction is insufficient
-- **-1** if Hephaestus bridge effort is too high
+- **-1** if crewai bridge effort is too high
 
 **For DeepKE**:
 - **+1** if production extraction quality is required

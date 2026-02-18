@@ -567,7 +567,7 @@ The End-to-End Invention Planner is **functionally complete** with:
 - ⚠️ Knowledge engine integration (scientific literature retrieval - optional)
 - ⚠️ Decomposition engine (enhanced MDAP - optional)
 - ⚠️ BubbleLabs analytics (tracking/persistence - optional)
-- ⚠️ Hephaestus delegation (distributed computing - optional)
+- ⚠️ crewai delegation (distributed computing - optional)
 
 The system is **production-ready** with core functionality and enhanced with optional integrations when available.
 

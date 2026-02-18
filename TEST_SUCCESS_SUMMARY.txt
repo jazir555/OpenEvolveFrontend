@@ -32,7 +32,7 @@ collected 273 items / 274 errors
 
 Test Execution:
 ---------------
-$ pytest Hephaestus/tests/sdk/test_config.py -v
+$ pytest crewai/tests/sdk/test_config.py -v
 collected 7 items
 
 test_config_defaults PASSED                    [ 14%]
@@ -72,7 +72,7 @@ Files Modified:
 
 VERIFICATION RESULTS
 
-Test Module: Hephaestus/tests/sdk
+Test Module: crewai/tests/sdk
 ----------------------------------
 Total Tests: 17
 Passed: 15
@@ -109,13 +109,13 @@ Run all tests module by module:
   python run_tests.py
 
 Run specific module:
-  pytest Hephaestus/tests/sdk -v
+  pytest crewai/tests/sdk -v
 
 Run single test file:
-  pytest Hephaestus/tests/sdk/test_config.py -v
+  pytest crewai/tests/sdk/test_config.py -v
 
 Run with coverage:
-  pytest Hephaestus/tests/sdk --cov=. --cov-report=html
+  pytest crewai/tests/sdk --cov=. --cov-report=html
 
 NEXT STEPS
 
@@ -174,7 +174,7 @@ collected 273 items / 274 errors
 
 Test Execution:
 ---------------
-$ pytest Hephaestus/tests/sdk/test_config.py -v
+$ pytest crewai/tests/sdk/test_config.py -v
 collected 7 items
 
 test_config_defaults PASSED                    [ 14%]
@@ -214,7 +214,7 @@ Files Modified:
 
 VERIFICATION RESULTS
 
-Test Module: Hephaestus/tests/sdk
+Test Module: crewai/tests/sdk
 ----------------------------------
 Total Tests: 17
 Passed: 15
@@ -251,13 +251,13 @@ Run all tests module by module:
   python run_tests.py
 
 Run specific module:
-  pytest Hephaestus/tests/sdk -v
+  pytest crewai/tests/sdk -v
 
 Run single test file:
-  pytest Hephaestus/tests/sdk/test_config.py -v
+  pytest crewai/tests/sdk/test_config.py -v
 
 Run with coverage:
-  pytest Hephaestus/tests/sdk --cov=. --cov-report=html
+  pytest crewai/tests/sdk --cov=. --cov-report=html
 
 NEXT STEPS
 

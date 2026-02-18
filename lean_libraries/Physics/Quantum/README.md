@@ -168,7 +168,7 @@ example (ψ : 𝓗) (h_norm : ‖ψ‖ = 1) (A B : SelfAdjointOperator) :
 
 This library provides the quantum mechanics foundation for:
 
-1. **Hephaestus Bridge** - Delegation to quantum computation workflows
+1. **crewai Bridge** - Delegation to quantum computation workflows
 2. **Knowledge Engine** - Physics knowledge artifacts with formal verification
 3. **ACE Analytics** - Quantum-inspired learning algorithms
 4. **Adversarial Evolution** - Quantum strategies in game-theoretic settings

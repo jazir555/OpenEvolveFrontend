@@ -35,7 +35,7 @@
 #### ✅ Fixed (8 files - 5%)
 - **3 Workflow Templates:** container-health-monitor.ts, database-backup-validator.ts, log-aggregation-analyzer.ts
 - **3 Service Bubbles:** elasticsearch-bubble.ts, redis-bubble.ts, postgresql-bubble.ts
-- **2 Patterns:** KnowledgeEngineBubble, HephaestusBubble (pattern established)
+- **2 Patterns:** KnowledgeEngineBubble, crewaiBubble (pattern established)
 
 #### ✅ Created (Analysis & Infrastructure)
 - **Security Framework:** security-utils.ts (production-ready)
@@ -151,7 +151,7 @@
 
 **Pattern Established:** 4 remaining bubbles
 - ⚠️ KnowledgeEngineBubble
-- ⚠️ HephaestusBubble
+- ⚠️ crewaiBubble
 - ⚠️ ACEToolsBubble
 - ⚠️ WorkflowOrchestratorBubble
 

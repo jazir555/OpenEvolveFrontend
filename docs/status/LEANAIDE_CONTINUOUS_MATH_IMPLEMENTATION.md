@@ -229,11 +229,11 @@ results = await batch.batch_integrate(integrals)
 
 ---
 
-## Integration with Hephaestus Agents
+## Integration with crewai Agents
 
 ### MCP Tool Usage
 
-Hephaestus agents can now use continuous mathematics through MCP tools:
+crewai agents can now use continuous mathematics through MCP tools:
 
 ```python
 from leanaide_mcp_tools import leanaide_integrate_verified
@@ -544,7 +544,7 @@ The Continuous Mathematics Bridge (LEAN-CONT) is now fully integrated into LeanA
 ✅ **Verified Integration** with error bounds
 ✅ **Verified ODE Solving** with convergence proofs
 ✅ **Verified Limits** with ε-δ proofs
-✅ **MCP Tools** for Hephaestus agents
+✅ **MCP Tools** for crewai agents
 ✅ **Comprehensive Tests** with 29 test cases
 ✅ **Batch Processing** for efficiency
 ✅ **Lean 4 Integration** for formal verification

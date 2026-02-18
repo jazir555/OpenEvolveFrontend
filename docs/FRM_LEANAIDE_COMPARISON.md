@@ -62,7 +62,7 @@
 │  │                 │    │                 │    │                 │                │
 │  │ • Math → Lean   │    │ • Bulk Trans.   │    │ • 7 MCP Tools   │                │
 │  │ • Translation   │    │ • Batch Verify  │    │ • Agent Integr. │                │
-│  │ • Context-Aware │    │ • Parallel Exec │    │ • Hephaestus    │                │
+│  │ • Context-Aware │    │ • Parallel Exec │    │ • crewai    │                │
 │  └─────────────────┘    └────────┬────────┘    └─────────────────┘                │
 │                                  │                                                 │
 │                                  ▼                                                 │

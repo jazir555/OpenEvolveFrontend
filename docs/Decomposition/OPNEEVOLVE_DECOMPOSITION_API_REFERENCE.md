@@ -38,7 +38,7 @@ The OpenEvolve Decomposition Engine is a sovereign-grade problem decomposition s
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Hephaestus Orchestrator                   │
+│                    crewai Orchestrator                   │
 └────────────────────────┬────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────┐

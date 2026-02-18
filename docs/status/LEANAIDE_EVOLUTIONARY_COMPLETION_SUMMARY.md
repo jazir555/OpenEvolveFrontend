@@ -249,7 +249,7 @@ class EvolutionaryProgress:
          ┌───────────────┼───────────────┐
          │               │               │
 ┌────────▼────────┐ ┌───▼────┐ ┌──────▼──────────┐
-│  LeanAide       │ │  ACE   │ │  Hephaestus     │
+│  LeanAide       │ │  ACE   │ │  crewai     │
 │  Evolution      │ │  KM    │ │  Tracking       │
 └─────────────────┘ └────────┘ └─────────────────┘
 ```

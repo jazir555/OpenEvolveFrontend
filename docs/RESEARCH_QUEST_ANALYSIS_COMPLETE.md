@@ -382,10 +382,10 @@ Represented as **probability distributions** (Beta distributions) with Bayesian 
 | **Knowledge Engine** (Document indexing) | **NONE** | 0% | Research-Quest has no document indexing. **Knowledge Engine is unique.** |
 | **RAGbits** (Vector embeddings) | **NONE** | 0% | Research-Quest has no vector database. **RAGbits is unique.** |
 | **LeanAide** (Formal verification) | Stage 8: Statistical validation | 30% | LeanAide verifies mathematical proofs; Research-Quest validates statistical rigor. **Different domains.** |
-| **Hephaestus** (Delegation) | **NONE** | 0% | Research-Quest has no delegation system. **Hephaestus is unique.** |
+| **crewai** (Delegation) | **NONE** | 0% | Research-Quest has no delegation system. **crewai is unique.** |
 | **DataPizza** (LLM access) | **NONE** | 0% | Research-Quest uses direct LLM calls; DataPizza provides unified LLM interface. **Different approaches.** |
 
-**Key Insight:** Research-Quest has **minimal overlap** with OpenEvolve's **unique components** (Knowledge Engine, RAGbits, Hephaestus, DataPizza). Research-Quest's value is in its **methodology**, not its component architecture.
+**Key Insight:** Research-Quest has **minimal overlap** with OpenEvolve's **unique components** (Knowledge Engine, RAGbits, crewai, DataPizza). Research-Quest's value is in its **methodology**, not its component architecture.
 
 ### 2.3 Architectural Compatibility
 
@@ -397,7 +397,7 @@ Represented as **probability distributions** (Beta distributions) with Bayesian 
 | **State Management** | WorkflowState (Python dataclass) | ResearchQuestGraph (JavaScript class) | ⚠️ **REQUIRES ADAPTATION** |
 | **Storage** | SQLite + file system | In-memory + JSON export | ⚠️ **REQUIRES ADAPTATION** |
 | **Concurrency** | asyncio + multi-processing | Single-threaded Node.js | ⚠️ **REQUIRES ADAPTATION** |
-| **Integration Protocol** | Hephaestus (Python bridge) | MCP (Model Context Protocol) | ✅ **COMPATIBLE** (both support MCP) |
+| **Integration Protocol** | crewai (Python bridge) | MCP (Model Context Protocol) | ✅ **COMPATIBLE** (both support MCP) |
 
 **Verdict:** **ARCHITECTURAL MISMATCH** - Requires significant adaptation for integration.
 

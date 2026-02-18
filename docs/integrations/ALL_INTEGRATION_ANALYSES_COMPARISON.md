@@ -48,7 +48,7 @@ These projects are already part of OpenEvolve:
 - **ragbits** - Vector store and retrieval
 - **LeanAide** - Formal math verification (discrete)
 - **LeanAgent** - Lean 4 LLM agent
-- **Hephaestus** - Delegation framework
+- **crewai** - Delegation framework
 - **BubbleLab** - Workflow analytics
 - **datapizza-ai** - GenAI framework
 - **claudiomiro** - Development automation
@@ -110,7 +110,7 @@ These projects are already part of OpenEvolve:
 │                                                                 │
 │  Phase 5: Integrate DeepKE + AI-KG (3 weeks) ← P3 VALUE      │
 │  ├─ Week 1: Install and test both projects                     │
-│  ├─ Week 2: Build Hephaestus bridges + adapters               │
+│  ├─ Week 2: Build crewai bridges + adapters               │
 │  └─ Week 3: End-to-end integration and testing                │
 │                                                                 │
 │  Phase 6: Optional - karateclub/PAMI (1-6 weeks) ← P5-P6     │

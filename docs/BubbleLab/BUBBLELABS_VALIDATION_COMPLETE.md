@@ -319,9 +319,9 @@ Then navigate to "BubbleLabs Workflows" tab in the UI.
 
 The following are **OPTIONAL** enhancements that could be added if needed:
 
-### 1. Hephaestus Bridge (Priority: LOW)
-- Connect BubbleLabs workflows to Hephaestus ticketing system
-- Track workflow execution as Hephaestus tickets
+### 1. crewai Bridge (Priority: LOW)
+- Connect BubbleLabs workflows to crewai ticketing system
+- Track workflow execution as crewai tickets
 - Estimated effort: 2-3 days
 
 ### 2. MCP Tools (Priority: LOW)

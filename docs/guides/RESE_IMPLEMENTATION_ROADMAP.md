@@ -541,7 +541,7 @@ RESE is a **four-phase recursive methodology** that transforms intractable probl
 2. Implement 1000+ agent parallelism
 3. Build adaptive exploration-exploitation balance
 4. Create massive parallelization infrastructure
-5. Integrate with Hephaestus for delegation
+5. Integrate with crewai for delegation
 6. Implement convergence monitoring
 7. Build MCTS path visualizer
 8. Integrate with Stage 3 (Decomposition)
@@ -553,11 +553,11 @@ RESE is a **four-phase recursive methodology** that transforms intractable probl
 - [ ] 1000+ agents running in parallel
 - [ ] MCTS converges within N_max epochs
 - [ ] Optimal solution found in >90% of cases
-- [ ] Integration with Hephaestus for delegation
+- [ ] Integration with crewai for delegation
 - [ ] GPU acceleration working (10X+ speedup)
 - [ ] Integration with Stage 3 and Decomposition Engine
 
-**Dependencies**: Phase 1 complete, Hephaestus integration
+**Dependencies**: Phase 1 complete, crewai integration
 
 ---
 
@@ -1074,7 +1074,7 @@ Phase 3: Isomorphic Resonance (8-10 weeks) - depends on Phase 1
 
 Phase 4: Monte Carlo Refinement (6-8 weeks) - depends on Phase 1
     ├── Γ₁ ACI Analyzer (Week 36-39) - KEY INNOVATION, parallel with Phase 2
-    ├── Γ₂ MCTS Search (Week 40-42) - depends on Hephaestus
+    ├── Γ₂ MCTS Search (Week 40-42) - depends on crewai
     ├── Γ₃ Statistical Validation (Week 43) - depends on Γ₂
     ├── N_max Convergence (Week 43-44) - depends on Γ₂
     └── Integration (Week 45)
@@ -1289,7 +1289,7 @@ Phase 8: Documentation (2-4 weeks) - depends on complete integration
 - pygraphistry (visualization)
 - DeepKE + AI-KG (extraction)
 - LeanAide (math formalization)
-- Hephaestus (delegation)
+- crewai (delegation)
 
 **Optional**:
 - karateclub (graph clustering)

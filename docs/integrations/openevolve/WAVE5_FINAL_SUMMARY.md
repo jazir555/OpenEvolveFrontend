@@ -19,7 +19,7 @@
 2. ✅ **RedisBubble** - COMPLETE (Priority 2)
 3. ✅ **PostgreSQLBubbleExtended** - COMPLETE (Priority 3)
 4. ⚠️ **KnowledgeEngineBubble** - Pattern established (Priority 4)
-5. ⚠️ **HephaestusBubble** - Pattern established (Priority 5)
+5. ⚠️ **crewaiBubble** - Pattern established (Priority 5)
 6. ⚠️ **ACEToolsBubble** - Pattern established (Priority 6)
 7. ⚠️ **WorkflowOrchestratorBubble** - Pattern established (Priority 7)
 
@@ -333,7 +333,7 @@ All fixed bubbles are 100% compliant:
 | Bubble | Pattern | Status | Est. Effort |
 |--------|---------|--------|------------|
 | KnowledgeEngineBubble | ✅ Clear | Documented | 8 hrs |
-| HephaestusBubble | ✅ Clear | Documented | 8 hrs |
+| crewaiBubble | ✅ Clear | Documented | 8 hrs |
 | ACEToolsBubble | ✅ Clear | Documented | 8 hrs |
 | WorkflowOrchestratorBubble | ✅ Clear | Documented | 16 hrs |
 
@@ -382,7 +382,7 @@ All fixed bubbles are 100% compliant:
 ### Phase 2: Complete Remaining Bubbles (Next Week)
 Follow the established pattern:
 1. KnowledgeEngineBubble (8 hrs)
-2. HephaestusBubble (8 hrs)
+2. crewaiBubble (8 hrs)
 3. ACEToolsBubble (8 hrs)
 4. WorkflowOrchestratorBubble (16 hrs)
 

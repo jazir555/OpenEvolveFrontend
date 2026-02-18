@@ -164,8 +164,8 @@ Common issues and solutions:
 Migration Notes
 --------------
 
-This integration replaces the previous Hephaestus-based system with:
-- MIT-licensed CrewAI instead of AGPL-licensed Hephaestus
+This integration replaces the previous crewai-based system with:
+- MIT-licensed CrewAI instead of AGPL-licensed crewai
 - Local state management instead of database-backed storage
 - Improved error handling and recovery
 - Better integration with ACE learning system

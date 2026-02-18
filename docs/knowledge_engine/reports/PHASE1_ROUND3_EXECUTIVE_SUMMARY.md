@@ -89,7 +89,7 @@
 5. MAKER Engine ✅
 6. Knowledge Engine ✅
 7. LeanAIDE ✅
-8. Hephaestus ✅
+8. crewai ✅
 9. ROMA ✅
 10. Blue Team ✅
 11. ACE ✅

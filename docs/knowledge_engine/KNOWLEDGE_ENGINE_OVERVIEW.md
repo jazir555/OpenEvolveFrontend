@@ -533,7 +533,7 @@ stateDiagram-v2
 
 - **Lean 4 Integration**: Formal verification of mathematical knowledge
 - **PSV Integration**: Self-play knowledge generation
-- **Hephaestus Integration**: Agent-based knowledge application
+- **crewai Integration**: Agent-based knowledge application
 - **Multi-System Learning**: Learns from all OpenEvolve components
 
 ### 8.4 Advanced Analytics

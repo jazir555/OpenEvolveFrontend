@@ -114,7 +114,7 @@ Comprehensive documentation has been created for the evolutionary LeanAide integ
   - Self-play loop and reward function
   - Strategy library
   - Use cases in SGDW stages
-  - Integration with Hephaestus
+  - Integration with crewai
   - Performance characteristics
 
 - Updated component usage frequency chart

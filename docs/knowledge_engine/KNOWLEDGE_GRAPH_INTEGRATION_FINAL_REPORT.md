@@ -72,7 +72,7 @@ I have successfully completed a **massive integration effort** unifying 6 knowle
 - **Large documents**: Process 10K+ word documents
 
 ### 6. Unified MCP Gateway ✅
-- **6 servers integrated**: kg-gen, Graphiti, OpenEvolve, Hephaestus, ROMA, ACE
+- **6 servers integrated**: kg-gen, Graphiti, OpenEvolve, crewai, ROMA, ACE
 - **Unified namespace**: All tools accessible via single gateway
 - **20+ tools**: Exposed and categorized
 - **Circuit breaking**: Prevent cascading failures
@@ -163,10 +163,10 @@ I have successfully completed a **massive integration effort** unifying 6 knowle
 **Agent 7: Complete Gateway System**
 - UnifiedMCPGateway with tool registry
 - Tool router with circuit breaking
-- 6 server wrappers (kg-gen, Graphiti, OpenEvolve, Hephaestus, ROMA, ACE)
+- 6 server wrappers (kg-gen, Graphiti, OpenEvolve, crewai, ROMA, ACE)
 - 20+ tools exposed
 - FastAPI server with REST API
-- Hephaestus integration
+- crewai integration
 - ROMA integration
 - Analytics system
 - **18 files created**, 4,000+ lines of code
@@ -418,7 +418,7 @@ await gateway.call_tool("openevolve/analyze_graph", {...})
 - [x] Tool registry system
 - [x] Tool routing with circuit breaking
 - [x] Server wrappers (6 servers)
-- [x] Hephaestus integration
+- [x] crewai integration
 - [x] ROMA integration
 - [x] Analytics tracking
 
@@ -451,7 +451,7 @@ await gateway.call_tool("openevolve/analyze_graph", {...})
 
 ### Integration Points ✅
 1. **Knowledge Engine**: Core system enhanced
-2. **Hephaestus**: Delegation with MCP tools
+2. **crewai**: Delegation with MCP tools
 3. **ROMA**: Recursive solving with knowledge access
 4. **Graphiti**: Temporal reasoning integrated
 5. **kg-gen**: Advanced pipeline operational

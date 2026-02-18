@@ -47,7 +47,7 @@ export interface ClaudieMiroPluginConfig {
   
   /** Integration settings */
   integrateWithWorkflow: boolean;
-  integrateWithHephaestus: boolean;
+  integrateWithCrewAI: boolean;
   integrateWithMCP: boolean;
   
   /** Performance settings */
@@ -443,7 +443,7 @@ export const DEFAULT_CLAUDIEMIRO_CONFIG: ClaudieMiroPluginConfig = {
     phase6: { enabled: true, validationLevel: 'standard' }
   },
   integrateWithWorkflow: true,
-  integrateWithHephaestus: true,
+  integrateWithCrewAI: true,
   integrateWithMCP: true,
   enableCaching: true,
   cacheTTLSeconds: 3600,

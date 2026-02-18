@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Evolution Integration (evolutionary algorithms, adversarial testing)
   - Knowledge Engine Integration (knowledge graphs, extraction)
   - Maker Engine Integration (tool and workflow creation)
-  - Hephaestus Integration (delegation, orchestration)
+  - crewai Integration (delegation, orchestration)
 - TypeScript type definitions for all integrations
 - Utility functions for validation, error handling, and data manipulation
 - Comprehensive documentation and examples

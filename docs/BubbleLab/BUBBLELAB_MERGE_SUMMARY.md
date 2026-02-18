@@ -200,7 +200,7 @@ cd C:\Users\mmeadow\Documents\OpenEvolve\Frontend
 - ✅ Decomposition engine
 - ✅ Knowledge engine integration
 - ✅ MDAP/MAKER orchestration
-- ✅ Hephaestus delegation bridge
+- ✅ crewai delegation bridge
 - ✅ Node registry system
 - ✅ Configuration UI (performance, security)
 - ✅ React hooks

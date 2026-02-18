@@ -175,7 +175,7 @@ These methods are **not currently being called anywhere in the codebase**. They'
   - MDAPNode ✅
   - KnowledgeQueryNode ✅
   - LeanAIDENode ✅
-  - HephaestusNode ✅
+  - crewaiNode ✅
   - ROMANode ✅
   - InventionNode ✅
 
@@ -189,7 +189,7 @@ These methods are **not currently being called anywhere in the codebase**. They'
 - ✅ MDAP: Using apiClient - WORKING
 - ✅ Knowledge Query: Using apiClient - WORKING
 - ✅ LeanAIDE: Direct fetch (correct) - WORKING
-- ✅ Hephaestus: Using apiClient - WORKING
+- ✅ crewai: Using apiClient - WORKING
 - ✅ ROMA: Direct fetch to `/api/openevolve/roma/solve` - WORKING
 - ✅ Invention: Direct fetch to `/api/openevolve/invention/plan` - WORKING
 
@@ -297,7 +297,7 @@ These methods are **not currently being called anywhere in the codebase**. They'
 | MDAP | ✅ Working | Uses apiClient, fully functional |
 | Knowledge Query | ✅ Working | Uses apiClient, fully functional |
 | LeanAIDE | ✅ Working | Direct fetch, fully functional |
-| Hephaestus | ✅ Working | Uses apiClient, fully functional |
+| crewai | ✅ Working | Uses apiClient, fully functional |
 | ROMA | ✅ Working | Direct fetch, API path fixed |
 | Invention | ✅ Working | Direct fetch, backend implemented |
 

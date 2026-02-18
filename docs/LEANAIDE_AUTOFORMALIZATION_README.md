@@ -274,7 +274,7 @@ python -m pytest test_leanaide_autoformalization_mdap_maker.py -v
 6. **Advanced Verification**: More sophisticated verification
 
 ### Integration Opportunities
-1. **Hephaestus**: Integration with external services
+1. **crewai**: Integration with external services
 2. **Analytics**: Performance monitoring and analytics
 3. **Workflow Integration**: Integration with decomposition workflows
 4. **Knowledge Graph**: Integration with knowledge bases

@@ -71,7 +71,7 @@ async def get_continuous_math_status()
 
 #### 3. **MCP Tools** (`leanaide_mcp_tools.py`)
 
-Four new MCP tools for Hephaestus agents:
+Four new MCP tools for crewai agents:
 
 1. **`leanaide_integrate_verified`** - Compute verified integral
 2. **`leanaide_solve_ode_verified`** - Solve ODE with verification
@@ -278,7 +278,7 @@ All results include:
 
 ## Integration Points
 
-### 1. Hephaestus Agents
+### 1. crewai Agents
 
 Agents can now use MCP tools:
 ```python
@@ -393,7 +393,7 @@ The **Continuous Mathematics Bridge (LEAN-CONT)** is now fully operational and i
 ✅ **Critical Blocking Issue Resolved:** Lean 4 can now handle continuous math
 ✅ **Verified Results:** All computations include error bounds and proofs
 ✅ **Production Ready:** Comprehensive tests and documentation
-✅ **Hephaestus Integration:** MCP tools available for agents
+✅ **crewai Integration:** MCP tools available for agents
 ✅ **Performance:** Fast enough for practical use
 
 ### Impact

@@ -41,7 +41,7 @@ src/
 | **Evolution** | `evolution`, `adversarial`, `coevolution` |
 | **Knowledge** | `query`, `extract`, `search`, `stats` |
 | **Maker** | `create`, `execute`, `validate`, `list` |
-| **Hephaestus** | `delegate`, `status`, `create`, `list` |
+| **crewai** | `delegate`, `status`, `create`, `list` |
 | **Decomposition** | `decompose`, `subproblems`, `dependencies` |
 | **Verification** | `verify`, `checks`, `validate` |
 | **Assembly** | `assemble`, `integrate`, `optimize` |

@@ -69,7 +69,7 @@
 
 ### Category 1: Core Foundation Systems
 
-#### 1.1 Hephaestus/CrewAI Orchestrator
+#### 1.1 crewai/CrewAI Orchestrator
 **Status:** ✅ **PRODUCTION READY (100%)**
 
 | Component | Status | Completion | Notes |
@@ -314,7 +314,7 @@
 
 **Completed:**
 - ✅ 8 MCP tools for Lean operations
-- ✅ Hephaestus bridge (6-phase)
+- ✅ crewai bridge (6-phase)
 - ✅ MCTS integration for proof search
 - ✅ Mathematical problem auto-detection
 - ✅ Domain classification (8 domains)

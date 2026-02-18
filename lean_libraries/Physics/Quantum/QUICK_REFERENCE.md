@@ -293,10 +293,10 @@ lean_libraries/Physics/Quantum/
 
 ## Integration Examples
 
-### With Hephaestus Bridge
+### With crewai Bridge
 ```lean
 def quantumTask (problem : String) : IO Unit := do
-  let system ← Hephaestus.delegate "quantum_solver" {
+  let system ← crewai.delegate "quantum_solver" {
     method := "expectation_value"
     observable := "Hamiltonian"
     state := current_state

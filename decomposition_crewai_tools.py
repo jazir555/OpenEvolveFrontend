@@ -6,7 +6,7 @@ can use to execute the Sovereign-Grade Decomposition Workflow.
 
 CrewAI Integration:
     - Uses decomposition_crewai_bridge for execution
-    - Replaces Hephaestus bridge with local CrewAI workflow
+    - Replaces crewai bridge with local CrewAI workflow
     - Maintains same MCP tool API for backward compatibility
 
 CRITICAL ARCHITECTURE:
@@ -27,7 +27,7 @@ from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Import CrewAI bridge (replaces Hephaestus)
+# Import CrewAI bridge (replaces crewai)
 from decomposition_crewai_bridge import (
     execute_phase_1_setup as decomp_phase1,
     execute_phase_2_generation as decomp_phase2,

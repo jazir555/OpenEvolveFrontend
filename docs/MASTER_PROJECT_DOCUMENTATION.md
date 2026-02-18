@@ -110,7 +110,7 @@ OpenEvolve exists to **tackle humanity's most challenging problems** through:
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                      ORCHESTRATION LAYER                                     │
-│                         Hephaestus / CrewAI                                  │
+│                         crewai / CrewAI                                  │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │  6-Phase Workflow: Setup → Solution → Critique → Verify →          │    │
 │  │                    Reassemble → Final                               │    │
@@ -169,7 +169,7 @@ Problem Input → Problem Analyzer → Decomposition Engine → Sub-Problems
 
 ## 4. Core Systems & Components
 
-### 4.1 Hephaestus / CrewAI Orchestrator
+### 4.1 crewai / CrewAI Orchestrator
 
 **Purpose:** Workflow orchestration, task management, agent spawning
 
@@ -367,7 +367,7 @@ The OpenEvolve platform integrates **100+ external systems** across **9 major ca
 | **ROMA** | Recursive Meta-Agent decomposition | 2025-Q4 |
 | **RAGbits** | Vector store and retrieval | 2025-Q4 |
 | **LeanAgent** | Lean 4 LLM agent | 2025-Q4 |
-| **Hephaestus** | Agentic workflow framework | 2025-Q4 |
+| **crewai** | Agentic workflow framework | 2025-Q4 |
 | **BubbleLabs** | Workflow automation platform | 2025-Q4 |
 | **DataPizza** | Multi-agent coordination | 2025-Q4 |
 | **Claudiomiro** | Autonomous development agent | 2025-Q4 |

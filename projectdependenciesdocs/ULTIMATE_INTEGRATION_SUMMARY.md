@@ -42,7 +42,7 @@
 | **ROMA** | ✅ Integrated | Recursive Meta-Agent |
 | **ragbits** | ✅ Integrated | GenAI Building Blocks |
 | **LeanAgent** | ✅ Integrated | Lean 4 LLM Agent |
-| **Hephaestus** | ✅ Integrated | Delegation Framework |
+| **crewai** | ✅ Integrated | Delegation Framework |
 | **BubbleLab** | ✅ Integrated | Workflow Automation |
 | **datapizza-ai** | ✅ Integrated | GenAI Framework |
 | **claudiomiro** | ✅ Integrated | Development Automation |
@@ -326,7 +326,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 1. Foundation (Real decomposition, math formalization, physics validation)
 2. Error Analysis (Real error sources, adversarial testing)
 3. SOP Generation (Bulletproof SOPs, evolutionary optimization)
-4. Advanced Integrations (BubbleLabs, Hephaestus, Sovereign, pygraphistry, kg-gen)
+4. Advanced Integrations (BubbleLabs, crewai, Sovereign, pygraphistry, kg-gen)
 5. Success Criteria (Binary criteria, validation)
 6. Testing (Comprehensive test suite)
 7. Documentation (API guides, examples)
@@ -537,7 +537,7 @@ All analysis is complete. You now have comprehensive analysis of **18 projects**
 - 2 Optional Projects (karateclub, PAMI)
 
 ✅ **9 already integrated** projects providing foundational capabilities:
-- Steer, ROMA, ragbits, LeanAgent, Hephaestus, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
+- Steer, ROMA, ragbits, LeanAgent, crewai, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
 
 ✅ **Complete roadmap** spanning 30-44 weeks with detailed phases
 
@@ -615,7 +615,7 @@ All analysis is complete. You now have comprehensive analysis of **18 projects**
 | **ROMA** | ✅ Integrated | Recursive Meta-Agent |
 | **ragbits** | ✅ Integrated | GenAI Building Blocks |
 | **LeanAgent** | ✅ Integrated | Lean 4 LLM Agent |
-| **Hephaestus** | ✅ Integrated | Delegation Framework |
+| **crewai** | ✅ Integrated | Delegation Framework |
 | **BubbleLab** | ✅ Integrated | Workflow Automation |
 | **datapizza-ai** | ✅ Integrated | GenAI Framework |
 | **claudiomiro** | ✅ Integrated | Development Automation |
@@ -899,7 +899,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 1. Foundation (Real decomposition, math formalization, physics validation)
 2. Error Analysis (Real error sources, adversarial testing)
 3. SOP Generation (Bulletproof SOPs, evolutionary optimization)
-4. Advanced Integrations (BubbleLabs, Hephaestus, Sovereign, pygraphistry, kg-gen)
+4. Advanced Integrations (BubbleLabs, crewai, Sovereign, pygraphistry, kg-gen)
 5. Success Criteria (Binary criteria, validation)
 6. Testing (Comprehensive test suite)
 7. Documentation (API guides, examples)
@@ -1110,7 +1110,7 @@ All analysis is complete. You now have comprehensive analysis of **18 projects**
 - 2 Optional Projects (karateclub, PAMI)
 
 ✅ **9 already integrated** projects providing foundational capabilities:
-- Steer, ROMA, ragbits, LeanAgent, Hephaestus, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
+- Steer, ROMA, ragbits, LeanAgent, crewai, BubbleLab, datapizza-ai, claudiomiro, agentic-context-engine
 
 ✅ **Complete roadmap** spanning 30-44 weeks with detailed phases
 

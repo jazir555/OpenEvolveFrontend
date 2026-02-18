@@ -460,7 +460,7 @@ Status: PRODUCTION READY
 The Ralph Loop is complete. All critical bugs have been fixed and verified.
 
 **Optional Future Work** (not required for production):
-1. Address remaining 9 test/demo files with Hephaestus references
+1. Address remaining 9 test/demo files with crewai references
 2. Add migration notices to 5 workflow files
 3. Rename config class in ragbits_integration/config.py
 

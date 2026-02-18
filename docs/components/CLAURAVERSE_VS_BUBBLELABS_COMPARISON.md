@@ -126,7 +126,7 @@
 | **OpenEvolve Integration** | ✅ Fully integrated | ❌ None | **BubbleLabs** |
 | **API Provider Support** | ✅ Multi-provider (DataPizza) | ⚠️ Ollama/Remote only | **BubbleLabs** |
 | **MCP Tools** | ✅ Full support | ❌ No | **BubbleLabs** |
-| **Hephaestus Bridge** | ✅ Supported | ❌ No | **BubbleLabs** |
+| **crewai Bridge** | ✅ Supported | ❌ No | **BubbleLabs** |
 | **Parameter Synchronization** | ✅ Full sync with sidebar | ❌ No | **BubbleLabs** |
 
 ### 2.4 Observability & Monitoring

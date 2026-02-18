@@ -33,7 +33,7 @@ graph TD
     
     M[Lean 4 Server] -->|Formal Proofs| B
     N[PSV System] -->|Self-Play Knowledge| B
-    O[Hephaestus] -->|Agent Knowledge| B
+    O[crewai] -->|Agent Knowledge| B
     
     P[Monitoring System] -->|Metrics| B
     Q[Configuration Service] -->|Config| B
@@ -671,7 +671,7 @@ graph TD
     D[PSV System] -->|Self-Play Knowledge| B
     B -->|Learning Patterns| D
     
-    E[Hephaestus] -->|Agent Knowledge| B
+    E[crewai] -->|Agent Knowledge| B
     B -->|Optimized Strategies| E
     
     F[Monitoring System] -->|Metrics| B

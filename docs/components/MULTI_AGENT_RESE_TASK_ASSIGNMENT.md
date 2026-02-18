@@ -1712,9 +1712,9 @@
 
 **Timeline**: Week 40-43 (4 weeks)
 
-**Dependencies**: Hephaestus integration
+**Dependencies**: crewai integration
 
-**BLOCKING TASKS**: Wait for Hephaestus integration to complete
+**BLOCKING TASKS**: Wait for crewai integration to complete
 
 #### Task D2.1: Design MC-NEST Framework (Week 40, Day 1-2)
 
@@ -1756,14 +1756,14 @@
            # Parallel execution
            # Result collection
    ```
-2. Integrate with Hephaestus for delegation
+2. Integrate with crewai for delegation
 3. Build result aggregator
 4. Implement consensus voting (First-to-Head-by-K)
 5. Write unit tests
 
 **Deliverables**:
 - [ ] 1000+ agent parallelism working
-- [ ] Hephaestus integration complete
+- [ ] crewai integration complete
 - [ ] Result aggregator functional
 - [ ] Consensus voting implemented
 - [ ] Unit tests: 100+ tests

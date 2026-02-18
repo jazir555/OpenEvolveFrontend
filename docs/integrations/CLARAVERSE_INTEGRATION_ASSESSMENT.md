@@ -202,7 +202,7 @@ const response = await ollama.chat({
 |--------|-----------|------|---------------|
 | **Language** | JavaScript/Node.js | Python | ❌ **MISMATCH** |
 | **Runtime** | Node.js | Python (BubbleLab UI) | ❌ **MISMATCH** |
-| **Integration Style** | SDK/Import | Hephaestus Bridge | ⚠️ **Different** |
+| **Integration Style** | SDK/Import | crewai Bridge | ⚠️ **Different** |
 | **Data Format** | JSON | Python dataclasses | ⚠️ **Convertible** |
 | **LLM Access** | Ollama/Remote | DataPizza (multi-provider) | ⚠️ **Different** |
 | **State Management** | Internal | WorkflowState | ⚠️ **Different** |
@@ -290,7 +290,7 @@ class ClaraVerseToSGDWTranslator:
         """Convert Clara workflow to SGDW decomposition"""
         # Map Clara nodes to SGWD components
         # Generate Python code equivalent
-        # Create Hephaestus tickets
+        # Create crewai tickets
         pass
 ```
 
@@ -467,7 +467,7 @@ clara_result = requests.post(
 ├─ Create Python-Node bridge             [5-7 days]
 ├─ Implement data serialization          [3-4 days]
 ├─ Add error handling                    [2-3 days]
-├─ Create ClaraVerseHephaestusBridge     [3-4 days]
+├─ Create ClaraVersecrewaiBridge     [3-4 days]
 ├─ Write MCP tools                       [2-3 days]
 ├─ Testing and debugging                 [5-7 days]
 └─ Documentation                         [1-2 days]
@@ -686,7 +686,7 @@ Missing Files:
 | Knowledge extraction | ❌ None | **Major** |
 | Python integration | ❌ Node.js only | **Major** |
 | Multi-provider LLM | ⚠️ Ollama/remote only | Medium |
-| Hephaestus ticketing | ❌ None | **Major** |
+| crewai ticketing | ❌ None | **Major** |
 | MCP tools | ❌ None | **Major** |
 | BubbleLab UI UI | ❌ None | **Major** |
 

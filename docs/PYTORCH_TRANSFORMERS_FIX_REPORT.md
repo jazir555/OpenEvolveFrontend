@@ -140,7 +140,7 @@ collected 308 items / 283 errors
 
 ### After Fix
 
-#### Module: Hephaestus/tests/sdk
+#### Module: crewai/tests/sdk
 ```
 collected 17 items
 
@@ -185,7 +185,7 @@ collected 273 items / 274 errors
 
 ### Test Execution Success
 ```bash
-$ pytest Hephaestus/tests/sdk/test_config.py -v
+$ pytest crewai/tests/sdk/test_config.py -v
 collected 7 items
 
 test_config_defaults PASSED                    [ 14%]
@@ -288,17 +288,17 @@ python run_tests.py
 
 ### Run Specific Module
 ```bash
-pytest Hephaestus/tests/sdk -v
+pytest crewai/tests/sdk -v
 ```
 
 ### Run with Coverage
 ```bash
-pytest Hephaestus/tests/sdk --cov=. --cov-report=html
+pytest crewai/tests/sdk --cov=. --cov-report=html
 ```
 
 ### Run Excluding Integration Tests
 ```bash
-pytest -m "not integration" --ignore=Hephaestus/tests/integration
+pytest -m "not integration" --ignore=crewai/tests/integration
 ```
 
 ---
@@ -448,7 +448,7 @@ collected 308 items / 283 errors
 
 ### After Fix
 
-#### Module: Hephaestus/tests/sdk
+#### Module: crewai/tests/sdk
 ```
 collected 17 items
 
@@ -493,7 +493,7 @@ collected 273 items / 274 errors
 
 ### Test Execution Success
 ```bash
-$ pytest Hephaestus/tests/sdk/test_config.py -v
+$ pytest crewai/tests/sdk/test_config.py -v
 collected 7 items
 
 test_config_defaults PASSED                    [ 14%]
@@ -596,17 +596,17 @@ python run_tests.py
 
 ### Run Specific Module
 ```bash
-pytest Hephaestus/tests/sdk -v
+pytest crewai/tests/sdk -v
 ```
 
 ### Run with Coverage
 ```bash
-pytest Hephaestus/tests/sdk --cov=. --cov-report=html
+pytest crewai/tests/sdk --cov=. --cov-report=html
 ```
 
 ### Run Excluding Integration Tests
 ```bash
-pytest -m "not integration" --ignore=Hephaestus/tests/integration
+pytest -m "not integration" --ignore=crewai/tests/integration
 ```
 
 ---

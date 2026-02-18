@@ -25,7 +25,7 @@ retained for historical context or to understand prior narratives.
 - `ACCURATE_IMPLEMENTATION_STATUS.md`
   - **What it is:** Granular task list aligned to `Decomposition_Workflow.md`.
   - **Status it communicated:** ~85% complete with many missing fields and
-    features in structures/engine/UI/Hephaestus integration.
+    features in structures/engine/UI/crewai integration.
 
 - `ACTUAL_IMPLEMENTATION_STATUS.md`
   - **What it is:** "Reality check" document for Phase 4 features.
@@ -35,7 +35,7 @@ retained for historical context or to understand prior narratives.
 - `FINAL_IMPLEMENTATION_STATUS.md`
   - **What it is:** A "complete and functional" claim.
   - **Status it communicated:** 100% complete with advanced gauntlets,
-    knowledge, analytics, and Hephaestus integration.
+    knowledge, analytics, and crewai integration.
 
 - `FINAL_HONEST_ASSESSMENT.md`
   - **What it is:** A corrective summary arguing previous docs are misleading.

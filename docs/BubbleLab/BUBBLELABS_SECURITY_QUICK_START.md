@@ -8,7 +8,7 @@ All 16 HIGH priority security issues have been resolved:
 1. ✅ Added authentication middleware to MCP tools
 2. ✅ Added authorization checks to workflow control operations
 3. ✅ Added authentication to analytics endpoints
-4. ✅ Added authorization to Hephaestus bridge
+4. ✅ Added authorization to crewai bridge
 5. ✅ Added authentication to export functions
 6. ✅ Implemented role-based access control (RBAC)
 

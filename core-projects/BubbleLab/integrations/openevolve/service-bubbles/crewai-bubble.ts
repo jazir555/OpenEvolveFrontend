@@ -2,7 +2,7 @@
  * CrewAI Orchestration Service Bubble
  *
  * Provides orchestration hooks for CrewAI-based workflows in OpenEvolve.
- * Replaces Hephaestus with CrewAI as the orchestration layer.
+ * Uses CrewAI as the orchestration layer.
  */
 
 import { z } from 'zod';

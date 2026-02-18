@@ -22,7 +22,7 @@ Successfully created comprehensive MCTS (Monte Carlo Tree Search) workflow integ
 - Multi-level fallback (MCTS -> Evolution -> Standard)
 - WorkflowState integration
 - ACE knowledge storage
-- Hephaestus tracking
+- crewai tracking
 
 ### 2. Documentation
 - `LEANAIDE_MCTS_WORKFLOW_INTEGRATION.md` - Complete guide (600+ lines)

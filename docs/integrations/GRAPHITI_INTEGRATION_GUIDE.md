@@ -1021,7 +1021,7 @@ async def health_check():
    - Graph-based workflow knowledge
    - Community-aware workflow generation
 
-2. **With Hephaestus**:
+2. **With crewai**:
    - Task delegation knowledge tracking
    - Delegation effectiveness analysis
 

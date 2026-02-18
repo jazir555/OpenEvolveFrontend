@@ -351,7 +351,7 @@ Formulas can be evaluated numerically:
 
 This library is designed to integrate with:
 - **Knowledge Engine**: Spacetime physics for reasoning
-- **Hephaestus**: Automated theorem proving
+- **crewai**: Automated theorem proving
 - **Decomposition Engine**: Physics problem solving
 - **MDAP**: Multi-domain agent protocols
 

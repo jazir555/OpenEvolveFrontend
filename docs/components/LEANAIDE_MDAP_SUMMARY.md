@@ -339,7 +339,7 @@ if result.success:
 8. **Batch Processing** - Process multiple theorems
 
 ### Integration Opportunities
-1. **Hephaestus** - Delegation to external services
+1. **crewai** - Delegation to external services
 2. **BubbleLabs** - Analytics and monitoring
 3. **ROMA** - Hierarchical decomposition
 4. **MAKER** - Advanced voting strategies

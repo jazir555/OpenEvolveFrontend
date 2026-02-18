@@ -9,7 +9,7 @@ This library provides a **unified API** for all OpenEvolve functionality:
 - Evolution (evolutionary and adversarial algorithms)
 - Knowledge Engine (knowledge graphs, extraction)
 - Maker Engine (tool creation, execution)
-- Hephaestus (delegation, orchestration)
+- crewai (delegation, orchestration)
 - Decomposition (problem breakdown)
 - Verification (solution verification)
 - Assembly (solution integration)

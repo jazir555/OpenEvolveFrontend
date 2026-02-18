@@ -35,7 +35,7 @@ Comprehensive integration tests for LeanAide have been successfully created, pro
 7. ✅ `leanaide_elaborate_code` - Elaborate and check errors
 8. ✅ `get_leanaide_status` - Check server status
 
-### Hephaestus Bridge Phases (6 phases fully tested)
+### crewai Bridge Phases (6 phases fully tested)
 1. ✅ **Phase 1: Analysis** - Mathematical content detection and classification
 2. ✅ **Phase 2: Translate** - NL to Lean 4 translation
 3. ✅ **Phase 3: Verify** - Solution verification
@@ -67,7 +67,7 @@ Comprehensive integration tests for LeanAide have been successfully created, pro
 
 ### 2. Comprehensive Coverage
 - All 8 MCP tools tested
-- All 6 Hephaestus bridge phases tested
+- All 6 crewai bridge phases tested
 - Success and failure cases covered
 - Edge cases and error handling
 
@@ -236,7 +236,7 @@ python run_leanaide_tests.py --list
 The LeanAide integration test suite provides:
 - ✅ 68 comprehensive tests
 - ✅ Coverage of all 8 MCP tools
-- ✅ Coverage of all 6 Hephaestus bridge phases
+- ✅ Coverage of all 6 crewai bridge phases
 - ✅ Unit, integration, mock, and performance tests
 - ✅ Easy-to-use test runner
 - ✅ Complete documentation

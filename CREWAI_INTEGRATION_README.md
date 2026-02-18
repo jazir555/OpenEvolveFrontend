@@ -4,7 +4,7 @@ This document provides a comprehensive overview of the CrewAI integration within
 
 ## Overview
 
-The CrewAI integration provides a complete multi-agent workflow orchestration system that replaces the previous Hephaestus-based system with MIT-licensed components. The integration includes:
+The CrewAI integration provides a complete multi-agent workflow orchestration system that replaces the previous crewai-based system with MIT-licensed components. The integration includes:
 
 - **CrewAI Workflow Execution**: Multi-agent task execution with role specialization
 - **State Management**: Persistent workflow state with versioning and rollback
@@ -262,8 +262,8 @@ The system implements comprehensive error handling:
 
 ## Migration Notes
 
-This integration replaces the previous Hephaestus-based system with:
-- MIT-licensed CrewAI instead of AGPL-licensed Hephaestus
+This integration replaces the previous crewai-based system with:
+- MIT-licensed CrewAI instead of AGPL-licensed crewai
 - Local state management instead of database-backed storage
 - Improved error handling and recovery
 - Better integration with ACE learning system

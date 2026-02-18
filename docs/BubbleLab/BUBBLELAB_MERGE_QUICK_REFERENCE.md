@@ -68,7 +68,7 @@ Phase 6 (Agent 6) → Documentation & Release
   - Adversarial training
   - Decomposition engine
   - Knowledge engine
-  - Hephaestus bridge
+  - crewai bridge
   - MDAP/MAKER integration
 - **Exports**: 50+ nodes, components, hooks
 

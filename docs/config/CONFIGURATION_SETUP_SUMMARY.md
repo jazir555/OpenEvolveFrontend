@@ -108,7 +108,7 @@ Comprehensive configuration infrastructure has been successfully created for the
 - Maker Engine
 - Hybrid Maker
 - ROMA
-- Hephaestus
+- crewai
 - Generic Knowledge Extraction
 - PostgreSQL (Primary, Knowledge Graph, Analytics)
 - Redis Cache

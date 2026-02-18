@@ -258,7 +258,7 @@ All three combined for maximum relevance.
 
 ### 3. Future Integration Opportunities
 - **BubbleLabs**: Graph-based workflow knowledge
-- **Hephaestus**: Task delegation tracking
+- **crewai**: Task delegation tracking
 - **ROMA/MDAP/Maker**: Decision evolution
 - **LeanAide**: Mathematical knowledge temporal tracking
 

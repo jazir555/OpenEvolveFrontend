@@ -238,7 +238,7 @@ And outputs a complete "build bible" - a turnkey experimental plan that:
    - Verifies theorem correctness
    - Integrates with Lean 4 proof assistant
 
-5. **Hephaestus** - Delegation Framework
+5. **crewai** - Delegation Framework
    - Breaks tasks into subtasks
    - Assigns to appropriate agents
    - Aggregates results
@@ -427,7 +427,7 @@ And outputs a complete "build bible" - a turnkey experimental plan that:
 
 ### Fully Integrated (9 Projects) - NO ACTION NEEDED
 
-Already 100% complete and integrated: Steer (Active Reliability Layer), ROMA (Recursive Meta-Agent - orchestrates 1,000+ parallel LLM agents), ragbits (GenAI Building Blocks), LeanAgent (Lean 4 LLM Agent - translates math to formal proofs), Hephaestus (Delegation Framework), BubbleLab (Workflow Automation), datapizza-ai (GenAI Framework), claudiomiro (Development Automation), agentic-context-engine/ACE (Context Framework). All production ready.
+Already 100% complete and integrated: Steer (Active Reliability Layer), ROMA (Recursive Meta-Agent - orchestrates 1,000+ parallel LLM agents), ragbits (GenAI Building Blocks), LeanAgent (Lean 4 LLM Agent - translates math to formal proofs), crewai (Delegation Framework), BubbleLab (Workflow Automation), datapizza-ai (GenAI Framework), claudiomiro (Development Automation), agentic-context-engine/ACE (Context Framework). All production ready.
 
 ### In Progress (9 Projects) - NEED COMPLETION
 
@@ -701,7 +701,7 @@ All other phases can run in parallel
 - Failed experiments are fine - investor funds them, and we learn, these are asymmetric bets, experimental success/working invention is not guaranteed because we are testing novel physics/novel combinations of existing physical principles.
 
 **Evidence:**
-- 9 projects already working (Steer, ROMA, ragbits, LeanAgent, Hephaestus, BubbleLab, datapizza-ai, claudiomiro, ACE)
+- 9 projects already working (Steer, ROMA, ragbits, LeanAgent, crewai, BubbleLab, datapizza-ai, claudiomiro, ACE)
 - Comprehensive specs (2,000+ lines) show we've thought this through
 - Detailed task breakdown (500+ tasks) shows we know what we're doing
 - Accurate status: We admit the E2E Invention Planner is a skeleton to be built upon

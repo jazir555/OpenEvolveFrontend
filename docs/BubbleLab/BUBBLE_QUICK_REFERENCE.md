@@ -31,7 +31,7 @@ TEMPLATES:          20 total |  0 tested | 20 need tests ( 0.0% coverage) ⚠️
 8. **SlackBubble** (34 ops) - High: Messaging
 9. **WorkflowOrchestratorBubble** (34 ops) - High: Workflow engine
 10. **ElasticsearchBubble** (33 ops) - High: Search engine
-11. **HephaestusBubble** (33 ops) - High: Workflow delegation
+11. **crewaiBubble** (33 ops) - High: Workflow delegation
 12. **PostgresqlBubble** (33 ops) - High: Database
 13. **QdrantBubble** (33 ops) - High: Vector DB
 14. **AGIIncBubble** (31 ops) - Medium: AGI operations

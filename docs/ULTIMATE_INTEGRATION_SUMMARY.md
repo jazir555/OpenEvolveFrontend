@@ -189,7 +189,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 1. Foundation (Real decomposition, math formalization, physics validation)
 2. Error Analysis (Real error sources, adversarial testing)
 3. SOP Generation (Bulletproof SOPs, evolutionary optimization)
-4. Advanced Integrations (BubbleLabs, Hephaestus, Sovereign)
+4. Advanced Integrations (BubbleLabs, crewai, Sovereign)
 5. Success Criteria (Binary criteria, validation)
 6. Testing (Comprehensive test suite)
 7. Documentation (API guides, examples)

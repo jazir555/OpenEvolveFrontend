@@ -47,7 +47,7 @@ Several files contained hardcoded passwords and credentials:
 Multiple files used `subprocess` with `shell=True`, creating command injection vulnerabilities:
 - **Curie/benchmark/exp_bench/evaluation/eval.py**: Contains `result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)` - line 21
 - **Curie/benchmark/exp_bench/evaluation/judge.py**: Contains `result = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=cwd)` - line 21
-- **Hephaestus/src/validation/check_executors.py**: Contains multiple subprocess calls with shell=True
+- **crewai/src/validation/check_executors.py**: Contains multiple subprocess calls with shell=True
 - **OneKE/src/models/vllm_serve.py**: Contains `subprocess.run(command, shell=True)` - line 30
 
 **Fix Applied**: Changed to `shell=False` and used proper command splitting with `shlex.split()`.
@@ -82,7 +82,7 @@ Multiple files use unsafe deserialization methods that could lead to code execut
 ## Architectural Problems
 
 ### 1. Monolithic Structure
-The codebase attempts to integrate multiple different systems (CrewAI, Hephaestus, LeanAide, etc.) without proper abstraction layers, leading to tight coupling.
+The codebase attempts to integrate multiple different systems (CrewAI, crewai, LeanAide, etc.) without proper abstraction layers, leading to tight coupling.
 
 ### 2. Security Misconfiguration
 Despite claims of security fixes, the codebase still contained numerous security vulnerabilities before our fixes.

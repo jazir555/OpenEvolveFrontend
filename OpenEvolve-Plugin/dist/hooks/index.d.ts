@@ -11,6 +11,6 @@ export { useKnowledgeEngine, useKnowledgeAnalytics, } from './useKnowledgeEngine
 export { useKnowledge, } from './useKnowledge';
 export { useAnalytics, } from './useAnalytics';
 export { useLeanAIDE, useLeanTactics, useLeanDocs, } from './useLeanAIDE';
-export { useHephaestus, useHephaestusTemplates, useHephaestusHistory, } from './useHephaestus';
+export { usecrewai, usecrewaiTemplates, usecrewaiHistory, } from './usecrewai';
 export { useROMA, } from './useROMA';
 export { useInvention, } from './useInvention';

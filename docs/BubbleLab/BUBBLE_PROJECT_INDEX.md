@@ -243,7 +243,7 @@
 
 **Pattern Established:**
 4. KnowledgeEngineBubble
-5. HephaestusBubble
+5. crewaiBubble
 6. ACEToolsBubble
 7. WorkflowOrchestratorBubble
 

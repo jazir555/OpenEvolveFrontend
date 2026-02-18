@@ -75,7 +75,7 @@ The platform integrates **100+ external systems** across **9 major categories**:
 ┌──────────────────────────────┴──────────────────────────────────────┐
 │                      ORCHESTRATION LAYER                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐              │
-│  │  Hephaestus  │  │    ROMA      │  │  E2E Planner │              │
+│  │  crewai  │  │    ROMA      │  │  E2E Planner │              │
 │  │ (Workflows)  │  │ (Recursive)  │  │ (Invention)  │              │
 │  └──────────────┘  └──────────────┘  └──────────────┘              │
 │                                                                       │
@@ -266,7 +266,7 @@ The OpenEvolve Platform consists of **9 major architectural layers**:
 
 #### Layer 2: Orchestration Layer (6 Systems)
 - **Purpose:** Workflow coordination, decomposition, and planning
-- **Systems:** Hephaestus, ROMA, E2E Planner, Decomposition Workflow, SOP Generator, Research-Quest
+- **Systems:** crewai, ROMA, E2E Planner, Decomposition Workflow, SOP Generator, Research-Quest
 - **Pattern:** Event-driven orchestration with state machines
 
 #### Layer 3: Business Logic Layer (15+ Systems)
@@ -340,7 +340,7 @@ class PresentationLayer:
 
 ### Layer 2: Orchestration Layer
 
-**Systems:** Hephaestus, ROMA, E2E Planner, Decomposition Workflow, SOP Generator
+**Systems:** crewai, ROMA, E2E Planner, Decomposition Workflow, SOP Generator
 
 **Responsibilities:**
 - Workflow coordination
@@ -365,9 +365,9 @@ class ROMAOrchestrator:
         return self.synthesize(results)
 ```
 
-**Hephaestus Workflow Framework:**
+**crewai Workflow Framework:**
 ```python
-class HephaestusWorkflow:
+class crewaiWorkflow:
     def __init__(self):
         self.state_machine = WorkflowStateMachine()
         self.event_bus = EventBus()
@@ -697,7 +697,7 @@ class CausalDiscovery:
 | **ROMA** | Recursive Decomposition | Orchestration adapter |
 | **RAGbits** | Vector Store | Storage adapter |
 | **LeanAgent** | Lean 4 Agent | Bridge with MCP tools |
-| **Hephaestus** | Workflow Framework | Workflow adapter |
+| **crewai** | Workflow Framework | Workflow adapter |
 | **BubbleLabs** | Platform Automation | Platform adapter |
 | **DataPizza** | Multi-Agent Coordination | Coordination adapter |
 | **Claudiomiro** | Development Agent | Agent adapter |
@@ -731,7 +731,7 @@ class CausalDiscovery:
 - **MAKER** - Multi-agent voting framework
 - **MDAP** - Multi-Dimensional Agent Processing
 - **MCTS** - Monte Carlo Tree Search
-- **Hephaestus** - Semi-structured workflows
+- **crewai** - Semi-structured workflows
 
 #### Hybrid & Evolutionary (4 Systems)
 - **Hybrid MCTS** - MCTS + evolutionary
@@ -990,7 +990,7 @@ User Input
     ↓
 Presentation Layer (BubbleLabs/BubbleLab UI)
     ↓ (Canonical Schema)
-Orchestration Layer (ROMA/Hephaestus)
+Orchestration Layer (ROMA/crewai)
     ↓ (Decomposed Tasks)
 Business Logic Layer (MAKER/MDAP/MCTS)
     ↓ (Sub-problems)

@@ -41,7 +41,7 @@ graph TB
     end
 
     subgraph "Layer 2: Orchestration (6 Systems)"
-        HP[Hephaestus]
+        HP[crewai]
         RM[ROMA]
         E2E[E2E Planner]
         DW[Decomp Workflow]
@@ -215,7 +215,7 @@ mindmap
             ROMA
             RAGbits
             LeanAgent
-            Hephaestus
+            crewai
             BubbleLabs
             DataPizza
             Claudiomiro
@@ -305,7 +305,7 @@ graph LR
     end
 
     subgraph "Orchestration Layer"
-        HP[Hephaestus<br/>Workflow Engine]
+        HP[crewai<br/>Workflow Engine]
     end
 
     U --> BL
@@ -330,7 +330,7 @@ graph LR
 ```mermaid
 graph TB
     subgraph "Orchestration Layer"
-        HP[Hephaestus]
+        HP[crewai]
         RM[ROMA<br/>Recursive Decomp]
         E2E[E2E Planner]
         DW[Decomp Workflow<br/>Teams & Gauntlets]
@@ -471,7 +471,7 @@ graph TB
         RM[ROMA<br/>Recursive Decomp]
         RB[RAGbits<br/>Vector Store]
         LG[LeanAgent<br/>Lean 4 Agent]
-        HP[Hephaestus<br/>Workflow Framework]
+        HP[crewai<br/>Workflow Framework]
         BL[BubbleLabs<br/>Platform Automation]
         DP[DataPizza<br/>Coordination]
         CM[Claudiomiro<br/>Development Agent]
@@ -541,7 +541,7 @@ graph TB
         MK[MAKER<br/>Voting Framework]
         MD[MDAP<br/>Multi-Dimensional]
         MC[MCTS<br/>Tree Search]
-        HP[Hephaestus<br/>Workflows]
+        HP[crewai<br/>Workflows]
     end
 
     subgraph "Hybrid & Evolutionary (4 Systems) ✅"
@@ -559,7 +559,7 @@ graph TB
     end
 
     subgraph "Integration Combinations (7+ Systems) ✅"
-        RM_HP[ROMA + Hephaestus]
+        RM_HP[ROMA + crewai]
         RM_MD_MK[ROMA + MDAP + MAKER]
         MK_AD[MAKER + Adversarial]
         MK_EV[MAKER + Evolution]
@@ -1083,7 +1083,7 @@ graph TB
 
 ## Workflow Orchestration
 
-### Hephaestus Workflow State Machine
+### crewai Workflow State Machine
 
 ```mermaid
 stateDiagram-v2

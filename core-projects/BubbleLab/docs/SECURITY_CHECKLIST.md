@@ -79,7 +79,7 @@ node config/validate-config.js --env production --strict
   - [x] PostgreSQLBubble: API key authentication ✅
   - [x] KnowledgeEngineBubble: API key authentication ✅
   - [x] WorkflowOrchestratorBubble: API key authentication ✅
-  - [x] HephaestusBubble: API key authentication ✅
+  - [x] crewaiBubble: API key authentication ✅
   - [x] ACEToolsBubble: API key authentication ✅
 
 - [x] **Infrastructure Workflows** (4/7 - 57%)

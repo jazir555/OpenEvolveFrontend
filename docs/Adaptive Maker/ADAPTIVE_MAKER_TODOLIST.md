@@ -6,7 +6,7 @@
 **Target:** 30-50% cost reduction while maintaining quality within ±1% of baseline
 **Timeline:** 5 weeks
 **Team:** OpenEvolve Integration Team
-**Orchestration:** CrewAI (Hephaestus deprecated and removed)
+**Orchestration:** CrewAI (crewai deprecated and removed)
 
 ---
 
@@ -191,7 +191,7 @@ All 67 tasks completed. Core allocator implemented with:
 
 All 143 tasks completed. Integration layer implemented with:
 - Execution controller
-- CrewAI integration (replaced Hephaestus)
+- CrewAI integration (replaced crewai)
 - SubProblemSolver integration
 - Configuration integration
 - Logging integration

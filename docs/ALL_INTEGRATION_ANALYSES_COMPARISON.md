@@ -57,7 +57,7 @@ This document consolidates analysis of **4 external projects** evaluated for int
 │                                                                 │
 │  Phase 3: Integrate DeepKE + AI-KG (3 weeks) ← P2 HIGH VALUE  │
 │  ├─ Week 1: Install and test both projects                     │
-│  ├─ Week 2: Build Hephaestus bridges + adapters               │
+│  ├─ Week 2: Build crewai bridges + adapters               │
 │  └─ Week 3: End-to-end integration and testing                │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘

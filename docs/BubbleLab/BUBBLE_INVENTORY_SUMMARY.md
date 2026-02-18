@@ -116,7 +116,7 @@ Test Coverage: ░░░░░░░░░░   0.0% ( 0/20) ⚠️ CRITICAL
 7. SlackBubble (34 ops)
 8. WorkflowOrchestratorBubble (34 ops)
 9. ElasticsearchBubble (33 ops)
-10. HephaestusBubble (33 ops)
+10. crewaiBubble (33 ops)
 11. PostgresqlBubble (33 ops)
 12. QdrantBubble (33 ops)
 13. AGIIncBubble (31 ops)

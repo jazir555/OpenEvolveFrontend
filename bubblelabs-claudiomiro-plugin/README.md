@@ -388,7 +388,7 @@ interface ClaudieMiroPluginConfig {
     phase6?: { enabled: boolean; validationLevel?: 'basic' | 'standard' | 'strict'; };
   };
   integrateWithWorkflow: boolean;       // Integrate with BubbleLabs workflow
-  integrateWithHephaestus: boolean;      // Integrate with Hephaestus
+  integrateWithcrewai: boolean;      // Integrate with crewai
   integrateWithMCP: boolean;             // Integrate with MCP
   enableCaching: boolean;                // Enable result caching
   cacheTTLSeconds: number;               // Cache time-to-live in seconds
@@ -422,7 +422,7 @@ const config = DEFAULT_CLAUDIEMIRO_CONFIG;
 //     phase6: { enabled: true, validationLevel: 'standard' }
 //   },
 //   integrateWithWorkflow: true,
-//   integrateWithHephaestus: true,
+//   integrateWithcrewai: true,
 //   integrateWithMCP: true,
 //   enableCaching: true,
 //   cacheTTLSeconds: 3600,

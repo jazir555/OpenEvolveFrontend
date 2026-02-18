@@ -509,12 +509,12 @@ print(f"Hybrid parameters: {len(hybrid_params)}")  # 9
 | **Claudiomiro** | Alternative - Hybrid for complex systems, Claudiomiro for implementation |
 | **DataPizza** | Alternative - Hybrid for comprehensive solutions, DataPizza for multi-agent tasks |
 | **ROMA** | Hybrid uses ROMA as core decomposition engine |
-| **Hephaestus** | Phase 2-4 enhanced with hybrid mode |
+| **crewai** | Phase 2-4 enhanced with hybrid mode |
 | **Decomposition Workflow** | Hybrid uses Decomposition's gauntlet system |
 
 ### Phase Mapping
 
-| Hephaestus Phase | Traditional | Claudiomiro | DataPizza | ROMA | Hybrid |
+| crewai Phase | Traditional | Claudiomiro | DataPizza | ROMA | Hybrid |
 |------------------|-------------|-------------|-----------|------|--------|
 | Phase 1: Setup | OpenEvolve analysis | Not used | Parallel multi-agent | Recursive analysis | ROMA analysis (auto) |
 | Phase 2: Solve | OpenEvolve + LLM | Autonomous coding | Blue Agent tools | Recursive solve | ROMA solve (auto) |

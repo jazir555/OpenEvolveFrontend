@@ -29,7 +29,7 @@ Implement a master orchestrator that forces this specific sequence:
 4.  **Lean 4 Proof:** Final formal proof generation.
 
 ### 2.2. Distributed Acceleration
-*   **Action:** Fully activate the high-priority hardware backends (GPU/MPS) identified in the Hephaestus cleanup to handle the MCTS and NeuroMANCER loads.
+*   **Action:** Fully activate the high-priority hardware backends (GPU/MPS) identified in the crewai cleanup to handle the MCTS and NeuroMANCER loads.
 
 ---
 

@@ -142,7 +142,7 @@ knowledge_engine/
 2. **MCP Server Not Deployed**
    - kg-gen has MCP server for agent memory
    - Can provide persistent memory for OpenEvolve agents
-   - Not integrated with Hephaestus/ROMA
+   - Not integrated with crewai/ROMA
 
 3. **Neo4j Upload Missing**
    - kg-gen can upload to Neo4j
@@ -654,7 +654,7 @@ class UnifiedMCPGateway:
   - **Dependencies:** Task 2.1.3
   - **Owner:** DevOps
 
-- [ ] **Task 2.3.2:** Integrate MCP tools with Hephaestus
+- [ ] **Task 2.3.2:** Integrate MCP tools with crewai
   - Register tools in agent tool registry
   - Implement tool call routing
   - Handle tool responses
@@ -994,7 +994,7 @@ class UnifiedMCPGateway:
   - **Owner:** Backend
 
 #### 7.2 Agent Integration (Priority: HIGH)
-- [ ] **Task 7.2.1:** Integrate gateway with Hephaestus
+- [ ] **Task 7.2.1:** Integrate gateway with crewai
   - Connect to agent delegation system
   - Auto-register tools
   - Handle tool calls in workflows

@@ -227,7 +227,7 @@ This tactics library is designed to integrate with the OpenEvolve project:
 
 1. **Physics Proofs**: Supports formalization of physics proofs
 2. **Knowledge Engine**: Can be used with knowledge extraction
-3. **Hephaestus**: Can delegate complex physics proofs
+3. **crewai**: Can delegate complex physics proofs
 4. **LeanAide**: Provides automated physics reasoning
 
 ## Technical Specifications

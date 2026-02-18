@@ -430,7 +430,7 @@ To achieve 100% test pass rates, complete implementation tasks:
 
 4. **Phase 4: Advanced Integrations** (Tasks 4.1-4.5)
    - BubbleLabs analytics
-   - Hephaestus delegation
+   - crewai delegation
    - Sovereign QA
    - Claudiomiro/DataPizza/RAGBits
    - STEER guidance

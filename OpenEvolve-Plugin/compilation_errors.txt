@@ -1,5 +1,5 @@
-src/hooks/useHephaestus.ts(279,35): error TS1005: ',' expected.
-src/hooks/useHephaestus.ts(279,51): error TS1005: ',' expected.
-src/hooks/useHephaestus.ts(279,102): error TS1005: ';' expected.
-src/hooks/useHephaestus.ts(281,4): error TS1128: Declaration or statement expected.
-src/hooks/useHephaestus.ts(281,18): error TS1005: ';' expected.
+src/hooks/usecrewai.ts(279,35): error TS1005: ',' expected.
+src/hooks/usecrewai.ts(279,51): error TS1005: ',' expected.
+src/hooks/usecrewai.ts(279,102): error TS1005: ';' expected.
+src/hooks/usecrewai.ts(281,4): error TS1128: Declaration or statement expected.
+src/hooks/usecrewai.ts(281,18): error TS1005: ';' expected.

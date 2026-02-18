@@ -31,7 +31,7 @@ flowchart TD
 ```
 
 ## Notable Gotchas & Tech Debt
-- **Legacy Bridges**: Multiple bridge implementations (`CrewAIUnifiedBridge`, `ACECrewAIWorkflowBridge`) exist for backward compatibility with the older Hephaestus system, creating some redundant code.
+- **Legacy Bridges**: Multiple bridge implementations (`CrewAIUnifiedBridge`, `ACECrewAIWorkflowBridge`) exist for backward compatibility with the older crewai system, creating some redundant code.
 - **Distributed State**: Managing state across distributed agents can lead to consistency issues if the `StateManager` is not used rigorously.
 - **Complexity of Phase 2**: The "Solve" phase often branches out into MDAP or MAKER sub-workflows, which can be difficult to trace in logs.
 

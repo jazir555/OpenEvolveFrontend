@@ -477,7 +477,7 @@ Learning Loop (ACE)
 
 **OpenEvolve Components:**
 - Python + BubbleLab UI (web UI) ← **COMPATIBLE**
-- Hephaestus (delegation) ← **COMPATIBLE**
+- crewai (delegation) ← **COMPATIBLE**
 - ROMA (decomposition) ← **NOT RELEVANT**
 - RAGbits (knowledge retrieval) ← **SEPARATE CONCERN**
 - ACE (learning) ← **OVERLAP (both do LLM extraction)**

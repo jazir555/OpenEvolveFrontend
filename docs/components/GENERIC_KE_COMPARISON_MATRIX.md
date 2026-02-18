@@ -100,7 +100,7 @@
 | **GPU Required** | No | Yes (recommended) | No | Yes (for DeepKE) |
 | **Disk Space** | ~100 MB | ~2 GB | ~50 MB | ~2 GB |
 | **Refactoring Needed** | High (remove UI) | Low | Low | Low |
-| **Hephaestus Bridge** | 2 days | 2 days | 2 days | 3 days |
+| **crewai Bridge** | 2 days | 2 days | 2 days | 3 days |
 | **KnowledgeArtifact Adapter** | 3 days | 3 days | 2 days | 4 days |
 | **Workflow Integration** | 3 days | 2 days | 1.5 days | 3 days |
 | **Testing** | 2 days | 2 days | 1 day | 3 days |

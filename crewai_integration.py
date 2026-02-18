@@ -2,7 +2,7 @@
 CrewAI Integration Module
 
 This module provides integration between CrewAI and OpenEvolve systems,
-replacing the Hephaestus-based integration.
+replacing the legacy orchestration integration.
 
 Key Features:
 - CrewAI team management

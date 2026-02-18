@@ -346,7 +346,7 @@ for feature, weight in importance.items():
 5. **Active Learning**: Strategic data collection for model improvement
 
 ### Integration Opportunities
-1. **Hephaestus**: External service integration
+1. **crewai**: External service integration
 2. **Analytics**: Advanced monitoring and insights
 3. **Workflow Integration**: Process integration
 4. **Knowledge Graph**: Context enhancement

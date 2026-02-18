@@ -60,7 +60,7 @@ python run_leanaide_tests.py --verbose
 7. `leanaide_elaborate_code` - Elaborate and check errors
 8. `get_leanaide_status` - Check server status
 
-## Hephaestus Bridge Phases (6)
+## crewai Bridge Phases (6)
 
 1. **Phase 1: Analysis** - Detect/classify mathematical content
 2. **Phase 2: Translate** - NL → Lean 4 translation

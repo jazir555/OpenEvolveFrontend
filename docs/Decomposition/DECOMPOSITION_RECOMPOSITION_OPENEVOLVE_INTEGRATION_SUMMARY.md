@@ -238,7 +238,7 @@ python demo_openevolve_integration.py
 ### With Other Systems
 
 - **CrewAI**: Workflow metadata includes entanglement matrix; tasks carry `entangled_with`
-- **Hephaestus**: Works with Hephaestus workflow management
+- **crewai**: Works with crewai workflow management
 - **BubbleLabs**: Integrates with BubbleLabs plugin system
 - **LeanAide**: Compatible with LeanAide autoformalization
 - **ROMA**: Stage-2 plans yield structured sub-problems; entanglement is derived and persisted
@@ -285,7 +285,7 @@ python demo_openevolve_integration.py
 - **Total Lines of Code:** ~7,950
 - **Test Coverage:** Comprehensive unit and integration tests
 - **Documentation:** Complete with examples and guides
-- **Integration Points:** Multiple (OpenEvolve, CrewAI, Hephaestus, etc.)
+- **Integration Points:** Multiple (OpenEvolve, CrewAI, crewai, etc.)
 
 ## Next Steps
 

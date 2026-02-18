@@ -63,7 +63,7 @@ Successfully implemented **System 2: Physics Knowledge Engine** from the Gap Ana
 
 #### 3. MCP Tools (`leanaide_mcp_tools.py`)
 
-Five new MCP tools for Hephaestus agents:
+Five new MCP tools for crewai agents:
 
 1. **`leanaide_query_physics_theorems`** - Query relevant theorems
 2. **`leanaide_suggest_physics_decomposition`** - Get problem decomposition
@@ -510,7 +510,7 @@ solution = bridge.solve_ode_verified("d²ψ/dx² = -Eψ", ...)
 ✅ **Knowledge Retrieval** finds relevant theorems automatically
 ✅ **Problem Decomposition** suggests solution steps
 ✅ **Automated Formalization** converts textbook to Lean 4
-✅ **MCP Tools** available for Hephaestus agents
+✅ **MCP Tools** available for crewai agents
 ✅ **Lean 4 Infrastructure** ready for parallel development
 ✅ **Comprehensive Tests** with 30+ test cases
 ✅ **Full Documentation** with usage examples

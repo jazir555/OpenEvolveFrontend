@@ -74,7 +74,7 @@
 | **State Management** | WorkflowState (dataclass) | ResearchQuestGraph (JS class) | ⚠️ Requires adaptation | Medium |
 | **Storage** | SQLite + files | In-memory + JSON export | ⚠️ Requires adaptation | Medium |
 | **Concurrency** | asyncio + multi-processing | Single-threaded Node.js | ⚠️ Requires adaptation | Medium |
-| **Integration Protocol** | Hephaestus (Python) | MCP (standard) | ✅ Compatible | Low-Medium |
+| **Integration Protocol** | crewai (Python) | MCP (standard) | ✅ Compatible | Low-Medium |
 
 **Verdict:** **ARCHITECTURAL MISMATCH** - Requires significant adaptation (4-8 weeks).
 
@@ -197,7 +197,7 @@
 | **P1.26** | Statistical power analysis | ❌ Wrong domain (scientific research) |
 | **P1.27** | Information theory metrics (entropy, KL divergence) | ⚠️ Could enhance but not critical |
 | **P1.28** | Impact assessment (theoretical, practical, methodological) | ⚠️ OpenEvolve tracks success rate (simpler) |
-| **P1.29** | Collaboration attribution | ❌ OpenEvolve uses Hephaestus tickets (different) |
+| **P1.29** | Collaboration attribution | ❌ OpenEvolve uses crewai tickets (different) |
 
 **Most Valuable Parameters for OpenEvolve:**
 - **P1.14:** Bayesian confidence distributions (enhance Stage 6)
@@ -341,7 +341,7 @@
 | **Knowledge gap detection** | **NONE** (Stage 6 incomplete) | **Research-Quest unique** |
 | **Causal inference** | **NONE** | **Wrong domain** (scientific research) |
 | **Statistical validation** | **NONE** | **Wrong domain** (scientific research) |
-| **MCP server** | Hephaestus (Python bridge) | **Different protocols, similar purpose** |
+| **MCP server** | crewai (Python bridge) | **Different protocols, similar purpose** |
 
 ### Research-Quest vs. Previous Analyses
 

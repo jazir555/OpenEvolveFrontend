@@ -289,7 +289,7 @@
   - [ ] Critical path highlighting
   - [ ] Cycle detection
 
-## Phase 6: Hephaestus Integration
+## Phase 6: crewai Integration
 
 - [ ] SGD Orchestrator Agent
   - [ ] `sgd_orchestrator_agent.py` - Main orchestrator
@@ -415,7 +415,7 @@
   - [ ] UI component tests
 - [ ] Integration Tests
   - [ ] End-to-end workflow tests
-  - [ ] Hephaestus integration tests
+  - [ ] crewai integration tests
   - [ ] Lean 4 integration tests
   - [ ] PSV integration tests
 - [ ] Performance Tests
@@ -462,7 +462,7 @@
 3. ✅ Complete Stage 6 Knowledge Extraction - DONE
 4. Complete Stage 3 Sub-Problem Solving Loop (full implementation, no placeholders)
 5. Implement remaining UI components
-6. Hephaestus integration - ALREADY COMPLETE (existing file with real API calls)
+6. crewai integration - ALREADY COMPLETE (existing file with real API calls)
 7. Lean 4 integration - EXISTS (lean4_integration.py with production framework)
 8. PSV integration - ALREADY COMPLETE (psv_selfplay.py with real LLM API calls)
 9. Infrastructure and deployment
