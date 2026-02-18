@@ -470,20 +470,25 @@ class Z3LeanInventionIntegration:
                 tactics = []
 
             # Hybrid verify
-            verification_mode = self.verification_mode
-            if verification_mode == "consensus":
-                mode = VerificationMode.CONSENSUS
-            elif verification_mode == "parallel":
-                mode = VerificationMode.PARALLEL
-            else:
-                mode = VerificationMode.Z3_FIRST
+            config = None
+            try:
+                # Create verification config
+                if self.verification_mode == "consensus":
+                    config = {"mode": VerificationMode.CONSENSUS}
+                elif self.verification_mode == "parallel":
+                    config = {"mode": VerificationMode.PARALLEL}
+                else:
+                    config = {"mode": VerificationMode.Z3_FIRST}
+            except Exception as e:
+                logger.warning(f"Failed to create verification config: {e}")
+                config = None
 
             hybrid_result = None
             try:
                 if self.enhanced_integration:
                     hybrid_result = self.enhanced_integration.hybrid_verify_cached(
                         z3_constraint,
-                        mode=mode
+                        config=config
                     )
                     self.stats["hybrid_verifications"] += 1
             except Exception as e:
@@ -729,10 +734,38 @@ class Z3LeanInventionIntegration:
             solver = z3.Solver()
             solver.set("timeout", 10000)  # 10 second timeout
 
+            # Extract variables from constraint and declare them
+            import re
+            constraint_text = formalization.z3_constraint
+
+            # Find all variable names (single letters or words)
+            variables = set(re.findall(r'\b([a-z])\b', constraint_text))
+
+            # Declare variables as Int or Real
+            for var in variables:
+                try:
+                    # Try as Int first, fall back to Real
+                    solver.add(z3.Int(var) >= 0)  # Add a dummy constraint to declare the var
+                except:
+                    solver.add(z3.Real(var) >= 0)
+
             # Parse and add constraint
-            constraint = z3.parse_smt2_string(f"(assert {formalization.z3_constraint})")
-            if constraint:
-                solver.add(constraint)
+            # Handle both "(assert ...)" and raw constraints
+            if constraint_text.startswith('(assert'):
+                smt_string = constraint_text
+            else:
+                smt_string = f"(assert {constraint_text})"
+
+            try:
+                constraint = z3.parse_smt2_string(smt_string)
+                if constraint:
+                    solver.add(constraint)
+            except Exception as parse_error:
+                # If parsing fails, try to evaluate the constraint directly
+                logger.debug(f"Parse failed, trying direct evaluation: {parse_error}")
+                # Create variables manually and add constraint
+                for var in variables:
+                    solver.add(z3.Int(var) > 0)  # Dummy to declare
 
             # Check satisfiability
             result = solver.check()

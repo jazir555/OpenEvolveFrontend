@@ -1231,12 +1231,14 @@ class ROMAIntegration:
                 })
                 raise  # Re-raise to fail the verification
 
-        # Recalculate final score and passed status based on results
+        # Calculate final score
         overall_score = sum(validation_scores) / len(validation_scores) if validation_scores else 0.0
-        passed = overall_score >= threshold and all(requirements_met.values())
+
+        # Determine if solution passes
+        solution_passed = overall_score >= threshold and all(requirements_met.values())
 
         # Generate feedback
-        if passed:
+        if solution_passed:
             feedback = f"Solution passes verification. {len(requirements_met)} requirements met. Overall score: {overall_score:.3f}"
         else:
             failed_reqs = [name for name, met in requirements_met.items() if not met]
@@ -1245,7 +1247,7 @@ class ROMAIntegration:
         verification = ROMAVerification(
             verification_id=str(uuid.uuid4()),
             solution_id=solution.solution_id,
-            passed=passed,
+            passed=solution_passed,
             score=overall_score,
             feedback=feedback,
             requirements_met=requirements_met,
@@ -1271,15 +1273,12 @@ class ROMAIntegration:
         Returns:
             Dict with 'passed' (bool), 'score' (float), 'feedback' (str)
         """
-        import sys
         req_lower = req_name.lower()
 
         # Initialize default values (outside try block to ensure they're always defined)
         passed = True
         score = 0.8
         feedback = "Requirement validated with default criteria"
-
-        logger.info({"msg": f"Starting verification for {req_name}", "req_name": req_name, "defined": "passed" in locals()})
 
         try:
             # Completeness checks
@@ -1422,8 +1421,6 @@ class ROMAIntegration:
             })
             # Re-raise with more context
             raise
-
-        logger.info({"msg": f"Returning verification result for {req_name}", "req_name": req_name, "passed": passed, "score": score})
 
         return {
             'passed': passed,

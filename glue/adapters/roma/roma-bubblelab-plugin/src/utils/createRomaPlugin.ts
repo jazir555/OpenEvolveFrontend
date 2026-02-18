@@ -195,7 +195,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
     },
 
     isReady() {
-      return state.isInitialized && state.status !== 'error';
+      return state.isInitialized && state.status !== 'failed';
     },
 
     getVersion() {

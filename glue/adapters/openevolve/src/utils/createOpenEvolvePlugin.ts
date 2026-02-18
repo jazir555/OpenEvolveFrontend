@@ -239,7 +239,7 @@ class OpenEvolveService {
     config: any,
     options: OpenEvolveExecutionOptions = {}
   ): Promise<OpenEvolveExecutionResult> {
-    const executionId = uuidv4();
+    const executionId = createExecutionId();
     const startTime = new Date().toISOString();
 
     // Simulate integrated execution that combines all OpenEvolve functionalities
@@ -419,7 +419,7 @@ export function createOpenEvolvePlugin(
     async executeEvolution(goal, options = {}) {
       try {
         globalState.status = 'executing';
-        globalState.currentExecutionId = uuidv4();
+        globalState.currentExecutionId = createExecutionId();
 
         const executionId = globalState.currentExecutionId;
         const startTime = new Date().toISOString();
@@ -462,7 +462,7 @@ export function createOpenEvolvePlugin(
     async executeAdversarial(content, options = {}) {
       try {
         globalState.status = 'executing';
-        globalState.currentExecutionId = uuidv4();
+        globalState.currentExecutionId = createExecutionId();
 
         const executionId = globalState.currentExecutionId;
         const startTime = new Date().toISOString();
@@ -505,7 +505,7 @@ export function createOpenEvolvePlugin(
     async executeDecomposition(problem, options = {}) {
       try {
         globalState.status = 'executing';
-        globalState.currentExecutionId = uuidv4();
+        globalState.currentExecutionId = createExecutionId();
 
         const executionId = globalState.currentExecutionId;
         const startTime = new Date().toISOString();
@@ -548,7 +548,7 @@ export function createOpenEvolvePlugin(
     async executeIntegrated(goal, options = {}) {
       try {
         globalState.status = 'executing';
-        globalState.currentExecutionId = uuidv4();
+        globalState.currentExecutionId = createExecutionId();
 
         const executionId = globalState.currentExecutionId;
         const startTime = new Date().toISOString();
