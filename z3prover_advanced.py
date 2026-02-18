@@ -1554,9 +1554,11 @@ class Z3AdvancedSolver(Z3SolverEngine):
         super().__init__(config)
         
         # Update pool metadata to indicate this is an advanced solver
-        if self._pool is not None and self._solver_id is not None:
+        pool = getattr(self, "_pool", None)
+        solver_id = getattr(self, "_solver_id", None)
+        if pool is not None and solver_id is not None:
             try:
-                instance = self._pool.get_solver(self._solver_id)
+                instance = pool.get_solver(solver_id)
                 if instance is not None:
                     instance.metadata['class'] = 'Z3AdvancedSolver'
                     instance.metadata['features'] = [

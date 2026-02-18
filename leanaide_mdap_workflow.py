@@ -102,6 +102,28 @@ try:
     MAKER_AVAILABLE = True
 except ImportError:
     MAKER_AVAILABLE = False
+    class MAKERMode(Enum):
+        """Fallback MAKER mode enum for degraded environments."""
+        RECURSIVE = "recursive"
+        FLAT = "flat"
+
+    @dataclass
+    class MAKERWorkflowConfig:  # type: ignore[no-redef]
+        """Fallback MAKER config used when integration package is unavailable."""
+        mode: MAKERMode = MAKERMode.RECURSIVE
+
+    class MAKERWorkflowIntegrator:  # type: ignore[no-redef]
+        """Fallback MAKER integrator."""
+
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+    def solve_subproblem_with_maker(*args, **kwargs):  # type: ignore[no-redef]
+        return {
+            "success": False,
+            "error": "MAKER integration not available",
+        }
+
     logger.warning("MAKER integration not available")
 
 # import crewai # MIGRATED: was CrewAI

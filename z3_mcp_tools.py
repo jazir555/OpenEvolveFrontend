@@ -1379,7 +1379,25 @@ async def z3_solve_smart_contract_exploit_witness(
     timeout: float = 10.0,
 ) -> Dict[str, Any]:
     """Solve canonical exploit witness query for Web3 audit workflows."""
-    # Use the new Web3 Validator Tool if available
+    # Prefer the core Z3 integration function to keep compatibility with
+    # existing monkeypatch-based wiring tests.
+    if solve_smart_contract_exploit_witness is not None:
+        try:
+            witness = solve_smart_contract_exploit_witness(
+                additional_constraints=additional_constraints,
+                timeout=timeout,
+            )
+            return {
+                "success": True,
+                "witness": witness,
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    # Fall back to Web3 validator wrapper if the core helper is unavailable.
     if solve_smart_contract_witness is not None:
         try:
             # Determine vulnerability type from constraints or default to generic
@@ -1394,6 +1412,8 @@ async def z3_solve_smart_contract_exploit_witness(
                 vulnerability_type=vuln_type,
                 constraints=additional_constraints
             )
+            witness = dict(witness or {})
+            witness.setdefault("satisfiable", bool(witness.get("success")))
             return {
                 "success": witness.get("success", False),
                 "witness": witness,
@@ -1404,26 +1424,12 @@ async def z3_solve_smart_contract_exploit_witness(
                 "error": str(e)
             }
 
-    # Fallback to legacy or unavailable
     if solve_smart_contract_exploit_witness is None:
         return {
             "success": False,
             "error": "Smart contract exploit witness solver is unavailable"
         }
-    try:
-        witness = solve_smart_contract_exploit_witness(
-            additional_constraints=additional_constraints,
-            timeout=timeout,
-        )
-        return {
-            "success": True,
-            "witness": witness,
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
+    return {"success": False, "error": "Smart contract exploit witness solver is unavailable"}
 
 
 @MCPTool(
@@ -1503,18 +1509,19 @@ async def z3_web3_audit_exploit_verification(
                 assume_non_negative_amount=assume_non_negative_amount,
             )
         
-        # Use the improved solver if available
-        if solve_smart_contract_witness is not None:
-            witness_res = solve_smart_contract_witness(
-                vulnerability_type="reentrancy",
-                constraints=additional_constraints
-            )
-            witness = witness_res # Adjust mapping if needed
-        else:
+        # Prefer the core Z3 witness helper when available.
+        if solve_smart_contract_exploit_witness is not None:
             witness = solve_smart_contract_exploit_witness(
                 additional_constraints=additional_constraints,
                 timeout=timeout,
             )
+        else:
+            witness = solve_smart_contract_witness(
+                vulnerability_type="reentrancy",
+                constraints=additional_constraints
+            )
+            witness = dict(witness or {})
+            witness.setdefault("satisfiable", bool(witness.get("success")))
             
         lean_proof_verification = await verify_web3_lean_proof_async(
             translation,

@@ -656,7 +656,12 @@ class Z3SolverService:
     
     def __init__(self):
         self.solver = get_z3_solver_engine() if Z3_AVAILABLE else None
-        self.advanced = get_z3_advanced_solver() if Z3_ADVANCED_AVAILABLE else None
+        self.advanced = None
+        if Z3_ADVANCED_AVAILABLE:
+            try:
+                self.advanced = get_z3_advanced_solver()
+            except Exception as exc:
+                logger.warning("Advanced Z3 solver unavailable, continuing without it: %s", exc)
         self.cache = get_z3_result_cache() if CACHE_AVAILABLE else None
         self.monitor = get_z3_performance_monitor() if MONITOR_AVAILABLE else None
         self.knowledge = get_z3_knowledge_extractor() if KNOWLEDGE_AVAILABLE else None
@@ -1117,7 +1122,12 @@ class Z3ServiceBubble:
     
     def __init__(self):
         self.solver = Z3SolverService()
-        self.reliability = Z3ReliabilityChecker() if RELIABILITY_AVAILABLE else None
+        self.reliability = None
+        if RELIABILITY_AVAILABLE:
+            try:
+                self.reliability = Z3ReliabilityChecker()
+            except Exception as exc:
+                logger.warning("Reliability checker unavailable, continuing without it: %s", exc)
         self.monitor = get_z3_performance_monitor() if MONITOR_AVAILABLE else None
         self.cache = get_z3_result_cache() if CACHE_AVAILABLE else None
         self.knowledge = get_z3_knowledge_extractor() if KNOWLEDGE_AVAILABLE else None
@@ -1869,6 +1879,16 @@ async def web3_translate_invariant(request: Web3InvariantTranslateRequest):
 @app.post("/web3/exploits/symbolic-witness")
 async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
     """Solve canonical smart-contract exploit witness predicates with Z3."""
+    if solve_smart_contract_exploit_witness is not None:
+        try:
+            witness = solve_smart_contract_exploit_witness(
+                additional_constraints=request.additional_constraints,
+                timeout=request.timeout_seconds,
+            )
+            return {"success": True, "result": witness}
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
     if solve_smart_contract_witness is not None:
         try:
             # Determine vulnerability type from constraints or default to generic
@@ -1882,6 +1902,8 @@ async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
                 vulnerability_type=vuln_type,
                 constraints=request.additional_constraints
             )
+            witness = dict(witness or {})
+            witness.setdefault("satisfiable", bool(witness.get("success")))
             return {"success": witness.get("success", False), "result": witness}
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc))
@@ -1891,15 +1913,10 @@ async def web3_symbolic_witness(request: Web3ExploitWitnessRequest):
             status_code=503,
             detail="Smart contract exploit witness solver unavailable",
         )
-
-    try:
-        witness = solve_smart_contract_exploit_witness(
-            additional_constraints=request.additional_constraints,
-            timeout=request.timeout_seconds,
-        )
-        return {"success": True, "result": witness}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+    raise HTTPException(
+        status_code=503,
+        detail="Smart contract exploit witness solver unavailable",
+    )
 
 
 @app.post("/web3/audit/exploit-verification")
@@ -1910,7 +1927,7 @@ async def web3_audit_exploit_verification(request: Web3AuditExploitVerificationR
             status_code=503,
             detail="Solidity invariant translation unavailable",
         )
-    if solve_smart_contract_exploit_witness is None:
+    if solve_smart_contract_exploit_witness is None and solve_smart_contract_witness is None:
         raise HTTPException(
             status_code=503,
             detail="Smart contract exploit witness solver unavailable",
@@ -1929,16 +1946,26 @@ async def web3_audit_exploit_verification(request: Web3AuditExploitVerificationR
                 assume_non_negative_amount=request.assume_non_negative_amount,
             )
 
-        witness = solve_smart_contract_exploit_witness(
-            additional_constraints=request.additional_constraints,
-            timeout=request.timeout_seconds,
-        )
+        if solve_smart_contract_exploit_witness is not None:
+            witness = solve_smart_contract_exploit_witness(
+                additional_constraints=request.additional_constraints,
+                timeout=request.timeout_seconds,
+            )
+        else:
+            witness = solve_smart_contract_witness(
+                vulnerability_type="reentrancy",
+                constraints=request.additional_constraints,
+            )
+            witness = dict(witness or {})
+            witness.setdefault("satisfiable", bool(witness.get("success")))
         lean_proof_verification = await verify_web3_lean_proof_async(
             translation,
             use_real_lean=True,
         )
 
-        verified_exploit = bool(witness.get("satisfiable", False))
+        verified_exploit = bool(witness.get("satisfiable", False)) or bool(
+            witness.get("success", False)
+        )
         if request.verify_translation and isinstance(verification, dict):
             verified_exploit = verified_exploit and bool(verification.get("proven", False))
 
