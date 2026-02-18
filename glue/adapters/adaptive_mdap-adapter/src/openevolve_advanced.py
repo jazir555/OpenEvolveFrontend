@@ -27,7 +27,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-from openevolve_integration import (
+from .openevolve_integration import (
     get_openevolve_integration,
     OpenEvolveIntegrationConfig,
     WorkflowComplexityAnalysis,

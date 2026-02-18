@@ -125,14 +125,14 @@ All integration files now import successfully:
 
 ```
 [OK] openevolve_mcp_tools
-[OK] hephaestus_openevolve_bridge
+[OK] crewai_openevolve_bridge
 [OK] decomposition_mcp_tools
-[OK] decomposition_hephaestus_bridge
+[OK] decomposition_crewai_bridge
 [OK] steer_mcp_tools
-[OK] steer_hephaestus_bridge
+[OK] steer_crewai_bridge
 [OK] workflow_structures
 [OK] openevolve_structures
-[OK] openevolve_hephaestus_adapter
+[OK] openevolve_crewai_adapter
 
 Results: 9/9 files imported successfully
 ```
@@ -176,7 +176,7 @@ class MyClass:
 ### Before Fix:
 - `workflow_structures.py` failed to import
 - `openevolve_structures.py` failed to import
-- `openevolve_hephaestus_adapter.py` failed to import
+- `openevolve_crewai_adapter.py` failed to import
 - Any code depending on these files was broken
 
 ### After Fix:

@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Successfully implemented comprehensive database cleanup policies for both BubbleLabs analytics and Hephaestus mappings databases. The implementation includes automatic daily cleanup, manual cleanup commands, database size monitoring, and space reclamation through VACUUM.
+Successfully implemented comprehensive database cleanup policies for both BubbleLabs analytics and CrewAI mappings databases. The implementation includes automatic daily cleanup, manual cleanup commands, database size monitoring, and space reclamation through VACUUM.
 
 **Key Achievement:** Prevents unbounded database growth with 90-day retention policy.
 
@@ -88,9 +88,9 @@ self._last_cleanup = time.time()
 
 ---
 
-### 2. Hephaestus Mappings Database Cleanup
+### 2. CrewAI Mappings Database Cleanup
 
-**File Modified:** `bubblelabs_hephaestus_bridge.py`
+**File Modified:** `bubblelabs_crewai_bridge.py`
 
 #### Features Implemented:
 
@@ -286,9 +286,9 @@ analytics = BubbleLabsAnalytics(db_path="analytics.db")
 # Cleanup will run every 24 hours
 ```
 
-### 2. Hephaestus Bridge Sync
+### 2. CrewAI Bridge Sync
 ```python
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 bridge.start_background_sync()
 # Cleanup runs automatically during sync operations
 ```
@@ -300,7 +300,7 @@ analytics = BubbleLabsAnalytics()
 result = analytics.cleanup_old_workflows(max_age_days=90)
 
 # Clean mappings
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 deleted = bridge.cleanup_old_mappings(max_age_days=90)
 
 # Clean all databases
@@ -340,7 +340,7 @@ None required - all configuration is in-code
 db_path = "bubblelabs_analytics.db"
 
 # Mappings database
-mappings_db_path = "hephaestus_workflow_mappings.db"
+mappings_db_path = "crewai_workflow_mappings.db"
 ```
 
 ---
@@ -371,12 +371,12 @@ print(f"Database size: {stats['current_size_mb']:.2f} MB")
 analytics.close_all_connections()
 ```
 
-### Example 2: Hephaestus Bridge
+### Example 2: CrewAI Bridge
 ```python
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
 # Create bridge
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 
 # Start background sync (includes automatic cleanup)
 bridge.start_background_sync()
@@ -434,7 +434,7 @@ python demo_database_cleanup.py
    - Modified connection management
    - Added utility function
 
-2. **bubblelabs_hephaestus_bridge.py**
+2. **bubblelabs_crewai_bridge.py**
    - Added cleanup configuration
    - Implemented auto_cleanup_if_needed()
    - Integrated cleanup into sync loop

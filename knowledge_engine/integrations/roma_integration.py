@@ -1199,67 +1199,77 @@ class ROMAIntegration:
         - Consistency: Internal consistency checks
         - Custom constraints: User-defined validation rules
         """
+        import traceback as tb
+
         requirements_met = {}
         validation_scores = []
         feedback_items = []
 
-        # Initialize default values for verification result
-        overall_score = 0.0
+        # Initialize default values
         threshold = self.config["verifier"]["threshold"]
-        passed = False
-        feedback = "Verification failed"
 
-        # Verify each requirement
-        for req_name, req_value in requirements.items():
-            try:
-                req_result = await self._verify_single_requirement(
-                    solution, req_name, req_value
-                )
-                requirements_met[req_name] = req_result['passed']
-                validation_scores.append(req_result['score'])
-                feedback_items.append(f"{req_name}: {req_result['feedback']}")
-            except Exception as e:
-                # Log the error with full traceback
-                import traceback as tb
-                logger.error({
-                    "msg": f"Failed to verify requirement '{req_name}'",
-                    "req_name": req_name,
-                    "req_value": str(req_value),
-                    "error": str(e),
-                    "traceback": tb.format_exc(),
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                })
-                raise  # Re-raise to fail the verification
+        try:
+            # Verify each requirement
+            for req_name, req_value in requirements.items():
+                try:
+                    req_result = await self._verify_single_requirement(
+                        solution, req_name, req_value
+                    )
+                    requirements_met[req_name] = req_result['passed']
+                    validation_scores.append(req_result['score'])
+                    feedback_items.append(f"{req_name}: {req_result['feedback']}")
+                except Exception as e:
+                    # Log the error with full traceback
+                    import traceback as tb
+                    logger.error({
+                        "msg": f"Failed to verify requirement '{req_name}'",
+                        "req_name": req_name,
+                        "req_value": str(req_value),
+                        "error": str(e),
+                        "traceback": tb.format_exc(),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    })
+                    raise  # Re-raise to fail the verification
 
-        # Calculate final score
-        overall_score = sum(validation_scores) / len(validation_scores) if validation_scores else 0.0
+            # Calculate final score
+            overall_score = sum(validation_scores) / len(validation_scores) if validation_scores else 0.0
 
-        # Determine if solution passes
-        solution_passed = overall_score >= threshold and all(requirements_met.values())
+            # Determine if solution passes
+            solution_passed = overall_score >= threshold and all(requirements_met.values())
 
-        # Generate feedback
-        if solution_passed:
-            feedback = f"Solution passes verification. {len(requirements_met)} requirements met. Overall score: {overall_score:.3f}"
-        else:
-            failed_reqs = [name for name, met in requirements_met.items() if not met]
-            feedback = f"Solution fails verification. Failed requirements: {', '.join(failed_reqs)}. Overall score: {overall_score:.3f}"
+            # Generate feedback
+            if solution_passed:
+                feedback = f"Solution passes verification. {len(requirements_met)} requirements met. Overall score: {overall_score:.3f}"
+            else:
+                failed_reqs = [name for name, met in requirements_met.items() if not met]
+                feedback = f"Solution fails verification. Failed requirements: {', '.join(failed_reqs)}. Overall score: {overall_score:.3f}"
 
-        verification = ROMAVerification(
-            verification_id=str(uuid.uuid4()),
-            solution_id=solution.solution_id,
-            passed=solution_passed,
-            score=overall_score,
-            feedback=feedback,
-            requirements_met=requirements_met,
-            metadata={
-                "threshold": threshold,
-                "strict_mode": self.config["verifier"]["strict_mode"],
-                "validators_used": list(requirements.keys()),
-                "validation_count": len(requirements_met)
-            }
-        )
+            verification = ROMAVerification(
+                verification_id=str(uuid.uuid4()),
+                solution_id=solution.solution_id,
+                passed=solution_passed,
+                score=overall_score,
+                feedback=feedback,
+                requirements_met=requirements_met,
+                metadata={
+                    "threshold": threshold,
+                    "strict_mode": self.config["verifier"]["strict_mode"],
+                    "validators_used": list(requirements.keys()),
+                    "validation_count": len(requirements_met)
+                }
+            )
 
-        return verification
+            return verification
+        except Exception as e:
+            # Log the overall error with full traceback
+            logger.error({
+                "msg": "ROMA solution verification failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+                "traceback": tb.format_exc(),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            raise
 
     async def _verify_single_requirement(
         self,
@@ -2139,23 +2149,10 @@ class ROMAIntegration:
 
         try:
             # Real business logic: Constraint-based solution verification
-            verification_result = await self._verify_solution_constraints(
+            verification = await self._verify_solution_constraints(
                 solution=solution,
                 requirements=requirements,
                 correlation_id=correlation_id
-            )
-
-            verification = ROMAVerification(
-                verification_id=str(uuid.uuid4()),
-                solution_id=solution.solution_id,
-                passed=passed,
-                score=overall_score,
-                feedback="Solution meets most requirements" if passed else "Solution fails some requirements",
-                requirements_met=requirements_met,
-                metadata={
-                    "threshold": self.config["verifier"]["threshold"],
-                    "strict_mode": self.config["verifier"]["strict_mode"]
-                }
             )
 
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
@@ -2173,7 +2170,7 @@ class ROMAIntegration:
                     "solution_id": solution.solution_id,
                     "passed": verification.passed,
                     "score": verification.score,
-                    "requirements_checked": len(requirements_met),
+                    "requirements_checked": len(verification.requirements_met),
                     "processing_time_ms": processing_time_ms
                 },
                 processing_time_ms=processing_time_ms

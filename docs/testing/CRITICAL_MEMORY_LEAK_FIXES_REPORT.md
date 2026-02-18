@@ -19,7 +19,7 @@ All 3 CRITICAL memory leaks have been successfully fixed and verified through co
 
 ## Memory Leak #1: Unbounded Mappings Dictionary (CRITICAL)
 
-**File:** bubblelabs_hephaestus_bridge.py
+**File:** bubblelabs_crewai_bridge.py
 **Location:** Line 160 (was line 111)
 
 ### Problem
@@ -40,7 +40,7 @@ Replaced Dict with OrderedDict-based LRU cache with max_size=1000
 
 ## Memory Leak #2: Unbounded Instance-to-Definition Map (CRITICAL)
 
-**File:** bubblelabs_hephaestus_bridge.py
+**File:** bubblelabs_crewai_bridge.py
 **Location:** Line 168 (was line 115)
 
 ### Problem
@@ -83,7 +83,7 @@ Added TTL-based eviction (7-day retention) and max limit of 1000 instances
 
 ## Files Modified
 
-1. bubblelabs_hephaestus_bridge.py
+1. bubblelabs_crewai_bridge.py
    - Added OrderedDict import
    - Replaced Dict with LRU cache for mappings
    - Replaced Dict with LRU cache for instance-to-definition map

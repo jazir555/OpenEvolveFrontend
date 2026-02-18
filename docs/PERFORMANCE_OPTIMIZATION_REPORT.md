@@ -130,7 +130,7 @@ def get_analytics_summary(self, limit: int = 100, max_rows: int = 10000):
 
 ### 4. Large Object Copy Fix (Memory Usage)
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 416-465
 **Method:** `_build_ticket_description()`
 
@@ -212,7 +212,7 @@ definitions = list(definitions_generator())
 
 ### 6. Nested Lock Risk Fix (Lock Performance)
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 300-347
 **Method:** `sync_workflow_to_ticket()`
 
@@ -235,7 +235,7 @@ definitions = list(definitions_generator())
 with self.lock:
     mapping = self.mappings.get(workflow_definition_id)
     # ... do work
-    success = self.hephaestus.update_ticket(...)  # I/O while locked!
+    success = self.crewai.update_ticket(...)  # I/O while locked!
 
 # After: Lock only for reading data
 workflow = self.bubblelabs.get_workflow_definition(...)  # Before lock
@@ -245,7 +245,7 @@ with self.lock:
     mapping = self.mappings.get(workflow_definition_id)
     ticket_id = mapping.ticket_id  # Quick read
 
-success = self.hephaestus.update_ticket(ticket_id, description)  # No lock!
+success = self.crewai.update_ticket(ticket_id, description)  # No lock!
 ```
 
 **Performance Impact:**
@@ -257,7 +257,7 @@ success = self.hephaestus.update_ticket(ticket_id, description)  # No lock!
 
 ### 7. Long-Running Lock in Sync Fix (Lock Performance)
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 467-569
 **Methods:** `_sync_all_active_workflows()`, `_process_update_batch()`
 
@@ -307,7 +307,7 @@ self._process_update_batch(ticket_id_map.items())
 
 ### 8. API Call Batching Fix (I/O Optimization)
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 467-569
 **Method:** `_sync_all_active_workflows()`, `_process_update_batch()`
 
@@ -398,19 +398,19 @@ def test_analytics_generator_pattern():
 
 def test_string_io_efficiency():
     """Test that StringIO reduces memory usage"""
-    bridge = BubbleLabsHephaestusBridge()
+    bridge = BubbleLabsCrewAIBridge()
     desc = bridge._build_ticket_description(large_workflow)
     assert len(desc) > 0
 
 def test_lock_hierarchy():
     """Test that locks are acquired in correct order"""
-    bridge = BubbleLabsHephaestusBridge()
+    bridge = BubbleLabsCrewAIBridge()
     success = bridge.sync_workflow_to_ticket("test-id")
     assert success is True
 
 def test_batch_processing():
     """Test that batch API calls work correctly"""
-    bridge = BubbleLabsHephaestusBridge(batch_size=5)
+    bridge = BubbleLabsCrewAIBridge(batch_size=5)
     bridge._sync_all_active_workflows()
     # Verify batch_size was respected
 ```
@@ -437,11 +437,11 @@ def test_query_limits():
 - [x] Fix N+1 Query Pattern in bubblelabs_analytics.py
 - [x] Fix Unbounded Query in bubblelabs_analytics.py
 - [x] Fix List Accumulation in bubblelabs_analytics.py
-- [x] Fix Large Object Copy in bubblelabs_hephaestus_bridge.py
+- [x] Fix Large Object Copy in bubblelabs_crewai_bridge.py
 - [x] Fix List Comprehension Memory in bubblelabs_mcp_tools.py
-- [x] Fix Nested Lock Risk in bubblelabs_hephaestus_bridge.py
-- [x] Fix Long-Running Lock in Sync in bubblelabs_hephaestus_bridge.py
-- [x] Fix API Call Without Batching in bubblelabs_hephaestus_bridge.py
+- [x] Fix Nested Lock Risk in bubblelabs_crewai_bridge.py
+- [x] Fix Long-Running Lock in Sync in bubblelabs_crewai_bridge.py
+- [x] Fix API Call Without Batching in bubblelabs_crewai_bridge.py
 - [x] Add performance documentation
 - [x] Maintain backward compatibility
 

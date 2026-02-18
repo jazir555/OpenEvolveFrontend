@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from adaptive_mdap_adapter import (
+from .adaptive_mdap_adapter import (
     get_adapter,
     CanonicalSubProblem,
     CanonicalComplexityScore,

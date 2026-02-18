@@ -4,9 +4,9 @@ Example: Using OpenEvolve-CrewAI Delegation
 This script demonstrates how to use the OpenEvolve-CrewAI delegation
 to solve complex problems with multi-agent orchestration.
 
-MIGRATED FROM: example_hephaestus_delegation.py
+MIGRATED FROM: example_crewai_delegation.py
 MIGRATION DATE: 2026-01-21
-LICENSE CHANGE: Hephaestus (AGPL) -> CrewAI (MIT)
+LICENSE CHANGE: CrewAI (AGPL) -> CrewAI (MIT)
 
 NEW PATTERNS SHOWCASED:
 - CrewAI Flows for multi-agent orchestration

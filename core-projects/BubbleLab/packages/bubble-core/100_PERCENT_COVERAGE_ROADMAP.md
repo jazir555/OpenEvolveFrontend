@@ -113,7 +113,7 @@ These files have the highest complexity scores and greatest impact:
 12. `bubbles/tool-bubble/xml-parser-tool.ts` - Score: 142
 13. `bubbles/service-bubble/github-bubble.ts` - Score: 132
 14. `bubbles/service-bubble/gmail-bubble.ts` - Score: 126
-15. `bubbles/service-bubble/hephaestus-bubble.ts` - Score: 125
+15. `bubbles/service-bubble/crewai-bubble.ts` - Score: 125
 16. `bubbles/service-bubble/postgresql-bubble.ts` - Score: 123
 17. `bubbles/service-bubble/workflow-orchestrator-bubble.ts` - Score: 122
 18. `bubbles/service-bubble/ace-tools-bubble.ts` - Score: 121

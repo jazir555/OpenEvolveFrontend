@@ -2,7 +2,7 @@
 
 **Date**: 2025-12-29
 **Status**: PRODUCTION-READY ✅
-**All Components Integrated**: Hephaestus + OpenEvolve + Decomposition + Steer
+**All Components Integrated**: CrewAI + OpenEvolve + Decomposition + Steer
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                          Hephaestus (Orchestrator)                         │
+│                          CrewAI (Orchestrator)                         │
 │                                                                             │
 │  Phases 1-6: Manages task lifecycle, spawns agents, coordinates work      │
 │  - Delegates to Decomposition Workflow for complex problems               │
@@ -50,7 +50,7 @@
 
 ## Component Responsibilities
 
-### Hephaestus (Orchestrator)
+### CrewAI (Orchestrator)
 - **Role**: Workflow orchestration, task management, agent spawning
 - **Responsibility**: Coordinates the overall process, delegates to components
 - **Phases**: 6 phases (Setup → Solution → Critique → Verify → Reassemble → Final)
@@ -84,12 +84,12 @@
 | File | Lines | Purpose | Status |
 |------|-------|---------|--------|
 | `decomposition_mcp_tools.py` | 1095 | MCP tools with OpenEvolve in ALL stages | ✅ |
-| `decomposition_hephaestus_bridge.py` | 900 | Bridge for Decomposition → Hephaestus | ✅ |
+| `decomposition_crewai_bridge.py` | 900 | Bridge for Decomposition → CrewAI | ✅ |
 | `openevolve_mcp_tools.py` | 745 | Direct OpenEvolve MCP tools | ✅ |
-| `hephaestus_openevolve_bridge.py` | 450 | Bridge for evolutionary workflows | ✅ |
+| `crewai_openevolve_bridge.py` | 450 | Bridge for evolutionary workflows | ✅ |
 | `steer_mcp_tools.py` | 650 | MCP tools for Steer verification | ✅ |
-| `steer_hephaestus_bridge.py` | 450 | Bridge for Steer → Hephaestus | ✅ |
-| `openevolve_hephaustus_delegation.py` | 850 | Main delegation using HephaestusSDK | ✅ |
+| `steer_crewai_bridge.py` | 450 | Bridge for Steer → CrewAI | ✅ |
+| `openevolve_hephaustus_delegation.py` | 850 | Main delegation using CrewAISDK | ✅ |
 | `openevolve_hephaustus_adapter.py` | 500 | Adapter for existing code | ✅ |
 
 ---
@@ -99,11 +99,11 @@
 ### Complex Problem with All Components
 
 ```python
-from decomposition_hephaestus_bridge import DecompositionHephaestusWorkflowBridge
-from steer_hephaestus_bridge import steer_capture
+from decomposition_crewai_bridge import DecompositionCrewAIWorkflowBridge
+from steer_crewai_bridge import steer_capture
 
 # Create bridges
-decomposition_bridge = DecompositionHephaestusWorkflowBridge()
+decomposition_bridge = DecompositionCrewAIWorkflowBridge()
 
 # Wrap with Steer verification
 @steer_capture(verifications=["json", "slop"])
@@ -141,7 +141,7 @@ result = solve_complex_problem(
 
 ## Phase Mapping: All Components
 
-| Hephaestus Phase | Decomposition Stage | OpenEvolve Activity | Steer Verification |
+| CrewAI Phase | Decomposition Stage | OpenEvolve Activity | Steer Verification |
 |------------------|---------------------|---------------------|-------------------|
 | Phase 1: Setup | Stage 0-1 | Evolves analysis & decomposition | json, slop |
 | Phase 2: Solution | Stage 3A | Evolves solution attempts | json, slop |
@@ -190,7 +190,7 @@ result = solve_complex_problem(
 ## Component Interdependencies
 
 ```
-Hephaestus
+CrewAI
     │
     ├──> Decomposition Workflow
     │        │
@@ -202,7 +202,7 @@ Hephaestus
 ### Key Insight
 - **OpenEvolve** is **used BY** Decomposition Workflow for evolution
 - **Steer** is **applied TO** all agent outputs (including Decomposition agents)
-- **Hephaestus** orchestrates everything
+- **CrewAI** orchestrates everything
 
 ---
 
@@ -211,7 +211,7 @@ Hephaestus
 ### Pattern 1: Simple Evolutionary Coding
 ```python
 from openevolve_mcp_tools import evolve_code_with_openevolve
-from steer_hephaestus_bridge import steer_capture
+from steer_crewai_bridge import steer_capture
 
 @steer_capture(verifications=["json"])
 def evolve_my_code(code):
@@ -222,12 +222,12 @@ result = evolve_my_code("def sort(arr): ...")
 
 ### Pattern 2: Complex Problem Decomposition
 ```python
-from decomposition_hephaestus_bridge import DecompositionHephaestusWorkflowBridge
-from steer_hephaestus_bridge import steer_capture
+from decomposition_crewai_bridge import DecompositionCrewAIWorkflowBridge
+from steer_crewai_bridge import steer_capture
 
 @steer_capture(verifications=["json", "slop", "citations"])
 def solve_with_decomposition(problem):
-    bridge = DecompositionHephaestusWorkflowBridge()
+    bridge = DecompositionCrewAIWorkflowBridge()
     return bridge.execute_full_workflow(
         problem_statement=problem,
         use_evolution=True,
@@ -238,7 +238,7 @@ result = solve_with_decomposition("Design distributed system")
 
 ### Pattern 3: Custom Agent with Verification
 ```python
-from steer_hephaestus_bridge import create_verified_agent
+from steer_crewai_bridge import create_verified_agent
 
 def my_agent(input_data):
     # Custom LLM-based agent
@@ -258,7 +258,7 @@ result = verified_agent({"query": "test"})
 1. USER INPUT
    "Design scalable microservices architecture"
        ↓
-2. HEPHAESTUS Phase 1: Setup
+2. CREWAI Phase 1: Setup
        ↓
 3. DECOMPOSITION: Analyze & Decompose
    ├──> OpenEvolve evolves analysis (50 iterations)
@@ -268,7 +268,7 @@ result = verified_agent({"query": "test"})
    ├──> JsonJudge: ✅ Valid JSON
    └──> SlopJudge: ✅ High quality
        ↓
-5. HEPHAESTUS Phase 2: Solution Generation
+5. CREWAI Phase 2: Solution Generation
        ↓
 6. DECOMPOSITION: Blue Team Solving
    └──> OpenEvolve evolves solutions (100 iterations)
@@ -277,7 +277,7 @@ result = verified_agent({"query": "test"})
    ├──> JsonJudge: ✅ Valid JSON
    └──> SlopJudge: ✅ No AI slop
        ↓
-8. HEPHAESTUS Phase 3: Critique
+8. CREWAI Phase 3: Critique
        ↓
 9. DECOMPOSITION: Red Team Gauntlet
    └──> OpenEvolve evolves critiques (30 iterations)
@@ -285,7 +285,7 @@ result = verified_agent({"query": "test"})
 10. STEER: Verify Phase 3 Output
     └──> SlopJudge: ✅ Direct critique
         ↓
-11. HEPHAESTUS Phase 4: Verification
+11. CREWAI Phase 4: Verification
         ↓
 12. DECOMPOSITION: Gold Team Gauntlet
     └──> OpenEvolve evolves verification (30 iterations)
@@ -294,7 +294,7 @@ result = verified_agent({"query": "test"})
     ├──> JsonJudge: ✅ Valid JSON
     └──> CitationJudge: ✅ Sources cited
         ↓
-14. HEPHAESTUS Phase 5: Reassembly
+14. CREWAI Phase 5: Reassembly
         ↓
 15. DECOMPOSITION: Reassemble Solutions
         ↓
@@ -302,7 +302,7 @@ result = verified_agent({"query": "test"})
     ├──> JsonJudge: ✅ Valid JSON
     └──> SlopJudge: ✅ High quality
         ↓
-17. HEPHAESTUS Phase 6: Final Validation
+17. CREWAI Phase 6: Final Validation
         ↓
 18. FINAL OUTPUT (Verified by Steer)
     {
@@ -339,7 +339,7 @@ steer ui     # Launch dashboard at http://localhost:8000
 ## Summary
 
 **Complete Architecture**:
-- **Hephaestus** orchestrates workflows
+- **CrewAI** orchestrates workflows
 - **Decomposition Workflow** solves complex problems with teams/gauntlets
 - **OpenEvolve** provides evolutionary permutations in ALL decomposition stages
 - **Steer** verifies ALL agent outputs for reliability
@@ -357,7 +357,7 @@ steer ui     # Launch dashboard at http://localhost:8000
 **Date**: 2025-12-29
 **Status**: COMPLETE ✅
 **Components Integrated**:
-- Hephaestus (orchestrator) - ✅
+- CrewAI (orchestrator) - ✅
 - Decomposition Workflow (teams/gauntlets) - ✅
 - OpenEvolve (evolutionary in ALL stages) - ✅
 - Steer (reliability verification) - ✅

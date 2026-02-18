@@ -35,7 +35,7 @@ Total Issues Found: 54
 
 ---
 
-## 2. ace_hephaestus_bridge.py (1458 lines)
+## 2. ace_crewai_bridge.py (1458 lines)
 
 ### Missing Docstrings (5)
 1. Line 244-262: `_initialize_ace_components()` - Missing Returns/Raises sections

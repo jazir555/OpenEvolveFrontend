@@ -54,7 +54,7 @@ config = create_roma_mdap_maker_config(
 ---
 
 ### Bug #2: Incorrect Parameter Names in Bridge (Critical)
-**File**: `roma_mdap_maker_hephaestus_bridge.py`
+**File**: `roma_mdap_maker_crewai_bridge.py`
 **Location**: Lines 182-196
 **Severity**: CRITICAL - Runtime TypeError
 
@@ -248,7 +248,7 @@ Success Rate: 100.0%
 
 **Lines Modified**: ~5 lines
 
-### 4. roma_mdap_maker_hephaestus_bridge.py (~900 lines)
+### 4. roma_mdap_maker_crewai_bridge.py (~900 lines)
 **Changes**:
 - Fixed same parameter names as decomposition_mcp_tools.py
 

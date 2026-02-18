@@ -7,7 +7,7 @@ This document details all 87 Phase 4 validation and edge case fixes applied to t
 ## Files Modified:
 
 1. **ace_mcp_tools.py** (961 lines) - 18 fixes
-2. **ace_hephaestus_bridge.py** (1174 lines) - 15 fixes
+2. **ace_crewai_bridge.py** (1174 lines) - 15 fixes
 3. **ace_analytics.py** (1018 lines) - 18 fixes
 4. **ace_knowledge_artifacts.py** (522 lines) - 12 fixes
 5. **ace_workflow_knowledge_extractor.py** (655 lines) - 12 fixes
@@ -89,7 +89,7 @@ This document details all 87 Phase 4 validation and edge case fixes applied to t
 
 ---
 
-### 2. ace_hephaestus_bridge.py - 15 Fixes
+### 2. ace_crewai_bridge.py - 15 Fixes
 
 #### __init__ (3 fixes)
 - [EC-2] Validate model name format

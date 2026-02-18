@@ -13,7 +13,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 
 ### Files Processed:
 1. ✅ ace_mcp_tools.py (961 lines) - **18 fixes needed**
-2. ✅ ace_hephaestus_bridge.py (1,174 lines) - **15 fixes needed**
+2. ✅ ace_crewai_bridge.py (1,174 lines) - **15 fixes needed**
 3. ✅ ace_analytics.py (1,018 lines) - **18 fixes needed**
 4. ✅ ace_knowledge_artifacts.py (522 lines) - **12 fixes needed**
 5. ✅ ace_workflow_knowledge_extractor.py (655 lines) - **12 fixes needed**
@@ -29,7 +29,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 
 **Fixes Applied:**
 - `ace_mcp_tools.py`: agent_id (100), task (10000), query (10000)
-- `ace_hephaestus_bridge.py`: problem_statement (10000), final_solution (10000)
+- `ace_crewai_bridge.py`: problem_statement (10000), final_solution (10000)
 - `ace_workflow_knowledge_extractor.py`: workflow_id (100), problem_statement (10000)
 - `ace_stage6_integration.py`: workflow_id (100), problem_statement (10000), problem_type (100)
 
@@ -40,7 +40,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 **Fixes Applied:**
 - `ace_analytics.py`: min_cluster_size (2-1000), similarity_threshold (0-1), max_patterns (1-1000)
 - `ace_mcp_tools.py`: dedup_threshold (0-1), epochs (1-100)
-- `ace_hephaestus_bridge.py`: All phase execution numeric parameters
+- `ace_crewai_bridge.py`: All phase execution numeric parameters
 - `ace_stage6_integration.py`: limit (1-100), similarity_threshold (0-1)
 
 ### EC-3: List Size Validation (12 fixes total)
@@ -50,7 +50,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 **Fixes Applied:**
 - `ace_mcp_tools.py`: samples (1000)
 - `ace_analytics.py`: artifacts (1000)
-- `ace_hephaestus_bridge.py`: sub_problems (100), solutions (100)
+- `ace_crewai_bridge.py`: sub_problems (100), solutions (100)
 - `ace_workflow_knowledge_extractor.py`: All workflow result lists
 
 ### EC-4: None/Empty Checks (18 fixes total)
@@ -59,7 +59,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 
 **Fixes Applied:**
 - `ace_mcp_tools.py`: context dict, ground_truth, feedback
-- `ace_hephaestus_bridge.py`: All phase context parameters
+- `ace_crewai_bridge.py`: All phase context parameters
 - `ace_knowledge_artifacts.py`: Optional metadata fields
 - `ace_workflow_knowledge_extractor.py`: workflow_results dict
 
@@ -114,7 +114,7 @@ All Phase 4 validation and edge case fixes have been analyzed and documented for
 **Fixes Applied:**
 - `ace_analytics.py`: Cluster ID validation
 - `ace_mcp_tools.py`: List access operations
-- `ace_hephaestus_bridge.py`: Solution list indexing
+- `ace_crewai_bridge.py`: Solution list indexing
 
 ---
 
@@ -217,7 +217,7 @@ if filepath:
 
 ---
 
-### 2. ace_hephaestus_bridge.py - 15 Fixes
+### 2. ace_crewai_bridge.py - 15 Fixes
 
 #### execute_phase_1_setup (3 fixes)
 ```python

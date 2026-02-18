@@ -1,9 +1,9 @@
 <<<<<<< HEAD
-# MDAP/MAKER-Hephaestus Integration Guide
+# MDAP/MAKER-CrewAI Integration Guide
 
 ## Overview
 
-This guide explains the integration between MDAP/MAKER systems and the Hephaestus project management system in OpenEvolve. This integration enables you to track, monitor, and manage MDAP (Multi-step Debate and Aggregation Protocol) and MAKER workflows through Hephaestus tickets.
+This guide explains the integration between MDAP/MAKER systems and the CrewAI project management system in OpenEvolve. This integration enables you to track, monitor, and manage MDAP (Multi-step Debate and Aggregation Protocol) and MAKER workflows through CrewAI tickets.
 
 ## Table of Contents
 
@@ -37,9 +37,9 @@ MAKER (Maximal Agentic decomposition, first-to-ahead-by-k Error correction, and 
 - **Red-flagging** for quality control
 - **Atomic solving** for simple tasks
 
-### What is Hephaestus?
+### What is CrewAI?
 
-Hephaestus is a project management system that provides:
+CrewAI is a project management system that provides:
 - **Ticket tracking** for tasks and sub-tasks
 - **Status management** (TODO, IN_PROGRESS, DONE, etc.)
 - **Label-based organization** for filtering and search
@@ -67,7 +67,7 @@ Hephaestus is a project management system that provides:
 └──────────────────┼────────────────────────────────────┘
                    │
          ┌─────────▼──────────┐
-         │   Hephaestus API   │
+         │   CrewAI API   │
          │  (Ticket System)   │
          └────────────────────┘
 ```
@@ -101,14 +101,14 @@ Workflow Epic (OpenEvolve workflow)
 Ensure you have the following installed:
 - Python 3.8+
 - OpenEvolve system
-- Hephaestus instance running
+- CrewAI instance running
 
 ### Dependencies
 
 The integration requires these modules:
 ```python
 # Core dependencies
-- hephaestus_integration.py
+- crewai_integration.py
 - mdap_engine.py
 - maker_engine.py
 - mdap_maker_complete.py
@@ -119,13 +119,13 @@ The integration requires these modules:
 
 1. **Import the integration manager**:
 ```python
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from workflow_structures import WorkflowState
 ```
 
 2. **Initialize the manager**:
 ```python
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-api-key",
     project_id="your-project-id"
@@ -167,10 +167,10 @@ mdap_task = MDAPTask(
 )
 ```
 
-### Syncing MDAP Task to Hephaestus
+### Syncing MDAP Task to CrewAI
 
 ```python
-# Sync task to Hephaestus
+# Sync task to CrewAI
 ticket_id = manager.sync_mdap_task(
     mdap_task=mdap_task,
     workflow_epic_id=workflow_epic_id
@@ -260,10 +260,10 @@ initial_state = {
 }
 ```
 
-### Syncing MAKER Run to Hephaestus
+### Syncing MAKER Run to CrewAI
 
 ```python
-# Sync run to Hephaestus
+# Sync run to CrewAI
 ticket_id = manager.sync_maker_run(
     run_id="maker-run-001",
     initial_state=initial_state,
@@ -387,20 +387,20 @@ print(f"MAKER Runs Synced: {status['maker_runs_synced']}")
 
 ## API Reference
 
-### HephaestusIntegrationManager
+### CrewAIIntegrationManager
 
 #### `__init__(api_base, api_key, project_id)`
 Initialize the integration manager.
 
 **Parameters:**
-- `api_base` (str): Base URL for Hephaestus API
+- `api_base` (str): Base URL for CrewAI API
 - `api_key` (str): API key for authentication
-- `project_id` (str): Project ID in Hephaestus
+- `project_id` (str): Project ID in CrewAI
 
 #### MDAP Methods
 
 ##### `sync_mdap_task(mdap_task, workflow_epic_id=None)`
-Sync an MDAP task to Hephaestus.
+Sync an MDAP task to CrewAI.
 
 **Returns:** Ticket ID (str) or None
 
@@ -417,7 +417,7 @@ Sync MDAP task completion.
 #### MAKER Methods
 
 ##### `sync_maker_run(run_id, initial_state, config, workflow_epic_id=None)`
-Sync a MAKER run to Hephaestus.
+Sync a MAKER run to CrewAI.
 
 **Returns:** Ticket ID (str) or None
 
@@ -456,12 +456,12 @@ Get sync status for MDAP and MAKER.
 
 ```python
 import time
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from mdap_engine import MDAPTask, MDAPStep, MDAPOrchestrator, MDAPConfig
 from workflow_structures import Team, ModelConfig
 
 # Setup
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-key",
     project_id="your-project"
@@ -486,7 +486,7 @@ steps = [
 ]
 task = MDAPTask(task_id="task-1", description="Test task", steps=steps)
 
-# Sync to Hephaestus
+# Sync to CrewAI
 manager.sync_mdap_task(task)
 
 # Execute MDAP
@@ -508,12 +508,12 @@ manager.sync_mdap_task_completion(task.task_id, result)
 ### Example 2: Complete MAKER Workflow
 
 ```python
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from maker_engine import MakerEngine, MakerConfig, MakerStep
 from workflow_structures import Team, ModelConfig
 
 # Setup
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-key",
     project_id="your-project"
@@ -528,7 +528,7 @@ config = MakerConfig(max_steps=100)
 # Initial state
 state = {"counter": 0, "target": 10}
 
-# Sync to Hephaestus
+# Sync to CrewAI
 manager.sync_maker_run("run-1", state, config)
 
 # Execute MAKER
@@ -559,7 +559,7 @@ manager.start_sync_loop(workflow_state, interval=60)
 
 # ... workflow executes ...
 
-# Status updates from Hephaestus are automatically synced to workflow_state
+# Status updates from CrewAI are automatically synced to workflow_state
 
 # Stop sync loop when done
 manager.stop_sync_loop(workflow_state.workflow_id)
@@ -578,7 +578,7 @@ manager.stop_sync_loop(workflow_state.workflow_id)
 **Solution:**
 ```python
 # Check availability
-from hephaestus_integration import MDAP_AVAILABLE, MAKER_AVAILABLE
+from crewai_integration import MDAP_AVAILABLE, MAKER_AVAILABLE
 
 if not MDAP_AVAILABLE:
     print("MDAP libraries not installed")
@@ -590,10 +590,10 @@ if not MDAP_AVAILABLE:
 **Problem:** `Failed to create ticket` errors
 
 **Solution:**
-- Check Hephaestus API is running
+- Check CrewAI API is running
 - Verify API credentials
 - Check network connectivity
-- Review Hephaestus logs
+- Review CrewAI logs
 
 ```python
 # Test connection
@@ -639,7 +639,7 @@ import logging
 
 # Enable debug logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("hephaestus_integration")
+logger = logging.getLogger("crewai_integration")
 logger.setLevel(logging.DEBUG)
 ```
 
@@ -648,7 +648,7 @@ logger.setLevel(logging.DEBUG)
 Run the test suite:
 
 ```bash
-pytest test_mdap_maker_hephaestus_integration.py -v
+pytest test_mdap_maker_crewai_integration.py -v
 ```
 
 ---
@@ -670,7 +670,7 @@ pytest test_mdap_maker_hephaestus_integration.py -v
 
 - [MDAP Documentation](./MDAP_DOCUMENTATION.md)
 - [MAKER Documentation](./MAKER_DOCUMENTATION.md)
-- [Hephaestus API Reference](./HEPH_API_REFERENCE.md)
+- [CrewAI API Reference](./HEPH_API_REFERENCE.md)
 - [OpenEvolve Integration Guide](./OPENEVOLVE_INTEGRATION.md)
 
 ---
@@ -678,18 +678,18 @@ pytest test_mdap_maker_hephaestus_integration.py -v
 ## Changelog
 
 ### Version 1.0.0 (2025-01-02)
-- Initial release of MDAP/MAKER-Hephaestus integration
+- Initial release of MDAP/MAKER-CrewAI integration
 - Support for MDAP task and step synchronization
 - Support for MAKER run and step synchronization
 - Combined workflow initialization
 - Bidirectional sync support
 - Comprehensive test suite
 =======
-# MDAP/MAKER-Hephaestus Integration Guide
+# MDAP/MAKER-CrewAI Integration Guide
 
 ## Overview
 
-This guide explains the integration between MDAP/MAKER systems and the Hephaestus project management system in OpenEvolve. This integration enables you to track, monitor, and manage MDAP (Multi-step Debate and Aggregation Protocol) and MAKER workflows through Hephaestus tickets.
+This guide explains the integration between MDAP/MAKER systems and the CrewAI project management system in OpenEvolve. This integration enables you to track, monitor, and manage MDAP (Multi-step Debate and Aggregation Protocol) and MAKER workflows through CrewAI tickets.
 
 ## Table of Contents
 
@@ -723,9 +723,9 @@ MAKER (Maximal Agentic decomposition, first-to-ahead-by-k Error correction, and 
 - **Red-flagging** for quality control
 - **Atomic solving** for simple tasks
 
-### What is Hephaestus?
+### What is CrewAI?
 
-Hephaestus is a project management system that provides:
+CrewAI is a project management system that provides:
 - **Ticket tracking** for tasks and sub-tasks
 - **Status management** (TODO, IN_PROGRESS, DONE, etc.)
 - **Label-based organization** for filtering and search
@@ -753,7 +753,7 @@ Hephaestus is a project management system that provides:
 └──────────────────┼────────────────────────────────────┘
                    │
          ┌─────────▼──────────┐
-         │   Hephaestus API   │
+         │   CrewAI API   │
          │  (Ticket System)   │
          └────────────────────┘
 ```
@@ -787,14 +787,14 @@ Workflow Epic (OpenEvolve workflow)
 Ensure you have the following installed:
 - Python 3.8+
 - OpenEvolve system
-- Hephaestus instance running
+- CrewAI instance running
 
 ### Dependencies
 
 The integration requires these modules:
 ```python
 # Core dependencies
-- hephaestus_integration.py
+- crewai_integration.py
 - mdap_engine.py
 - maker_engine.py
 - mdap_maker_complete.py
@@ -805,13 +805,13 @@ The integration requires these modules:
 
 1. **Import the integration manager**:
 ```python
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from workflow_structures import WorkflowState
 ```
 
 2. **Initialize the manager**:
 ```python
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-api-key",
     project_id="your-project-id"
@@ -853,10 +853,10 @@ mdap_task = MDAPTask(
 )
 ```
 
-### Syncing MDAP Task to Hephaestus
+### Syncing MDAP Task to CrewAI
 
 ```python
-# Sync task to Hephaestus
+# Sync task to CrewAI
 ticket_id = manager.sync_mdap_task(
     mdap_task=mdap_task,
     workflow_epic_id=workflow_epic_id
@@ -946,10 +946,10 @@ initial_state = {
 }
 ```
 
-### Syncing MAKER Run to Hephaestus
+### Syncing MAKER Run to CrewAI
 
 ```python
-# Sync run to Hephaestus
+# Sync run to CrewAI
 ticket_id = manager.sync_maker_run(
     run_id="maker-run-001",
     initial_state=initial_state,
@@ -1073,20 +1073,20 @@ print(f"MAKER Runs Synced: {status['maker_runs_synced']}")
 
 ## API Reference
 
-### HephaestusIntegrationManager
+### CrewAIIntegrationManager
 
 #### `__init__(api_base, api_key, project_id)`
 Initialize the integration manager.
 
 **Parameters:**
-- `api_base` (str): Base URL for Hephaestus API
+- `api_base` (str): Base URL for CrewAI API
 - `api_key` (str): API key for authentication
-- `project_id` (str): Project ID in Hephaestus
+- `project_id` (str): Project ID in CrewAI
 
 #### MDAP Methods
 
 ##### `sync_mdap_task(mdap_task, workflow_epic_id=None)`
-Sync an MDAP task to Hephaestus.
+Sync an MDAP task to CrewAI.
 
 **Returns:** Ticket ID (str) or None
 
@@ -1103,7 +1103,7 @@ Sync MDAP task completion.
 #### MAKER Methods
 
 ##### `sync_maker_run(run_id, initial_state, config, workflow_epic_id=None)`
-Sync a MAKER run to Hephaestus.
+Sync a MAKER run to CrewAI.
 
 **Returns:** Ticket ID (str) or None
 
@@ -1142,12 +1142,12 @@ Get sync status for MDAP and MAKER.
 
 ```python
 import time
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from mdap_engine import MDAPTask, MDAPStep, MDAPOrchestrator, MDAPConfig
 from workflow_structures import Team, ModelConfig
 
 # Setup
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-key",
     project_id="your-project"
@@ -1172,7 +1172,7 @@ steps = [
 ]
 task = MDAPTask(task_id="task-1", description="Test task", steps=steps)
 
-# Sync to Hephaestus
+# Sync to CrewAI
 manager.sync_mdap_task(task)
 
 # Execute MDAP
@@ -1194,12 +1194,12 @@ manager.sync_mdap_task_completion(task.task_id, result)
 ### Example 2: Complete MAKER Workflow
 
 ```python
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from maker_engine import MakerEngine, MakerConfig, MakerStep
 from workflow_structures import Team, ModelConfig
 
 # Setup
-manager = HephaestusIntegrationManager(
+manager = CrewAIIntegrationManager(
     api_base="http://localhost:8000",
     api_key="your-key",
     project_id="your-project"
@@ -1214,7 +1214,7 @@ config = MakerConfig(max_steps=100)
 # Initial state
 state = {"counter": 0, "target": 10}
 
-# Sync to Hephaestus
+# Sync to CrewAI
 manager.sync_maker_run("run-1", state, config)
 
 # Execute MAKER
@@ -1245,7 +1245,7 @@ manager.start_sync_loop(workflow_state, interval=60)
 
 # ... workflow executes ...
 
-# Status updates from Hephaestus are automatically synced to workflow_state
+# Status updates from CrewAI are automatically synced to workflow_state
 
 # Stop sync loop when done
 manager.stop_sync_loop(workflow_state.workflow_id)
@@ -1264,7 +1264,7 @@ manager.stop_sync_loop(workflow_state.workflow_id)
 **Solution:**
 ```python
 # Check availability
-from hephaestus_integration import MDAP_AVAILABLE, MAKER_AVAILABLE
+from crewai_integration import MDAP_AVAILABLE, MAKER_AVAILABLE
 
 if not MDAP_AVAILABLE:
     print("MDAP libraries not installed")
@@ -1276,10 +1276,10 @@ if not MDAP_AVAILABLE:
 **Problem:** `Failed to create ticket` errors
 
 **Solution:**
-- Check Hephaestus API is running
+- Check CrewAI API is running
 - Verify API credentials
 - Check network connectivity
-- Review Hephaestus logs
+- Review CrewAI logs
 
 ```python
 # Test connection
@@ -1325,7 +1325,7 @@ import logging
 
 # Enable debug logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("hephaestus_integration")
+logger = logging.getLogger("crewai_integration")
 logger.setLevel(logging.DEBUG)
 ```
 
@@ -1334,7 +1334,7 @@ logger.setLevel(logging.DEBUG)
 Run the test suite:
 
 ```bash
-pytest test_mdap_maker_hephaestus_integration.py -v
+pytest test_mdap_maker_crewai_integration.py -v
 ```
 
 ---
@@ -1356,7 +1356,7 @@ pytest test_mdap_maker_hephaestus_integration.py -v
 
 - [MDAP Documentation](./MDAP_DOCUMENTATION.md)
 - [MAKER Documentation](./MAKER_DOCUMENTATION.md)
-- [Hephaestus API Reference](./HEPH_API_REFERENCE.md)
+- [CrewAI API Reference](./HEPH_API_REFERENCE.md)
 - [OpenEvolve Integration Guide](./OPENEVOLVE_INTEGRATION.md)
 
 ---
@@ -1364,7 +1364,7 @@ pytest test_mdap_maker_hephaestus_integration.py -v
 ## Changelog
 
 ### Version 1.0.0 (2025-01-02)
-- Initial release of MDAP/MAKER-Hephaestus integration
+- Initial release of MDAP/MAKER-CrewAI integration
 - Support for MDAP task and step synchronization
 - Support for MAKER run and step synchronization
 - Combined workflow initialization

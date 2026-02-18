@@ -2,14 +2,14 @@
 
 ## Overview
 
-Comprehensive MCP (Model Context Protocol) tools for integrating LeanAide's AI-powered formal mathematics capabilities with Hephaestus agents and workflows.
+Comprehensive MCP (Model Context Protocol) tools for integrating LeanAide's AI-powered formal mathematics capabilities with CrewAI agents and workflows.
 
 **File Location:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\leanaide_mcp_tools.py`
 
 ## Architecture
 
 ```
-Hephaestus Orchestrator
+CrewAI Orchestrator
     ↓
 LeanAide MCP Tools
     ↓
@@ -350,12 +350,12 @@ Common errors:
 
 ---
 
-## Integration with Hephaestus
+## Integration with CrewAI
 
 ### Basic Usage
 
 ```python
-from hephaestus_client import HephaestusClient
+from crewai_client import CrewAIClient
 from leanaide_mcp_tools import leanaide_translate_theorem
 
 # Delegate theorem translation to LeanAide
@@ -363,10 +363,10 @@ result = leanaide_translate_theorem(
     theorem_text="Every natural number has a prime factorization"
 )
 
-# Use in Hephaestus workflow
+# Use in CrewAI workflow
 if result['success']:
     lean_code = result['lean_code']
-    # Continue with Hephaestus workflow
+    # Continue with CrewAI workflow
 ```
 
 ### MCP Tool Registry

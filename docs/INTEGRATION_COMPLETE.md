@@ -1,4 +1,4 @@
-# Hephaestus + Decomposition + OpenEvolve Integration Complete
+# CrewAI + Decomposition + OpenEvolve Integration Complete
 
 **Date**: 2025-12-29
 **Status**: PRODUCTION-READY ✅
@@ -10,7 +10,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        Hephaestus (Orchestrator)                       │
+│                        CrewAI (Orchestrator)                       │
 │                                                                         │
 │  Phases 1-6: Manages task lifecycle, spawns agents, coordinates work   │
 └────────────────────────────────────────┬────────────────────────────────┘
@@ -76,10 +76,10 @@ Default iterations per phase (when evolution_iterations=None):
 | File | Lines | Purpose | Status |
 |------|-------|---------|--------|
 | `decomposition_mcp_tools.py` | 1095 | MCP tools with OpenEvolve in ALL stages | ✅ Valid |
-| `decomposition_hephaestus_bridge.py` | 900 | Bridge with evolution parameter passthrough | ✅ Valid |
+| `decomposition_crewai_bridge.py` | 900 | Bridge with evolution parameter passthrough | ✅ Valid |
 | `openevolve_mcp_tools.py` | 745 | Direct OpenEvolve MCP tools | ✅ Valid |
-| `hephaestus_openevolve_bridge.py` | 450 | Bridge for pure evolutionary workflows | ✅ Valid |
-| `openevolve_hephaustus_delegation.py` | 850 | Main delegation using HephaestusSDK | ✅ Valid |
+| `crewai_openevolve_bridge.py` | 450 | Bridge for pure evolutionary workflows | ✅ Valid |
+| `openevolve_hephaustus_delegation.py` | 850 | Main delegation using CrewAISDK | ✅ Valid |
 | `openevolve_hephaustus_adapter.py` | 500 | Adapter for existing code | ✅ Valid |
 
 ---
@@ -89,9 +89,9 @@ Default iterations per phase (when evolution_iterations=None):
 ### Full Workflow with Evolution
 
 ```python
-from decomposition_hephaestus_bridge import DecompositionHephaestusWorkflowBridge
+from decomposition_crewai_bridge import DecompositionCrewAIWorkflowBridge
 
-bridge = DecompositionHephaestusWorkflowBridge()
+bridge = DecompositionCrewAIWorkflowBridge()
 
 # Execute full workflow - OpenEvolve used in ALL stages
 result = bridge.execute_full_workflow(
@@ -135,7 +135,7 @@ result = bridge.execute_full_workflow(
 ### Individual Phase Execution
 
 ```python
-from decomposition_hephaestus_bridge import execute_phase_1_setup
+from decomposition_crewai_bridge import execute_phase_1_setup
 
 # Phase 1 with custom evolution settings
 phase1 = execute_phase_1_setup(
@@ -151,9 +151,9 @@ phase1 = execute_phase_1_setup(
 
 ### Request Flow
 ```
-Hephaestus Agent
+CrewAI Agent
     ↓ (requests workflow execution)
-DecompositionHephaestusWorkflowBridge.execute_full_workflow()
+DecompositionCrewAIWorkflowBridge.execute_full_workflow()
     ↓ (with use_evolution=True)
 execute_phase_1_setup(use_evolution=True, evolution_iterations=50)
     ↓ (passes to)
@@ -199,10 +199,10 @@ Analysis with evolution_metrics
 
 ## Summary
 
-**Architecture**: Hephaestus (Orchestrator) → Decomposition Workflow (Teams/Gauntlets) → OpenEvolve (Evolutionary Engine in ALL stages)
+**Architecture**: CrewAI (Orchestrator) → Decomposition Workflow (Teams/Gauntlets) → OpenEvolve (Evolutionary Engine in ALL stages)
 
 **Key Points**:
-- ✅ Hephaestus orchestrates the overall workflow
+- ✅ CrewAI orchestrates the overall workflow
 - ✅ Decomposition Workflow manages teams (Blue/Red/Gold) and gauntlets
 - ✅ OpenEvolve provides evolutionary permutations in ALL stages
 - ✅ Every stage can be configured to use or disable evolution
@@ -218,7 +218,7 @@ Analysis with evolution_metrics
 **Date**: 2025-12-29
 **Status**: COMPLETE ✅
 **Integrations**:
-- Hephaestus (orchestrator) - ✅
+- CrewAI (orchestrator) - ✅
 - Decomposition Workflow (teams/gauntlets) - ✅
 - OpenEvolve (evolutionary in ALL stages) - ✅
 - All evolution parameters properly passed through - ✅

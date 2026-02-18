@@ -227,7 +227,7 @@ logger.info(f"Loaded skillbook from {sanitize_for_logging(skillbook_path)}")
 
 ## Files NOT Yet Modified (Require Attention)
 
-### 3. ace_hephaestus_bridge.py ❌ **PENDING**
+### 3. ace_crewai_bridge.py ❌ **PENDING**
 
 **Critical Vulnerabilities:**
 - ❌ CVE-1: Path traversal in skillbook_path (Line 138)
@@ -373,7 +373,7 @@ logger.info(f"Loaded skillbook from {sanitize_for_logging(skillbook_path)}")
 
 ### Priority 1: CRITICAL - Complete CVE Fixes
 
-1. **ace_hephaestus_bridge.py**
+1. **ace_crewai_bridge.py**
    - Fix model validation (CVE-3)
    - Fix skillbook_path validation (CVE-1)
    - Fix checkpoint_dir validation (CVE-1)
@@ -462,7 +462,7 @@ logger.info(f"Processing: {sanitize_for_logging(user_input)}")
 1. ✓ **ace_security_utils.py** - Complete security utilities module (784 lines)
 2. ✓ **ace_knowledge_artifacts.py** - Fixed CVE-4 and CVE-1 (100% critical fixes)
 3. ⚠ **ace_mcp_tools.py** - Partial fixes (2 of 7 functions)
-4. ❌ **ace_hephaestus_bridge.py** - Pending
+4. ❌ **ace_crewai_bridge.py** - Pending
 5. ❌ **ace_analytics.py** - Pending
 6. ❌ **ace_workflow_knowledge_extractor.py** - Pending
 7. ❌ **ace_stage6_integration.py** - Pending

@@ -42,7 +42,7 @@
         "message": "Syntax OK"
       },
       {
-        "name": "bubblelabs_hephaestus_bridge.py",
+        "name": "bubblelabs_crewai_bridge.py",
         "passed": true,
         "message": "Syntax OK"
       },

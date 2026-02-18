@@ -4,7 +4,7 @@ ROMA - CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 ROMA's (Recursive Open Meta-Agents) framework.
 
-This replaces roma_hephaestus_bridge.py with local CrewAI execution.
+This replaces roma_crewai_bridge.py with local CrewAI execution.
 
 ROMA Architecture:
     Atomizer -> Planner -> Executor -> Aggregator
@@ -19,7 +19,7 @@ Phase Mapping:
 - Phase 5: Reassembly -> ROMA aggregation (automatic)
 - Phase 6: Final Validation -> ROMA full solve with verification
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 """
 
 import logging

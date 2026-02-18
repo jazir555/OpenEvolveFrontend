@@ -106,7 +106,7 @@ This report documents the current state of test coverage and provides a clear ac
 | 12 | `bubbles/tool-bubble/xml-parser-tool.ts` | 142 | 3 hours |
 | 13 | `bubbles/service-bubble/github-bubble.ts` | 132 | 3 hours |
 | 14 | `bubbles/service-bubble/gmail-bubble.ts` | 126 | 3 hours |
-| 15 | `bubbles/service-bubble/hephaestus-bubble.ts` | 125 | 3 hours |
+| 15 | `bubbles/service-bubble/crewai-bubble.ts` | 125 | 3 hours |
 | 16 | `bubbles/service-bubble/postgresql-bubble.ts` | 123 | 3 hours |
 | 17 | `bubbles/service-bubble/workflow-orchestrator-bubble.ts` | 122 | 4 hours |
 | 18 | `bubbles/service-bubble/ace-tools-bubble.ts` | 121 | 3 hours |

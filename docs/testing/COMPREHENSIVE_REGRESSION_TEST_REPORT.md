@@ -29,7 +29,7 @@
 - **Details:** All integration tests passing
 
 Tests:
-1. test_hephaestus_bridge - PASSED
+1. test_crewai_bridge - PASSED
 2. test_mcp_tools - PASSED
 3. test_analytics - PASSED
 4. test_typescript_export - PASSED
@@ -296,7 +296,7 @@ AttributeError: 'str' object has no attribute 'value'
 1. bubblelabs_integration
 2. bubblelabs_ui_component
 3. openevolve_bubblelabs_api
-4. bubblelabs_hephaestus_bridge
+4. bubblelabs_crewai_bridge
 5. bubblelabs_mcp_tools
 6. parameter_sync_manager
 7. analytics_monitoring_dashboard
@@ -334,9 +334,9 @@ openevolve_bubblelabs_api
 ├── parameter_manager
 └── workflow_engine
 
-bubblelabs_hephaestus_bridge
+bubblelabs_crewai_bridge
 ├── bubblelabs_integration
-├── hephaestus_integration
+├── crewai_integration
 └── openevolve_bubblelabs_api
 
 bubblelabs_mcp_tools

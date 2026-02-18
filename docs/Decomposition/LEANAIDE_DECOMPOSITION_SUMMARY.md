@@ -45,7 +45,7 @@ EvolutionaryStrategySuggestor
 - Mathematical domain settings
 - Detection thresholds
 - Performance tuning
-- ROMA/Hephaestus integration settings
+- ROMA/CrewAI integration settings
 
 **Key Configuration Sections:**
 ```yaml
@@ -182,7 +182,7 @@ LeanEnhancedSubProblem:
   - mathematical_metadata: MathematicalProblemMetadata
   - lean_code_stub: str (optional)
   - evolutionary_config: Dict (optional)
-  - verification_ticket: str (Hephaestus)
+  - verification_ticket: str (CrewAI)
   - formalization_status: str
 ```
 
@@ -204,7 +204,7 @@ LeanEnhancedSubProblem:
 - Knowledge extraction from similar proofs
 - Pattern learning from previous formalizations
 
-**Hephaestus Integration:**
+**CrewAI Integration:**
 - Auto-create tickets for Lean sub-problems
 - Ticket type: "lean_formalization"
 - Priority based on complexity, dependencies, difficulty
@@ -483,7 +483,7 @@ pip install leanaide-decomposition-integration
 - [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/)
 - [OpenEvolve Integration](./openevolve_integration.md)
 - [ROMA Architecture](./ROMA_ARCHITECTURE.md)
-- [Hephaestus Integration](./hephaestus_integration.md)
+- [CrewAI Integration](./crewai_integration.md)
 
 ## Summary
 
@@ -508,7 +508,7 @@ The LeanAide decomposition integration successfully adds:
 ✅ **Enhanced Sub-Problems**
 - Lean metadata
 - Evolutionary configuration
-- Hephaestus tickets
+- CrewAI tickets
 - ROMA integration
 
 ✅ **Comprehensive Configuration**

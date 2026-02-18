@@ -55,12 +55,12 @@ function stubMethod() {
 ```
 
 **Affected:**
-- `hephaestus-bubble.ts` - Has template implementations (not really stubs, actually complete!)
+- `crewai-bubble.ts` - Has template implementations (not really stubs, actually complete!)
 - `postgresql.ts` - Several helper methods
 - `insforge-db.ts` - Multiple methods
 - And 5 more...
 
-**Good News:** After manual review, `hephaestus-bubble.ts` is actually **complete and well-implemented**! It has all 10 operations fully functional.
+**Good News:** After manual review, `crewai-bubble.ts` is actually **complete and well-implemented**! It has all 10 operations fully functional.
 
 **Estimated Fix Time:** 6-8 hours
 
@@ -196,7 +196,7 @@ These bubbles are complete with proper error handling, validation, and timeouts:
 16. ✅ `apify/` - Complete with actors
 17. ✅ `postgresql.ts` - Good, needs validation
 18. ✅ `airtable.ts` - Mostly complete
-19. ✅ `hephaestus-bubble.ts` - **EXCELLENT!** All 10 ops complete
+19. ✅ `crewai-bubble.ts` - **EXCELLENT!** All 10 ops complete
 20-28. And 8 more...
 
 **Tool Bubbles (17):**

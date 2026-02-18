@@ -26,10 +26,10 @@ This document summarizes the comprehensive code quality improvements applied to 
 ## Files Analyzed
 
 1. **ace_mcp_tools.py** (1,115 lines)
-   - MCP tool definitions for Hephaestus integration
+   - MCP tool definitions for CrewAI integration
    - 5 improvements identified
 
-2. **ace_hephaestus_bridge.py** (1,458 lines)
+2. **ace_crewai_bridge.py** (1,458 lines)
    - Workflow orchestration bridge
    - 8 improvements identified
 
@@ -75,7 +75,7 @@ def mcp_tool(name: str):
     Decorator to register MCP tools (thread-safe).
 
     This decorator registers functions as Model Context Protocol tools,
-    enabling them to be called by Hephaestus agents. The registry
+    enabling them to be called by CrewAI agents. The registry
     access is synchronized to prevent race conditions in multi-threaded
     environments.
 
@@ -336,7 +336,7 @@ for sample_dict in samples:
         logger.warning(f"Skipping non-dict sample: {type(sample_dict)}")
 ```
 
-#### Example 2: ace_hephaestus_bridge.py
+#### Example 2: ace_crewai_bridge.py
 **Before:**
 ```python
 def _stub_result(self, phase: str, input: str) -> Dict[str, Any]:
@@ -557,7 +557,7 @@ Improvements:
 
 Files Modified:
 - ace_mcp_tools.py: Add constants, improve docstrings, rename variables
-- ace_hephaestus_bridge.py: Extract helpers, improve documentation
+- ace_crewai_bridge.py: Extract helpers, improve documentation
 - ace_analytics.py: Fix magic numbers, improve clarity
 - ace_knowledge_artifacts.py: Add constants, complete docstrings
 - ace_workflow_knowledge_extractor.py: Extract helpers, rename variables

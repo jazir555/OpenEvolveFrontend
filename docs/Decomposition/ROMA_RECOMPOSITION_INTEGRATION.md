@@ -242,7 +242,7 @@ result = assembler.assemble_solution(
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `track_in_hephaestus` | bool | False | Track recomposition in Hephaestus |
+| `track_in_crewai` | bool | False | Track recomposition in CrewAI |
 
 ---
 
@@ -779,20 +779,20 @@ result = assembler.assemble_solution(
 
 ## Advanced Features
 
-### Hephaestus Tracking
+### CrewAI Tracking
 
 ```python
-# Track recomposition in Hephaestus for observability
+# Track recomposition in CrewAI for observability
 result = assembler.assemble_solution(
     decomposition_plan=plan,
     sub_solutions=sub_solutions,
     assembly_strategy="roma",
-    track_in_hephaestus=True,
+    track_in_crewai=True,
 )
 
-# Access Hephaestus metadata
-hephaestus_id = result.metadata.get('hephaestus_task_id')
-print(f"Tracked in Hephaestus: {hephaestus_id}")
+# Access CrewAI metadata
+crewai_id = result.metadata.get('crewai_task_id')
+print(f"Tracked in CrewAI: {crewai_id}")
 ```
 
 ### Custom Prediction Strategies

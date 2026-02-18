@@ -15,14 +15,14 @@ from typing import Any, Dict, List, Optional
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from adaptive_mdap_adapter import (
+from .adaptive_mdap_adapter import (
     AdaptiveMDAPAdapter,
     AdaptiveMDAPAdapterConfig,
     get_adapter,
     TaskStatus
 )
 
-from maker_adapter import (
+from .maker_adapter import (
     MakerAdapter,
     get_maker_adapter
 )

@@ -52,7 +52,7 @@ The **Agentic Context Engine (ACE)** enables AI agents to learn from their execu
 │                                                             │
 │  Core ACE Framework        [████████████████████████] 100% │
 │  MCP Tools                 [████████████████████████] 100% │
-│  Hephaestus Bridge         [████████████████████████] 100% │
+│  CrewAI Bridge         [████████████████████████] 100% │
 │  Workflow Integration      [████████████████████████] 100% │
 │  Stage 6 Knowledge Ext.    [████████████████████████] 100% │
 │  Documentation             [████████████████████████] 100% │
@@ -179,9 +179,9 @@ ACE integrates with OpenEvolve through **two primary interfaces**:
 │  └─────────────────────────────────────────────────────────┘   │
 │                          ↓                                      │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │  LAYER 2: HEPHAESTUS BRIDGE (ace_hephaestus_bridge.py) │   │
+│  │  LAYER 2: CREWAI BRIDGE (ace_crewai_bridge.py) │   │
 │  │  ─────────────────────────────────────────────────────  │   │
-│  │  • ACEHephaestusWorkflowBridge                          │   │
+│  │  • ACECrewAIWorkflowBridge                          │   │
 │  │  • execute_phase_1_setup()                              │   │
 │  │  • execute_phase_2_solution()                           │   │
 │  │  • execute_phase_3_critique()                           │   │
@@ -239,8 +239,8 @@ OpenEvolve/Frontend/
 │   ├── get_ace_status
 │   └── inject_ace_skills_into_context
 │
-└── ace_hephaestus_bridge.py         # Hephaestus Workflow Bridge
-    ├── ACEHephaestusWorkflowBridge  # Main bridge class
+└── ace_crewai_bridge.py         # CrewAI Workflow Bridge
+    ├── ACECrewAIWorkflowBridge  # Main bridge class
     ├── execute_phase_1_setup
     ├── execute_phase_2_solution
     ├── execute_phase_3_critique
@@ -566,7 +566,7 @@ ACE integrates with **8 out of 11** workflow stages (73% coverage):
 │  ────────────────────────────                                  │
 │  • Learn from refinement failures                               │
 │  • Build knowledge of effective fixes                           │
-│  Components: Claudiomiro, ACE, Hephaestus                       │
+│  Components: Claudiomiro, ACE, CrewAI                       │
 │                                                                 │
 │  STAGE 4: Configurable Reassembly                              │
 │  ───────────────────────────────                               │
@@ -578,7 +578,7 @@ ACE integrates with **8 out of 11** workflow stages (73% coverage):
 │  ────────────────────────────────────────────                  │
 │  • Learn from verification failures                             │
 │  • Build self-healing knowledge                                 │
-│  Components: ACE, Steer, Hephaestus                             │
+│  Components: ACE, Steer, CrewAI                             │
 │                                                                 │
 │  STAGE 6: Knowledge Extraction & Learning                      │
 │  ──────────────────────────────────────────                    │
@@ -590,15 +590,15 @@ ACE integrates with **8 out of 11** workflow stages (73% coverage):
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 5.2 Hephaestus Bridge Integration
+### 5.2 CrewAI Bridge Integration
 
-The **ACEHephaestusWorkflowBridge** connects ACE learning to Hephaestus tickets:
+The **ACECrewAIWorkflowBridge** connects ACE learning to CrewAI tickets:
 
 ```python
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Create bridge
-bridge = ACEHephaestusWorkflowBridge(
+bridge = ACECrewAIWorkflowBridge(
     model="gpt-4o-mini",
     skillbook_path="workflow_skills.json",
     enable_learning=True,
@@ -634,21 +634,21 @@ print(f"New skills learned: {results['learning_metrics']['skills_learned']}")
 Use the `@ace_capture` decorator for automatic learning:
 
 ```python
-from ace_hephaestus_bridge import ace_capture, ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ace_capture, ACECrewAIWorkflowBridge
 
 # Create bridge
-bridge = ACEHephaestusWorkflowBridge(model="gpt-4o-mini")
+bridge = ACECrewAIWorkflowBridge(model="gpt-4o-mini")
 
 # Apply decorator to any function
 @ace_capture(bridge, enable_learning=True, save_checkpoint=False)
-def my_hephaestus_phase(input_data):
+def my_crewai_phase(input_data):
     """This function automatically learns from execution."""
     # Execute phase logic
     result = process_data(input_data)
     return result
 
 # Execute - ACE learns automatically
-result = my_hephaestus_phase({"query": "test"})
+result = my_crewai_phase({"query": "test"})
 print(result["ace_learning"])  # Learning metrics included
 ```
 
@@ -686,9 +686,9 @@ context = ke.query_index_by_keyword("authentication patterns")
 ```python
 # ROMA decomposes, ACE learns decomposition patterns
 from roma_mcp_tools import solve_with_roma
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-bridge = ACEHephaestusWorkflowBridge()
+bridge = ACECrewAIWorkflowBridge()
 
 # ROMA decomposes problem
 roma_result = solve_with_roma("Build complex system")
@@ -725,7 +725,7 @@ learn_from_execution_with_ace(
 ```python
 # Steer verifies output, ACE learns verification strategies
 from steer import StructureGuard
-from ace_hephaestus_bridge import verify_phase_with_ace
+from ace_crewai_bridge import verify_phase_with_ace
 
 # Verify with Steer
 @StructureGuard
@@ -733,7 +733,7 @@ def generate_solution():
     return {"solution": "..."}
 
 # Learn from verification
-bridge = ACEHephaestusWorkflowBridge()
+bridge = ACECrewAIWorkflowBridge()
 verify_phase_with_ace(
     bridge=bridge,
     phase_name="Solution Generation",
@@ -937,15 +937,15 @@ You are implementing a REST API
 print(f"Skills injected: {result['skills_injected']}")
 ```
 
-### 6.2 Hephaestus Workflow Usage
+### 6.2 CrewAI Workflow Usage
 
 #### 6.2.1 Execute Single Phase
 
 ```python
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Create bridge
-bridge = ACEHephaestusWorkflowBridge(
+bridge = ACECrewAIWorkflowBridge(
     model="gpt-4o-mini",
     skillbook_path="workflow_skills.json",
     enable_learning=True
@@ -1275,11 +1275,11 @@ Inject learned skills into context.
 }
 ```
 
-### 7.2 Hephaestus Bridge API
+### 7.2 CrewAI Bridge API
 
-#### 7.2.1 `ACEHephaestusWorkflowBridge`
+#### 7.2.1 `ACECrewAIWorkflowBridge`
 
-Main bridge class for ACE-Hephaestus integration.
+Main bridge class for ACE-CrewAI integration.
 
 **Constructor Parameters:**
 - `model` (str, optional): LiteLLM model name (default: "gpt-4o-mini")
@@ -1449,7 +1449,7 @@ Execute Phase 6 (Final Validation) with ACE learning.
 
 ##### `execute_full_workflow`
 
-Execute full 6-phase Hephaestus workflow with ACE learning.
+Execute full 6-phase CrewAI workflow with ACE learning.
 
 **Parameters:**
 - `problem_statement` (str): The problem to solve
@@ -1509,7 +1509,7 @@ Save skillbook to file.
 Decorator for automatic ACE learning on function execution.
 
 **Parameters:**
-- `bridge` (ACEHephaestusWorkflowBridge): Bridge instance
+- `bridge` (ACECrewAIWorkflowBridge): Bridge instance
 - `enable_learning` (bool, optional): Enable learning
 - `save_checkpoint` (bool, optional): Save checkpoint after learning
 
@@ -1528,7 +1528,7 @@ result = my_function(data)
 Verify phase output using ACE.
 
 **Parameters:**
-- `bridge` (ACEHephaestusWorkflowBridge): Bridge instance
+- `bridge` (ACECrewAIWorkflowBridge): Bridge instance
 - `phase_name` (str): Name of the phase to verify
 - `phase_output` (dict): Output from the phase
 - `verification_criteria` (list, optional): Criteria for verification
@@ -1579,7 +1579,7 @@ client = LiteLLMClient(
 
 **Path Configuration:**
 ```python
-bridge = ACEHephaestusWorkflowBridge(
+bridge = ACECrewAIWorkflowBridge(
     skillbook_path="workflow_skills.json",  # Load existing
     checkpoint_dir="./ace_checkpoints"      # Checkpoint location
 )
@@ -2500,12 +2500,12 @@ execute_task_with_ace(agent_id="my_agent", task="Task...")
 # Learn
 learn_from_samples_with_ace(agent_id="my_agent", samples=[...])
 
-# === HEPHAESTUS BRIDGE ===
+# === CREWAI BRIDGE ===
 
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Create bridge
-bridge = ACEHephaestusWorkflowBridge(model="gpt-4o-mini")
+bridge = ACECrewAIWorkflowBridge(model="gpt-4o-mini")
 
 # Execute phase
 result = bridge.execute_phase_1_setup(problem_statement="...")
@@ -2517,7 +2517,7 @@ print(result["learning_metrics"])
 
 # === DECORATOR ===
 
-from ace_hephaestus_bridge import ace_capture
+from ace_crewai_bridge import ace_capture
 
 @ace_capture(bridge, enable_learning=True)
 def my_function(input_data):
@@ -2539,10 +2539,10 @@ result = my_function(data)  # ACE learns automatically
 
 - ✅ ACE directory present (`agentic-context-engine/`)
 - ✅ Core modules available (skillbook.py, roles.py, etc.)
-- ✅ Integration files present (ace_mcp_tools.py, ace_hephaestus_bridge.py)
+- ✅ Integration files present (ace_mcp_tools.py, ace_crewai_bridge.py)
 - ✅ Imports working (`from ace import ...`)
 - ✅ MCP tools registered (7 core + 9 Stage 6 = 16 tools total)
-- ✅ Hephaestus bridge functional
+- ✅ CrewAI bridge functional
 - ✅ Learning loop tested
 - ✅ Skillbook persistence working
 - ✅ Async learning enabled

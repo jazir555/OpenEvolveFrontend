@@ -22,8 +22,8 @@ except ImportError:
     PROMETHEUS_AVAILABLE = False
     logging.warning("prometheus_client not available, metrics export disabled")
 
-from adaptive_mdap_adapter import get_adapter
-from maker_adapter import get_maker_adapter
+from .adaptive_mdap_adapter import get_adapter
+from .maker_adapter import get_maker_adapter
 
 
 @dataclass

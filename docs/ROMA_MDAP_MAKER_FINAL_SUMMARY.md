@@ -58,8 +58,8 @@ response = _request_openai_compatible_chat(
 ### 3. Demo File Updated ✅
 
 Updated `demo_roma_mdap_maker.py`:
-- ✅ Changed `hephaestus_unified_bridge` → `roma_crewai_bridge`
-- ✅ Changed `roma_mdap_maker_hephaestus_bridge` → `roma_mdap_maker_crewai_bridge`
+- ✅ Changed `crewai_unified_bridge` → `roma_crewai_bridge`
+- ✅ Changed `roma_mdap_maker_crewai_bridge` → `roma_mdap_maker_crewai_bridge`
 - ✅ Added Phase 5 quality metrics output examples
 - ✅ Added Phase 6 validation output examples
 

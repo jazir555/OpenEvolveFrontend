@@ -69,15 +69,15 @@ config = create_roma_mdap_maker_config(
 
 ### Bug #2: Incorrect Parameter Names in `execute_phase_2_solve`
 
-**File**: `roma_mdap_maker_hephaestus_bridge.py`
+**File**: `roma_mdap_maker_crewai_bridge.py`
 **Location**: Lines 182-196
 **Severity**: CRITICAL (would cause runtime failure)
 
 **Issue**:
-The Hephaestus bridge `execute_phase_2_solve()` function had the same parameter name errors.
+The CrewAI bridge `execute_phase_2_solve()` function had the same parameter name errors.
 
 **Impact**:
-When using the 6-phase Hephaestus workflow with ROMA-MDAP-MAKER, Phase 2 would fail with a `TypeError`.
+When using the 6-phase CrewAI workflow with ROMA-MDAP-MAKER, Phase 2 would fail with a `TypeError`.
 
 **Fix Applied**:
 ```python
@@ -206,7 +206,7 @@ To prevent similar bugs in the future:
 ## Files Modified
 
 1. `decomposition_mcp_tools.py` - Fixed parameter names in `_solve_with_roma_mdap_maker()`
-2. `roma_mdap_maker_hephaestus_bridge.py` - Fixed parameter names in `execute_phase_2_solve()`
+2. `roma_mdap_maker_crewai_bridge.py` - Fixed parameter names in `execute_phase_2_solve()`
 
 ---
 

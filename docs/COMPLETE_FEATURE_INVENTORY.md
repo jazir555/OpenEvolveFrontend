@@ -108,7 +108,7 @@ This document catalogs **EVERY feature** from all three OpenEvolve plugin implem
 5. **decomposition.ts** - Problem decomposition schema
 6. **knowledge.ts** - Knowledge base schema
 7. **leanaide.ts** - Lean verification schema
-8. **hephaestus.ts** - Code generation schema
+8. **crewai.ts** - Code generation schema
 9. **roma.ts** - Multi-objective optimization schema
 10. **invention.ts** - Invention planning schema
 
@@ -208,7 +208,7 @@ Same 10 workflow schemas as Plugin 1:
 5. **decomposition.ts**
 6. **knowledge.ts**
 7. **leanaide.ts**
-8. **hephaestus.ts**
+8. **crewai.ts**
 9. **roma.ts**
 10. **invention.ts**
 11. **index.ts** - Schema exports

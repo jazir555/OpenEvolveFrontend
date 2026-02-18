@@ -11,7 +11,7 @@
       "code_quality": 26
     },
     "by_file": {
-      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py": 17,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py": 17,
       "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py": 36,
       "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py": 6,
       "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py": 16,
@@ -20,7 +20,7 @@
     }
   },
   "files": {
-    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py": {
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py": {
       "issues": [
         {
           "line": 515,
@@ -198,7 +198,7 @@
         "os",
         "uuid",
         "functools",
-        "hephaestus_integration",
+        "crewai_integration",
         "typing",
         "logging",
         "datetime",
@@ -213,8 +213,8 @@
         "Generator"
       ],
       "circular_dependencies": [
-        "Circular dependency detected: bubblelabs_hephaestus_bridge -> bubblelabs_integration -> bubblelabs_hephaestus_bridge",
-        "Circular dependency detected: bubblelabs_hephaestus_bridge"
+        "Circular dependency detected: bubblelabs_crewai_bridge -> bubblelabs_integration -> bubblelabs_crewai_bridge",
+        "Circular dependency detected: bubblelabs_crewai_bridge"
       ]
     },
     "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py": {
@@ -897,7 +897,7 @@
         "team_manager",
         "asyncio",
         "gauntlet_manager",
-        "bubblelabs_hephaestus_bridge",
+        "bubblelabs_crewai_bridge",
         "time",
         "threading",
         "workflow_structures",
@@ -914,7 +914,7 @@
         "WorkflowState"
       ],
       "circular_dependencies": [
-        "Circular dependency detected: bubblelabs_hephaestus_bridge -> bubblelabs_integration -> bubblelabs_hephaestus_bridge",
+        "Circular dependency detected: bubblelabs_crewai_bridge -> bubblelabs_integration -> bubblelabs_crewai_bridge",
         "Circular dependency detected: bubblelabs_integration"
       ]
     },
@@ -982,7 +982,7 @@
         "parameter_manager",
         "team_manager",
         "gauntlet_manager",
-        "bubblelabs_hephaestus_bridge",
+        "bubblelabs_crewai_bridge",
         "analytics_manager",
         "os",
         "uuid",
@@ -1003,79 +1003,79 @@
   "issues_by_severity": {
     "medium": [
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 515,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 570,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 617,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 662,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 1106,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 1252,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 1299,
         "message": "Database connection without context manager",
         "suggestion": "Use context manager or ensure explicit close() in finally block"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 0,
         "message": "High cyclomatic complexity in 'create_ticket_from_workflow': 12",
         "suggestion": "Consider refactoring into smaller functions"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 0,
         "message": "High cyclomatic complexity in 'update_ticket_progress': 18",
         "suggestion": "Consider refactoring into smaller functions"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 0,
         "message": "High cyclomatic complexity in 'sync_workflow_to_ticket': 14",
         "suggestion": "Consider refactoring into smaller functions"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 0,
         "message": "High cyclomatic complexity in '_sync_all_active_workflows': 13",
         "suggestion": "Consider refactoring into smaller functions"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 0,
         "message": "High cyclomatic complexity in '_map_workflow_status_to_ticket_status': 12",
         "suggestion": "Consider refactoring into smaller functions"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 825,
         "message": "Function 'update_ticket_progress' is too long (112 lines)",
         "suggestion": "Consider breaking into smaller functions"
@@ -1305,25 +1305,25 @@
     ],
     "low": [
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 176,
         "message": "Comparison with None using ==/!=",
         "suggestion": "Use 'is None' or 'is not None' instead"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 425,
         "message": "Comparison with None using ==/!=",
         "suggestion": "Use 'is None' or 'is not None' instead"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 462,
         "message": "Comparison with None using ==/!=",
         "suggestion": "Use 'is None' or 'is not None' instead"
       },
       {
-        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_crewai_bridge.py",
         "line": 1039,
         "message": "Comparison with None using ==/!=",
         "suggestion": "Use 'is None' or 'is not None' instead"

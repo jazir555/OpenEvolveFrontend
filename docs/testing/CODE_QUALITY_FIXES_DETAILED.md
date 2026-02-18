@@ -37,7 +37,7 @@ def mcp_tool(name: str):
     Decorator to register MCP tools (thread-safe).
 
     This decorator registers functions as Model Context Protocol tools,
-    enabling them to be called by Hephaestus agents. The registry
+    enabling them to be called by CrewAI agents. The registry
     access is synchronized to prevent race conditions in multi-threaded
     environments.
 
@@ -178,7 +178,7 @@ def _load_skillbook(skillbook_path: Optional[str]) -> Skillbook:
 
 ---
 
-## File 2: ace_hephaestus_bridge.py (1458 lines)
+## File 2: ace_crewai_bridge.py (1458 lines)
 
 ### ✓ 2.1 Add Module-Level Constants
 **Location:** After line 120 (after logger initialization)
@@ -262,7 +262,7 @@ def cleanup_old_skills(self, max_skills: Optional[int] = None, min_helpful: Opti
         - Logs number of skills removed
 
     Examples:
-        >>> bridge = ACEHephaestusWorkflowBridge()
+        >>> bridge = ACECrewAIWorkflowBridge()
         >>> # Remove skills beyond 1000 with helpful < 5
         >>> bridge.cleanup_old_skills()
         >>> # Custom thresholds
@@ -546,7 +546,7 @@ DEFAULT_SIMILARITY_THRESHOLD = 0.7  # Minimum similarity for clustering (0-1)
 | File | Docstrings | Magic Numbers | Duplicates | Complexity | Variables | Total |
 |------|------------|---------------|------------|------------|-----------|-------|
 | ace_mcp_tools.py | 2 | 1 | 1 | 0 | 1 | 5 |
-| ace_hephaestus_bridge.py | 3 | 1 | 2 | 1 | 1 | 8 |
+| ace_crewai_bridge.py | 3 | 1 | 2 | 1 | 1 | 8 |
 | ace_analytics.py | 0 | 1 | 2 | 1 | 1 | 5 |
 | ace_knowledge_artifacts.py | 2 | 1 | 1 | 0 | 0 | 4 |
 | ace_workflow_knowledge_extractor.py | 1 | 1 | 2 | 0 | 1 | 5 |

@@ -5,7 +5,7 @@ import { GenericResult } from '../types/plugin-types';
 export const OrchestratorViz: React.FC = () => {
   const state = pygraphistryPlugin.getState();
   const [plannerData, setPlannerData] = useState<GenericResult | null>(null);
-  const [hephaestusData, setHephaestusData] = useState<GenericResult | null>(null);
+  const [crewaiData, setCrewAIData] = useState<GenericResult | null>(null);
   const [romaData, setRomaData] = useState<GenericResult | null>(null);
 
   const fetchData = async () => {
@@ -13,9 +13,9 @@ export const OrchestratorViz: React.FC = () => {
       const res = await fetch('/api/openevolve/planner/e2e');
       setPlannerData(await res.json());
     }
-    if (state.features.hephaestusEnabled) {
-      const res = await fetch('/api/openevolve/hephaestus/summary');
-      setHephaestusData(await res.json());
+    if (state.features.crewaiEnabled) {
+      const res = await fetch('/api/openevolve/crewai/summary');
+      setCrewAIData(await res.json());
     }
     if (state.features.romaEnabled) {
       const res = await fetch('/api/openevolve/roma/solve', {
@@ -29,7 +29,7 @@ export const OrchestratorViz: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [state.features.e2ePlannerEnabled, state.features.hephaestusEnabled, state.features.romaEnabled]);
+  }, [state.features.e2ePlannerEnabled, state.features.crewaiEnabled, state.features.romaEnabled]);
 
   return (
     <div className="p-4 flex flex-col gap-6">
@@ -43,11 +43,11 @@ export const OrchestratorViz: React.FC = () => {
         </div>
       )}
 
-      {state.features.hephaestusEnabled && hephaestusData && (
+      {state.features.crewaiEnabled && crewaiData && (
         <div className="p-4 border rounded-xl bg-white shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800 mb-4">Hephaestus Workflow Status</h3>
+          <h3 className="text-lg font-bold text-slate-800 mb-4">CrewAI Workflow Status</h3>
           <div className="flex gap-4">
-            {Object.entries(hephaestusData.status_distribution || {}).map(([status, count]) => (
+            {Object.entries(crewaiData.status_distribution || {}).map(([status, count]) => (
               <div key={status} className="flex-1 p-2 bg-slate-50 rounded border text-center">
                 <p className="text-[8px] font-bold text-slate-400 uppercase">{status}</p>
                 <p className="text-xl font-black text-indigo-600">{count as number}</p>

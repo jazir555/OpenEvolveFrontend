@@ -153,11 +153,11 @@ recommendation_score = top_teams[0].get("success_rate", 0) * 20
 
 ### Fix #9: Last Element Access
 **Issue**: Accessing last element without bounds check
-**Files**: `ace_hephaestus_bridge.py`
+**Files**: `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:540)
+# BEFORE (ace_crewai_bridge.py:540)
 phase2_sub_problems = sub_problems or []
 
 # AFTER
@@ -209,11 +209,11 @@ else:
 
 ### Fix #12: Empty Strings vs None
 **Issue**: Treating "" and None as equivalent when they have different meanings
-**Files**: `ace_knowledge_artifacts.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_knowledge_artifacts.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:282)
+# BEFORE (ace_crewai_bridge.py:282)
 if context is None:
     context = ""
 
@@ -258,7 +258,7 @@ else:
 
 ### Fix #14: Unicode/Special Characters
 **Issue**: Strings contain null bytes or invalid UTF-8
-**Files**: `ace_mcp_tools.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_mcp_tools.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
@@ -278,11 +278,11 @@ agent_id = validate_string_length(agent_id, "agent_id", max_length=100)
 
 ### Fix #15: Very Long Strings
 **Issue**: No length validation causes memory exhaustion
-**Files**: `ace_hephaestus_bridge.py`, `ace_workflow_knowledge_extractor.py`
+**Files**: `ace_crewai_bridge.py`, `ace_workflow_knowledge_extractor.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:432)
+# BEFORE (ace_crewai_bridge.py:432)
 problem_statement = validate_string_length(problem_statement, "problem_statement",
                                           max_length=50000, min_length=10)
 
@@ -416,7 +416,7 @@ else:
 
 ### Fix #22: Infinity Values
 **Issue**: Infinity from division by very small numbers
-**Files**: `ace_knowledge_artifacts.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_knowledge_artifacts.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
@@ -530,7 +530,7 @@ if (created_at - now).total_seconds() > 300:  # 5 minutes in future
 
 ### Fix #28: Timezone Issues
 **Issue**: Naive datetime objects compared to aware ones
-**Files**: `ace_hephaestus_bridge.py`, `ace_knowledge_artifacts.py`
+**Files**: `ace_crewai_bridge.py`, `ace_knowledge_artifacts.py`
 
 **Example Fix**:
 ```python
@@ -557,7 +557,7 @@ except ValueError:
 
 ### Fix #29: File Doesn't Exist
 **Issue**: No graceful handling when file missing
-**Files**: `ace_mcp_tools.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_mcp_tools.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
@@ -580,7 +580,7 @@ else:
 
 ### Fix #30: File Exists But Unreadable
 **Issue**: Permission errors not handled
-**Files**: `ace_knowledge_artifacts.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_knowledge_artifacts.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
@@ -601,11 +601,11 @@ else:
 
 ### Fix #31: Disk Full
 **Issue**: No space check before writing
-**Files**: `ace_mcp_tools.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_mcp_tools.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:379)
+# BEFORE (ace_crewai_bridge.py:379)
 atomic_save_json_file(filepath, skillbook_data)
 
 # AFTER
@@ -647,11 +647,11 @@ atomic_save_json_file(filepath, data_to_save)
 
 ### Fix #33: Concurrent File Access
 **Issue**: Multiple processes write to same file
-**Files**: `ace_hephaestus_bridge.py`, `ace_analytics.py`
+**Files**: `ace_crewai_bridge.py`, `ace_analytics.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:376)
+# BEFORE (ace_crewai_bridge.py:376)
 atomic_save_json_file(filepath, skillbook_data)
 
 # AFTER
@@ -674,7 +674,7 @@ finally:
 
 ### Fix #34: Network Timeout
 **Issue**: API calls hang indefinitely
-**Files**: `ace_mcp_tools.py`, `ace_hephaestus_bridge.py`
+**Files**: `ace_mcp_tools.py`, `ace_crewai_bridge.py`
 
 **Example Fix**:
 ```python
@@ -805,11 +805,11 @@ else:
 
 ### Fix #38: First Call Initialization
 **Issue**: Resources not initialized on first use
-**Files**: `ace_hephaestus_bridge.py`, `ace_analytics.py`
+**Files**: `ace_crewai_bridge.py`, `ace_analytics.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:278)
+# BEFORE (ace_crewai_bridge.py:278)
 skills = self.skillbook.as_prompt()
 
 # AFTER
@@ -822,11 +822,11 @@ skills = self._skills_cache
 
 ### Fix #39: Last Call Cleanup
 **Issue**: Resources not released on shutdown
-**Files**: `ace_hephaestus_bridge.py`, `ace_workflow_knowledge_extractor.py`
+**Files**: `ace_crewai_bridge.py`, `ace_workflow_knowledge_extractor.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:1228)
+# BEFORE (ace_crewai_bridge.py:1228)
 def cleanup(self):
     self.skillbook = None
 
@@ -842,7 +842,7 @@ def cleanup(self):
             self.skillbook = None
         if hasattr(self, '_skills_cache'):
             self._skills_cache = None
-        logger.info("ACEHephaestusWorkflowBridge cleanup complete")
+        logger.info("ACECrewAIWorkflowBridge cleanup complete")
     except Exception as e:
         logger.error(f"Error during cleanup: {e}")
 
@@ -852,11 +852,11 @@ atexit.register(self.cleanup)
 
 ### Fix #40: Re-entrant Calls
 **Issue**: Recursive calls cause deadlock
-**Files**: `ace_hephaestus_bridge.py`, `ace_analytics.py`
+**Files**: `ace_crewai_bridge.py`, `ace_analytics.py`
 
 **Example Fix**:
 ```python
-# BEFORE (ace_hephaestus_bridge.py:278)
+# BEFORE (ace_crewai_bridge.py:278)
 with self._skillbook_lock:
     skills = self.skillbook.as_prompt()
 
@@ -864,7 +864,7 @@ with self._skillbook_lock:
 # EDGE CASE FIX: Use RLock for re-entrant calls
 import threading
 
-class ACEHephaestusWorkflowBridge:
+class ACECrewAIWorkflowBridge:
     def __init__(self):
         # Use RLock instead of Lock for re-entrancy
         self._skillbook_lock = threading.RLock()
@@ -887,10 +887,10 @@ class ACEHephaestusWorkflowBridge:
 | Boundary Conditions | 10 | All 6 files |
 | Type Edge Cases | 8 | All 6 files |
 | Numeric Edge Cases | 7 | ace_analytics.py, ace_knowledge_artifacts.py, ace_mcp_tools.py |
-| Timing Edge Cases | 3 | ace_analytics.py, ace_knowledge_artifacts.py, ace_hephaestus_bridge.py |
-| File System Edge Cases | 5 | ace_mcp_tools.py, ace_hephaestus_bridge.py, ace_knowledge_artifacts.py |
+| Timing Edge Cases | 3 | ace_analytics.py, ace_knowledge_artifacts.py, ace_crewai_bridge.py |
+| File System Edge Cases | 5 | ace_mcp_tools.py, ace_crewai_bridge.py, ace_knowledge_artifacts.py |
 | External Dependency Edge Cases | 4 | ace_mcp_tools.py, ace_workflow_knowledge_extractor.py, ace_stage6_integration.py |
-| State Edge Cases | 3 | ace_hephaestus_bridge.py, ace_workflow_knowledge_extractor.py, ace_analytics.py |
+| State Edge Cases | 3 | ace_crewai_bridge.py, ace_workflow_knowledge_extractor.py, ace_analytics.py |
 | **TOTAL** | **40** | **All 6 files** |
 
 ---

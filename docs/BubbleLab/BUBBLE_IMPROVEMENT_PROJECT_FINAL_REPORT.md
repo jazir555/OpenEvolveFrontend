@@ -395,7 +395,7 @@ Remaining (18 items incomplete):
 **Bubbles with Pattern Established:**
 
 4. ⚠️ **KnowledgeEngineBubble** - Pattern documented
-5. ⚠️ **HephaestusBubble** - Pattern documented
+5. ⚠️ **CrewAIBubble** - Pattern documented
 6. ⚠️ **ACEToolsBubble** - Pattern documented
 7. ⚠️ **WorkflowOrchestratorBubble** - Pattern documented
 
@@ -628,7 +628,7 @@ export class BubbleName extends ServiceBubble<Params, Result> {
 | File | Issues Found | Issues Fixed | Status | Risk | Est. Effort |
 |------|--------------|--------------|--------|------|-------------|
 | knowledge-engine-bubble.ts | 18 | 0 | ⚠️ Pattern ready | MEDIUM | 8 hrs |
-| hephaestus-bubble.ts | 16 | 0 | ⚠️ Pattern ready | MEDIUM | 8 hrs |
+| crewai-bubble.ts | 16 | 0 | ⚠️ Pattern ready | MEDIUM | 8 hrs |
 | ace-tools-bubble.ts | 14 | 0 | ⚠️ Pattern ready | MEDIUM | 8 hrs |
 | workflow-orchestrator-bubble.ts | 22 | 0 | ⚠️ Pattern ready | MEDIUM | 16 hrs |
 
@@ -981,7 +981,7 @@ describe('BubbleName', () => {
 
 **Estimated Effort:**
 - KnowledgeEngineBubble: 8 hours
-- HephaestusBubble: 8 hours
+- CrewAIBubble: 8 hours
 - ACEToolsBubble: 8 hours
 - WorkflowOrchestratorBubble: 16 hours
 - **Total: 40 hours (1 week)**
@@ -1055,7 +1055,7 @@ describe('BubbleName', () => {
 7. stripe-bubble.ts (47 issues)
 8. parse-document.workflow.ts (46 issues)
 9. pdf-ocr.workflow.ts (44 issues)
-10. hephaestus-bubble.ts (42 issues)
+10. crewai-bubble.ts (42 issues)
 
 **Expected Results:**
 - Eliminate 598 issues (29% of total)

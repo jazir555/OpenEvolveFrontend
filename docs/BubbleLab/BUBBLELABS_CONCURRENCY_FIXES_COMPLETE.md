@@ -284,7 +284,7 @@ def get_connection(self):
 ---
 
 ### Issue 7: Lock Held During I/O
-**File:** `bubblelabs_hephaestus_bridge.py` (lines 220-261)
+**File:** `bubblelabs_crewai_bridge.py` (lines 220-261)
 **Severity:** HIGH
 **Status:** ✅ FIXED
 
@@ -314,7 +314,7 @@ def update_ticket_progress(self, workflow_instance_id: str, progress: float,
         # ... build description ...
 
         # Step 3: Perform network I/O WITHOUT holding lock (CRITICAL FIX)
-        success = self.hephaestus.update_ticket(
+        success = self.crewai.update_ticket(
             ticket_id=ticket_id,
             status=ticket_status,
             description=description
@@ -341,7 +341,7 @@ def update_ticket_progress(self, workflow_instance_id: str, progress: float,
 ---
 
 ### Issue 8: Instance Cache Update Race
-**File:** `bubblelabs_hephaestus_bridge.py` (lines 571-593)
+**File:** `bubblelabs_crewai_bridge.py` (lines 571-593)
 **Severity:** HIGH
 **Status:** ✅ ALREADY FIXED (Atomic Replacement Pattern)
 
@@ -379,7 +379,7 @@ def _update_instance_cache(self) -> None:
 ---
 
 ### Issue 9: Thread Lifecycle Race
-**File:** `bubblelabs_hephaestus_bridge.py` (lines 376-406)
+**File:** `bubblelabs_crewai_bridge.py` (lines 376-406)
 **Severity:** HIGH
 **Status:** ✅ FIXED
 
@@ -594,7 +594,7 @@ To prevent deadlocks, all modified code follows this lock hierarchy:
 - `_instances_lock` (bubblelabs_integration.py)
 - `_threads_lock` (bubblelabs_integration.py)
 - `self.lock` (bubblelabs_analytics.py)
-- `self.lock` (bubblelabs_hephaestus_bridge.py)
+- `self.lock` (bubblelabs_crewai_bridge.py)
 - `self.lock` (bubblelabs_security.py)
 
 ### Lock Ordering Rules:

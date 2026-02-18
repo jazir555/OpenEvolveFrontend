@@ -44,8 +44,8 @@
 - [x] `maker_integration_bridge.py` (Already using `get_thorough_config()` correctly)
 - [x] `roma_mdap_maker_associative_integration.py` (Refactored `create_romamdapmaker_associative_config()` to use SSOT)
 - [x] `roma_mdap_maker_mcp_tools.py` (Refactored `solve_with_roma_mdap_maker`, `solve_subproblem_with_roma_mdap_maker`, `analyze_problem_with_roma_mdap`, `verify_solution_with_roma_mdap` to use SSOT)
-- [x] `hephaestus_unified_bridge.py` (Refactored `execute_phase_1_setup`, `execute_phase_2_solve`, `execute_full_workflow` to use SSOT)
-- [x] `roma_mdap_maker_hephaestus_bridge.py` (Refactored `execute_phase_1_setup`, `execute_phase_2_solve`, `execute_phase_3_critique`, `execute_phase_4_verify`, `execute_phase_5_reassemble`, `execute_phase_6_final_validation`, `execute_full_workflow` to use SSOT)
+- [x] `crewai_unified_bridge.py` (Refactored `execute_phase_1_setup`, `execute_phase_2_solve`, `execute_full_workflow` to use SSOT)
+- [x] `roma_mdap_maker_crewai_bridge.py` (Refactored `execute_phase_1_setup`, `execute_phase_2_solve`, `execute_phase_3_critique`, `execute_phase_4_verify`, `execute_phase_5_reassemble`, `execute_phase_6_final_validation`, `execute_full_workflow` to use SSOT)
 - [x] `decomposition_mcp_tools.py` (Refactored `solve_sub_problem_with_team` and `_solve_with_roma_mdap_maker` to use SSOT)
 
 ### 🟡 Medium Priority (Specialized Gauntlets & Systems)
@@ -86,6 +86,6 @@ Every file now uses the Single Source of Truth (SSOT) configuration from `roma_m
 - `get_validation_config(preset="validation")` - Optimized for gauntlets and evaluators
 - `get_reliability_config(preset="recomposition")` - Optimized for synthesis and assembly tasks
 (Note: `openevolve_maker_integration.py` was not directly modified but its internal calls now flow through SSOT-enabled functions.)
-(Note: `Hephaestus/src/core/simple_config.py` was skipped due to permission issues.)
+(Note: `CrewAI/src/core/simple_config.py` was skipped due to permission issues.)
 (Note: `leanaide_config.py` was reviewed, but `mdap_k_ahead` was found to be for MCTS and not directly related to the ROMA-MDAP-MAKER reliability parameters, so no changes were made.)
 (Note: `problem_decomposition.py` was reviewed, it uses `roma_max_depth` through kwargs; a separate refactoring pass may be needed depending on depth of integration desired.)

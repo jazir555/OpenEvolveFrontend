@@ -38,7 +38,7 @@ CATEGORY 1: TYPE CONTRACT VIOLATIONS (12 fixes)
    restart_workflow_instance() copies all attributes blindly
    FIX: Created SAFE_COPY_ATTRIBUTES whitelist set
 
-8. [FIXED] bubblelabs_hephaestus_bridge.py - Side effects not documented
+8. [FIXED] bubblelabs_crewai_bridge.py - Side effects not documented
    create_ticket_from_workflow() mutates self.mappings
    FIX: Added "Side Effects:" section to docstring
 
@@ -50,7 +50,7 @@ CATEGORY 1: TYPE CONTRACT VIOLATIONS (12 fixes)
     execute_bubblelabs_workflow() - get_shared_api() can return None
     FIX: Added check: if not api: return error dict
 
-11. [FIXED] bubblelabs_hephaestus_bridge.py:408 - Return value mismatch
+11. [FIXED] bubblelabs_crewai_bridge.py:408 - Return value mismatch
     stop_background_sync() returns False on timeout, True if already stopped
     FIX: Changed to return str enum: "stopped", "already_stopped", "timeout"
 
@@ -78,7 +78,7 @@ CATEGORY 2: ERROR CONTRACT VIOLATIONS (6 fixes)
     export_workflow() - ValueError vs Exception
     FIX: Documented ValueError for security validation, Exception for others
 
-17. [FIXED] bubblelabs_hephaestus_bridge.py - No error raises documented
+17. [FIXED] bubblelabs_crewai_bridge.py - No error raises documented
     create_ticket_from_workflow(), update_ticket_progress()
     FIX: Added "Raises:" sections documenting possible exceptions
 
@@ -102,7 +102,7 @@ CATEGORY 3: BEHAVIORAL CONTRACT VIOLATIONS (5 fixes)
     get_workflow_analytics() - doesn't distinguish "no data" vs "partial data"
     FIX: Documented partial data behavior in Note: section
 
-22. [FIXED] bubblelabs_hephaestus_bridge.py:408 - Thread safety not documented
+22. [FIXED] bubblelabs_crewai_bridge.py:408 - Thread safety not documented
     stop_background_sync() - thread safety not guaranteed
     FIX: Added "Thread Safety:" section documenting NOT thread-safe
 
@@ -118,7 +118,7 @@ FILES MODIFIED
 2. bubblelabs_analytics.py (4 fixes)
 3. bubblelabs_typescript_export.py (2 fixes)
 4. bubblelabs_mcp_tools.py (5 fixes)
-5. bubblelabs_hephaestus_bridge.py (4 fixes)
+5. bubblelabs_crewai_bridge.py (4 fixes)
 6. bubblelabs_integration.py (1 fix)
 7. bubblelabs_ui_component.py (1 fix)
 
@@ -215,7 +215,7 @@ EXAMPLE 4: Side Effects Documentation
 --------------------------------------
 Before:
     def create_ticket_from_workflow(self, workflow_definition) -> Optional[str]:
-        """Create a Hephaestus ticket from workflow."""
+        """Create a CrewAI ticket from workflow."""
         # Mutates self.mappings
         # Updates cache
         return ticket_id
@@ -223,7 +223,7 @@ Before:
 After:
     def create_ticket_from_workflow(self, workflow_definition) -> Optional[str]:
         """
-        Create a Hephaestus ticket from a BubbleLabs workflow definition.
+        Create a CrewAI ticket from a BubbleLabs workflow definition.
 
         Returns:
             Ticket ID if successful, None otherwise
@@ -232,7 +232,7 @@ After:
             - Stores mapping in self.mappings
             - Updates instance_to_definition_map cache
             - Mutates self.mappings[workflow_definition.id]
-            - Calls hephaestus.create_ticket() if available
+            - Calls crewai.create_ticket() if available
         """
 
 ================================================================================

@@ -17,7 +17,7 @@ Successfully fixed **1 of 2 CRITICAL data consistency issues**:
 - **Impact:** Prevents orphaned records, ensures referential integrity
 
 ### ❌ NOT COMPLETED: Issue 2 - Bridge Mappings Persistence
-- **File:** `bubblelabs_hephaestus_bridge.py`
+- **File:** `bubblelabs_crewai_bridge.py`
 - **Status:** DOCUMENTED BUT NOT IMPLEMENTED
 - **Reason:** Conflicts with existing LRU cache implementation
 - **Recommendation:** Requires separate refactoring effort
@@ -187,7 +187,7 @@ python test_data_consistency_fixes.py
 - Data loss on crash
 
 **Why Not Fixed:**
-The file `bubblelabs_hephaestus_bridge.py` has already been modified with LRU cache fixes that conflict with persistent database storage:
+The file `bubblelabs_crewai_bridge.py` has already been modified with LRU cache fixes that conflict with persistent database storage:
 
 ```python
 # Current implementation

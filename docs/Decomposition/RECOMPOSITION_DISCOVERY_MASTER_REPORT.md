@@ -462,8 +462,8 @@ print(result.integrated_solution.assembled_content)
 
 ### Integration Bridges
 **Files**:
-- `decomposition_hephaestus_bridge.py` - Phase 5 reassembly
-- `hephaestus_unified_bridge.py` - Unified bridge
+- `decomposition_crewai_bridge.py` - Phase 5 reassembly
+- `crewai_unified_bridge.py` - Unified bridge
 - `openevolve_integration.py` - OpenEvolve backend integration
 
 ### Test Files

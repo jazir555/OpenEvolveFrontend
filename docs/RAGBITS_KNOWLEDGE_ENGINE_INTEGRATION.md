@@ -177,7 +177,7 @@ patterns = await tool.execute(
 **Usage:**
 ```python
 agent = RAGBitsEnhancedBlueTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     storage_manager=storage,
     enable_ragbits=True
 )
@@ -239,7 +239,7 @@ from ragbits_integration.agents.tools.ragbits_enhanced_tools import (
 
 # Create standard blue team agent
 agent = BlueTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     storage_manager=storage
 )
 
@@ -313,7 +313,7 @@ from ragbits_integration.agents.examples.ragbits_enhanced_blue_team import (
 async def main():
     # Create enhanced agent
     agent = RAGBitsEnhancedBlueTeamAgent(
-        hephaestus_client=None,  # Or provide Hephaestus client
+        crewai_client=None,  # Or provide CrewAI client
         enable_ragbits=True
     )
 
@@ -455,7 +455,7 @@ config = RagbitsIntegrationConfig(
 )
 
 agent = RAGBitsEnhancedBlueTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     enable_ragbits=True
 )
 

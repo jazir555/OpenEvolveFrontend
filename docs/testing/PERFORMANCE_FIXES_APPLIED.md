@@ -10,7 +10,7 @@ This document describes the 5 CRITICAL performance issues identified and fixed i
 ## ISSUE #1: Unbounded Dictionary Growth - FIXED
 
 ### Location
-- **File**: bubblelabs_hephaestus_bridge.py
+- **File**: bubblelabs_crewai_bridge.py
 - **Lines**: 92, 154-158, 111
 
 ### Problem
@@ -29,7 +29,7 @@ Implemented an LRU (Least Recently Used) cache with TTL eviction using OrderedDi
 ## ISSUE #2: Lock Held During I/O - FIXED
 
 ### Location
-- **File**: bubblelabs_hephaestus_bridge.py
+- **File**: bubblelabs_crewai_bridge.py
 - **Lines**: 194-231, 253-271
 
 ### Problem
@@ -132,7 +132,7 @@ Added composite indexes:
    - Added composite database indexes
    - Fixed all unclosed connections
 
-2. bubblelabs_hephaestus_bridge.py
+2. bubblelabs_crewai_bridge.py
    - Implemented LRUCache class with TTL eviction
    - Minimized lock scope (release before I/O)
    - Added cache configuration options

@@ -12,7 +12,7 @@ This report documents the implementation of all Phase 1 critical security fixes 
 
 ### Files Modified:
 1. `ace_mcp_tools.py` ✓ (PARTIALLY COMPLETED)
-2. `ace_hephaestus_bridge.py` (PENDING)
+2. `ace_crewai_bridge.py` (PENDING)
 3. `ace_analytics.py` (PENDING)
 4. `ace_knowledge_artifacts.py` (PENDING)
 5. `ace_workflow_knowledge_extractor.py` (PENDING)
@@ -76,7 +76,7 @@ if skillbook_path:
 
 **Files Requiring This Fix:**
 - ✓ ace_mcp_tools.py (Lines 138-143, 233-236, 574-583, 772-775)
-- ace_hephaestus_bridge.py (Lines 138-143)
+- ace_crewai_bridge.py (Lines 138-143)
 - ace_analytics.py (Lines 330-331, 553-557, 625-626, 789-804, 814-815)
 - ace_workflow_knowledge_extractor.py (Lines 111-113, 479-493)
 - ace_stage6_integration.py (Lines 223-224, 270, 303, 348, 405, 487, 544, 614, 674)
@@ -109,7 +109,7 @@ def initialize_ace_agent(model: str = "gpt-4o-mini", ...):
 
 **Files Requiring This Fix:**
 - ✓ ace_mcp_tools.py (Lines 86, 194, 290, 420)
-- ace_hephaestus_bridge.py (Line 113, 161)
+- ace_crewai_bridge.py (Line 113, 161)
 - ace_analytics.py (N/A - no model parameters)
 - ace_workflow_knowledge_extractor.py (Line 76, 119)
 - ace_stage6_integration.py (Lines 79, 114)
@@ -211,7 +211,7 @@ except Exception as e:
 
 **Files Requiring This Fix:**
 - ✓ ace_mcp_tools.py (Lines 174-182, 213-219, 305-312, 399-406, 516-523, 634-642, 703-811)
-- ace_hephaestus_bridge.py (Lines 173-175, 308-314, 394-400, 479-485, 564-570, 643-649, 722-728)
+- ace_crewai_bridge.py (Lines 173-175, 308-314, 394-400, 479-485, 564-570, 643-649, 722-728)
 - ace_analytics.py (Lines 182-184, 224-226, 272-274, 302-304, 423-425, 498-500, 550-551, 598-599, 652-653, 708-709, 808-809, 856-857)
 - ace_workflow_knowledge_extractor.py (Lines 131-133, 207-209, 247-248, 276-277, 320-321, 341-342, 367-368, 393-394, 422-423, 453-454, 497-498, 534-535)
 - ace_stage6_integration.py (Lines 131-138, 205-212, 284-291, 363-370, 445-452, 508-515, 572-579, 633-640, 694-701)
@@ -238,7 +238,7 @@ logger.info(f"Loaded skillbook from {sanitize_for_logging(skillbook_path)}")  # 
 
 **Files Requiring This Fix:**
 - ✓ ace_mcp_tools.py (Lines 140, 171, 182, 238, 285, 309, 539, 570, 627, 654, 708)
-- ace_hephaestus_bridge.py (Lines 140, 157, 175, 218, 235, 272, 310, 394, 433, 480, 565, 609, 649, 705)
+- ace_crewai_bridge.py (Lines 140, 157, 175, 218, 235, 272, 310, 394, 433, 480, 565, 609, 649, 705)
 - ace_analytics.py (Lines 108, 180, 222, 357, 424, 498, 548, 596, 652, 708, 806, 854)
 - ace_workflow_knowledge_extractor.py (Lines 113, 132, 156, 204, 248, 276, 320, 341, 367, 393, 422, 453, 495, 534)
 - ace_stage6_integration.py (Lines 109, 132, 171, 206, 239, 265, 285, 323, 364, 407, 445, 491, 508, 546, 572, 608, 633, 674, 694)
@@ -270,7 +270,7 @@ if skillbook_path:
 
 **Files Requiring This Fix:**
 - ✓ ace_mcp_tools.py (Lines 138-143, 233-236, 574-583, 772-775)
-- ace_hephaestus_bridge.py (Lines 138-143)
+- ace_crewai_bridge.py (Lines 138-143)
 - ace_analytics.py (Lines 330-331, 625-626)
 - ace_workflow_knowledge_extractor.py (Lines 111-113)
 - ace_stage6_integration.py (Lines 223-224, 270, 303, 348, 405, 487, 544, 614, 674)
@@ -302,7 +302,7 @@ if skillbook_path:
 
 ---
 
-### File 2: ace_hephaestus_bridge.py (PENDING)
+### File 2: ace_crewai_bridge.py (PENDING)
 
 **Required Fixes:**
 1. Add security imports (after line 26)
@@ -414,7 +414,7 @@ if skillbook_path:
 
 ### Completion Status:
 - **ace_mcp_tools.py:** 25% complete (security imports added, 2 functions fixed)
-- **ace_hephaestus_bridge.py:** 0% complete
+- **ace_crewai_bridge.py:** 0% complete
 - **ace_analytics.py:** 0% complete
 - **ace_knowledge_artifacts.py:** 0% complete
 - **ace_workflow_knowledge_extractor.py:** 0% complete

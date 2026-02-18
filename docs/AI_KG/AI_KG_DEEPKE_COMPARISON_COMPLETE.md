@@ -375,8 +375,8 @@ scikit-learn==0.24.1     # ML utilities
    - No GPU required
    - Fast installation (< 5 minutes)
 
-2. **Hephaestus Bridge** (2 days):
-   - Create `ai_knowledge_graph_hephaestus_bridge.py`
+2. **CrewAI Bridge** (2 days):
+   - Create `ai_knowledge_graph_crewai_bridge.py`
    - Expose MCP tools for SPO extraction, entity standardization, visualization
    - Estimated 400-500 lines of code
 
@@ -425,8 +425,8 @@ scikit-learn==0.24.1     # ML utilities
    - Add to `mcp_agent.secrets.yaml`
    - Test connection with sample extractions
 
-3. **Hephaestus Bridge** (2 days):
-   - Create `deepke_hephaestus_bridge.py` (if not using MCP)
+3. **CrewAI Bridge** (2 days):
+   - Create `deepke_crewai_bridge.py` (if not using MCP)
    - Expose MCP tools for NER, RE, AE, EE
    - Estimated 300-400 lines of code
 
@@ -463,7 +463,7 @@ scikit-learn==0.24.1     # ML utilities
 - Day 5: Initial prototypes of both integrations
 
 **Week 2: Adapters & Bridges**
-- Day 6-7: AI-KG Hephaestus bridge + KnowledgeArtifact adapter
+- Day 6-7: AI-KG CrewAI bridge + KnowledgeArtifact adapter
 - Day 8-9: DeepKE MCP integration + KnowledgeArtifact adapter
 - Day 10: Combined extraction pipeline (DeepKE → AI-KG)
 
@@ -562,7 +562,7 @@ scikit-learn==0.24.1     # ML utilities
 **Gaps Remaining:**
 - ❌ Lower extraction quality (LLM-only vs. ML models)
 - ❌ No MCP integration
-- ❌ Must build custom Hephaestus bridge
+- ❌ Must build custom CrewAI bridge
 - ❌ No production NER/RE/AE/EE models
 
 **Risk Assessment:** LOW
@@ -742,7 +742,7 @@ scikit-learn==0.24.1     # ML utilities
 - Day 5: Prototype basic extraction + visualization
 
 **Phase 2: Core Integration (Week 2)**
-- Day 6-8: AI-KG Hephaestus bridge + KnowledgeArtifact adapter
+- Day 6-8: AI-KG CrewAI bridge + KnowledgeArtifact adapter
 - Day 9-11: DeepKE MCP integration + KnowledgeArtifact adapter
 - Day 12: Combined extraction pipeline (DeepKE → AI-KG)
 

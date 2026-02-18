@@ -231,9 +231,9 @@ The ACE (Agentic Context Engine) integration has been brought from 90% to **100%
 │  │ • get_most_effective_gauntlets                     │    │
 │  └─────────────────────────────────────────────────────────┘    │
 │                          ↓                                      │
-│  LAYER 2: HEPHAESTUS BRIDGE                                 │
+│  LAYER 2: CREWAI BRIDGE                                 │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │ • ACEHephaestusWorkflowBridge                         │    │
+│  │ • ACECrewAIWorkflowBridge                         │    │
 │  │ • execute_phase_1_setup()                             │    │
 │  │ • execute_phase_2_solution()                          │    │
 │  │ • execute_phase_3_critique()                          │    │

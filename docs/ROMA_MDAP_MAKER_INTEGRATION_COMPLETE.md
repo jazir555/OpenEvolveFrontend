@@ -22,7 +22,7 @@ ROMA-MDAP-MAKER has been **fully integrated** as the **7th execution method** in
 |------|-------|---------|
 | `roma_mdap_maker_engine.py` | ~1,150 | Core orchestration with voting, red-flagging, adaptive k |
 | `roma_mdap_maker_mcp_tools.py` | ~850 | 7 MCP tools for all operations |
-| `roma_mdap_maker_hephaestus_bridge.py` | ~900 | Full 6-phase Hephaestus workflow integration |
+| `roma_mdap_maker_crewai_bridge.py` | ~900 | Full 6-phase CrewAI workflow integration |
 | `demo_roma_mdap_maker.py` | 575 | Comprehensive demo with 10 examples |
 | `test_roma_mdap_maker.py` | 450 | Comprehensive test suite (19 tests) |
 | **Documentation** | ~1,500 | 3 MD files (quick reference, full integration, final summary) |
@@ -36,8 +36,8 @@ ROMA-MDAP-MAKER has been **fully integrated** as the **7th execution method** in
 | File | Changes | Lines Added |
 |------|---------|-------------|
 | `decomposition_mcp_tools.py` | ROMA-MDAP-MAKER as 7th method, routing, auto-selection | +150 |
-| `hephaestus_unified_bridge.py` | Phase routing, status reporting | +50 |
-| `decomposition_hephaestus_bridge.py` | Parameter passing through bridge | +50 |
+| `crewai_unified_bridge.py` | Phase routing, status reporting | +50 |
+| `decomposition_crewai_bridge.py` | Parameter passing through bridge | +50 |
 
 ---
 
@@ -74,7 +74,7 @@ END-TO-END TEST      [1/1 PASSED]
 3. **Hierarchical Voting**: Confidence-weighted aggregation across ROMA levels
 4. **Adaptive K**: Dynamic k-ahead based on task complexity and history
 5. **Red-Flagging**: Enhanced error detection for ROMA decomposition
-6. **6-Phase Workflow**: Full Hephaestus integration
+6. **6-Phase Workflow**: Full CrewAI integration
 
 ---
 
@@ -97,7 +97,7 @@ END-TO-END TEST      [1/1 PASSED]
 ### Auto-Selection (Recommended)
 
 ```python
-from hephaestus_unified_bridge import execute_phase_2_solve
+from crewai_unified_bridge import execute_phase_2_solve
 
 result = execute_phase_2_solve(
     decomposition_plan=phase1_result,
@@ -123,7 +123,7 @@ result = solve_sub_problem_with_team(
 ### Full Workflow
 
 ```python
-from roma_mdap_maker_hephaestus_bridge import execute_full_workflow
+from roma_mdap_maker_crewai_bridge import execute_full_workflow
 
 result = execute_full_workflow(
     problem_statement="Design zero-error trading system",
@@ -174,7 +174,7 @@ ROMA-MDAP-MAKER is automatically selected for:
 ```bash
 # Check system status
 python -c "
-from hephaestus_unified_bridge import get_unified_bridge_status
+from crewai_unified_bridge import get_unified_bridge_status
 status = get_unified_bridge_status()
 print(f'Total methods: {status[\"total_execution_methods\"]}')
 print(f'ROMA-MDAP-MAKER: {status[\"roma_mdap_maker_bridge_available\"]}')

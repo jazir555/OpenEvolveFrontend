@@ -1054,9 +1054,9 @@
   - Estimated Time: 2 hours
   - Success Criteria: Returns domain knowledge
 
-#### 3.2 Update Hephaestus Bridge
+#### 3.2 Update CrewAI Bridge
 
-- [ ] Task 3.2.1: Update execute_phase_1_setup() in leanaide_hephaestus_bridge.py
+- [ ] Task 3.2.1: Update execute_phase_1_setup() in leanaide_crewai_bridge.py
   - Subtasks:
     - [ ] 3.2.1.1: Call detect_mathematics_type()
     - [ ] 3.2.1.2: If continuous, call _parse_continuous_problem()
@@ -1342,7 +1342,7 @@
 
 #### 2.1 AI-KG Integration (Day 6-8)
 
-- [ ] Task 2.1.1: Create ai_knowledge_graph_hephaestus_bridge.py
+- [ ] Task 2.1.1: Create ai_knowledge_graph_crewai_bridge.py
   - Subtasks:
     - [ ] 2.1.1.1: Create file with imports
     - [ ] 2.1.1.2: Import AI-KG modules (process_with_llm, standardize_entities, etc.)
@@ -2053,11 +2053,11 @@
   - Estimated Time: 3 hours
   - Success Criteria: Tracks SOP metrics
 
-#### 4.2 Hephaestus Delegation (Task 4.2)
+#### 4.2 CrewAI Delegation (Task 4.2)
 
-- [ ] Task 4.2.1: Use hephaestus_client.py
+- [ ] Task 4.2.1: Use crewai_client.py
   - Subtasks:
-    - [ ] 4.2.1.1: Import HephaestusClient
+    - [ ] 4.2.1.1: Import CrewAIClient
     - [ ] 4.2.1.2: Delegate math formalization (CPU intensive)
     - [ ] 4.2.1.3: Delegate error analysis (large search space)
     - [ ] 4.2.1.4: Delegate red team testing (many scenarios)

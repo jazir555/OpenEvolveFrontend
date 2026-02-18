@@ -177,7 +177,7 @@ from ragbits_integration.agents.examples.ragbits_enhanced_blue_team import (
 
 # Create agent with RAGBits
 agent = RAGBitsEnhancedBlueTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     enable_ragbits=True
 )
 

@@ -250,17 +250,17 @@ This document provides detailed implementation tasks for integrating both **ai-k
 
 **Objective:** Build production-ready adapters and integrate with Knowledge Engine.
 
-### Task 2.1: ai-knowledge-graph Hephaestus Bridge
+### Task 2.1: ai-knowledge-graph CrewAI Bridge
 
 **Effort:** 2 days
 **Priority:** P0
 **Dependencies:** Task 1.5
 
 **Steps:**
-1. Create `ai_knowledge_graph_hephaestus_bridge.py`:
+1. Create `ai_knowledge_graph_crewai_bridge.py`:
    ```python
    """
-   Hephaestus bridge for ai-knowledge-graph integration.
+   CrewAI bridge for ai-knowledge-graph integration.
    Exposes MCP tools for SPO extraction, entity standardization, and visualization.
    """
    from mcp.server import Server
@@ -325,7 +325,7 @@ This document provides detailed implementation tasks for integrating both **ai-k
 - ✅ API documentation complete
 
 **Deliverables:**
-- `ai_knowledge_graph_hephaestus_bridge.py`
+- `ai_knowledge_graph_crewai_bridge.py`
 - MCP tool registration
 - API documentation
 
@@ -1145,7 +1145,7 @@ Task 1.5 (1d)
 
 ### Phase 2 Success (Week 2)
 
-- ✅ Both Hephaestus bridges functional
+- ✅ Both CrewAI bridges functional
 - ✅ KnowledgeArtifact adapters implemented
 - ✅ Unified extraction pipeline operational
 - ✅ Integration tests passing
@@ -1248,7 +1248,7 @@ knowledge_engine/
     ├── test_unified_extractor.py    # Unified pipeline tests (NEW)
     └── test_workflow_extractor.py   # Workflow integration tests (NEW)
 
-ai_knowledge_graph_hephaestus_bridge.py  # AI-KG MCP tools (NEW)
+ai_knowledge_graph_crewai_bridge.py  # AI-KG MCP tools (NEW)
 ```
 
 ### B. Configuration Files
@@ -1260,7 +1260,7 @@ mcp_servers:
     command: "python"
     args:
       - "-m"
-      - "ai_knowledge_graph_hephaestus_bridge"
+      - "ai_knowledge_graph_crewai_bridge"
   deepke:
     command: "uv"
     args:

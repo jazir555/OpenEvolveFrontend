@@ -1147,196 +1147,196 @@
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\check_setup_macos.py": {
+  "CrewAI\\check_setup_macos.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\run_hephaestus_dev.py": {
+  "CrewAI\\run_crewai_dev.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\scripts\\bootstrap_project.py": {
+  "CrewAI\\scripts\\bootstrap_project.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\scripts\\create_test_tickets.py": {
+  "CrewAI\\scripts\\create_test_tickets.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\scripts\\create_test_tickets_sql.py": {
+  "CrewAI\\scripts\\create_test_tickets_sql.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\agents\\manager.py": {
+  "CrewAI\\src\\agents\\manager.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\core\\simple_config.py": {
+  "CrewAI\\src\\core\\simple_config.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\core\\worktree_manager.py": {
+  "CrewAI\\src\\core\\worktree_manager.py": {
     "bare_except": 3,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\interfaces\\cli_interface.py": {
+  "CrewAI\\src\\interfaces\\cli_interface.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 3,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\mcp\\server.py": {
+  "CrewAI\\src\\mcp\\server.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\memory\\rag.py": {
+  "CrewAI\\src\\memory\\rag.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\memory\\vector_store.py": {
+  "CrewAI\\src\\memory\\vector_store.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\monitoring\\conductor.py": {
+  "CrewAI\\src\\monitoring\\conductor.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\sdk\\client.py": {
+  "CrewAI\\src\\sdk\\client.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\src\\sdk\\config.py": {
+  "CrewAI\\src\\sdk\\config.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\conftest.py": {
+  "CrewAI\\tests\\conftest.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_agent_output_integration.py": {
+  "CrewAI\\tests\\test_agent_output_integration.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_agent_workflow_context.py": {
+  "CrewAI\\tests\\test_agent_workflow_context.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_diagnostic_agent.py": {
+  "CrewAI\\tests\\test_diagnostic_agent.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 2,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_diagnostic_integration.py": {
+  "CrewAI\\tests\\test_diagnostic_integration.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_multi_workflow.py": {
+  "CrewAI\\tests\\test_multi_workflow.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 2,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_multi_workflow_e2e.py": {
+  "CrewAI\\tests\\test_multi_workflow_e2e.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_prompt_delivery_cleanup.py": {
+  "CrewAI\\tests\\test_prompt_delivery_cleanup.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_rag_system.py": {
+  "CrewAI\\tests\\test_rag_system.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_validation_prompts.py": {
+  "CrewAI\\tests\\test_validation_prompts.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 11,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_validation_system.py": {
+  "CrewAI\\tests\\test_validation_system.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_vector_store.py": {
+  "CrewAI\\tests\\test_vector_store.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "Hephaestus\\tests\\test_worktree_integration.py": {
+  "CrewAI\\tests\\test_worktree_integration.py": {
     "bare_except": 5,
     "try_except_pass": 0,
     "pickle_usage": 0,
@@ -3051,196 +3051,196 @@
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\check_setup_macos.py": {
+  "OpenEvolveFrontend\\CrewAI\\check_setup_macos.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\run_hephaestus_dev.py": {
+  "OpenEvolveFrontend\\CrewAI\\run_crewai_dev.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\scripts\\bootstrap_project.py": {
+  "OpenEvolveFrontend\\CrewAI\\scripts\\bootstrap_project.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\scripts\\create_test_tickets.py": {
+  "OpenEvolveFrontend\\CrewAI\\scripts\\create_test_tickets.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\scripts\\create_test_tickets_sql.py": {
+  "OpenEvolveFrontend\\CrewAI\\scripts\\create_test_tickets_sql.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\agents\\manager.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\agents\\manager.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\core\\simple_config.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\core\\simple_config.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\core\\worktree_manager.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\core\\worktree_manager.py": {
     "bare_except": 3,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\interfaces\\cli_interface.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\interfaces\\cli_interface.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 3,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\mcp\\server.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\mcp\\server.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\memory\\rag.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\memory\\rag.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\memory\\vector_store.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\memory\\vector_store.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\monitoring\\conductor.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\monitoring\\conductor.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\sdk\\client.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\sdk\\client.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\src\\sdk\\config.py": {
+  "OpenEvolveFrontend\\CrewAI\\src\\sdk\\config.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\conftest.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\conftest.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_agent_output_integration.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_agent_output_integration.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_agent_workflow_context.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_agent_workflow_context.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_diagnostic_agent.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_diagnostic_agent.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 2,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_diagnostic_integration.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_diagnostic_integration.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_multi_workflow.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_multi_workflow.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 2,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_multi_workflow_e2e.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_multi_workflow_e2e.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_prompt_delivery_cleanup.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_prompt_delivery_cleanup.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_rag_system.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_rag_system.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_validation_prompts.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_validation_prompts.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 11,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_validation_system.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_validation_system.py": {
     "bare_except": 0,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 1,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_vector_store.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_vector_store.py": {
     "bare_except": 1,
     "try_except_pass": 0,
     "pickle_usage": 0,
     "hardcoded_tmp": 0,
     "certificate_issues": 0
   },
-  "OpenEvolveFrontend\\Hephaestus\\tests\\test_worktree_integration.py": {
+  "OpenEvolveFrontend\\CrewAI\\tests\\test_worktree_integration.py": {
     "bare_except": 5,
     "try_except_pass": 0,
     "pickle_usage": 0,

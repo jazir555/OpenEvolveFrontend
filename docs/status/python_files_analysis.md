@@ -117,11 +117,11 @@ This document provides analysis of Python files in the project, documenting thei
 - [ ] Reviewing `GRANULAR_TASK_LIST_COMPLETE.md`
 - [ ] Reviewing `health_checks.py`
 - [ ] Reviewing `health_endpoint.py`
-- [ ] Reviewing `hephaestus_client.py`
-- [ ] Reviewing `hephaestus_example.py`
-- [ ] Reviewing `HEPHAESTUS_INTEGRATION_PLAN.md`
-- [ ] Reviewing `HEPHAESTUS_INTEGRATION_STATUS.md`
-- [ ] Reviewing `hephaestus_integration.py`
+- [ ] Reviewing `crewai_client.py`
+- [ ] Reviewing `crewai_example.py`
+- [ ] Reviewing `CREWAI_INTEGRATION_PLAN.md`
+- [ ] Reviewing `CREWAI_INTEGRATION_STATUS.md`
+- [ ] Reviewing `crewai_integration.py`
 - [ ] Reviewing `HONEST_IMPLEMENTATION_REALITY_CHECK.md`
 - [ ] Reviewing `HONEST_IMPLEMENTATION_STATUS.md`
 - [ ] Reviewing `IMPLEMENTATION_COMPLETE_FINAL.md`
@@ -259,7 +259,7 @@ This document provides analysis of Python files in the project, documenting thei
 - [ ] Reviewing `sovereign_data_models.py`
 - [ ] Reviewing `sovereign_database.py`
 - [ ] Reviewing `SOVEREIGN_DECOMPOSITION_DESIGN.md`
-- [ ] Reviewing `sovereign_decomposition_hephaestus_integration.py`
+- [ ] Reviewing `sovereign_decomposition_crewai_integration.py`
 - [ ] Reviewing `SOVEREIGN_DECOMPOSITION_REQUIREMENTS.md`
 - [ ] Reviewing `SOVEREIGN_DECOMPOSITION_TASKS_REALITY_CHECK.md`
 - [ ] Reviewing `SOVEREIGN_DECOMPOSITION_TASKS.md`
@@ -426,7 +426,7 @@ This document provides analysis of Python files in the project, documenting thei
 - [ ] Reviewing `test_problem_decomposition.py`
 - [ ] Reviewing `test_report.txt`
 - [ ] Reviewing `test_session_state_removal.py`
-- [ ] Reviewing `test_sgd_hephaestus_integration.py`
+- [ ] Reviewing `test_sgd_crewai_integration.py`
 - [ ] Reviewing `test_sidebar_integration.py`
 - [ ] Reviewing `test_sidebar_parameter_integration.py`
 - [ ] Reviewing `test_sovereign_benchmarks.py`

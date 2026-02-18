@@ -17,13 +17,20 @@ import uuid
 import hashlib
 import json
 
-from .roma_integration import ROMAIntegration, ROMAResult, ROMADecomposition, ROMASolution
+# Import required integrations with graceful degradation
+try:
+    from .roma_integration import ROMAIntegration, ROMAResult, ROMADecomposition, ROMASolution
+except (ImportError, ModuleNotFoundError):
+    ROMAIntegration = None
+    ROMAResult = None
+    ROMADecomposition = None
+    ROMASolution = None
 
 
 logger = logging.getLogger(__name__)
 
 # ROMA-DSPy integration availability flag
-ROMA_DSPY_INTEGRATION_AVAILABLE = True
+ROMA_DSPY_INTEGRATION_AVAILABLE = ROMAIntegration is not None
 DSPY_AVAILABLE = ROMA_DSPY_INTEGRATION_AVAILABLE  # Alias for test compatibility
 
 

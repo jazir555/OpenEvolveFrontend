@@ -68,14 +68,14 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 |-------|-------------------|----------------------|
 | **Stage 0** | ROMA, Knowledge Engine, ACE | RAGbits, DataPizza, **LeanAide** |
 | **Stage 1** | ROMA, ACE, Claudiomiro | **LeanAide**, DataPizza |
-| **Stage 2** | OpenEvolve UI, Hephaestus | BubbleLab UI |
+| **Stage 2** | OpenEvolve UI, CrewAI | BubbleLab UI |
 | **Stage 3A** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, **LeanAide** |
 | **Stage 3B** | ACE, Steer, DataPizza | ROMA, **LeanAide** |
 | **Stage 3C** | Steer, Knowledge Engine, DataPizza | ACE, **LeanAide** |
-| **Stage 3D** | Claudiomiro, ACE, Hephaestus | ROMA, DataPizza, **LeanAide** |
+| **Stage 3D** | Claudiomiro, ACE, CrewAI | ROMA, DataPizza, **LeanAide** |
 | **Stage 4** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, **LeanAide** |
-| **Stage 5** | Steer, ACE, Hephaestus | Claudiomiro, DataPizza, **LeanAide** |
-| **Stage 6** | ACE, RAGbits, Knowledge Engine | DataPizza, Hephaestus, **LeanAide** |
+| **Stage 5** | Steer, ACE, CrewAI | Claudiomiro, DataPizza, **LeanAide** |
+| **Stage 6** | ACE, RAGbits, Knowledge Engine | DataPizza, CrewAI, **LeanAide** |
 
 ### 1.3 Where does LeanAide Fit in the Workflow?
 
@@ -89,7 +89,7 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 - **Stage 6**: Extract verified theorems for knowledge base
 
 **Status:** ✅ **FULLY INTEGRATED** (90%+)
-- Complete Hephaestus bridge (`leanaide_hephaestus_bridge.py`)
+- Complete CrewAI bridge (`leanaide_crewai_bridge.py`)
 - MCP tools for agent integration (`leanaide_mcp_tools.py`)
 - Production-ready async client (`leanaide_client.py`)
 
@@ -226,7 +226,7 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 - **3A (Blue Team):** Claudiomiro generates solutions, ROMA handles decomposition, DataPizza provides LLM access
 - **3B (Red Team):** ACE provides critique insights, Steer validates output
 - **3C (Gold Team):** Steer safety checks, Knowledge Engine verification
-- **3D (Refinement):** Claudiomiro fixes issues, Hephaestus tracks tickets
+- **3D (Refinement):** Claudiomiro fixes issues, CrewAI tracks tickets
 
 **FRM Potential Contributions:**
 - ✅ Equation modeling for solution approaches
@@ -296,7 +296,7 @@ From `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md`:
 **Current Capabilities:**
 - Steer: Runtime safety verification
 - ACE: Learning from verification failures
-- Hephaestus: Refinement loop tracking
+- CrewAI: Refinement loop tracking
 - 6-phase Red Team gauntlet (integration vulnerabilities, cross-component, edge cases, performance, security, compliance)
 - 10-dimensional Gold Team evaluation
 - Automatic fix generation (security, quality, bugs)
@@ -672,7 +672,7 @@ class FRMValidator:
 **To OpenEvolve (if integrating):**
 
 1. **Add FRM client** - New module: `frm_client.py`
-2. **Add FRM bridge** - New module: `frm_hephaestus_bridge.py`
+2. **Add FRM bridge** - New module: `frm_crewai_bridge.py`
 3. **Add FRM MCP tools** - New module: `frm_mcp_tools.py`
 4. **Update workflow** - Invoke FRM in Stages 0, 1, 3, 5, 6
 5. **Update UI** - Add FRM validation panels (BubbleLab UI, not React)

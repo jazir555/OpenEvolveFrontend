@@ -44,7 +44,7 @@ Performed an **ultra-exhaustive line-by-line analysis** that went beyond all pre
 ### Previously Fixed Bugs (1-10) from Earlier Reviews
 
 1. ✅ **Bug #1**: Incorrect Parameter Names (decomposition_mcp_tools.py)
-2. ✅ **Bug #2**: Incorrect Parameter Names (roma_mdap_maker_hephaestus_bridge.py)
+2. ✅ **Bug #2**: Incorrect Parameter Names (roma_mdap_maker_crewai_bridge.py)
 3. ✅ **Bug #3**: AdaptiveKSelector Returns Invalid k=1
 4. ✅ **Bug #4**: Crash on None Task
 5. ✅ **Bug #5**: No k_ahead Validation
@@ -437,7 +437,7 @@ Success Rate: 100% (all code correct)
 
 **Lines Modified**: ~5 lines
 
-### 4. roma_mdap_maker_hephaestus_bridge.py (~900 lines)
+### 4. roma_mdap_maker_crewai_bridge.py (~900 lines)
 **Changes**:
 1. Fixed parameter names in `execute_phase_2_solve()` - Bug #2
    - Same as decomposition_mcp_tools.py

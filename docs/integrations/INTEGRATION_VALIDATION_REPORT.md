@@ -11,7 +11,7 @@
 
 **Files:**
 - `openevolve_mcp_tools.py` (745 lines) - ✅ Validated
-- `hephaestus_openevolve_bridge.py` (450 lines) - ✅ Validated
+- `crewai_openevolve_bridge.py` (450 lines) - ✅ Validated
 
 **MCP Tools Registered: 7**
 1. `evolve_code_with_openevolve`
@@ -30,7 +30,7 @@
 
 **Files:**
 - `decomposition_mcp_tools.py` (1095 lines) - ✅ Validated
-- `decomposition_hephaestus_bridge.py` (900 lines) - ✅ Validated
+- `decomposition_crewai_bridge.py` (900 lines) - ✅ Validated
 
 **MCP Tools Registered: 9**
 1. `analyze_problem_for_decomposition`
@@ -53,7 +53,7 @@
 
 **Files:**
 - `steer_mcp_tools.py` (650 lines) - ✅ Validated
-- `steer_hephaestus_bridge.py` (450 lines) - ✅ Validated
+- `steer_crewai_bridge.py` (450 lines) - ✅ Validated
 
 **MCP Tools Registered: 7**
 1. `verify_json_output`
@@ -73,7 +73,7 @@
 ## Architecture Verification
 
 ```
-Hephaestus (Orchestrator)
+CrewAI (Orchestrator)
     │
     ├──> Decomposition Workflow (9 MCP tools)
     │        └──> OpenEvolve (7 MCP tools, used in ALL stages)
@@ -109,11 +109,11 @@ All integration files import successfully:
 
 ```
 ✅ openevolve_mcp_tools - 7 tools registered
-✅ hephaestus_openevolve_bridge - Imported successfully
+✅ crewai_openevolve_bridge - Imported successfully
 ✅ decomposition_mcp_tools - 9 tools registered
-✅ decomposition_hephaestus_bridge - 6 phase executors
+✅ decomposition_crewai_bridge - 6 phase executors
 ✅ steer_mcp_tools - 7 tools registered
-✅ steer_hephaestus_bridge - 6 phase verifiers
+✅ steer_crewai_bridge - 6 phase verifiers
 ```
 
 ---
@@ -124,11 +124,11 @@ All files validated with Python AST parser:
 
 ```
 ✅ openevolve_mcp_tools.py - Valid AST
-✅ hephaestus_openevolve_bridge.py - Valid AST
+✅ crewai_openevolve_bridge.py - Valid AST
 ✅ decomposition_mcp_tools.py - Valid AST
-✅ decomposition_hephaestus_bridge.py - Valid AST
+✅ decomposition_crewai_bridge.py - Valid AST
 ✅ steer_mcp_tools.py - Valid AST
-✅ steer_hephaestus_bridge.py - Valid AST
+✅ steer_crewai_bridge.py - Valid AST
 ```
 
 ---
@@ -228,11 +228,11 @@ All bridge functions pass through evolution parameters:
 | File | Lines | Status | Purpose |
 |------|-------|--------|---------|
 | `openevolve_mcp_tools.py` | 745 | ✅ | OpenEvolve MCP tools |
-| `hephaestus_openevolve_bridge.py` | 450 | ✅ | OpenEvolve bridge |
+| `crewai_openevolve_bridge.py` | 450 | ✅ | OpenEvolve bridge |
 | `decomposition_mcp_tools.py` | 1095 | ✅ | Decomposition MCP tools |
-| `decomposition_hephaestus_bridge.py` | 900 | ✅ | Decomposition bridge |
+| `decomposition_crewai_bridge.py` | 900 | ✅ | Decomposition bridge |
 | `steer_mcp_tools.py` | 650 | ✅ | Steer MCP tools |
-| `steer_hephaestus_bridge.py` | 450 | ✅ | Steer bridge |
+| `steer_crewai_bridge.py` | 450 | ✅ | Steer bridge |
 | `openevolve_client.py` | - | ✅ | Fixed (existing bug) |
 | **Total** | **4,290** | ✅ | **All integration code** |
 

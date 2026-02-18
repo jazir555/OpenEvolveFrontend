@@ -14,7 +14,7 @@ This integration enables comprehensive workflow management by connecting **OpenE
 - ✅ Workflow parameter management
 - ✅ Analytics and performance tracking
 - ✅ State machine validation for workflow transitions
-- ✅ Hephaestus integration for project management
+- ✅ CrewAI integration for project management
 - ✅ MCP tools for external agent control
 
 ---
@@ -33,13 +33,13 @@ This integration enables comprehensive workflow management by connecting **OpenE
 │  - Creates workflows from templates                          │
 │  - Manages workflow execution                                │
 │  - Tracks state and metrics                                  │
-│  - Integrates with analytics and Hephaestus                 │
+│  - Integrates with analytics and CrewAI                 │
 └────────────────────────┬────────────────────────────────────┘
                          │
          ┌───────────────┼───────────────┐
          ▼               ▼               ▼
     ┌─────────┐    ┌──────────┐   ┌──────────┐
-    │BubbleLabs│    │Analytics │   │Hephaestus│
+    │BubbleLabs│    │Analytics │   │CrewAI│
     │Integration│  │  Database│   │  Bridge   │
     └─────────┘    └──────────┘   └──────────┘
          │
@@ -59,7 +59,7 @@ This integration enables comprehensive workflow management by connecting **OpenE
    - Template-based workflow creation
    - Workflow execution engine
    - State management and monitoring
-   - Integration with analytics and Hephaestus
+   - Integration with analytics and CrewAI
 
 2. **openevolve_workflow_mcp_tools.py** (~600 lines)
    - MCP tools for external control
@@ -84,7 +84,7 @@ from openevolve_workflow_manager import OpenEvolveWorkflowManager, WorkflowTempl
 # Initialize manager
 manager = OpenEvolveWorkflowManager(
     analytics_db_path='openevolve_analytics.db',
-    enable_hephaestus=True
+    enable_crewai=True
 )
 
 # Create workflow from template
@@ -243,7 +243,7 @@ print(status)
 
 ## State Machine Validation
 
-All workflow state transitions are validated using the state machine in `bubblelabs_hephaestus_bridge.py`:
+All workflow state transitions are validated using the state machine in `bubblelabs_crewai_bridge.py`:
 
 ### Valid States
 - `created` - Workflow definition created
@@ -308,14 +308,14 @@ node_metrics = analytics.get_node_metrics(workflow_id)
 
 ---
 
-## Hephaestus Integration
+## CrewAI Integration
 
 ### Enable Project Management
 
 ```python
-from bubblelabs_hephaestus_bridge import BubbleLabsTicketConfig
+from bubblelabs_crewai_bridge import BubbleLabsTicketConfig
 
-hephaestus_config = BubbleLabsTicketConfig(
+crewai_config = BubbleLabsTicketConfig(
     auto_create_tickets=True,
     auto_update_progress=True,
     auto_close_on_completion=True,
@@ -325,12 +325,12 @@ hephaestus_config = BubbleLabsTicketConfig(
 )
 
 manager = OpenEvolveWorkflowManager(
-    enable_hephaestus=True,
-    hephaestus_config=hephaestus_config
+    enable_crewai=True,
+    crewai_config=crewai_config
 )
 ```
 
-### Hephaestus Features
+### CrewAI Features
 
 - Automatic ticket creation when workflow starts
 - Ticket status updates as workflow progresses
@@ -422,7 +422,7 @@ print(f"Started async execution: {instance_id}")
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `OPENEVOLVE_ANALYTICS_DB` | Path to analytics database | `openevolve_workflow_analytics.db` |
-| `ENABLE_HEPHAESTUS` | Enable Hephaestus integration | `false` |
+| `ENABLE_CREWAI` | Enable CrewAI integration | `false` |
 
 ---
 
@@ -541,7 +541,7 @@ The OpenEvolve + BubbleLabs integration provides comprehensive workflow manageme
 ✅ Real-time execution monitoring
 ✅ State machine validation
 ✅ Analytics tracking
-✅ Hephaestus integration
+✅ CrewAI integration
 ✅ MCP tools for external control
 ✅ Template-based workflows
 ✅ Custom workflow support

@@ -41,7 +41,7 @@
 8. **SlackBubble** (34 ops) - `packages/bubble-core/src/bubbles/service-bubble/slack-bubble.ts`
 9. **WorkflowOrchestratorBubble** (34 ops) - `packages/bubble-core/src/bubbles/service-bubble/workflow-orchestrator-bubble.ts`
 10. **ElasticsearchBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/elasticsearch-bubble.ts`
-11. **HephaestusBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/hephaestus-bubble.ts`
+11. **CrewAIBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/crewai-bubble.ts`
 12. **PostgresqlBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/postgresql-bubble.ts`
 13. **QdrantBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/qdrant-bubble.ts`
 14. **AGIIncBubble** (31 ops) - `packages/bubble-core/src/bubbles/service-bubble/agi-inc.ts`
@@ -77,7 +77,7 @@
 | ✅ TESTED | 87 | GoogleSheetsBubble | packages/bubble-core/src/bubbles/service-bubble/google-sheets-bubble.ts |
 | ✅ TESTED | 14 | GoogleSheetsBubble | packages/bubble-core/src/bubbles/service-bubble/google-sheets/google-sheets.ts |
 | ✅ TESTED | 3 | HelloWorldBubble | packages/bubble-core/src/bubbles/service-bubble/hello-world.ts |
-| ❌ NEEDS TEST | 33 | HephaestusBubble | packages/bubble-core/src/bubbles/service-bubble/hephaestus-bubble.ts |
+| ❌ NEEDS TEST | 33 | CrewAIBubble | packages/bubble-core/src/bubbles/service-bubble/crewai-bubble.ts |
 | ✅ TESTED | 6 | HttpBubble | packages/bubble-core/src/bubbles/service-bubble/http-bubble.ts |
 | ✅ TESTED | 3 | HttpBubble | packages/bubble-core/src/bubbles/service-bubble/http.ts |
 | ❌ NEEDS TEST | 4 | InsForgeDbBubble | packages/bubble-core/src/bubbles/service-bubble/insforge-db.ts |
@@ -115,7 +115,7 @@
 | ❌ NEEDS TEST | 13 | ElasticsearchBubble | integrations/openevolve/service-bubbles/elasticsearch-bubble.ts |
 | ❌ NEEDS TEST | 10 | GitHubBubble | integrations/openevolve/service-bubbles/github-bubble.ts |
 | ❌ NEEDS TEST | 9 | GmailBubble | integrations/openevolve/service-bubbles/gmail-bubble.ts |
-| ❌ NEEDS TEST | 15 | HephaestusBubble | integrations/openevolve/service-bubbles/hephaestus-bubble.ts |
+| ❌ NEEDS TEST | 15 | CrewAIBubble | integrations/openevolve/service-bubbles/crewai-bubble.ts |
 | ❌ NEEDS TEST | 3 | HttpBubble | integrations/openevolve/service-bubbles/http-bubble.ts |
 | ❌ NEEDS TEST | 8 | KnowledgeEngineBubble | integrations/openevolve/service-bubbles/knowledge-engine-bubble.ts |
 | ❌ NEEDS TEST | 9 | PostgreSQLBubbleExtended | integrations/openevolve/service-bubbles/postgresql-bubble.ts |
@@ -311,7 +311,7 @@
 7. SlackBubble (34 ops)
 8. WorkflowOrchestratorBubble (34 ops)
 9. ElasticsearchBubble (33 ops)
-10. HephaestusBubble (33 ops)
+10. CrewAIBubble (33 ops)
 11. PostgresqlBubble (33 ops)
 12. QdrantBubble (33 ops)
 13. AGIIncBubble (31 ops)

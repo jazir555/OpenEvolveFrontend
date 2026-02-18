@@ -26,7 +26,7 @@ export interface PluginCapabilities {
     maker?: boolean;
     mdap?: boolean;
     decomposition?: boolean;
-    hephaestus?: boolean;
+    crewai?: boolean;
     roma?: boolean;
     invention?: boolean;
 }

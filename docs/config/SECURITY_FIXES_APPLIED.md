@@ -98,7 +98,7 @@ openevolve:
 - Maintains example.com as safe default for local testing
 - CORS origins updated to use `${APP_BASE_URL}` pattern
 - OAuth redirect URIs updated to use `${APP_BASE_URL}` pattern
-- Hephaestus MCP URL updated to use `${HEPHAEUS_URL}` pattern
+- CrewAI MCP URL updated to use `${CREWAI_URL}` pattern
 
 **Files Affected**:
 - `config/environments/staging.yaml` (20+ endpoints updated)

@@ -592,8 +592,8 @@ deterministic_refinement:
 class RefinementMetricsCollector:
     """Collect and report refinement metrics."""
     
-    def __init__(self, hephaestus_client=None):
-        self.client = hephaestus_client
+    def __init__(self, crewai_client=None):
+        self.client = crewai_client
         self.metrics = defaultdict(list)
     
     def track_refinement(

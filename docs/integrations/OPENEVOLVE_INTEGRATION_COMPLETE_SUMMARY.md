@@ -241,9 +241,9 @@ except ImportError:
 - **Integration:** Model Context Protocol integration
 - **Status:** ✅ Complete with fallback classes
 
-### 6. Hephaestus Integration
-**Files:** `openevolve_hephaestus_adapter.py`, `openevolve_hephaestus_delegation.py`
-- **Integration:** Delegation to Hephaestus orchestration
+### 6. CrewAI Integration
+**Files:** `openevolve_crewai_adapter.py`, `openevolve_crewai_delegation.py`
+- **Integration:** Delegation to CrewAI orchestration
 - **Status:** ✅ Complete
 
 ### 7. Sovereign System

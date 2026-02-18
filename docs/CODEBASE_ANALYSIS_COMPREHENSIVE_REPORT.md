@@ -74,13 +74,13 @@ The OpenEvolve Frontend is a **massive, complex system** with 590 root-level Pyt
 
 **Major Integration Categories**:
 
-##### A. Hephaestus Integration (6 files)
-- `hephaestus_integration.py` (51,375 lines) - Main bridge
-- `hephaestus_client.py` - Client wrapper
-- `example_hephaestus_delegation.py` - Usage examples
-- `openevolve_hephaestus_adapter.py` - Adaptation layer
-- `openevolve_hephaestus_delegation.py` - Delegation logic
-- `test_hephaestus_end_to_end.py` - Integration tests
+##### A. CrewAI Integration (6 files)
+- `crewai_integration.py` (51,375 lines) - Main bridge
+- `crewai_client.py` - Client wrapper
+- `example_crewai_delegation.py` - Usage examples
+- `openevolve_crewai_adapter.py` - Adaptation layer
+- `openevolve_crewai_delegation.py` - Delegation logic
+- `test_crewai_end_to_end.py` - Integration tests
 
 ##### B. LeanAide Integration (26 files)
 - `leanaide_client.py` (41,301 lines) - Main client
@@ -94,7 +94,7 @@ The OpenEvolve Frontend is a **massive, complex system** with 590 root-level Pyt
 ##### C. BubbleLabs Integration (12 files)
 - `bubblelabs_ui_component.py` (169,608 lines) - UI integration
 - `bubblelabs_evolution_integration.py` (~2,000 lines)
-- `bubblelabs_hephaestus_bridge.py` (~3,000 lines)
+- `bubblelabs_crewai_bridge.py` (~3,000 lines)
 - `bubblelabs_maker_integration.py` (~2,500 lines)
 - `bubblelabs_knowledge_integration.py` (~2,000 lines)
 - `bubblelabs_leanaide_integration.py` (~3,000 lines)
@@ -112,7 +112,7 @@ The OpenEvolve Frontend is a **massive, complex system** with 590 root-level Pyt
 - `decomposition_engine.py` (170,308 lines) - **CORE FILE**
 - `problem_analyzer.py` - Problem analysis
 - `decomposition_engine_lean_enhanced.py` (44,984 lines)
-- `decomposition_hephaestus_bridge.py` (45,829 lines)
+- `decomposition_crewai_bridge.py` (45,829 lines)
 - `decomposition_mcp_tools.py` (89,474 lines)
 
 #### 4. MCP Tools (16 files)
@@ -135,7 +135,7 @@ The OpenEvolve Frontend is a **massive, complex system** with 590 root-level Pyt
 |------|-------|---------|
 | `ace_analytics.py` (60,335 lines) | Core analytics |
 | `ace_knowledge_artifacts.py` (36,440 lines) | Knowledge management |
-| `ace_hephaestus_bridge.py` (53,592 lines) | Hephaestus bridge |
+| `ace_crewai_bridge.py` (53,592 lines) | CrewAI bridge |
 | `ace_stage6_integration.py` (40,291 lines) | Stage 6 integration |
 | `ace_security_utils.py` (23,485 lines) | Security utilities |
 
@@ -246,7 +246,7 @@ openevolve_orchestrator.py (3,166 lines)
 
 # Specialized integrations
 openevolve_maker_integration.py
-openevolve_hephaestus_bridge.py (50,566 lines)
+openevolve_crewai_bridge.py (50,566 lines)
 openevolve_bubblelabs_api.py
 ```
 
@@ -335,7 +335,7 @@ result = client.evolve(content, evolution_mode="standard")
     ┌────────▼────────────────────────────┐
     │      Integration Bridges            │
     ├─────────────────────────────────────┤
-      │ • hephaestus_integration.py       │
+      │ • crewai_integration.py       │
       │ • maker_engine.py                 │
       │ • mdap_engine.py                  │
       │ • leanaide_client.py              │
@@ -461,7 +461,7 @@ openevolve-integration-library/
 │   ├── integrations/
 │   │   ├── decomposition.ts (2.4K)
 │   │   ├── evolution.ts (3.1K)
-│   │   ├── hephaestus.ts (3.1K)
+│   │   ├── crewai.ts (3.1K)
 │   │   ├── knowledge.ts (3.1K)
 │   │   ├── leanaide.ts (2.8K)
 │   │   ├── maker.ts (2.8K)
@@ -514,9 +514,9 @@ await client.integrations.maker.execute({
 });
 ```
 
-5. **Hephaestus Integration**
+5. **CrewAI Integration**
 ```typescript
-await client.integrations.hephaestus.execute({
+await client.integrations.crewai.execute({
   mode: 'delegate',
   task: 'Analyze data'
 });
@@ -744,7 +744,7 @@ openevolve_integration_library/
 │   ├── evolution.py
 │   ├── leanaide.py
 │   ├── maker.py
-│   ├── hephaestus.py
+│   ├── crewai.py
 │   └── knowledge.py
 ├── api/
 │   ├── client.py
@@ -871,13 +871,13 @@ openevolve_integration_library/
 3. evaluator_team.py
 
 #### Integration (90)
-**Hephaestus (6)**:
-1. hephaestus_integration.py
-2. hephaestus_client.py
-3. example_hephaestus_delegation.py
-4. openevolve_hephaestus_adapter.py
-5. openevolve_hephaestus_delegation.py
-6. test_hephaestus_end_to_end.py
+**CrewAI (6)**:
+1. crewai_integration.py
+2. crewai_client.py
+3. example_crewai_delegation.py
+4. openevolve_crewai_adapter.py
+5. openevolve_crewai_delegation.py
+6. test_crewai_end_to_end.py
 
 **LeanAide (26)**:
 1. leanaide_client.py
@@ -910,7 +910,7 @@ openevolve_integration_library/
 **BubbleLabs (12)**:
 1. bubblelabs_ui_component.py
 2. bubblelabs_evolution_integration.py
-3. bubblelabs_hephaestus_bridge.py
+3. bubblelabs_crewai_bridge.py
 4. bubblelabs_integration.py
 5. bubblelabs_knowledge_integration.py
 6. bubblelabs_leanaide_integration.py
@@ -963,8 +963,8 @@ openevolve_integration_library/
 
 **Other Integrations (3)**:
 1. claudiomiro_config.py
-2. claudiomiro_hephaestus_bridge.py
-3. datapizza_hephaestus_bridge.py
+2. claudiomiro_crewai_bridge.py
+3. datapizza_crewai_bridge.py
 
 #### MCP Tools (16)
 1. ace_mcp_tools.py
@@ -976,7 +976,7 @@ openevolve_integration_library/
 7. c2c_mcp_tools.py
 8. maker_mcp_tools.py
 9. mdap_mcp_tools.py
-10. hephaestus_mcp_tools.py
+10. crewai_mcp_tools.py
 11. knowledge_mcp_tools.py
 12. workflow_mcp_tools.py
 13. evolution_mcp_tools.py
@@ -987,7 +987,7 @@ openevolve_integration_library/
 #### ACE Components (5)
 1. ace_analytics.py
 2. ace_knowledge_artifacts.py
-3. ace_hephaestus_bridge.py
+3. ace_crewai_bridge.py
 4. ace_stage6_integration.py
 5. ace_security_utils.py
 
@@ -1062,7 +1062,7 @@ openevolve_integration_library/
 7. test_leanaide.py
 8. test_maker.py
 9. test_mdap.py
-10. test_hephaestus.py
+10. test_crewai.py
 11-40. (30 more unit test files)
 
 **Demo Files (50)**:

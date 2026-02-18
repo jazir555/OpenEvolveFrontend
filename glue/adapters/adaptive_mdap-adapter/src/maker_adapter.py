@@ -21,7 +21,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple
 import json
 
-from adaptive_mdap_adapter import (
+from .adaptive_mdap_adapter import (
     AdaptiveMDAPAdapterConfig,
     StructuredLogger,
     CircuitBreaker,

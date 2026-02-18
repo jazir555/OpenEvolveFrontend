@@ -4,7 +4,7 @@ DataPizza-CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 DataPizza's multi-agent framework with MIT-licensed CrewAI execution.
 
-This replaces datapizza_hephaestus_bridge.py with local CrewAI execution.
+This replaces datapizza_crewai_bridge.py with local CrewAI execution.
 
 IMPORTANT: DataPizza provides multi-agent coordination with Blue/Red/Gold teams,
 tool use (FileSystem, Web Search, SQL), and OpenTelemetry tracing.
@@ -17,7 +17,7 @@ Phase Mapping:
 - Phase 5: Reassembly -> Multi-agent coordination
 - Phase 6: Final Validation -> Full blue-red-gold workflow
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -27,7 +27,7 @@ from typing import Dict, Any, List, Optional
 import threading
 import time
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
     ZeroErrorConfig,
@@ -654,7 +654,7 @@ class DataPizzaCrewAIWorkflowBridge:
     Bridge class for DataPizza integration with CrewAI.
 
     Provides convenient methods for executing CrewAI workflows with DataPizza.
-    Replaces DataPizzaHephaestusWorkflowBridge with MIT-licensed CrewAI.
+    Replaces DataPizzaCrewAIWorkflowBridge with MIT-licensed CrewAI.
     """
 
     def __init__(

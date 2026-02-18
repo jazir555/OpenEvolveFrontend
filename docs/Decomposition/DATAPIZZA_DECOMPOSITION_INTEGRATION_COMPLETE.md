@@ -47,13 +47,13 @@ Successfully integrated **DataPizza multi-agent framework** into the **Sovereign
 - SQLDatabase (execute SQL queries)
 - WebFetch (fetch web content)
 
-### 2. datapizza_hephaestus_bridge.py (NEW)
+### 2. datapizza_crewai_bridge.py (NEW)
 
-**Purpose**: Bridge mapping Hephaestus 6 phases to DataPizza multi-agent workflows
+**Purpose**: Bridge mapping CrewAI 6 phases to DataPizza multi-agent workflows
 
 **Lines**: ~500
 
-**Key Class**: `DataPizzaHephaestusWorkflowBridge`
+**Key Class**: `DataPizzaCrewAIWorkflowBridge`
 
 **Key Methods**:
 - `execute_phase_1_setup()` - Multi-agent analysis (parallel Blue/Red/Gold)
@@ -100,7 +100,7 @@ Successfully integrated **DataPizza multi-agent framework** into the **Sovereign
 
 **Total parameters in solve_sub_problem_with_team**: 22 (was 16, now 6 more)
 
-### 2. decomposition_hephaestus_bridge.py
+### 2. decomposition_crewai_bridge.py
 
 **Status**: No changes needed - already supports passing through all parameters
 
@@ -112,7 +112,7 @@ The existing `execute_phase_2_solve()` function already passes through all param
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Hephaestus (Orchestrator)                                │
+│                    CrewAI (Orchestrator)                                │
 │  Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                    │
@@ -241,12 +241,12 @@ result = solve_sub_problem_with_team(
 # Auto selects DataPizza because "research" and "analyze" keywords detected
 ```
 
-### Example 4: Hephaestus Bridge
+### Example 4: CrewAI Bridge
 
 ```python
-from datapizza_hephaestus_bridge import DataPizzaHephaestusWorkflowBridge
+from datapizza_crewai_bridge import DataPizzaCrewAIWorkflowBridge
 
-bridge = DataPizzaHephaestusWorkflowBridge(
+bridge = DataPizzaCrewAIWorkflowBridge(
     provider="openai",
     model="gpt-4o-mini",
     working_directory="./project",
@@ -368,11 +368,11 @@ print(f"Total parameters: {len(sig.parameters)}")  # 22 (was 16)
 | **ACE** | Can learn from DataPizza executions |
 | **Steer** | Can verify DataPizza outputs |
 | **Claudiomiro** | Alternative option - choose based on task |
-| **Hephaestus** | Phase 2-4 enhanced with DataPizza |
+| **CrewAI** | Phase 2-4 enhanced with DataPizza |
 
 ### Phase Mapping
 
-| Hephaestus Phase | Traditional | Claudiomiro | DataPizza |
+| CrewAI Phase | Traditional | Claudiomiro | DataPizza |
 |------------------|-------------|-------------|-----------|
 | Phase 1: Setup | OpenEvolve analysis | Not used | Parallel multi-agent analysis |
 | Phase 2: Solve | OpenEvolve + LLM | Autonomous coding | Blue Agent with tools |
@@ -414,7 +414,7 @@ These are NOT required for the integration to be complete, but could be added la
 
 **What Was Done**:
 1. Created `datapizza_mcp_tools.py` (~650 lines, 7 MCP tools)
-2. Created `datapizza_hephaestus_bridge.py` (~500 lines, 6 phase executors)
+2. Created `datapizza_crewai_bridge.py` (~500 lines, 6 phase executors)
 3. Enhanced `decomposition_mcp_tools.py` (~200 lines added):
    - DataPizza import and availability check
    - 6 new parameters in `solve_sub_problem_with_team()`

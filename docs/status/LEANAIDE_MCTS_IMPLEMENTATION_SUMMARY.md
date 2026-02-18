@@ -267,12 +267,12 @@ if EVOLUTIONARY_AVAILABLE:
     evolved_solution = await evolutionary_stage.evolve_solution_stage3a(...)
 ```
 
-### With Hephaestus
+### With CrewAI
 
 ```python
-if HEPHAESTUS_AVAILABLE:
-    hephaestus_client = HephaestusClient(timeout=600.0)
-    ticket_id = await hephaestus_client.create_ticket(...)
+if CREWAI_AVAILABLE:
+    crewai_client = CrewAIClient(timeout=600.0)
+    ticket_id = await crewai_client.create_ticket(...)
 ```
 
 ### With ACE
@@ -379,7 +379,7 @@ if monitor.should_early_terminate(sub_problem_id):
 ### ✅ Integration
 - [x] LeanAide integration
 - [x] Evolution integration
-- [x] Hephaestus tracking
+- [x] CrewAI tracking
 - [x] ACE knowledge storage
 
 ## Usage Example

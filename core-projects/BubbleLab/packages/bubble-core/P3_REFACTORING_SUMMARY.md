@@ -455,7 +455,7 @@ Track these metrics for each refactored bubble:
 ### Phase 3: AI/ML Services (2 hours)
 15. ai-agent
 16. eleven-labs
-17. hephaestus
+17. crewai
 
 ### Phase 4: Tool Bubbles (3 hours)
 18. code-edit-tool

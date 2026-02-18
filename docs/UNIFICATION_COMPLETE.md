@@ -140,7 +140,7 @@ OpenEvolve-Plugin/
 - ✅ Enhanced hooks from P2 integrated
 
 **Services** (10):
-- evolution, adversarial, maker, mdap, decomposition, knowledge, leanaide, hephaestus, roma, invention
+- evolution, adversarial, maker, mdap, decomposition, knowledge, leanaide, crewai, roma, invention
 
 **Hooks** (8 total):
 - useApi, useWebSocket, useKnowledge, useRealtime, useWorkflows (from P1)
@@ -168,7 +168,7 @@ OpenEvolve-Plugin/
 5. decomposition.ts (merged)
 6. knowledge.ts (merged)
 7. leanaide.ts (merged)
-8. hephaestus.ts (merged)
+8. crewai.ts (merged)
 9. roma.ts (merged)
 10. invention.ts (merged)
 
@@ -341,7 +341,7 @@ OpenEvolve-Plugin/ (UNIFIED)
 │   │   ├── decomposition.ts
 │   │   ├── knowledge.ts
 │   │   ├── leanaide.ts
-│   │   ├── hephaestus.ts
+│   │   ├── crewai.ts
 │   │   ├── roma.ts
 │   │   └── invention.ts
 │   │

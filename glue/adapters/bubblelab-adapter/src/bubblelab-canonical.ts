@@ -265,7 +265,7 @@ export function mapFromCanonicalCredentials(canonical: CanonicalCredentialMappin
   // Convert enum keys to string keys
   const result: Record<string, number> = {};
   for (const [key, value] of Object.entries(canonical)) {
-    result[key] = value;
+    result[key] = Number(value);
   }
   return result;
 }

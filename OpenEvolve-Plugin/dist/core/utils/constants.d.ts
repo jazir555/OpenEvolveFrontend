@@ -13,7 +13,7 @@ export declare const API_ENDPOINTS: {
     readonly MAKER: "/api/openevolve/maker";
     readonly MDAP: "/api/openevolve/mdap";
     readonly DECOMPOSITION: "/api/openevolve/decomposition";
-    readonly HEPHAEUSTUS: "/api/openevolve/hephaestus";
+    readonly CREWAI: "/api/openevolve/crewai";
     readonly ROMA: "/api/openevolve/roma";
     readonly INVENTION: "/api/openevolve/invention";
 };

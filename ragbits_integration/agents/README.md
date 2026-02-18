@@ -8,10 +8,10 @@ Phase 2 implements RAGBits-integrated agent coordination with Agent-to-Agent (A2
 
 ### 1. Base Workflow Agent (`base_agent.py`)
 
-**Purpose**: Foundation for all workflow agents with Hephaestus LLM integration
+**Purpose**: Foundation for all workflow agents with CrewAI LLM integration
 
 **Key Features**:
-- LLM management via Hephaestus (no direct LLM dependencies)
+- LLM management via CrewAI (no direct LLM dependencies)
 - Tool management and execution
 - Prompt construction and response parsing
 - Conversation history tracking
@@ -23,7 +23,7 @@ from ragbits_integration.agents.base_agent import BaseWorkflowAgent
 
 agent = BaseWorkflowAgent(
     role="blue_team",
-    hephaestus_client=hephaestus_client,
+    crewai_client=crewai_client,
     model_config={"model_id": "gpt-4", "temperature": 0.7}
 )
 
@@ -48,7 +48,7 @@ result = await agent.execute(
 from ragbits_integration.agents import BlueTeamAgent
 
 blue_agent = BlueTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     storage_manager=storage,
     knowledge_retriever=retriever
 )
@@ -82,7 +82,7 @@ solution = result["solution"]
 from ragbits_integration.agents import RedTeamAgent
 
 red_agent = RedTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     storage_manager=storage,
     knowledge_retriever=retriever
 )
@@ -113,7 +113,7 @@ recommendations = result["parsed"]["recommendations"]
 from ragbits_integration.agents import GoldTeamAgent
 
 gold_agent = GoldTeamAgent(
-    hephaestus_client=hephaestus,
+    crewai_client=crewai,
     storage_manager=storage,
     knowledge_retriever=retriever
 )
@@ -273,9 +273,9 @@ async def complete_workflow():
     protocol = A2AProtocol()
     storage = IntermediaryStorageManager(document_search)
 
-    blue_agent = BlueTeamAgent(hephaestus, storage, retriever)
-    red_agent = RedTeamAgent(hephaestus, storage, retriever)
-    gold_agent = GoldTeamAgent(hephaestus, storage, retriever)
+    blue_agent = BlueTeamAgent(crewai, storage, retriever)
+    red_agent = RedTeamAgent(crewai, storage, retriever)
+    gold_agent = GoldTeamAgent(crewai, storage, retriever)
 
     sub_problem = {
         "id": "sub_1",
@@ -456,7 +456,7 @@ Phase 3: Evaluation Framework Integration
 
 ✅ **COMPLETE** - All Phase 2 components implemented and tested
 
-- Base agent with Hephaestus integration
+- Base agent with CrewAI integration
 - Blue, Red, and Gold team agents
 - Agent tools (knowledge search, evaluation, patterns)
 - A2A protocol with message routing

@@ -50,6 +50,21 @@ except ImportError as e:
     GraphitiContradictionDetector = None
 
 try:
+    from knowledge_engine.integrations.ragbits_integration import RagbitsIntegration
+    RAGBITS_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Ragbits components not available: {e}")
+    RAGBITS_AVAILABLE = False
+    RagbitsIntegration = None
+
+try:
+    from knowledge_engine.integrations.knowledge_flow_orchestrator import KnowledgeFlowOrchestrator
+    FLOW_ORCHESTRATOR_AVAILABLE = True
+except ImportError:
+    FLOW_ORCHESTRATOR_AVAILABLE = False
+    KnowledgeFlowOrchestrator = None
+
+try:
     from knowledge_engine.integrations.kggen import (
         ExtractionPipeline,
     )
@@ -203,6 +218,8 @@ class KnowledgeEngine:
 
         # Initialize components (lazy loading)
         self._graphiti = None
+        self._ragbits = None
+        self._flow_orchestrator = None
         self._kggen = None
         self._oneke = None
         self._visualization = None
@@ -221,6 +238,7 @@ class KnowledgeEngine:
             "msg": "KnowledgeEngine created",
             "components": {
                 "graphiti": GRAPHITI_AVAILABLE,
+                "ragbits": RAGBITS_AVAILABLE,
                 "kggen": KGGEN_AVAILABLE,
                 "oneke": ONEKE_AVAILABLE,
                 "visualization": VISUALIZATION_AVAILABLE,
@@ -244,6 +262,17 @@ class KnowledgeEngine:
             "graphiti_uri": os.getenv("GRAPHITI_URI", "bolt://localhost:7687"),
             "graphiti_user": os.getenv("GRAPHITI_USER", "neo4j"),
             "graphiti_password": os.getenv("GRAPHITI_PASSWORD"),
+
+            # Ragbits (RAG System)
+            "ragbits_config": {
+                "vector_store": {
+                    "type": os.getenv("RAGBITS_VECTOR_STORE_TYPE", "qdrant"),
+                    "config": {
+                        "location": os.getenv("RAGBITS_VECTOR_STORE_URL", ":memory:"),
+                        "collection_name": os.getenv("RAGBITS_COLLECTION", "knowledge_artifacts")
+                    }
+                }
+            },
 
             # KG-Gen (Knowledge Generation)
             "kggen_model": os.getenv("KGGEN_ENTITY_MODEL", "gpt-4o"),
@@ -329,6 +358,12 @@ class KnowledgeEngine:
         if GRAPHITI_AVAILABLE:
             tasks.append(self._init_graphiti())
 
+        if RAGBITS_AVAILABLE:
+            tasks.append(self._init_ragbits())
+
+        if FLOW_ORCHESTRATOR_AVAILABLE:
+            tasks.append(self._init_flow_orchestrator())
+
         if KGGEN_AVAILABLE:
             tasks.append(self._init_kggen())
 
@@ -368,6 +403,7 @@ class KnowledgeEngine:
             "msg": "KnowledgeEngine initialization complete",
             "components_ready": {
                 "graphiti": self._graphiti is not None,
+                "ragbits": self._ragbits is not None,
                 "kggen": self._kggen is not None,
                 "oneke": self._oneke is not None,
                 "visualization": self._visualization is not None,
@@ -389,6 +425,24 @@ class KnowledgeEngine:
             logger.info("Graphiti temporal bridge initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Graphiti: {e}")
+            raise
+
+    async def _init_ragbits(self):
+        """Initialize Ragbits integration."""
+        try:
+            self._ragbits = RagbitsIntegration(config=self.config["ragbits_config"])
+            logger.info("Ragbits integration initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Ragbits: {e}")
+            raise
+
+    async def _init_flow_orchestrator(self):
+        """Initialize Knowledge Flow Orchestrator."""
+        try:
+            self._flow_orchestrator = KnowledgeFlowOrchestrator()
+            logger.info("Knowledge Flow Orchestrator initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Flow Orchestrator: {e}")
             raise
 
     async def _init_kggen(self):
@@ -1008,6 +1062,70 @@ class KnowledgeEngine:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             raise
+
+    async def sync_ragbits_graphiti(self, correlation_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Synchronize knowledge between Ragbits and Graphiti.
+        
+        Following ADR-008: Knowledge Flow Orchestration.
+        - Bidirectional sync
+        - Conflict resolution via TemporalKnowledgeEngine
+        """
+        start_time = datetime.now(timezone.utc)
+        correlation_id = correlation_id or f"sync_{uuid.uuid4().hex}"
+        
+        logger.info({
+            "msg": "Starting Ragbits-Graphiti sync",
+            "correlation_id": correlation_id,
+            "timestamp": start_time.isoformat()
+        })
+        
+        if not (self._ragbits and self._graphiti):
+            return {"success": False, "error": "Ragbits or Graphiti not available"}
+            
+        try:
+            # 1. Fetch recent document chunks from Ragbits
+            # (Simplified sync: we sync the last 100 items for now)
+            ragbits_data = await self._ragbits.search_documents(query="*", top_k=100)
+            
+            # 2. Sync to Graphiti
+            synced_count = 0
+            for item in ragbits_data.results:
+                from knowledge_engine.integrations.graphiti_integration import KnowledgeArtifact
+                artifact = KnowledgeArtifact(
+                    id=str(uuid.uuid4()),
+                    content=item["content"],
+                    artifact_type="document_chunk",
+                    valid_at=datetime.now(timezone.utc),
+                    metadata=item["metadata"],
+                    source="ragbits"
+                )
+                await self._graphiti.add_artifact(artifact, correlation_id=correlation_id)
+                synced_count += 1
+                
+            # 3. Fetch entities from Graphiti to potentially update Ragbits (Bidirectional)
+            # (In a real implementation, we'd check for new entities in Graphiti)
+            
+            processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            
+            result = {
+                "success": True,
+                "synced_count": synced_count,
+                "processing_time_ms": processing_time_ms,
+                "correlation_id": correlation_id
+            }
+            
+            logger.info({
+                "msg": "Ragbits-Graphiti sync complete",
+                "synced_count": synced_count,
+                "processing_time_ms": processing_time_ms
+            })
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Sync failed: {e}")
+            return {"success": False, "error": str(e), "correlation_id": correlation_id}
 
     async def get_statistics(self) -> Dict[str, Any]:
         """

@@ -52,7 +52,7 @@ All service bubbles in the BubbleLab monorepo have been verified for implementat
 | 17 | **Elasticsearch Bubble** | ✅ | ✅ | Search engine |
 | 18 | **Apify Bubble** | ✅ | ✅ | Web scraping |
 | 19 | **ACE Tools Bubble** | ✅ | ✅ | Code editor integration |
-| 20 | **Hephaestus Bubble** | ✅ | ❌ | Custom service |
+| 20 | **CrewAI Bubble** | ✅ | ❌ | Custom service |
 
 ### Service Bubbles with Multiple Implementations
 
@@ -70,7 +70,7 @@ service-bubble/
 │   ├── http-bubble.ts                    ✅ HTTP requests
 │   ├── webhook-bubble.ts                 ✅ Webhook handling
 │   ├── workflow-orchestrator-bubble.ts   ✅ Workflow coordination
-│   └── hephaestus-bubble.ts              ✅ Custom operations
+│   └── crewai-bubble.ts              ✅ Custom operations
 │
 ├── Database & Storage
 │   ├── postgresql-bubble.ts              ✅ PostgreSQL database

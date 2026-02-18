@@ -23,7 +23,7 @@ Implement comprehensive Phase 4 validation fixes addressing 87 edge cases across
 | File | Lines | Status | Fixes Documented | Fixes Applied |
 |------|-------|--------|------------------|---------------|
 | ace_mcp_tools.py | 961 | ✅ Analyzed | 18 | 3 |
-| ace_hephaestus_bridge.py | 1,174 | ✅ Analyzed | 15 | 0 |
+| ace_crewai_bridge.py | 1,174 | ✅ Analyzed | 15 | 0 |
 | ace_analytics.py | 1,018 | ✅ Analyzed | 18 | 5 |
 | ace_knowledge_artifacts.py | 522 | ✅ Analyzed | 12 | 3 |
 | ace_workflow_knowledge_extractor.py | 655 | ✅ Analyzed | 12 | 0 |
@@ -89,7 +89,7 @@ Implement comprehensive Phase 4 validation fixes addressing 87 edge cases across
 
 **Files & Functions:**
 1. `ace_mcp_tools.py`: initialize_ace_agent, execute_task_with_ace, learn_from_execution_with_ace
-2. `ace_hephaestus_bridge.py`: execute_phase_1_setup, execute_phase_5_reassemble, execute_phase_6_final
+2. `ace_crewai_bridge.py`: execute_phase_1_setup, execute_phase_5_reassemble, execute_phase_6_final
 3. `ace_workflow_knowledge_extractor.py`: extract_from_workflow
 4. `ace_stage6_integration.py`: extract_knowledge_from_workflow_tool, recommend_team_for_task_tool
 
@@ -109,7 +109,7 @@ except ValueError as e:
 **Files & Functions:**
 1. `ace_mcp_tools.py`: initialize_ace_agent, learn_from_samples_with_ace
 2. `ace_analytics.py`: SolutionPatternMiner.__init__, mine_patterns_from_artifacts
-3. `ace_hephaestus_bridge.py`: All phase execution methods
+3. `ace_crewai_bridge.py`: All phase execution methods
 4. `ace_stage6_integration.py`: mine_solution_patterns_tool, recommend_gauntlets_for_task_tool
 
 **Validation Pattern:**
@@ -132,7 +132,7 @@ except ValueError as e:
 **Files & Functions:**
 1. `ace_mcp_tools.py`: learn_from_samples_with_ace
 2. `ace_analytics.py`: mine_patterns_from_artifacts
-3. `ace_hephaestus_bridge.py`: execute_phase_2_solution, execute_phase_3_critique
+3. `ace_crewai_bridge.py`: execute_phase_2_solution, execute_phase_3_critique
 4. `ace_stage6_integration.py`: track_team_performance_tool, analyze_gauntlet_effectiveness_tool
 
 **Validation Pattern:**
@@ -150,7 +150,7 @@ except ValueError as e:
 
 **Files & Functions:**
 1. `ace_mcp_tools.py`: execute_task_with_ace, learn_from_execution_with_ace
-2. `ace_hephaestus_bridge.py`: execute_phase_1_setup, execute_phase_2_solution, all phase methods
+2. `ace_crewai_bridge.py`: execute_phase_1_setup, execute_phase_2_solution, all phase methods
 3. `ace_knowledge_artifacts.py`: KnowledgeArtifact.from_dict
 4. `ace_workflow_knowledge_extractor.py`: extract_from_workflow, _extract_from_stages
 
@@ -255,7 +255,7 @@ if param not in valid_values:
 **Files & Functions:**
 1. `ace_analytics.py`: Cluster ID validation
 2. `ace_mcp_tools.py`: List access operations
-3. `ace_hephaestus_bridge.py`: Solution list indexing
+3. `ace_crewai_bridge.py`: Solution list indexing
 
 **Validation Pattern:**
 ```python

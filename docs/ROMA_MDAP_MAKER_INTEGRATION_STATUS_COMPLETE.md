@@ -188,8 +188,8 @@ from roma_mdap_maker_crewai_bridge import (
 
 #### 8. demo_roma_mdap_maker.py ⚠️ NEEDS UPDATE
 **Status**: Contains outdated references
-- ⚠️ Line 459: References `hephaestus_unified_bridge` (old)
-- ⚠️ Line 488: References `roma_mdap_maker_hephaestus_bridge` (old)
+- ⚠️ Line 459: References `crewai_unified_bridge` (old)
+- ⚠️ Line 488: References `roma_mdap_maker_crewai_bridge` (old)
 
 **Should reference**:
 - `roma_crewai_bridge` for standard ROMA

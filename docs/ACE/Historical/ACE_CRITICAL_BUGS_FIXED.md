@@ -15,7 +15,7 @@ All 7 critical bugs in the ACE integration files have been successfully fixed. T
 ## Bug Fixes Applied
 
 ### Bug #1: Breaking Change in execute_full_workflow
-**File:** `ace_hephaestus_bridge.py`
+**File:** `ace_crewai_bridge.py`
 **Lines:** 1031-1036
 **Issue:** `execute_phase_3_critique` called with wrong parameter names
 
@@ -45,7 +45,7 @@ phase3_result = self.execute_phase_3_critique(
 ---
 
 ### Bug #2: timestamp Undefined
-**File:** `ace_hephaestus_bridge.py`
+**File:** `ace_crewai_bridge.py`
 **Lines:** 312-346
 **Issue:** `timestamp` variable used but not defined when `filepath` parameter is provided
 
@@ -122,7 +122,7 @@ logger = logging.getLogger(__name__)
 ---
 
 ### Bug #4: Workflow Continues After Phase Failure
-**File:** `ace_hephaestus_bridge.py`
+**File:** `ace_crewai_bridge.py`
 **Lines:** 1025-1037
 **Issue:** Phases execute even if previous phase failed
 
@@ -156,7 +156,7 @@ phase3_result = self.execute_phase_3_critique(...)
 ---
 
 ### Bug #5: context Type Assumption
-**File:** `ace_hephaestus_bridge.py`
+**File:** `ace_crewai_bridge.py`
 **Line:** 414
 **Issue:** Assumes context is dict without checking
 
@@ -281,7 +281,7 @@ All 7 bugs have been verified as fixed:
 
 ## Files Modified
 
-1. `ace_hephaestus_bridge.py` - Bugs #1, #2, #4, #5
+1. `ace_crewai_bridge.py` - Bugs #1, #2, #4, #5
 2. `ace_mcp_tools.py` - Bug #3a
 3. `ace_stage6_integration.py` - Bugs #3b, #7
 4. `ace_analytics.py` - Bug #6

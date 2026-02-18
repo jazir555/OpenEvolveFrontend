@@ -20,7 +20,7 @@
     "development",
     "workflow",
     "integration",
-    "hephaestus",
+    "crewai",
     "mcp"
   ],
   "author": "OpenEvolve",
@@ -89,6 +89,6 @@
     "minBubbleLabsVersion": "1.0.0",
     "author": "OpenEvolve",
     "website": "https://openevolve.com",
-    "tags": ["autonomous", "development", "workflow", "hephaestus", "mcp"]
+    "tags": ["autonomous", "development", "workflow", "crewai", "mcp"]
   }
 }

@@ -158,7 +158,7 @@ One client for all 8 OpenEvolve integrations:
 - Evolution (evolutionary algorithms)
 - Knowledge (knowledge graphs)
 - Maker (invention generation)
-- Hephaestus (formal verification)
+- CrewAI (formal verification)
 - Decomposition (problem decomposition)
 - Verification (result verification)
 - Assembly (component assembly)
@@ -299,7 +299,7 @@ const proof = await client.integrations.leanaide.execute({...});
 const evolved = await client.integrations.evolution.execute({...});
 const knowledge = await client.integrations.knowledge.execute({...});
 const invention = await client.integrations.maker.execute({...});
-const verified = await client.integrations.hephaestus.execute({...});
+const verified = await client.integrations.crewai.execute({...});
 const decomposed = await client.integrations.decomposition.execute({...});
 const validated = await client.integrations.verification.execute({...});
 const assembled = await client.integrations.assembly.execute({...});

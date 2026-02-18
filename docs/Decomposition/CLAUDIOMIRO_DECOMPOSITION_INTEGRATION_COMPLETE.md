@@ -46,7 +46,7 @@ Successfully integrated **Claudiomiro autonomous development** into the **Sovere
 - OpenEvolve integration unchanged
 - Full backward compatibility
 
-### 2. decomposition_hephaestus_bridge.py
+### 2. decomposition_crewai_bridge.py
 
 **Changes Made**:
 - Enhanced `execute_phase_2_solve()` function with Claudiomiro parameters
@@ -159,10 +159,10 @@ result = solve_sub_problem_with_team(
 # Will use Claudiomiro because "implement" and "endpoint" keywords detected
 ```
 
-### Example 4: Hephaestus Bridge
+### Example 4: CrewAI Bridge
 
 ```python
-from decomposition_hephaestus_bridge import execute_phase_2_solve
+from decomposition_crewai_bridge import execute_phase_2_solve
 
 result = execute_phase_2_solve(
     decomposition_plan=plan,
@@ -225,7 +225,7 @@ decomposition_mcp_tools.py:
   - get_decomposition_status includes claudiomiro_available
   - All helper functions implemented
 
-decomposition_hephaestus_bridge.py:
+decomposition_crewai_bridge.py:
   - execute_phase_2_solve has 12 parameters (6 new Claudiomiro params)
   - Passes through all Claudiomiro parameters to MCP tool
   - Returns execution_method_used in results
@@ -270,14 +270,14 @@ The integration handles all failure modes gracefully:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                     Hephaestus (Orchestrator)                               │
+│                     CrewAI (Orchestrator)                               │
 │  Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6                 │
 └──────────────────────────────────────────────────────────────────────────────┘
                                    │
                                    │ delegates to
                                    ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│              Decomposition Hephaestus Bridge                                 │
+│              Decomposition CrewAI Bridge                                 │
 │  execute_phase_2_solve(decomposition_plan, execution_method, ...)           │
 └──────────────────────────────────────────────────────────────────────────────┘
                                    │
@@ -309,7 +309,7 @@ The integration handles all failure modes gracefully:
 | **OpenEvolve** | Works with both traditional and Claudiomiro | Traditional uses OpenEvolve for evolution; Claudiomiro is independent |
 | **ACE** | Can learn from both methods | ACE captures learning regardless of execution method |
 | **Steer** | Verifies outputs from both methods | Output verification works regardless of source |
-| **Hephaestus** | Phase 2 (Solution Generation) | Primary integration point for Claudiomiro |
+| **CrewAI** | Phase 2 (Solution Generation) | Primary integration point for Claudiomiro |
 
 ---
 
@@ -333,7 +333,7 @@ These are NOT required for the integration to be complete, but could be added la
 
 **What Was Done**:
 1. Enhanced `decomposition_mcp_tools.py` with Claudiomiro integration (~300 lines)
-2. Enhanced `decomposition_hephaestus_bridge.py` with Claudiomiro support (~100 lines)
+2. Enhanced `decomposition_crewai_bridge.py` with Claudiomiro support (~100 lines)
 3. Added three helper functions for execution routing
 4. Implemented graceful degradation when Claudiomiro not available
 5. Preserved 100% of existing AI-assisted decomposition functionality
@@ -353,6 +353,6 @@ These are NOT required for the integration to be complete, but could be added la
 
 **Date**: 2025-12-29
 **Status**: COMPLETE
-**Files Modified**: 2 (decomposition_mcp_tools.py, decomposition_hephaestus_bridge.py)
+**Files Modified**: 2 (decomposition_mcp_tools.py, decomposition_crewai_bridge.py)
 **Lines Added**: ~400
 **Backward Compatible**: YES (100%)

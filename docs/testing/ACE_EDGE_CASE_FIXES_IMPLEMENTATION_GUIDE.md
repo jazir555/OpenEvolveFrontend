@@ -144,7 +144,7 @@ task = validate_string_length(task, "task", max_length=MAX_TASK_LENGTH, allow_em
 
 ---
 
-### File 2: ace_hephaestus_bridge.py
+### File 2: ace_crewai_bridge.py
 
 #### Priority Fixes
 
@@ -229,7 +229,7 @@ def cleanup(self):
         if hasattr(self, 'agent') and self.agent:
             # ... existing LLM cleanup ...
 
-        logger.info("ACEHephaestusWorkflowBridge cleanup complete")
+        logger.info("ACECrewAIWorkflowBridge cleanup complete")
     except Exception as e:
         logger.error(f"Error during cleanup: {e}")
 
@@ -676,9 +676,9 @@ class TestEdgeCaseFixes(unittest.TestCase):
 
     def test_fix_11_none_values(self):
         """Fix #11: None value handling"""
-        from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+        from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-        bridge = ACEHephaestusWorkflowBridge()
+        bridge = ACECrewAIWorkflowBridge()
 
         # Test with None context
         result = bridge.inject_skills(context=None)

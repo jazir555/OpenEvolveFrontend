@@ -68,7 +68,7 @@ Total:  4 weeks             (151 hours) → FULL PRODUCTION
 ## Top 10 Production-Ready Bubbles
 
 1. ✅ `http.ts` - Excellent implementation
-2. ✅ `hephaestus-bubble.ts` - All 10 operations complete
+2. ✅ `crewai-bubble.ts` - All 10 operations complete
 3. ✅ `google-sheets/` - Well implemented
 4. ✅ `slack.ts` - Complete
 5. ✅ `github.ts` - Good (needs timeout)

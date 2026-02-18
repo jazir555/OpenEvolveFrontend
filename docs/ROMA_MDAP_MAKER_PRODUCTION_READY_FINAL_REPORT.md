@@ -46,7 +46,7 @@ config = create_roma_mdap_maker_config(
 ---
 
 #### Bug #2: Incorrect Parameter Names in Bridge
-**File**: `roma_mdap_maker_hephaestus_bridge.py` (Lines 182-196)
+**File**: `roma_mdap_maker_crewai_bridge.py` (Lines 182-196)
 **Severity**: CRITICAL
 
 **Issue**: Same as Bug #1
@@ -387,7 +387,7 @@ Success Rate: 100%
 ### Bug Fix Verification
 All 10 bugs verified as fixed:
 1. ✅ Parameter names in decomposition_mcp_tools.py
-2. ✅ Parameter names in roma_mdap_maker_hephaestus_bridge.py
+2. ✅ Parameter names in roma_mdap_maker_crewai_bridge.py
 3. ✅ AdaptiveKSelector k >= 2
 4. ✅ None task validation
 5. ✅ k_ahead validation (k ∈ [2, 20])
@@ -427,7 +427,7 @@ All 10 bugs verified as fixed:
 
 **Lines Modified**: ~5 lines
 
-### 4. roma_mdap_maker_hephaestus_bridge.py (~900 lines)
+### 4. roma_mdap_maker_crewai_bridge.py (~900 lines)
 **Changes**:
 - Fixed same parameter names as decomposition_mcp_tools.py
 

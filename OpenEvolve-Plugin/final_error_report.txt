@@ -708,7 +708,7 @@ src/nodes/index.ts(91,8): error TS2614: Module '"./EvolutionNode"' has no export
 src/nodes/index.ts(100,8): error TS2614: Module '"./AdversarialNode"' has no exported member 'AdversarialParams'. Did you mean to use 'import AdversarialParams from "./AdversarialNode"' instead?
 src/nodes/index.ts(116,8): error TS2614: Module '"./LeanAIDENode"' has no exported member 'LeanTaskType'. Did you mean to use 'import LeanTaskType from "./LeanAIDENode"' instead?
 src/nodes/index.ts(117,8): error TS2614: Module '"./LeanAIDENode"' has no exported member 'LeanProofParams'. Did you mean to use 'import LeanProofParams from "./LeanAIDENode"' instead?
-src/nodes/index.ts(126,8): error TS2614: Module '"./HephaestusNode"' has no exported member 'HephaestusParams'. Did you mean to use 'import HephaestusParams from "./HephaestusNode"' instead?
+src/nodes/index.ts(126,8): error TS2614: Module '"./CrewAINode"' has no exported member 'CrewAIParams'. Did you mean to use 'import CrewAIParams from "./CrewAINode"' instead?
 src/nodes/index.ts(135,8): error TS2614: Module '"./MDAPNode"' has no exported member 'MDAPParams'. Did you mean to use 'import MDAPParams from "./MDAPNode"' instead?
 src/nodes/index.ts(136,8): error TS2614: Module '"./MDAPNode"' has no exported member 'MDAPResult'. Did you mean to use 'import MDAPResult from "./MDAPNode"' instead?
 src/nodes/index.ts(144,8): error TS2614: Module '"./MAKERNode"' has no exported member 'Tone'. Did you mean to use 'import Tone from "./MAKERNode"' instead?
@@ -740,8 +740,8 @@ src/nodes/init.ts(30,3): error TS2322: Type 'typeof KnowledgeQueryNode' is not a
   Type 'KnowledgeQueryNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(31,3): error TS2322: Type 'typeof LeanAideNode' is not assignable to type 'NodeClass'.
   Type 'LeanAideNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
-src/nodes/init.ts(32,3): error TS2322: Type 'typeof HephaestusNode' is not assignable to type 'NodeClass'.
-  Type 'HephaestusNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
+src/nodes/init.ts(32,3): error TS2322: Type 'typeof CrewAINode' is not assignable to type 'NodeClass'.
+  Type 'CrewAINode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(33,3): error TS2322: Type 'typeof MDAPNode' is not assignable to type 'NodeClass'.
   Type 'MDAPNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(34,3): error TS2322: Type 'typeof MAKERNode' is not assignable to type 'NodeClass'.
@@ -764,7 +764,7 @@ src/plugin.ts(98,3): error TS2353: Object literal may only specify known propert
 src/schemas/adversarial.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/decomposition.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/evolution.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
-src/schemas/hephaestus.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
+src/schemas/crewai.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/invention.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/knowledge.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/leanaide.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.

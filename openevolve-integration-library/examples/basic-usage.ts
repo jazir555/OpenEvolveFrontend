@@ -10,7 +10,7 @@ import {
   EvolutionInputs,
   KnowledgeInputs,
   MakerInputs,
-  HephaestusInputs
+  CrewAIInputs
 } from '@openevolve/integration-library';
 
 // ============================================================================
@@ -208,11 +208,11 @@ async function executeTool() {
 }
 
 // ============================================================================
-// Hephaestus Examples
+// CrewAI Examples
 // ============================================================================
 
 async function delegateTask() {
-  const result = await client.integrations.hephaestus.execute({
+  const result = await client.integrations.crewai.execute({
     operation: 'delegate',
     input: {
       task: 'Analyze dataset and generate report',

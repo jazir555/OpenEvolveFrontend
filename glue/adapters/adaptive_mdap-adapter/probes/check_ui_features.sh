@@ -43,7 +43,7 @@ echo ""
 ###############################################################################
 echo "Test 1: Advanced BubbleLab UI import"
 
-if python -c "import sys; sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src'); from src import get_advanced_bubblelab_ui; get_advanced_bubblelab_ui()" 2>&1 | grep -q ""; then
+if python -c "import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_advanced_bubblelab_ui; get_advanced_bubblelab_ui()" 2>&1 | grep -q ""; then
     pass "Advanced BubbleLab UI imports"
 else
     fail "Advanced BubbleLab UI import failed"
@@ -56,8 +56,9 @@ echo ""
 echo "Test 2: Complexity analysis for UI"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()
@@ -85,8 +86,9 @@ echo ""
 echo "Test 3: Complexity radar chart generation"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()
@@ -118,8 +120,9 @@ echo ""
 echo "Test 4: Adapter health dashboard generation"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()
@@ -143,8 +146,9 @@ echo ""
 echo "Test 5: ICR insights dashboard generation"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()
@@ -168,8 +172,9 @@ echo ""
 echo "Test 6: Report export (JSON format)"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()
@@ -195,8 +200,9 @@ echo ""
 echo "Test 7: Report export (Markdown format)"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_bubblelab_ui
 
 ui = get_advanced_bubblelab_ui()

@@ -541,7 +541,7 @@ def get_shared_bubblelabs() -> BubbleLabsIntegration:
 
 ---
 
-### ✅ bubblelabs_hephaestus_bridge.py
+### ✅ bubblelabs_crewai_bridge.py
 
 **Lines 126-194:** Add side effects to `create_ticket_from_workflow()`
 ```python
@@ -552,7 +552,7 @@ def create_ticket_from_workflow(
     additional_labels: Optional[List[str]] = None
 ) -> Optional[str]:
     """
-    Create a Hephaestus ticket from a BubbleLabs workflow definition.
+    Create a CrewAI ticket from a BubbleLabs workflow definition.
 
     Returns:
         Ticket ID if successful, None otherwise
@@ -561,7 +561,7 @@ def create_ticket_from_workflow(
         - Stores mapping in self.mappings
         - Updates instance_to_definition_map cache
         - Mutates self.mappings[workflow_definition.id]
-        - Calls hephaestus.create_ticket() if available
+        - Calls crewai.create_ticket() if available
     """
 ```
 **Status:** 🔧 Fix documented, ready to apply
@@ -576,19 +576,19 @@ def update_ticket_progress(
     metrics: Optional[WorkflowMetrics] = None
 ) -> bool:
     """
-    Update Hephaestus ticket with workflow progress.
+    Update CrewAI ticket with workflow progress.
 
     Returns:
         True if successful, False otherwise
 
     Raises:
         KeyError: If workflow_instance_id not found
-        ConnectionError: If Hephaestus API connection fails
+        ConnectionError: If CrewAI API connection fails
         ValueError: If progress not in [0.0, 1.0]
 
     Side Effects:
         - Updates self.mappings
-        - Calls hephaestus.update_ticket()
+        - Calls crewai.update_ticket()
     """
 ```
 **Status:** 🔧 Fix documented, ready to apply
@@ -754,7 +754,7 @@ def _control_workflow_local(self, instance_id: str, action: str):
 1. bubblelabs_analytics.py - Type validation (3 fixes)
 2. bubblelabs_typescript_export.py - Docstrings and error types (2 fixes)
 3. bubblelabs_mcp_tools.py - Return structures and checks (5 fixes)
-4. bubblelabs_hephaestus_bridge.py - Documentation (3 fixes)
+4. bubblelabs_crewai_bridge.py - Documentation (3 fixes)
 5. bubblelabs_integration.py - Error dict standardization (1 fix)
 6. bubblelabs_ui_component.py - Side effects (1 fix)
 7. bubblelabs_mcp_tools.py - Performance and singleton (2 fixes)
@@ -769,7 +769,7 @@ def _control_workflow_local(self, instance_id: str, action: str):
 - [ ] bubblelabs_analytics.py - 3 fixes ready to apply
 - [ ] bubblelabs_typescript_export.py - 2 fixes ready to apply
 - [ ] bubblelabs_mcp_tools.py - 5 fixes ready to apply
-- [ ] bubblelabs_hephaestus_bridge.py - 3 fixes ready to apply
+- [ ] bubblelabs_crewai_bridge.py - 3 fixes ready to apply
 - [ ] bubblelabs_integration.py - 1 fix ready to apply
 - [ ] bubblelabs_ui_component.py - 1 fix ready to apply
 

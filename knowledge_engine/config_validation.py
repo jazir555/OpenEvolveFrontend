@@ -155,7 +155,7 @@ class ConfigValidator:
         ConfigVariable(
             name="OPENAI_API_KEY",
             category="LLM Providers",
-            required=True,
+            required=False,  # Optional - system can work with other providers or without LLM
             description="OpenAI API key for LLM operations",
             example="sk-proj-..."
         ),

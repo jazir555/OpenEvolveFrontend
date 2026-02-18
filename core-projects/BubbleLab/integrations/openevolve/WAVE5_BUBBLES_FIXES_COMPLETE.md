@@ -155,12 +155,12 @@ openaiApiKey: z.string().describe('OpenAI API key (REQUIRED)')  // ✅ Required
 
 ---
 
-### ✅ 5. HephaestusBubble (Priority 5)
+### ✅ 5. CrewAIBubble (Priority 5)
 
 **Status**: ✅ PRODUCTION READY
-**File**: `service-bubbles/hephaestus-bubble.ts`
-**Test**: `tests/hephaestus-bubble.test.ts`
-**Probe**: `probes/hephaestus.probe.sh`
+**File**: `service-bubbles/crewai-bubble.ts`
+**Test**: `tests/crewai-bubble.test.ts`
+**Probe**: `probes/crewai.probe.sh`
 
 **Fixes Applied**:
 1. ✅ Extends AIAgentBubble properly
@@ -173,13 +173,13 @@ openaiApiKey: z.string().describe('OpenAI API key (REQUIRED)')  // ✅ Required
 **Key Changes**:
 ```typescript
 // Before
-export class HephaestusBubble {
+export class CrewAIBubble {
   baseUrl: z.string().url().default('http://localhost:8000')  // ❌ Magic default
   private aiAgent: AIAgentBubble;  // ❌ Created but never used
 
 // After
-export class HephaestusBubble extends AIAgentBubble<HephaestusParams, HephaestusResult> {
-  baseUrl: z.string().url().describe('Hephaestus URL (REQUIRED)')  // ✅ Required
+export class CrewAIBubble extends AIAgentBubble<CrewAIParams, CrewAIResult> {
+  baseUrl: z.string().url().describe('CrewAI URL (REQUIRED)')  // ✅ Required
   private resilience: ResilienceWrapper;  // ✅ Resilience
   private mcpClient: MCPClient;  // ✅ Real MCP client
 ```

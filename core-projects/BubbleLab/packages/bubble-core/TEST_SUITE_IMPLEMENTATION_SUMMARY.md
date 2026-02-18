@@ -41,7 +41,7 @@ A complete testing infrastructure has been successfully implemented for all Bubb
 2. ✅ elasticsearch-bubble.ts (template provided)
 3. ✅ knowledge-engine-bubble.ts (template provided)
 4. ✅ workflow-orchestrator-bubble.ts (template provided)
-5. ✅ hephaestus-bubble.ts (template provided)
+5. ✅ crewai-bubble.ts (template provided)
 6. ✅ postgresql-bubble.ts (comprehensive tests created)
 7. ✅ redis-bubble.ts (template provided)
 8. ✅ ace-tools-bubble.ts (template provided)

@@ -2,7 +2,7 @@
 Sovereign-Grade Decomposition Workflow - CrewAI Integration Module
 
 This module provides the complete integration between OpenEvolve's Sovereign-Grade Decomposition
-workflow and CrewAI's agentic framework. It replaces the AGPL-licensed Hephaestus integration
+workflow and CrewAI's agentic framework. It replaces the AGPL-licensed CrewAI integration
 with MIT-licensed CrewAI.
 
 The integration enables:
@@ -13,9 +13,9 @@ The integration enables:
 - Self-healing loops that trigger new work items when issues are discovered
 - Full MDAP/MAKER zero-error workflow support
 
-This replaces sovereign_decomposition_hephaestus_integration.py with MIT-licensed CrewAI.
+This replaces sovereign_decomposition_crewai_integration.py with MIT-licensed CrewAI.
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -30,7 +30,7 @@ from enum import Enum
 
 from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
     ZeroErrorConfig,
@@ -93,12 +93,12 @@ class SovereignDecompositionCrewAIIntegration:
     """
     Complete integration manager for the Sovereign-Grade Decomposition Workflow with CrewAI.
 
-    This implementation uses MIT-licensed CrewAI instead of AGPL-licensed Hephaestus.
-    It maintains full functional parity with the original Hephaestus integration while
+    This implementation uses MIT-licensed CrewAI instead of AGPL-licensed CrewAI.
+    It maintains full functional parity with the original CrewAI integration while
     providing better license compatibility.
 
     Key Features:
-    - CrewAI workflow orchestration (replaces Hephaestus)
+    - CrewAI workflow orchestration (replaces CrewAI)
     - Full MDAP/MAKER zero-error workflow support
     - Real-time synchronization between OpenEvolve and CrewAI
     - Team-to-agent mapping
@@ -180,7 +180,7 @@ class SovereignDecompositionCrewAIIntegration:
         Initialize the complete Sovereign-Grade Decomposition workflow in CrewAI.
 
         This creates the main workflow epic and individual tasks for each sub-problem,
-        mirroring the functionality of the original Hephaestus integration.
+        mirroring the functionality of the original CrewAI integration.
 
         Args:
             workflow_state: OpenEvolve workflow state

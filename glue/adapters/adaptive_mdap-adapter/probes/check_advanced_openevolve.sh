@@ -43,7 +43,7 @@ echo ""
 ###############################################################################
 echo "Test 1: Advanced OpenEvolve integration import"
 
-if python -c "import sys; sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src'); from src import get_advanced_openevolve_integration; get_advanced_openevolve_integration()" 2>&1 | grep -q ""; then
+if python -c "import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_advanced_openevolve_integration; get_advanced_openevolve_integration()" 2>&1 | grep -q ""; then
     pass "Advanced OpenEvolve integration imports"
 else
     fail "Advanced OpenEvolve integration import failed"
@@ -56,8 +56,9 @@ echo ""
 echo "Test 2: Problem decomposition"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_openevolve_integration
 
 advanced = get_advanced_openevolve_integration()
@@ -85,8 +86,9 @@ echo ""
 echo "Test 3: Team selection"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_openevolve_integration
 
 advanced = get_advanced_openevolve_integration()
@@ -114,8 +116,9 @@ echo ""
 echo "Test 4: Resource optimization"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_openevolve_integration
 
 advanced = get_advanced_openevolve_integration()
@@ -144,8 +147,9 @@ echo ""
 echo "Test 5: Workflow checkpoint save/restore"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_advanced_openevolve_integration
 
 advanced = get_advanced_openevolve_integration()

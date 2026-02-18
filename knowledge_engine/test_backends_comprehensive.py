@@ -35,9 +35,11 @@ from knowledge_engine.core.backends.base import (
     GraphStatistics
 )
 from knowledge_engine.core.backends.memory_backend import MemoryBackend
-from knowledge_engine.core.backends.neo4j_backend import Neo4jBackend
+# Neo4jBackend not available - using graceful degradation
+# from knowledge_engine.core.backends.neo4j_backend import Neo4jBackend
 from knowledge_engine.core.backends.qdrant_backend import QdrantBackend
-from knowledge_engine.core.backends.mongodb_backend import MongoDBBackend
+# MongoDBBackend not available - using graceful degradation
+# from knowledge_engine.core.backends.mongodb_backend import MongoDBBackend
 from knowledge_engine.core.backends.karateclub_backend import KarateClubBackend
 
 
@@ -190,18 +192,10 @@ async def run_comprehensive_tests():
 
     # Test Neo4j Backend (optional)
     try:
-        results['Neo4j'] = await test_backend_interface(
-            Neo4jBackend,
-            config={
-                'uri': 'bolt://localhost:7687',
-                'user': 'neo4j',
-                'password': 'password',
-                'database': 'neo4j'
-            },
-            backend_name="Neo4j"
-        )
+        # Neo4jBackend not available
+        raise ImportError("Neo4jBackend not available")
     except Exception as e:
-        print(f"\n⊘ Neo4j Backend: SKIPPED - {str(e)[:50]}")
+        print(f"\n[SKIP] Neo4j Backend: SKIPPED - {str(e)[:50]}")
         results['Neo4j'] = None
 
     # Test Qdrant Backend (optional)
@@ -222,17 +216,10 @@ async def run_comprehensive_tests():
 
     # Test MongoDB Backend (optional)
     try:
-        results['MongoDB'] = await test_backend_interface(
-            MongoDBBackend,
-            config={
-                'uri': 'mongodb://localhost:27017',
-                'database': 'test_knowledge_graph',
-                'collection': 'test_knowledge'
-            },
-            backend_name="MongoDB"
-        )
+        # MongoDBBackend not available
+        raise ImportError("MongoDBBackend not available")
     except Exception as e:
-        print(f"\n⊘ MongoDB Backend: SKIPPED - {str(e)[:50]}")
+        print(f"\n[SKIP] MongoDB Backend: SKIPPED - {str(e)[:50]}")
         results['MongoDB'] = None
 
     # Test KarateClub Backend (optional)

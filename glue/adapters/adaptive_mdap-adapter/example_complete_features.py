@@ -49,12 +49,20 @@ def example_1_basic_complexity_analysis():
 
     response = adapter.analyze_complexity(subproblem)
 
-    print(f"✓ Complexity Analysis Complete")
-    print(f"  Overall Score: {response.complexity_score.overall_score:.3f}")
-    print(f"  Text Length: {response.complexity_score.text_length_score:.3f}")
-    print(f"  Dependencies: {response.complexity_score.dependency_score:.3f}")
-    print(f"  Depth: {response.complexity_score.depth_score:.3f}")
-    print(f"  Execution Time: {response.execution_time_ms:.0f}ms")
+    print(f"[OK] Complexity Analysis Complete")
+
+    # Handle graceful degradation when core projects unavailable
+    if response.complexity_score:
+        print(f"  Overall Score: {response.complexity_score.overall_score:.3f}")
+        print(f"  Text Length: {response.complexity_score.text_length_score:.3f}")
+        print(f"  Dependencies: {response.complexity_score.dependency_score:.3f}")
+        print(f"  Depth: {response.complexity_score.depth_score:.3f}")
+    else:
+        print(f"  Status: {response.status.value}")
+        print(f"  Note: Core projects not available - using graceful degradation")
+
+    if response.execution_time_ms:
+        print(f"  Execution Time: {response.execution_time_ms:.0f}ms")
 
 
 def example_2_advanced_decomposition():
@@ -73,7 +81,7 @@ def example_2_advanced_decomposition():
         max_depth=3
     )
 
-    print(f"✓ Advanced Decomposition Complete")
+    print(f"[OK] Advanced Decomposition Complete")
     print(f"  Sub-Problems: {len(decomposition.sub_problems)}")
     print(f"  Strategy: {decomposition.decomposition_strategy}")
     print(f"  Parallelization: {decomposition.recommended_parallelization}")
@@ -125,7 +133,7 @@ def example_3_gauntlet_pipeline():
         include_cross_validation=True
     )
 
-    print(f"✓ Gauntlet Pipeline Created")
+    print(f"[OK] Gauntlet Pipeline Created")
     print(f"  Total Gauntlets: {len(pipeline.gauntlets)}")
     print(f"  Execution Mode: {pipeline.execution_mode}")
     print(f"  Aggregation: {pipeline.aggregation_strategy}")
@@ -141,7 +149,7 @@ def example_3_gauntlet_pipeline():
         context={"test": True}
     )
 
-    print(f"\n✓ Pipeline Execution Complete")
+    print(f"\n[OK] Pipeline Execution Complete")
     print(f"  Total Gauntlets: {result.total_gauntlets}")
     print(f"  Passed: {result.passed_gauntlets}")
     print(f"  Failed: {result.failed_gauntlets}")
@@ -168,12 +176,12 @@ def example_4_icr_learning():
             context={"iteration": i, "domain": "test"},
             metrics={"complexity": 0.5 + i * 0.1}
         )
-        print(f"  ✓ Pattern {i+1} stored: {pattern_id}")
+        print(f"  [OK] Pattern {i+1} stored: {pattern_id}")
 
     # Get insights
     insights = icr.get_pattern_insights()
 
-    print(f"\n✓ ICR Insights Generated")
+    print(f"\n[OK] ICR Insights Generated")
     print(f"  Available: {insights.get('available', False)}")
     print(f"  Pattern Types Tracked: {len(insights.get('pattern_types', {}))}")
 
@@ -214,36 +222,64 @@ def example_5_performance_optimization():
     # Batch analyze concurrently
     print(f"Running {len(subproblems)} concurrent analyses...")
 
-    start = asyncio.get_event_loop().time()
+    async def run_async_analysis():
+        """Run async analysis with proper timing."""
+        import time
+        start = time.time()
 
-    results = asyncio.run(
-        async_adapter.batch_analyze_complexity(
+        results = await async_adapter.batch_analyze_complexity(
             subproblems,
             max_concurrency=3
         )
-    )
 
-    duration = (asyncio.get_event_loop().time() - start) * 1000
+        duration = (time.time() - start) * 1000
+        return results, duration
 
-    print(f"\n✓ Concurrent Analysis Complete")
-    print(f"  Total Operations: {len(results)}")
-    print(f"  Total Time: {duration:.0f}ms")
-    print(f"  Average Time per Operation: {duration / len(results):.0f}ms")
+    # Run async operations
+    try:
+        import time
+        start = time.time()
 
-    # Performance stats
-    print(f"\n✓ Performance Metrics:")
-    cache_stats = async_adapter.get_cache_stats()
-    print(f"  Cache Hit Rate: {cache_stats['hit_rate']:.1%}")
-    print(f"  Cache Size: {cache_stats['size']}/{cache_stats['max_size']}")
+        results, duration = asyncio.run(run_async_analysis())
+
+        print(f"\n[OK] Concurrent Analysis Complete")
+        print(f"  Total Operations: {len(results)}")
+        print(f"  Total Time: {duration:.0f}ms")
+        print(f"  Average Time per Operation: {duration / len(results):.0f}ms")
+
+        # Performance stats
+        print(f"\n[OK] Performance Metrics:")
+        cache_stats = async_adapter.get_cache_stats()
+        print(f"  Cache Hit Rate: {cache_stats.get('hit_rate', 0):.1%}")
+        print(f"  Cache Size: {cache_stats.get('size', 0)}/{cache_stats.get('max_size', 1000)}")
+    except RuntimeError as e:
+        # Handle event loop issues gracefully
+        print(f"\n[WARN] Async execution not available: {e}")
+        print("[INFO] Running synchronous fallback...")
+
+        # Fallback to synchronous analysis
+        start = time.time()
+        results = []
+        for sp in subproblems:
+            result = async_adapter.adapter.analyze_complexity(sp)
+            results.append(result)
+
+        duration = (time.time() - start) * 1000
+        print(f"\n[OK] Synchronous Analysis Complete (fallback)")
+        print(f"  Total Operations: {len(results)}")
+        print(f"  Total Time: {duration:.0f}ms")
+        print(f"  Average Time per Operation: {duration / len(results):.0f}ms")
 
 
 def example_6_ui_dashboard():
     """Example 6: UI Dashboard Generation."""
     print_section("EXAMPLE 6: UI Dashboard Generation")
 
-    from src import get_advanced_bubblelab_ui
+    from src import get_bubblelab_ui_integration, get_advanced_bubblelab_ui
 
-    ui = get_advanced_bubblelab_ui()
+    # Use base integration for analysis
+    ui = get_bubblelab_ui_integration()
+    advanced_ui = get_advanced_bubblelab_ui()
 
     # Analyze for UI
     result = ui.analyze_complexity_for_ui(
@@ -252,29 +288,30 @@ def example_6_ui_dashboard():
         depth=2
     )
 
-    print(f"✓ UI Analysis Complete")
+    print(f"[OK] UI Analysis Complete")
     print(f"  Problem ID: {result.problem_id}")
     print(f"  Complexity: {result.overall_complexity:.3f}")
 
-    # Get radar chart data
-    chart = ui.create_complexity_radar_chart(result.problem_id)
+    # Get radar chart data from advanced UI
+    chart = advanced_ui.create_complexity_radar_chart(result.problem_id)
 
     if chart:
-        print(f"\n✓ Radar Chart Generated")
+        print(f"\n[OK] Radar Chart Generated")
         print(f"  Type: {chart.chart_type.value}")
-        print(f"  Labels: {chart.data['labels']}")
+        print(f"  Labels: {chart.data.get('labels', [])}")
 
     # Get health dashboard
-    dashboard = ui.create_adapter_health_dashboard()
+    dashboard = advanced_ui.create_adapter_health_dashboard()
 
-    print(f"\n✓ Health Dashboard Generated")
-    print(f"  Overall Status: {dashboard['health']['mdap_adapter']['status']}")
-    print(f"  Active Alerts: {len(dashboard['alerts'])}")
+    print(f"\n[OK] Health Dashboard Generated")
+    mdap_health = dashboard.get('health', {}).get('mdap_adapter', {})
+    print(f"  Overall Status: {mdap_health.get('status', 'unknown')}")
+    print(f"  Active Alerts: {len(dashboard.get('alerts', []))}")
 
-    # Export report
-    report_json = ui.export_report("example_6", format="json")
+    # Export report from base integration
+    report_json = ui.export_ui_data(format="json")
 
-    print(f"\n✓ Report Exported")
+    print(f"\n[OK] Report Exported")
     print(f"  Size: {len(report_json)} characters")
 
 
@@ -289,7 +326,7 @@ def example_7_cross_system_workflow():
     # Check system health
     health = monitor.get_overall_health()
 
-    print(f"✓ System Health Check")
+    print(f"[OK] System Health Check")
     print(f"  Overall: {health['overall_status']}")
     print(f"  Available Systems: {health['available_systems']}/{health['total_systems']}")
 
@@ -303,7 +340,7 @@ def example_7_cross_system_workflow():
         }
     )
 
-    print(f"\n✓ Cross-System Workflow Complete")
+    print(f"\n[OK] Cross-System Workflow Complete")
     print(f"  Steps Completed: {len(results['steps'])}")
 
     for step in results['steps']:
@@ -353,7 +390,7 @@ def example_8_full_unified_workflow():
     print(f"  Advanced Components: {len(status['advanced_components'])}")
     print(f"  Systems: {status['systems']['available_systems']}/{status['systems']['total_systems']}")
 
-    print("\n✓ Complete End-to-End Workflow Successful!")
+    print("\n[OK] Complete End-to-End Workflow Successful!")
 
 
 def main():
@@ -379,8 +416,8 @@ def main():
 
     print_section("ALL EXAMPLES COMPLETED SUCCESSFULLY")
     print(f"End Time: {datetime.now(timezone.utc).isoformat()}")
-    print("\n✓ All features demonstrated successfully!")
-    print("✓ Integration is complete and operational!")
+    print("\n[OK] All features demonstrated successfully!")
+    print("[OK] Integration is complete and operational!")
 
     return 0
 

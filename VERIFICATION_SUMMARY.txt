@@ -34,7 +34,7 @@ TASK 1: SYNTAX VERIFICATION
 - bubblelabs_mcp_tools.py
 - bubblelabs_typescript_export.py
 - bubblelabs_security.py
-- bubblelabs_hephaestus_bridge.py
+- bubblelabs_crewai_bridge.py
 - bubblelabs_integration.py
 - openevolve_bubblelabs_api.py
 
@@ -44,7 +44,7 @@ TASK 2: IMPORT VERIFICATION
 - create_bubblelabs_workflow
 - BubbleLabsTypeScriptExporter
 - AuthenticationManager
-- BubbleLabsHephaestusBridge
+- BubbleLabsCrewAIBridge
 - BubbleLabsIntegration
 - OpenEvolveBubbleLabsIntegration
 
@@ -202,7 +202,7 @@ Core Files:
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_analytics.py
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_mcp_tools.py
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_security.py
-C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_integration.py
 C:\Users\mmeadow\Documents\OpenEvolve\Frontend\openevolve_bubblelabs_api.py
 

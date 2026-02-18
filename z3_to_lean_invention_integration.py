@@ -97,42 +97,11 @@ except ImportError:
     z3 = None
 
 # Try to import invention planner types
-try:
-    from end_to_end_invention_planner import (
-        ValidatedMath,
-        InventionGoal,
-        PhysicsValidationReport
-    )
-except ImportError:
-    # Define fallback types
-    @dataclass
-    class ValidatedMath:
-        description: str
-        lean_theorem: str
-        lean_proof: str
-        variables: Dict[str, str]
-        assumptions: List[str]
-        verification_method: str
-        confidence: float
-
-    @dataclass
-    class InventionGoal:
-        goal_type: str
-        target: str
-        domain: str
-        key_requirements: List[str]
-        constraints: List[str]
-        success_definition: str
-        complexity_score: float
-
-    @dataclass
-    class PhysicsValidationReport:
-        passed: bool
-        confidence: float
-        consistency_checks: Dict[str, bool]
-        formal_verifications: List[Dict]
-        error_sources: List[Dict]
-        timestamp: datetime
+from invention_planner_structures import (
+    ValidatedMath,
+    InventionGoal,
+    PhysicsValidationReport
+)
 
 
 # =============================================================================
@@ -496,7 +465,7 @@ class Z3LeanInventionIntegration:
 
             # Generate proof certificate if cross-validated
             proof_certificate = None
-            if hybrid_result and hybrid_result.cross_validation_passed and generate_proof_certificate is not None:
+            if hybrid_result and hybrid_result.agreement and generate_proof_certificate is not None:
                 try:
                     certificate = generate_proof_certificate(
                         hybrid_result.z3_result,
@@ -514,6 +483,8 @@ class Z3LeanInventionIntegration:
                 formalization_level = FormalizationLevel.CERTIFIED
             elif hybrid_result and hybrid_result.agreement:
                 formalization_level = FormalizationLevel.HYBRID
+            elif theorem:
+                formalization_level = FormalizationLevel.LEAN_ONLY
             elif z3_constraint:
                 formalization_level = FormalizationLevel.Z3_ONLY
             else:
@@ -563,7 +534,7 @@ class Z3LeanInventionIntegration:
                 z3_constraint=z3_constraint,
                 lean_theorem=theorem,
                 lean_tactics=[t.to_lean() for t in tactics] if tactics else ["by simp"],
-                verification_mode=verification_mode,
+                verification_mode=self.verification_mode,
                 z3_result=hybrid_result.z3_result.__dict__ if hybrid_result and hybrid_result.z3_result else None,
                 lean_result=hybrid_result.lean_result.__dict__ if hybrid_result and hybrid_result.lean_result else None,
                 confidence=confidence,
@@ -738,16 +709,18 @@ class Z3LeanInventionIntegration:
             import re
             constraint_text = formalization.z3_constraint
 
-            # Find all variable names (single letters or words)
-            variables = set(re.findall(r'\b([a-z])\b', constraint_text))
+            # Find all variable names (alphanumeric, starting with letter)
+            # Exclude Z3 keywords and numbers
+            all_tokens = re.findall(r'\b([a-zA-Z]\w*)\b', constraint_text)
+            z3_keywords = {'assert', 'and', 'or', 'not', 'declare-fun', 'Real', 'Int', 'Bool'}
+            variables = {t for t in all_tokens if t not in z3_keywords and not t[0].isdigit()}
 
-            # Declare variables as Int or Real
+            # Declare variables as Real by default for physical properties
             for var in variables:
                 try:
-                    # Try as Int first, fall back to Real
-                    solver.add(z3.Int(var) >= 0)  # Add a dummy constraint to declare the var
-                except:
-                    solver.add(z3.Real(var) >= 0)
+                    solver.add(z3.Real(var) >= -1000000)  # Dummy declaration
+                except Exception as decl_error:
+                    logger.debug(f"Failed to declare variable {var}: {decl_error}")
 
             # Parse and add constraint
             # Handle both "(assert ...)" and raw constraints

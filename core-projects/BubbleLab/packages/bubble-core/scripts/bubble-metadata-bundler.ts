@@ -1,5 +1,6 @@
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname, resolve } from 'path';
+import { pathToFileURL } from 'url';
 import { ListBubblesTool } from '../dist/bubbles/tool-bubble/list-bubbles-tool.js';
 import { GetBubbleDetailsTool } from '../dist/bubbles/tool-bubble/get-bubble-details-tool.js';
 import { BUBBLE_CREDENTIAL_OPTIONS } from '@bubblelab/shared-schemas';
@@ -186,7 +187,10 @@ Examples:
 }
 
 // Only run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const executedFileUrl = process.argv[1]
+  ? pathToFileURL(resolve(process.argv[1])).href
+  : '';
+if (executedFileUrl && import.meta.url === executedFileUrl) {
   main().catch(console.error);
 }
 

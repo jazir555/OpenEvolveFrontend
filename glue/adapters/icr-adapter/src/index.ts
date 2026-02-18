@@ -30,5 +30,8 @@ export {
   MemoryAgentConfig
 } from './memory/memory-agent';
 
+// Server (started when run directly)
+import './server';
+
 // Version
 export const VERSION = '1.0.0';

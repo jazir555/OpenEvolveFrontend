@@ -14,7 +14,7 @@ All partial and missing items from the BubbleLabs integration have been **succes
 
 | Component | Previous Status | Current Status | Lines of Code |
 |-----------|----------------|----------------|---------------|
-| Hephaestus Bridge | ❌ Missing | ✅ Complete | ~600 |
+| CrewAI Bridge | ❌ Missing | ✅ Complete | ~600 |
 | MCP Tools | ❌ Missing | ✅ Complete | ~700 |
 | Advanced Analytics | ❌ Missing | ✅ Complete | ~650 |
 | TypeScript Export | ❌ Missing | ✅ Complete | ~550 |
@@ -25,22 +25,22 @@ All partial and missing items from the BubbleLabs integration have been **succes
 
 ## Components Delivered
 
-### 1. BubbleLabs-Hephaestus Bridge ✅
+### 1. BubbleLabs-CrewAI Bridge ✅
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 
-**Purpose:** Connect BubbleLabs workflows to Hephaestus project management/ticketing system.
+**Purpose:** Connect BubbleLabs workflows to CrewAI project management/ticketing system.
 
 **Key Features:**
-- Create Hephaestus tickets from BubbleLabs workflows
+- Create CrewAI tickets from BubbleLabs workflows
 - Update ticket status as workflows progress
 - Sync workflow metadata to ticket descriptions
 - Automatic ticket closure on workflow completion
 - Background sync thread for automatic updates
-- Mock mode for development without Hephaestus server
+- Mock mode for development without CrewAI server
 
 **Key Classes:**
-- `BubbleLabsHephaestusBridge` - Main bridge class
+- `BubbleLabsCrewAIBridge` - Main bridge class
 - `WorkflowTicketMapping` - Maps workflows to tickets
 - `BubbleLabsTicketConfig` - Configuration for ticket creation
 
@@ -55,12 +55,12 @@ start_background_sync()         # Start auto-sync thread
 
 **Usage Example:**
 ```python
-from bubblelabs_hephaestus_bridge import create_bridge
+from bubblelabs_crewai_bridge import create_bridge
 
 bridge = create_bridge(
-    hephaestus_api_base="http://localhost:8000",
-    hephaestus_api_key="your-key",
-    hephaestus_project_id="your-project"
+    crewai_api_base="http://localhost:8000",
+    crewai_api_key="your-key",
+    crewai_project_id="your-project"
 )
 
 # Create ticket from workflow
@@ -79,7 +79,7 @@ bridge.close_ticket_on_completion(instance_id, success=True)
 
 **File:** `bubblelabs_mcp_tools.py`
 
-**Purpose:** Provide Model Context Protocol (MCP) tools for BubbleLabs, enabling Hephaestus agents to interact with workflows.
+**Purpose:** Provide Model Context Protocol (MCP) tools for BubbleLabs, enabling CrewAI agents to interact with workflows.
 
 **Key Features:**
 - 6 MCP tools for complete workflow lifecycle
@@ -247,7 +247,7 @@ if result.success:
 **Purpose:** Comprehensive test suite validating all new components.
 
 **Test Coverage:**
-- ✅ Hephaestus Bridge (7 tests)
+- ✅ CrewAI Bridge (7 tests)
 - ✅ MCP Tools (7 tests)
 - ✅ Analytics (8 tests)
 - ✅ TypeScript Export (6 tests)
@@ -277,7 +277,7 @@ python test_bubblelabs_complete_integration.py
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────────┐    ┌──────────────────┐                  │
-│  │  Hephaestus      │    │   MCP Tools      │                  │
+│  │  CrewAI      │    │   MCP Tools      │                  │
 │  │  Bridge          │    │                  │                  │
 │  │  - Ticket Mgmt   │    │  - 6 Tools       │                  │
 │  │  - Status Sync   │    │  - Agent API     │                  │
@@ -310,7 +310,7 @@ python test_bubblelabs_complete_integration.py
 
 ```
 Frontend/
-├── bubblelabs_hephaestus_bridge.py         ✅ NEW (600 lines)
+├── bubblelabs_crewai_bridge.py         ✅ NEW (600 lines)
 ├── bubblelabs_mcp_tools.py                 ✅ NEW (700 lines)
 ├── bubblelabs_analytics.py                 ✅ NEW (650 lines)
 ├── bubblelabs_typescript_export.py         ✅ NEW (550 lines)
@@ -333,7 +333,7 @@ Frontend/
 
 ```python
 from bubblelabs_integration import BubbleLabsIntegration
-from bubblelabs_hephaestus_bridge import create_bridge
+from bubblelabs_crewai_bridge import create_bridge
 from bubblelabs_analytics import create_analytics_tracker
 from bubblelabs_typescript_export import export_workflow_to_typescript
 
@@ -350,11 +350,11 @@ definition = integration.create_workflow_definition_from_openevolve(
     }
 )
 
-# 2. Create Hephaestus ticket
+# 2. Create CrewAI ticket
 bridge = create_bridge(
-    hephaestus_api_base="http://hephaestus:8000",
-    hephaestus_api_key="key",
-    hephaestus_project_id="science-project"
+    crewai_api_base="http://crewai:8000",
+    crewai_api_key="key",
+    crewai_project_id="science-project"
 )
 ticket_id = bridge.create_ticket_from_workflow(definition)
 
@@ -404,7 +404,7 @@ bridge.close_ticket_on_completion(instance_id, success=True)
 | Core Integration | ✅ Complete |
 | UI Integration | ✅ Complete |
 | API Bridge | ✅ Complete |
-| Hephaestus Bridge | ❌ Missing |
+| CrewAI Bridge | ❌ Missing |
 | MCP Tools | ❌ Missing |
 | Analytics | ❌ Missing |
 | TypeScript Export | ❌ Missing |
@@ -417,7 +417,7 @@ bridge.close_ticket_on_completion(instance_id, success=True)
 | Core Integration | ✅ Complete |
 | UI Integration | ✅ Complete |
 | API Bridge | ✅ Complete |
-| Hephaestus Bridge | ✅ **Complete** |
+| CrewAI Bridge | ✅ **Complete** |
 | MCP Tools | ✅ **Complete (6 tools)** |
 | Analytics | ✅ **Complete (SQLite, costs, metrics)** |
 | TypeScript Export | ✅ **Complete (3 formats)** |
@@ -428,7 +428,7 @@ bridge.close_ticket_on_completion(instance_id, success=True)
 ## Key Benefits
 
 ### 1. Production-Ready Integration
-- Full project management integration (Hephaestus)
+- Full project management integration (CrewAI)
 - Agent-level control (MCP tools)
 - Complete observability (analytics)
 - Deployment flexibility (TypeScript export)
@@ -448,7 +448,7 @@ bridge.close_ticket_on_completion(instance_id, success=True)
 
 ### 4. Extensibility
 - MCP tools for agent integration
-- Hephaestus bridge for project management
+- CrewAI bridge for project management
 - Analytics for custom reporting
 - TypeScript export for custom deployments
 
@@ -624,10 +624,10 @@ While the integration is now **100% COMPLETE**, these optional enhancements coul
 
 ## Troubleshooting
 
-### Issue: Hephaestus Connection Failed
+### Issue: CrewAI Connection Failed
 
 **Solution:**
-The bridge runs in mock mode if Hephaestus server is not available. Mock mode returns mock ticket IDs but doesn't create real tickets.
+The bridge runs in mock mode if CrewAI server is not available. Mock mode returns mock ticket IDs but doesn't create real tickets.
 
 ```python
 # Enable mock mode (automatic if server unavailable)
@@ -673,7 +673,7 @@ if definition:
 
 The BubbleLabs integration is now **100% COMPLETE** with all partial items implemented:
 
-✅ **Hephaestus Bridge** - Full project management integration
+✅ **CrewAI Bridge** - Full project management integration
 ✅ **MCP Tools** - 6 tools for agent-level control
 ✅ **Advanced Analytics** - Token usage, cost tracking, metrics
 ✅ **TypeScript Export** - 3 export formats for deployment
@@ -692,7 +692,7 @@ The BubbleLabs integration is now a **fully-featured, enterprise-grade** workflo
 
 | Deliverable | Status | File | LOC |
 |-------------|--------|------|-----|
-| Hephaestus Bridge | ✅ | `bubblelabs_hephaestus_bridge.py` | ~600 |
+| CrewAI Bridge | ✅ | `bubblelabs_crewai_bridge.py` | ~600 |
 | MCP Tools | ✅ | `bubblelabs_mcp_tools.py` | ~700 |
 | Analytics | ✅ | `bubblelabs_analytics.py` | ~650 |
 | TypeScript Export | ✅ | `bubblelabs_typescript_export.py` | ~550 |

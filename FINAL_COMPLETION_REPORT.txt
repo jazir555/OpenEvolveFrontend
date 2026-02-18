@@ -125,7 +125,7 @@ Syntax Errors Found: 0 (excluding validate_phase1_complete.py which has 1 minor 
 - fix_manual_security_issues.py
 - github_config.py
 - integrations.py
-- leanaide_hephaestus_bridge.py
+- leanaide_crewai_bridge.py
 - leanaide_mdap.py
 - llm_utils.py
 - n8n_workflow_integration.py

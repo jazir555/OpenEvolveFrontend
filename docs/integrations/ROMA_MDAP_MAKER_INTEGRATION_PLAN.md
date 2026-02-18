@@ -77,8 +77,8 @@ By integrating ROMA's recursive decomposition with MAKER's proven zero-error exe
 |-----------|--------|----------|-------------|
 | ROMA Native | ✅ Complete | `roma_mcp_tools.py` | Recursive decomposition framework |
 | ROMA-Decomposition Hybrid | ✅ Complete | `roma_decomposition_hybrid.py` | ROMA + Teams/Gauntlets |
-| ROMA-Hephaestus Bridge | ✅ Complete | `roma_hephaestus_bridge.py` | 6-phase mapping |
-| Unified Bridge | ✅ Complete | `hephaestus_unified_bridge.py` | Single entry point |
+| ROMA-CrewAI Bridge | ✅ Complete | `roma_crewai_bridge.py` | 6-phase mapping |
+| Unified Bridge | ✅ Complete | `crewai_unified_bridge.py` | Single entry point |
 | MDAP Engine | ✅ Complete | `mdap_engine.py` | MAKER implementation |
 | Decomposition Workflow | ✅ Complete | `workflow_engine.py` | 6-stage process |
 | Teams & Gauntlets | ✅ Complete | Multiple files | Blue/Red/Gold teams |
@@ -98,7 +98,7 @@ While all components exist individually, there is **no unified integration** tha
 │                                   │                                          │
 │                                   ▼                                          │
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    hephaestus_unified_bridge.py                             │
+│                    crewai_unified_bridge.py                             │
 │  execution_method = "roma_mdap_maker" (NEW)                                 │
 └─────────────────────────────────────────────────────────────────────────────┘
 │                                   │                                          │
@@ -503,13 +503,13 @@ def _solve_with_roma_mdap_maker(
 
 **Total parameters in solve_sub_problem_with_team**: 46 (was 38 with Hybrid, now +8 for ROMA-MDAP-MAKER)
 
-#### 3.3.2 `hephaestus_unified_bridge.py`
+#### 3.3.2 `crewai_unified_bridge.py`
 
 **Changes**:
 
 1. Add ROMA-MDAP-MAKER to unified bridge:
 ```python
-class HephaestusUnifiedBridge:
+class CrewAIUnifiedBridge:
     def __init__(
         self,
         default_execution_method: str = "auto",
@@ -1073,13 +1073,13 @@ def evolve_roma_mdap_maker_parameters(
     return ROMAMDAPMakerConfig(**best_params)
 ```
 
-### 6.2 ROMA-MDAP-MAKER + Hephaestus Full Workflow
+### 6.2 ROMA-MDAP-MAKER + CrewAI Full Workflow
 
-Integrate into Hephaestus 6-phase workflow:
+Integrate into CrewAI 6-phase workflow:
 
 ```python
-class ROMAMDAPMakerHephaestusBridge:
-    """Bridge for using ROMA-MDAP-MAKER in Hephaestus workflow"""
+class ROMAMDAPMakerCrewAIBridge:
+    """Bridge for using ROMA-MDAP-MAKER in CrewAI workflow"""
 
     def execute_phase_1_setup_roma_mdap_maker(
         self,
@@ -1538,7 +1538,7 @@ class ROMAMDAPMakerFaultTolerance:
    - Update _determine_execution_method()
    - Implement _solve_with_roma_mdap_maker()
 
-4. ✅ Modify `hephaestus_unified_bridge.py`
+4. ✅ Modify `crewai_unified_bridge.py`
    - Add enable_roma_mdap_maker option
    - Update execute_phase_2_solve()
    - Add execution method routing
@@ -1604,8 +1604,8 @@ class ROMAMDAPMakerFaultTolerance:
    - Parameter evolution with OpenEvolve
    - Automated optimization
 
-2. ✅ Implement Hephaestus full workflow
-   - ROMAMDAPMakerHephaestusBridge
+2. ✅ Implement CrewAI full workflow
+   - ROMAMDAPMakerCrewAIBridge
    - 6-phase integration
 
 3. ✅ Implement parallel execution
@@ -1620,7 +1620,7 @@ class ROMAMDAPMakerFaultTolerance:
 **Deliverables**:
 - Advanced features implemented
 - Evolution integration
-- Hephaestus integration
+- CrewAI integration
 - Parallel execution
 - Caching system
 
@@ -1761,13 +1761,13 @@ def test_decomposition_workflow_with_roma_mdap_maker():
     assert result.get("error_free", False) == True
 ```
 
-2. **Hephaestus Integration**:
+2. **CrewAI Integration**:
 ```python
-def test_hephaestus_with_roma_mdap_maker():
-    """Test ROMA-MDAP-MAKER in Hephaestus workflow"""
-    from hephaestus_unified_bridge import HephaestusUnifiedBridge
+def test_crewai_with_roma_mdap_maker():
+    """Test ROMA-MDAP-MAKER in CrewAI workflow"""
+    from crewai_unified_bridge import CrewAIUnifiedBridge
 
-    bridge = HephaestusUnifiedBridge(
+    bridge = CrewAIUnifiedBridge(
         default_execution_method="roma_mdap_maker",
         enable_roma_mdap_maker=True
     )
@@ -1994,7 +1994,7 @@ class BudgetEnforcer:
 
 **Files to Modify**: 2
 1. `decomposition_mcp_tools.py` (+250 lines)
-2. `hephaestus_unified_bridge.py` (+100 lines)
+2. `crewai_unified_bridge.py` (+100 lines)
 
 **Total Lines Added**: ~1,750
 

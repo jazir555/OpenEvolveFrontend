@@ -265,12 +265,12 @@ for sub_problem in plan.sub_problems:
             print(f"Strategy: {evo_config['strategy_type']}")
 
 ==============================================
-HEPHAESTUS TICKET CREATION
+CREWAI TICKET CREATION
 ==============================================
 
 # Tickets are auto-created if enabled in config
 # Configure:
-hephaestus_integration:
+crewai_integration:
   enabled: true
   tickets:
     ticket_type: "lean_formalization"
@@ -283,7 +283,7 @@ hephaestus_integration:
 # Access ticket ID from sub-problem
 ticket_id = sub_problem.metadata.get("verification_ticket")
 if ticket_id:
-    print(f"Hephaestus ticket: {ticket_id}")
+    print(f"CrewAI ticket: {ticket_id}")
 
 ==============================================
 ROMA INTEGRATION

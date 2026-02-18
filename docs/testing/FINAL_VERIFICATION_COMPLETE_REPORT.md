@@ -37,7 +37,7 @@ All core BubbleLabs files successfully compiled with no syntax errors:
 | bubblelabs_mcp_tools.py | ✅ PASS |
 | bubblelabs_typescript_export.py | ✅ PASS |
 | bubblelabs_security.py | ✅ PASS |
-| bubblelabs_hephaestus_bridge.py | ✅ PASS |
+| bubblelabs_crewai_bridge.py | ✅ PASS |
 | bubblelabs_integration.py | ✅ PASS |
 | openevolve_bubblelabs_api.py | ✅ PASS |
 
@@ -57,7 +57,7 @@ All major modules successfully import their primary classes and functions:
 | bubblelabs_mcp_tools | create_bubblelabs_workflow | ✅ PASS |
 | bubblelabs_typescript_export | BubbleLabsTypeScriptExporter | ✅ PASS |
 | bubblelabs_security | AuthenticationManager | ✅ PASS |
-| bubblelabs_hephaestus_bridge | BubbleLabsHephaestusBridge | ✅ PASS |
+| bubblelabs_crewai_bridge | BubbleLabsCrewAIBridge | ✅ PASS |
 | bubblelabs_integration | BubbleLabsIntegration | ✅ PASS |
 | openevolve_bubblelabs_api | OpenEvolveBubbleLabsIntegration | ✅ PASS |
 
@@ -117,7 +117,7 @@ Complete workflow and ticket state machine validation:
 - BLOCKED → IN_PROGRESS
 - Any → CLOSED
 
-**Code Location:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py`
+**Code Location:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py`
 - Lines 101-139: State transition definitions
 - Lines 206-255: Validation functions
 
@@ -160,7 +160,7 @@ All core files have comprehensive docstrings:
 |------|------|---------|--------|-------|
 | bubblelabs_mcp_tools.py | ✅ | ✅ | ❌ | 2/3 ✅ |
 | bubblelabs_analytics.py | ✅ | ✅ | ❌ | 2/3 ✅ |
-| bubblelabs_hephaestus_bridge.py | ✅ | ✅ | ✅ | 3/3 ✅ |
+| bubblelabs_crewai_bridge.py | ✅ | ✅ | ✅ | 3/3 ✅ |
 | bubblelabs_integration.py | ✅ | ✅ | ✅ | 3/3 ✅ |
 
 **Documentation Coverage:** 10/12 sections (83%)
@@ -199,7 +199,7 @@ def create_workflow_definition(
 
 Defensive programming patterns verified in all critical files:
 
-| Pattern | bubblelabs_hephaestus_bridge.py | bubblelabs_analytics.py |
+| Pattern | bubblelabs_crewai_bridge.py | bubblelabs_analytics.py |
 |---------|-------------------------------|------------------------|
 | Null checks (if x is None) | ✅ | ✅ |
 | Try-except blocks | ✅ | ✅ |
@@ -345,7 +345,7 @@ All test files present and passing:
    - Visualization components
 
 2. **test_bubblelabs_complete_integration.py (5/5 passed)**
-   - Hephaestus bridge integration
+   - CrewAI bridge integration
    - MCP tools functionality
    - Analytics tracking
    - TypeScript export
@@ -512,7 +512,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ├── bubblelabs_mcp_tools.py              (312 lines)
 ├── bubblelabs_typescript_export.py      (285 lines)
 ├── bubblelabs_security.py               (486 lines)
-├── bubblelabs_hephaestus_bridge.py      (945 lines)
+├── bubblelabs_crewai_bridge.py      (945 lines)
 ├── bubblelabs_integration.py            (612 lines)
 ├── openevolve_bubblelabs_api.py         (445 lines)
 └── bubblelabs_ui_component.py           (380 lines)

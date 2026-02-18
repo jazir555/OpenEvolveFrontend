@@ -17,7 +17,7 @@ Applied 5 critical performance optimizations across ACE (Agentic Context Engine)
 ## Fixes Applied
 
 ### ✅ Fix 1: O(n²) → O(n) String Concatenation
-**File:** `ace_hephaestus_bridge.py` (line ~1237)
+**File:** `ace_crewai_bridge.py` (line ~1237)
 **Impact:** HIGH - Critical for large args/kwargs
 
 **Before:**
@@ -45,7 +45,7 @@ sample = Sample(
 ---
 
 ### ✅ Fix 2: O(n²) → O(n) Skill Removal
-**File:** `ace_hephaestus_bridge.py` (lines ~308-313)
+**File:** `ace_crewai_bridge.py` (lines ~308-313)
 **Impact:** HIGH - Critical when skillbook is large
 
 **Before:**
@@ -76,7 +76,7 @@ for strategy in skills_to_remove:
 ---
 
 ### ✅ Fix 3: Skillbook Caching
-**File:** `ace_hephaestus_bridge.py` (lines ~209, 273-312)
+**File:** `ace_crewai_bridge.py` (lines ~209, 273-312)
 **Impact:** MEDIUM - Reduces redundant computations
 
 **Changes:**
@@ -132,7 +132,7 @@ top_tags = heapq.nlargest(5, tag_counts.items(), key=lambda x: x[1])
 ---
 
 ### ✅ Fix 5: Optimized String Building
-**File:** `ace_hephaestus_bridge.py` (lines ~287-292)
+**File:** `ace_crewai_bridge.py` (lines ~287-292)
 **Impact:** LOW-MEDIUM - Better for large skill prompts
 
 **Before:**
@@ -220,7 +220,7 @@ return "\n".join(parts)
 1. **Benchmark skill injection:**
    ```python
    import time
-   bridge = ACEHephaestusWorkflowBridge()
+   bridge = ACECrewAIWorkflowBridge()
 
    # Warm up
    for _ in range(100):
@@ -252,7 +252,7 @@ return "\n".join(parts)
 
 ## Files Modified
 
-### `ace_hephaestus_bridge.py`
+### `ace_crewai_bridge.py`
 - Line ~210: Added cache initialization
 - Line ~277: Modified `inject_skills()` to use cache
 - Line ~287: Optimized string building with `join()`

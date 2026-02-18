@@ -78,13 +78,13 @@ solve(task):
 - Google (Gemini Pro, Gemini Ultra)
 - OpenRouter (Multi-provider aggregation)
 
-### 2. roma_hephaestus_bridge.py (NEW)
+### 2. roma_crewai_bridge.py (NEW)
 
-**Purpose**: Bridge mapping Hephaestus 6 phases to ROMA's recursive framework
+**Purpose**: Bridge mapping CrewAI 6 phases to ROMA's recursive framework
 
 **Lines**: ~450
 
-**Key Class**: `ROMAHephaestusWorkflowBridge`
+**Key Class**: `ROMACrewAIWorkflowBridge`
 
 **Key Methods**:
 - `execute_phase_1_setup()` - Problem analysis with ROMA (max_depth=3)
@@ -131,7 +131,7 @@ solve(task):
 
 **Total parameters in solve_sub_problem_with_team**: 28 (was 22, now 6 more)
 
-### 2. decomposition_hephaestus_bridge.py
+### 2. decomposition_crewai_bridge.py
 
 **Status**: No changes needed - already supports passing through all parameters
 
@@ -143,7 +143,7 @@ The existing `execute_phase_2_solve()` function automatically supports ROMA para
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Hephaestus (Orchestrator)                                │
+│                    CrewAI (Orchestrator)                                │
 │  Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                    │
@@ -287,12 +287,12 @@ result = solve_sub_problem_with_team(
 # Auto selects ROMA because "decompose" and "hierarchical" keywords detected
 ```
 
-### Example 5: Hephaestus Bridge
+### Example 5: CrewAI Bridge
 
 ```python
-from roma_hephaestus_bridge import ROMAHephaestusWorkflowBridge
+from roma_crewai_bridge import ROMACrewAIWorkflowBridge
 
-bridge = ROMAHephaestusWorkflowBridge(
+bridge = ROMACrewAIWorkflowBridge(
     provider="openai",
     model="gpt-4o-mini",
     max_depth_analysis=3,
@@ -439,11 +439,11 @@ print(f"Total parameters: {len(sig.parameters)}")  # 28 (was 22)
 | **Steer** | Can verify ROMA outputs |
 | **Claudiomiro** | Alternative - ROMA for decomposition, Claudiomiro for implementation |
 | **DataPizza** | Alternative - ROMA for recursive decomposition, DataPizza for multi-agent |
-| **Hephaestus** | Phase 2-4 enhanced with ROMA |
+| **CrewAI** | Phase 2-4 enhanced with ROMA |
 
 ### Phase Mapping
 
-| Hephaestus Phase | Traditional | Claudiomiro | DataPizza | ROMA |
+| CrewAI Phase | Traditional | Claudiomiro | DataPizza | ROMA |
 |------------------|-------------|-------------|-----------|------|
 | Phase 1: Setup | OpenEvolve analysis | Not used | Parallel multi-agent | Recursive analysis |
 | Phase 2: Solve | OpenEvolve + LLM | Autonomous coding | Blue Agent tools | Recursive solve |
@@ -460,7 +460,7 @@ print(f"Total parameters: {len(sig.parameters)}")  # 28 (was 22)
 
 **What Was Done**:
 1. Created `roma_mcp_tools.py` (~650 lines, 7 MCP tools)
-2. Created `roma_hephaestus_bridge.py` (~450 lines, 6 phase executors)
+2. Created `roma_crewai_bridge.py` (~450 lines, 6 phase executors)
 3. Enhanced `decomposition_mcp_tools.py` (~200 lines added):
    - ROMA import and availability check
    - 6 new parameters in `solve_sub_problem_with_team()`

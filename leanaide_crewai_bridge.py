@@ -4,11 +4,11 @@ LeanAide-CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 LeanAide's Lean 4 mathematical verification and translation capabilities.
 
-This replaces leanaide_hephaestus_bridge.py with local CrewAI execution.
+This replaces leanaide_crewai_bridge.py with local CrewAI execution.
 
 IMPORTANT: This bridge integrates Lean 4 mathematical verification with
 CrewAI workflows. It maintains the same 6-phase structure while using
-CrewAI for orchestration instead of AGPL-licensed Hephaestus.
+CrewAI for orchestration instead of AGPL-licensed CrewAI.
 
 Phase Mapping:
 - Phase 1: Analysis -> Mathematical problem detection and analysis
@@ -18,7 +18,7 @@ Phase Mapping:
 - Phase 5: Formal Verification -> Final formal verification
 - Phase 6: Knowledge Extraction -> Extract verified theorems for knowledge base
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
@@ -61,7 +61,7 @@ try:
 except ImportError:
     CAV_NLP_AVAILABLE = False
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     ZeroErrorWorkflow,
     create_zero_error_workflow,
@@ -289,7 +289,7 @@ class LeanAideCrewAIBridge:
     5. Formal verification (Phase 5)
     6. Knowledge extraction (Phase 6)
 
-    Replaces LeanAideHephaestusBridge with CrewAI local execution.
+    Replaces LeanAideCrewAIBridge with CrewAI local execution.
     """
 
     def __init__(self, config: Optional[LeanAideConfig] = None):

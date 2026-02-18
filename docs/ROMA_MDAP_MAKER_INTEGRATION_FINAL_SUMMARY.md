@@ -24,7 +24,7 @@ ROMA-MDAP-MAKER has been **fully integrated** into the OpenEvolve system as the 
 |------|-------|---------|
 | `roma_mdap_maker_engine.py` | ~1,100 | Core orchestration with voting, red-flagging, adaptive k |
 | `roma_mdap_maker_mcp_tools.py` | ~850 | 7 MCP tools for all operations |
-| `roma_mdap_maker_hephaestus_bridge.py` | ~900 | Full 6-phase Hephaestus workflow integration |
+| `roma_mdap_maker_crewai_bridge.py` | ~900 | Full 6-phase CrewAI workflow integration |
 
 **Total**: ~2,850 lines of new production code
 
@@ -33,8 +33,8 @@ ROMA-MDAP-MAKER has been **fully integrated** into the OpenEvolve system as the 
 | File | Changes | Lines Added |
 |------|---------|-------------|
 | `decomposition_mcp_tools.py` | ROMA-MDAP-MAKER as 7th method, routing, auto-selection | +150 |
-| `hephaestus_unified_bridge.py` | Phase routing, status reporting | +50 |
-| `decomposition_hephaestus_bridge.py` | Parameter passing through bridge | +50 |
+| `crewai_unified_bridge.py` | Phase routing, status reporting | +50 |
+| `decomposition_crewai_bridge.py` | Parameter passing through bridge | +50 |
 
 **Total**: ~250 lines of integration code
 
@@ -97,12 +97,12 @@ Automatically selects ROMA-MDAP-MAKER for critical zero-error tasks:
 - Routes to `_solve_with_roma_mdap_maker()` helper
 - Auto-selection logic added with highest priority for critical tasks
 
-### 2. Hephaestus Unified Bridge
+### 2. CrewAI Unified Bridge
 - `execute_phase_1_setup()` - Routes to ROMA-MDAP-MAKER bridge
 - `execute_phase_2_solve()` - Passes through ROMA-MDAP-MAKER parameters
 - `get_unified_bridge_status()` - Includes ROMA-MDAP-MAKER bridge status
 
-### 3. Hephaestus Decomposition Bridge
+### 3. CrewAI Decomposition Bridge
 - `execute_phase_2_solve()` - Accepts and passes ROMA-MDAP-MAKER parameters
 
 ---
@@ -112,7 +112,7 @@ Automatically selects ROMA-MDAP-MAKER for critical zero-error tasks:
 ### Example 1: Auto-Selection (Recommended)
 
 ```python
-from hephaestus_unified_bridge import execute_phase_2_solve
+from crewai_unified_bridge import execute_phase_2_solve
 
 # Automatically selects ROMA-MDAP-MAKER for critical tasks
 result = execute_phase_2_solve(
@@ -139,7 +139,7 @@ result = solve_sub_problem_with_team(
 ### Example 3: Full Workflow
 
 ```python
-from roma_mdap_maker_hephaestus_bridge import execute_full_workflow
+from roma_mdap_maker_crewai_bridge import execute_full_workflow
 
 result = execute_full_workflow(
     problem_statement="Design zero-error trading system",
@@ -206,10 +206,10 @@ result = execute_full_workflow(
 ```
 User Request (Critical Zero-Error Task)
          ↓
-hephaestus_unified_bridge.py
+crewai_unified_bridge.py
   (Auto-selects ROMA-MDAP-MAKER)
          ↓
-roma_mdap_maker_hephaestus_bridge.py
+roma_mdap_maker_crewai_bridge.py
   (6-phase workflow)
          ↓
 roma_mdap_maker_engine.py
@@ -239,7 +239,7 @@ To verify the integration is working:
 
 ```python
 python -c "
-from hephaestus_unified_bridge import get_unified_bridge_status
+from crewai_unified_bridge import get_unified_bridge_status
 status = get_unified_bridge_status()
 print(f'Total methods: {status[\"total_execution_methods\"]}')
 print(f'ROMA-MDAP-MAKER: {status[\"roma_mdap_maker_bridge_available\"]}')
@@ -268,7 +268,7 @@ The integration is **production ready**. To use:
 
 ✅ **Complete Integration**: ~3,500 lines of code across 6 files
 ✅ **7 MCP Tools**: Complete toolset for all operations
-✅ **6-Phase Workflow**: Full Hephaestus integration
+✅ **6-Phase Workflow**: Full CrewAI integration
 ✅ **Auto-Selection**: Intelligent method selection
 ✅ **Zero-Error Guarantees**: Through MAKER voting + red-flagging
 ✅ **Production Ready**: All tests passing

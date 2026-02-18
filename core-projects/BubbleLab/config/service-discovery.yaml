@@ -380,7 +380,7 @@ services:
       max_delay_ms: 5000
 
     dependencies:
-      - service: hephaestus
+      - service: crewai
         required: false
       - service: knowledge_engine
         required: false
@@ -745,10 +745,10 @@ services:
       - roma
 
   # =============================================================================
-  # HEPHAEUS SERVICE
+  # CREWAI SERVICE
   # =============================================================================
-  - id: hephaestus
-    name: Hephaestus Service
+  - id: crewai
+    name: CrewAI Service
     description: Delegation and MCP server system
     category: orchestration
     version: "1.0.0"
@@ -760,11 +760,11 @@ services:
         protocol: http
         port: 8012
       - environment: staging
-        url: https://staging-hephaestus.openevolve.example.com
+        url: https://staging-crewai.openevolve.example.com
         protocol: https
         port: 443
       - environment: production
-        url: "${HEPHAEUS_URL}"
+        url: "${CREWAI_URL}"
         protocol: https
         port: 443
 
@@ -799,7 +799,7 @@ services:
       - delegation
       - mcp
       - orchestration
-      - hephaestus
+      - crewai
 
     # Sub-endpoints
     sub_endpoints:
@@ -1084,7 +1084,7 @@ service_groups:
       - decomposition_engine
       - maker_engine
       - hybrid_maker
-      - hephaestus
+      - crewai
     description: Workflow automation services
 
   - id: infrastructure_services

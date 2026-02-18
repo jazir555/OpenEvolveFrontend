@@ -58,7 +58,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 | **ROMA** | Recursive Optimized Meta-Agent decomposition | ✅ Complete | 2025-Q4 | `ROMA_DECOMPOSITION_INTEGRATION_COMPLETE.md` |
 | **RAGbits** | Advanced vector store and retrieval system | ✅ Complete | 2025-Q4 | `RAGBITS_DECOMPOSITION_WORKFLOW_INTEGRATION_PLAN.md` |
 | **LeanAgent** | Lean 4 LLM agent for formal verification | ✅ Complete | 2025-Q4 | `LEAN_4_INTEGRATION_SUMMARY.md` |
-| **Hephaestus** | Semi-structured agentic workflow framework | ✅ Complete | 2025-Q4 | `HEPHAEUSTUS_SESSION_COMPLETE.md` |
+| **CrewAI** | Semi-structured agentic workflow framework | ✅ Complete | 2025-Q4 | `CREWAI_SESSION_COMPLETE.md` |
 | **BubbleLabs** | Comprehensive workflow automation platform | ✅ Complete | 2025-Q4 | `BUBBLELABS_COMPLETE_INTEGRATION_FINAL.md` |
 | **DataPizza** | Multi-agent problem-solving coordination | ✅ Complete | 2025-Q4 | `DATAPIZZA_DECOMPOSITION_INTEGRATION_COMPLETE.md` |
 | **Claudiomiro** | Autonomous development agent and coding assistant | ✅ Complete | 2025-Q4 | `CLAUDIOMIRO_DECOMPOSITION_INTEGRATION_COMPLETE.md` |
@@ -104,7 +104,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 | **MAKER** | Multi-agent voting and consensus framework | ✅ Complete | `MAKER_COMPLETE_INTEGRATION_SUMMARY.md` |
 | **MDAP** | Multi-Dimensional Agent Processing system | ✅ Complete | `MDAP_MAKER_COMPLETE_INTEGRATION_SUMMARY.md` |
 | **MCTS** | Monte Carlo Tree Search for decision optimization | ✅ Complete | `MCTS_INTEGRATION_COMPLETE.md` |
-| **Hephaestus** | Semi-structured agentic workflow framework | ✅ Complete | `HEPHAEUSTUS_SESSION_COMPLETE.md` |
+| **CrewAI** | Semi-structured agentic workflow framework | ✅ Complete | `CREWAI_SESSION_COMPLETE.md` |
 
 #### Hybrid & Evolutionary Systems
 | System | Purpose | Status | Documentation |
@@ -126,7 +126,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 | Combination | Purpose | Status | Documentation |
 |-------------|---------|--------|---------------|
 | **ROMA + MDAP + MAKER** | Full decomposition stack integration | ✅ Complete | `ROMA_MDAP_MAKER_FULL_INTEGRATION_COMPLETE.md` |
-| **ROMA + Hephaestus** | Workflow decomposition integration | ✅ Complete | `ROMA_HEPHAESTUS_INTEGRATION_COMPLETE.md` |
+| **ROMA + CrewAI** | Workflow decomposition integration | ✅ Complete | `ROMA_CREWAI_INTEGRATION_COMPLETE.md` |
 | **MAKER + Adversarial** | Adversarial multi-agent voting | ✅ Complete | `MAKER_ADVERSARIAL_INTEGRATION_SUMMARY.md` |
 | **MAKER + Evolution** | Evolutionary multi-agent systems | ✅ Complete | `MAKER_EVOLUTION_INTEGRATION_SUMMARY.md` |
 | **MAKER + Hybrid** | Hybrid multi-agent integration | ✅ Complete | `MAKER_HYBRID_INTEGRATION_SUMMARY.md` |
@@ -161,7 +161,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 
 | System | Purpose | Status | Documentation |
 |--------|---------|--------|---------------|
-| **Steer** | Output verification and compliance checking | ✅ Complete | `ACE_STEER_INTEGRATION_GUIDE.md`, `STEER_HEPHAEUSTUS_INTEGRATION.md` |
+| **Steer** | Output verification and compliance checking | ✅ Complete | `ACE_STEER_INTEGRATION_GUIDE.md`, `STEER_CREWAI_INTEGRATION.md` |
 | **Evaluator Team** | Multi-dimensional quality evaluation metrics | ✅ Complete | `evaluator_team.py` |
 | **Adversarial Evolution** | Robustness testing through adversarial examples | ✅ Complete | `ADVERSARIAL_INTEGRATION_GUIDE.md`, `EVOLUTION_ADVERSARIAL_COMPLETE_INTEGRATION.md` |
 | **Red Team** | Security testing and vulnerability assessment | ✅ Complete | `red_team.py` |
@@ -357,7 +357,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 
 | Integration | Purpose | Category | Status | Documentation |
 |-------------|---------|----------|--------|---------------|
-| **Hephaestus** | Workflow framework | Workflow | ✅ Complete | `HEPHAEUSTUS_SESSION_COMPLETE.md` |
+| **CrewAI** | Workflow framework | Workflow | ✅ Complete | `CREWAI_SESSION_COMPLETE.md` |
 | **Hybrid MCTS** | MCTS + Evolution | Workflow | ✅ Complete | `HYBRID_MCTS_INTEGRATION.md` |
 
 ### I
@@ -424,7 +424,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 | **Red Team** | Security testing | Testing | ✅ Complete | `red_team.py` |
 | **RESE** | Reliability evaluation | Scientific | ✅ Complete | `RESE_E2E_COMPREHENSIVE_INTEGRATION_ROADMAP.md` |
 | **ROMA** | Meta-agent decomposition | Core | ✅ Complete | `ROMA_DECOMPOSITION_INTEGRATION_COMPLETE.md` |
-| **ROMA + Hephaestus** | Workflow decomposition | Workflow | ✅ Complete | `ROMA_HEPHAESTUS_INTEGRATION_COMPLETE.md` |
+| **ROMA + CrewAI** | Workflow decomposition | Workflow | ✅ Complete | `ROMA_CREWAI_INTEGRATION_COMPLETE.md` |
 | **ROMA + MDAP + MAKER** | Full decomposition | Workflow | ✅ Complete | `ROMA_MDAP_MAKER_FULL_INTEGRATION_COMPLETE.md` |
 | **Research-Quest** | Scientific methodology | Workflow | 📋 Reference | `SOP_RESEARCH_QUEST_INTEGRATION_COMPLETE.md` |
 
@@ -450,7 +450,7 @@ The OpenEvolve Platform represents one of the most comprehensive AI ecosystem in
 
 | Status | Count | Percentage | Systems |
 |--------|-------|------------|---------|
-| ✅ **Complete** | 65+ | 65% | All core systems, ROMA, MAKER, MDAP, MCTS, Hephaestus, BubbleLabs, Lean 4, Steer, etc. |
+| ✅ **Complete** | 65+ | 65% | All core systems, ROMA, MAKER, MDAP, MCTS, CrewAI, BubbleLabs, Lean 4, Steer, etc. |
 | 🟡 **In Progress** | 15+ | 15% | DeepKE, AI-KG, LeanAide enhancement, Stage 6, SOP Generator |
 | ✅ **Interface Ready** | 7 | 7% | Graphiti, pygraphistry, Curie, Global CHEM, Neuromancer, UQTestFuns |
 | ⚪ **Deferred** | 3 | 3% | FRM, NeuralKG |
@@ -629,7 +629,7 @@ Complete index of all 116 integration documents organized by category and status
 - `RAGBITS_DECOMPOSITION_WORKFLOW_INTEGRATION_PLAN.md`
 - `LEAN_4_INTEGRATION_SUMMARY.md`
 - `LEAN4_INTEGRATION_GUIDE.md`
-- `HEPHAEUSTUS_SESSION_COMPLETE.md`
+- `CREWAI_SESSION_COMPLETE.md`
 - `BUBBLELABS_COMPLETE_INTEGRATION_FINAL.md`
 - `DATAPIZZA_DECOMPOSITION_INTEGRATION_COMPLETE.md`
 - `CLAUDIOMIRO_DECOMPOSITION_INTEGRATION_COMPLETE.md`
@@ -660,7 +660,7 @@ Complete index of all 116 integration documents organized by category and status
 - `END_TO_END_INVENTION_INTEGRATIONS.md`
 - `ENSEMBLE_SOP_INTEGRATION_SUMMARY.md`
 - `SOP_RESEARCH_QUEST_INTEGRATION_COMPLETE.md`
-- `ROMA_HEPHAESTUS_INTEGRATION_COMPLETE.md`
+- `ROMA_CREWAI_INTEGRATION_COMPLETE.md`
 - `ROMA_MDAP_MAKER_FULL_INTEGRATION_COMPLETE.md`
 - Plus 20+ more workflow combination documents
 
@@ -678,7 +678,7 @@ Complete index of all 116 integration documents organized by category and status
 
 ### Testing Documents (8+ docs)
 - `ACE_STEER_INTEGRATION_GUIDE.md`
-- `STEER_HEPHAEUSTUS_INTEGRATION.md`
+- `STEER_CREWAI_INTEGRATION.md`
 - `ADVERSARIAL_INTEGRATION_GUIDE.md`
 - `INTEGRATION_TESTING_GUIDE.md`
 - `E2E_INTEGRATION_VALIDATION_REPORT.md`

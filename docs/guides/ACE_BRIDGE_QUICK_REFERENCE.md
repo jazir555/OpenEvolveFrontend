@@ -1,4 +1,4 @@
-# ACE Hephaestus Bridge - Security Fixes Quick Reference
+# ACE CrewAI Bridge - Security Fixes Quick Reference
 
 ## All Fixes Applied (12/12) ✅
 
@@ -89,7 +89,7 @@ bridge.cleanup_old_skills(max_skills=1000)
 bridge.cleanup()
 
 # Context manager:
-with ACEHephaestusWorkflowBridge() as bridge:
+with ACECrewAIWorkflowBridge() as bridge:
     # use bridge
 # auto-cleanup on exit
 ```
@@ -127,10 +127,10 @@ with self._skillbook_lock:
 
 ```bash
 # Syntax check
-python -m py_compile ace_hephaestus_bridge.py
+python -m py_compile ace_crewai_bridge.py
 
 # Import test
-python -c "from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge; print('OK')"
+python -c "from ace_crewai_bridge import ACECrewAIWorkflowBridge; print('OK')"
 
 # Full validation
 python test_ace_bridge_security_fixes.py
@@ -152,10 +152,10 @@ python test_ace_bridge_security_fixes.py
 ## Usage Example
 
 ```python
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Basic usage
-bridge = ACEHephaestusWorkflowBridge(
+bridge = ACECrewAIWorkflowBridge(
     model='gpt-4o-mini',
     skillbook_path='skills.json',
     max_skills=1000,
@@ -171,7 +171,7 @@ result = bridge.execute_phase_1_setup(
 bridge.cleanup()
 
 # Or use context manager (auto-cleanup)
-with ACEHephaestusWorkflowBridge(model='gpt-4o-mini') as bridge:
+with ACECrewAIWorkflowBridge(model='gpt-4o-mini') as bridge:
     result = bridge.execute_full_workflow(
         problem_statement="Solve X",
         enable_learning=True

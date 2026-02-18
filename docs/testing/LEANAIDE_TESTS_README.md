@@ -1,6 +1,6 @@
 # LeanAide Integration Test Suite
 
-Comprehensive integration tests for LeanAide, covering client connections, MCP tools, Hephaestus bridge phases, workflow integration, error handling, and performance.
+Comprehensive integration tests for LeanAide, covering client connections, MCP tools, CrewAI bridge phases, workflow integration, error handling, and performance.
 
 ## Overview
 
@@ -8,7 +8,7 @@ The test suite provides confidence that LeanAide integration works correctly acr
 
 - **Client Connection & Health Checks** - Connection pooling, retries, health monitoring
 - **8 MCP Tools** - All Model Context Protocol tools fully tested
-- **6 Hephaestus Bridge Phases** - Complete workflow from analysis to knowledge extraction
+- **6 CrewAI Bridge Phases** - Complete workflow from analysis to knowledge extraction
 - **Workflow Integration** - Stage 3C, Stage 5 integration points
 - **Error Handling** - Edge cases, timeouts, connection failures
 - **Performance & Caching** - Concurrent requests, cache performance
@@ -75,7 +75,7 @@ pytest test_leanaide_integration.py -v -m mock
 pytest test_leanaide_integration.py -v -m "not slow"
 
 # Run with coverage
-pytest test_leanaide_integration.py --cov=leanaide_client --cov=leanaide_mcp_tools --cov=leanaide_hephaestus_bridge --cov-report=html
+pytest test_leanaide_integration.py --cov=leanaide_client --cov=leanaide_mcp_tools --cov=leanaide_crewai_bridge --cov-report=html
 
 # List all tests
 pytest test_leanaide_integration.py --collect-only
@@ -162,9 +162,9 @@ All 8 MCP tools are tested:
 7. **leanaide_elaborate_code** - Elaborate Lean code and check errors
 8. **get_leanaide_status** - Get server connection status
 
-### Hephaestus Bridge Phases (6 Phases)
+### CrewAI Bridge Phases (6 Phases)
 
-All 6 phases of the Hephaestus workflow are tested:
+All 6 phases of the CrewAI workflow are tested:
 
 1. **Phase 1: Analysis** - Detect and classify mathematical content
 2. **Phase 2: Translate** - Natural language to Lean 4 translation
@@ -206,8 +206,8 @@ Sample data is provided via pytest fixtures:
 The tests require these LeanAide modules (with fallbacks if not available):
 
 - `leanaide_client.py` - Async client for LeanAide server
-- `leanaide_mcp_tools.py` - MCP tools for Hephaestus agents
-- `leanaide_hephaestus_bridge.py` - Bridge between LeanAide and Hephaestus
+- `leanaide_mcp_tools.py` - MCP tools for CrewAI agents
+- `leanaide_crewai_bridge.py` - Bridge between LeanAide and CrewAI
 
 ## Server Requirements
 

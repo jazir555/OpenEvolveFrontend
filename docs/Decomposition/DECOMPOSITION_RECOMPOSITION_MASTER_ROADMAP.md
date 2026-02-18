@@ -289,14 +289,14 @@ Test Suites: 25 comprehensive tests
 |--------|-------------|--------|--------|---------|--------|
 | **ROMA** | `roma_decomposition_hybrid.py` | ✅ Operational | 🟢 95% | MIT | None |
 | **LeanAide** | `leanaide_decomposition_integration.py` | ✅ Operational | 🟢 90% | MIT | Async complexity |
-| **Hephaestus** | `decomposition_hephaestus_bridge.py` | ⚠️ Operational | 🟡 75% | AGPL | License concern |
+| **CrewAI** | `decomposition_crewai_bridge.py` | ⚠️ Operational | 🟡 75% | AGPL | License concern |
 | **CrewAI** | `decomposition_crewai_bridge.py` | ✅ Operational | 🟢 90% | MIT | None |
 | **MDAP-MAKER** | `roma_mdap_maker_associative_integration.py` | ✅ Operational | 🟢 85% | MIT | Complex config |
 | **ROMA-MDAP-MAKER** | `roma_mdap_maker_engine.py` | ✅ Operational | 🟢 88% | MIT | File size |
 
-#### Recommendation: Use CrewAI Over Hephaestus
+#### Recommendation: Use CrewAI Over CrewAI
 
-**Hephaestus Bridge:**
+**CrewAI Bridge:**
 - ⚠️ AGPL-licensed (copyleft issues)
 - ✅ Feature-complete
 - ⚠️ Use only if AGPL acceptable
@@ -984,7 +984,7 @@ print(result["complexity_estimation"])
 
 **❌ AVOID (AGPL):**
 ```python
-from decomposition_hephaestus_bridge import execute_workflow  # AGPL
+from decomposition_crewai_bridge import execute_workflow  # AGPL
 ```
 
 **✅ PREFER (MIT):**

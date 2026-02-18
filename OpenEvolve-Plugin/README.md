@@ -23,14 +23,14 @@ OpenEvolve Plugin is a comprehensive AI evolution and optimization platform desi
 
 ### Workflow Support
 
-- **10 Workflow Types**: Evolution, Adversarial, Maker, MDAP, Decomposition, Knowledge, LeanAide, Hephaestus, ROMA, Invention
+- **10 Workflow Types**: Evolution, Adversarial, Maker, MDAP, Decomposition, Knowledge, LeanAide, CrewAI, ROMA, Invention
 - **Real-time Monitoring**: Live execution tracking with WebSocket support
 - **Visual Analytics**: Comprehensive performance metrics and visualizations
 - **Configurable Parameters**: 272 configurable parameters across all workflows
 
 ### Integration Services
 
-- **Hephaestus**: Advanced task delegation and resource management
+- **CrewAI**: Advanced task delegation and resource management
 - **ROMA**: Multi-objective optimization with Pareto fronts
 - **End-to-End Invention**: Automated invention pipeline with evaluation
 
@@ -174,7 +174,7 @@ Each workflow type has its own configuration schema defined in `src/schemas/`:
 - `decomposition.ts` - Problem decomposition
 - `knowledge.ts` - Knowledge base operations
 - `leanaide.ts` - Lean proof verification
-- `hephaestus.ts` - Task delegation
+- `crewai.ts` - Task delegation
 - `roma.ts` - Multi-objective optimization
 - `invention.ts` - Invention pipeline
 

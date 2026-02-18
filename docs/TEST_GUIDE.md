@@ -9,7 +9,7 @@ This comprehensive test suite provides complete coverage for all BubbleLabs Open
 - **LeanAide Integration**: Translation, proof generation, verification, MCTS visualization
 - **Evolution Integration**: Workflow creation, adversarial testing, progress tracking
 - **Knowledge Engine Integration**: Graph queries, multi-source querying, visualization
-- **Maker/Hephaestus Integration**: Tool creation, delegation, repository management
+- **Maker/CrewAI Integration**: Tool creation, delegation, repository management
 - **UI Components**: Parameter rendering, visualization, export/import, security
 
 ## Test Statistics
@@ -132,9 +132,9 @@ pytest test_bubblelabs_comprehensive.py -vv -s
    - Visualization data generation
    - Bedrock KB integration
 
-5. **TestMakerHephaestusIntegration** (8 tests)
+5. **TestMakerCrewAIIntegration** (8 tests)
    - Tool creation workflow
-   - Hephaestus delegation
+   - CrewAI delegation
    - Tool repository management
    - Ticket creation and updates
    - MDAP task synchronization
@@ -153,7 +153,7 @@ pytest test_bubblelabs_comprehensive.py -vv -s
    - End-to-end workflow
    - LeanAide to Evolution pipeline
    - Knowledge Engine to Maker pipeline
-   - Hephaestus ticket lifecycle
+   - CrewAI ticket lifecycle
    - Async workflow execution
 
 8. **TestPerformance** (3 tests)
@@ -190,7 +190,7 @@ Tests are marked with categories for selective execution:
 - `@pytest.mark.security`: Security tests
 - `@pytest.mark.performance`: Performance tests
 - `@pytest.mark.requires_api`: Tests requiring API keys
-- `@pytest.mark.requires_hephaestus`: Tests requiring Hephaestus
+- `@pytest.mark.requires_crewai`: Tests requiring CrewAI
 - `@pytest.mark.requires_leanaide`: Tests requiring LeanAide
 
 ## Fixtures
@@ -202,7 +202,7 @@ Tests are marked with categories for selective execution:
 - `mock_workflow_state`: Mock workflow state
 - `mock_sub_problem`: Mock sub-problem
 - `mock_leanaide_client`: Mock LeanAide client
-- `mock_hephaestus_client`: Mock Hephaestus client
+- `mock_crewai_client`: Mock CrewAI client
 - `sample_lean_code`: Sample Lean 4 code
 - `sample_theorem_text`: Sample natural language theorem
 - `event_loop`: Event loop for async tests
@@ -421,7 +421,7 @@ This comprehensive test suite provides complete coverage for all BubbleLabs Open
 - **LeanAide Integration**: Translation, proof generation, verification, MCTS visualization
 - **Evolution Integration**: Workflow creation, adversarial testing, progress tracking
 - **Knowledge Engine Integration**: Graph queries, multi-source querying, visualization
-- **Maker/Hephaestus Integration**: Tool creation, delegation, repository management
+- **Maker/CrewAI Integration**: Tool creation, delegation, repository management
 - **UI Components**: Parameter rendering, visualization, export/import, security
 
 ## Test Statistics
@@ -544,9 +544,9 @@ pytest test_bubblelabs_comprehensive.py -vv -s
    - Visualization data generation
    - Bedrock KB integration
 
-5. **TestMakerHephaestusIntegration** (8 tests)
+5. **TestMakerCrewAIIntegration** (8 tests)
    - Tool creation workflow
-   - Hephaestus delegation
+   - CrewAI delegation
    - Tool repository management
    - Ticket creation and updates
    - MDAP task synchronization
@@ -565,7 +565,7 @@ pytest test_bubblelabs_comprehensive.py -vv -s
    - End-to-end workflow
    - LeanAide to Evolution pipeline
    - Knowledge Engine to Maker pipeline
-   - Hephaestus ticket lifecycle
+   - CrewAI ticket lifecycle
    - Async workflow execution
 
 8. **TestPerformance** (3 tests)
@@ -602,7 +602,7 @@ Tests are marked with categories for selective execution:
 - `@pytest.mark.security`: Security tests
 - `@pytest.mark.performance`: Performance tests
 - `@pytest.mark.requires_api`: Tests requiring API keys
-- `@pytest.mark.requires_hephaestus`: Tests requiring Hephaestus
+- `@pytest.mark.requires_crewai`: Tests requiring CrewAI
 - `@pytest.mark.requires_leanaide`: Tests requiring LeanAide
 
 ## Fixtures
@@ -614,7 +614,7 @@ Tests are marked with categories for selective execution:
 - `mock_workflow_state`: Mock workflow state
 - `mock_sub_problem`: Mock sub-problem
 - `mock_leanaide_client`: Mock LeanAide client
-- `mock_hephaestus_client`: Mock Hephaestus client
+- `mock_crewai_client`: Mock CrewAI client
 - `sample_lean_code`: Sample Lean 4 code
 - `sample_theorem_text`: Sample natural language theorem
 - `event_loop`: Event loop for async tests

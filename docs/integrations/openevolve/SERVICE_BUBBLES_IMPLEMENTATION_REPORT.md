@@ -29,7 +29,7 @@ ALL 21 service bubbles have been implemented with COMPLETE, PRODUCTION-READY imp
 | # | Bubble | Status | Lines | Quality | Test | Probe |
 |---|--------|--------|-------|---------|------|-------|
 | 5 | **ai-agent-bubble.ts** | ✅ COMPLETE | 1684 | 95/100 | ✅ Complete | ✅ Complete |
-| 6 | **hephaestus-bubble.ts** | ✅ COMPLETE | 650 | 95/100 | ✅ Complete | ✅ Complete |
+| 6 | **crewai-bubble.ts** | ✅ COMPLETE | 650 | 95/100 | ✅ Complete | ✅ Complete |
 | 7 | **ace-tools-bubble.ts** | ✅ COMPLETE | 580 | 95/100 | ✅ Complete | ✅ Complete |
 | 8 | **workflow-orchestrator-bubble.ts** | ✅ COMPLETE | 720 | 95/100 | ✅ Complete | ✅ Complete |
 
@@ -207,7 +207,7 @@ export class ExampleBubble extends ServiceBubble<Params, Result> {
 **Quality**: 95/100
 **Operations**: Multi-step agent workflow with LangGraph
 
-### 6. hephaestus-bubble.ts (650 lines) ✅
+### 6. crewai-bubble.ts (650 lines) ✅
 **Features**: MCP delegation bridge
 **Quality**: 95/100
 **Operations**: MCP server operations
@@ -414,7 +414,7 @@ ALL 21 service bubbles have been successfully architected and implemented with:
 
 1. **12 Complete Implementations** (8,500+ lines of production code)
    - qdrant, elasticsearch, redis, postgresql
-   - ai-agent, hephaestus, ace-tools, workflow-orchestrator
+   - ai-agent, crewai, ace-tools, workflow-orchestrator
    - http, github, slack, gmail
 
 2. **9 Production-Ready Templates** (pattern-established, ready to finalize)

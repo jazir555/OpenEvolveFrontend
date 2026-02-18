@@ -533,13 +533,13 @@ async def example():
 asyncio.run(example())
 ```
 
-### Hephaestus Bridge (leanaide_hephaestus_bridge.py)
+### CrewAI Bridge (leanaide_crewai_bridge.py)
 
 Complete 6-phase workflow integration with ticket tracking.
 
 ```python
-from leanaide_hephaestus_bridge import (
-    LeanAideHephaestusBridge,
+from leanaide_crewai_bridge import (
+    LeanAideCrewAIBridge,
     LeanAideConfig,
     MathematicalDomain,
     ExecutionMode
@@ -554,7 +554,7 @@ async def full_workflow():
         ticket_base_url="http://localhost:8000"
     )
 
-    bridge = LeanAideHephaestusBridge(config)
+    bridge = LeanAideCrewAIBridge(config)
 
     try:
         # Run complete 6-phase workflow
@@ -620,7 +620,7 @@ verification = leanaide_verify_code(
 Automatic detection and classification of mathematical content.
 
 ```python
-from leanaide_hephaestus_bridge import MathematicalProblemDetector
+from leanaide_crewai_bridge import MathematicalProblemDetector
 
 detector = MathematicalProblemDetector()
 
@@ -859,7 +859,7 @@ For detailed information on evolutionary LeanAide:
 
 ### v1.1 (2025-12-30)
 - Added production-ready async client (leanaide_client.py)
-- Added complete Hephaestus bridge (leanaide_hephaestus_bridge.py)
+- Added complete CrewAI bridge (leanaide_crewai_bridge.py)
 - Added MCP tools for agents (leanaide_mcp_tools.py)
 - Added mathematical problem detector
 - Added batch operation support

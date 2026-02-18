@@ -292,7 +292,7 @@ from openevolve_workflow_manager_integrated import OpenEvolveWorkflowManager
 # Initialize
 manager = OpenEvolveWorkflowManager(
     analytics_db_path='analytics.db',
-    enable_hephaestus=True
+    enable_crewai=True
 )
 
 # Create workflow with ACTUAL teams
@@ -336,7 +336,7 @@ print(f"Final Solution: {result.result['final_solution'].solution_text}")
    - Integrates with ACTUAL TeamManager and GauntletManager
    - Creates BubbleLabs visualizations
    - Tracks analytics
-   - Integrates with Hephaestus
+   - Integrates with CrewAI
 
 ### Files Used From Current Directory:
 
@@ -375,8 +375,8 @@ print(f"Final Solution: {result.result['final_solution'].solution_text}")
 - BubbleLabsAnalytics class
 - track_node_execution()
 
-#### bubblelabs_hephaestus_bridge.py
-- BubbleLabsHephaestusBridge class
+#### bubblelabs_crewai_bridge.py
+- BubbleLabsCrewAIBridge class
 - create_ticket_for_workflow()
 - close_ticket_on_completion()
 
@@ -424,7 +424,7 @@ The `openevolve_workflow_manager_integrated.py` file:
 6. ✅ Uses ACTUAL `GauntletManager.get_gauntlet()` to get real gauntlets
 7. ✅ Creates BubbleLabs visualizations for actual workflows
 8. ✅ Tracks analytics with BubbleLabsAnalytics
-9. ✅ Integrates with Hephaestus for project management
+9. ✅ Integrates with CrewAI for project management
 
 ### ❌ Mock Files (Not Proper Integration)
 

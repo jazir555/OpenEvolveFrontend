@@ -752,10 +752,10 @@ export const OCR = {
 } as const;
 
 // ============================================
-// Hephaestus Configuration
+// CrewAI Configuration
 // ============================================
 
-export const HEPHAEUSTUS = {
+export const CREWAI = {
   // MCP timeouts
   MCP_TIMEOUT_MS: 30000,
   MCP_TIMEOUT_SHORT_MS: 10000,

@@ -32,7 +32,7 @@ openevolve-integration-library/
 │   │   ├── evolution.ts           # Evolution integration
 │   │   ├── knowledge.ts           # Knowledge Engine integration
 │   │   ├── maker.ts               # Maker Engine integration
-│   │   └── hephaestus.ts          # Hephaestus integration
+│   │   └── crewai.ts          # CrewAI integration
 │   ├── types/
 │   │   └── index.ts               # All TypeScript types
 │   ├── utils/
@@ -80,7 +80,7 @@ All major OpenEvolve components are integrated:
 - **Evolution** - Evolutionary algorithms, adversarial testing
 - **Knowledge Engine** - Knowledge graphs, extraction
 - **Maker Engine** - Tool and workflow creation
-- **Hephaestus** - Delegation and orchestration
+- **CrewAI** - Delegation and orchestration
 
 ### 3. Type-Safe API
 

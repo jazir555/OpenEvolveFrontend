@@ -18,7 +18,7 @@ export interface OpenEvolveNodeConfig extends Record<string, unknown> {
  * Base data structure for OpenEvolve nodes
  */
 export interface OpenEvolveNodeData extends OpenEvolveNodeConfig {
-    type: 'evolution' | 'adversarial' | 'decomposition' | 'knowledge' | 'leanaide' | 'hephaestus' | 'mdap' | 'maker';
+    type: 'evolution' | 'adversarial' | 'decomposition' | 'knowledge' | 'leanaide' | 'crewai' | 'mdap' | 'maker';
     label: string;
 }
 /**
@@ -257,7 +257,7 @@ export type DecompositionStrategy = 'hierarchical' | 'flat' | 'adaptive' | 'goal
 export interface IntegrationConfig {
     knowledgeEngine: KnowledgeEngineConfig;
     leanaide: LeanAIDEConfig;
-    hephaestus: HephaestusConfig;
+    crewai: CrewAIConfig;
 }
 /**
  * Knowledge engine configuration
@@ -284,9 +284,9 @@ export interface LeanAIDEConfig {
     leanVersion: string;
 }
 /**
- * Hephaestus configuration
+ * CrewAI configuration
  */
-export interface HephaestusConfig {
+export interface CrewAIConfig {
     enabled: boolean;
     endpoint: string;
     timeout: number;
@@ -342,7 +342,7 @@ export interface PluginState {
     integrations: {
         knowledgeEngine: boolean;
         leanaide: boolean;
-        hephaestus: boolean;
+        crewai: boolean;
     };
     statistics: {
         totalEvolutions: number;
@@ -362,7 +362,7 @@ export interface PluginActions {
     runDecomposition: (config: DecompositionConfig) => Promise<DecompositionResult>;
     queryKnowledgeEngine: (query: any) => Promise<IntegrationResult>;
     runLeanAIDE: (task: any) => Promise<IntegrationResult>;
-    delegateToHephaestus: (task: any) => Promise<IntegrationResult>;
+    delegateToCrewAI: (task: any) => Promise<IntegrationResult>;
     resetStatistics: () => void;
     exportState: () => string;
     importState: (state: string) => void;

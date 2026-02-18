@@ -31,7 +31,7 @@ from enum import Enum
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 # Import canonical schemas from adapter
-from adaptive_mdap_adapter import (
+from .adaptive_mdap_adapter import (
     get_adapter,
     CanonicalSubProblem,
     CanonicalComplexityScore,
@@ -42,7 +42,7 @@ from adaptive_mdap_adapter import (
     AdaptiveMDAPAdapterConfig
 )
 
-from maker_adapter import (
+from .maker_adapter import (
     get_maker_adapter,
     CanonicalMakerConfig,
     CanonicalMakerStep,

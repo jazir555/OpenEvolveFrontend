@@ -42,7 +42,7 @@ Successfully created comprehensive workflow management integration between **Ope
   - Performance metrics
   - Node-level analytics
 
-- **Hephaestus Integration:**
+- **CrewAI Integration:**
   - Automatic ticket creation
   - Status synchronization
   - Ticket closure on completion
@@ -86,7 +86,7 @@ Successfully created comprehensive workflow management integration between **Ope
 - MCP tool documentation
 - State machine validation
 - Analytics integration
-- Hephaestus integration
+- CrewAI integration
 - Event callbacks
 - Advanced usage
 - Troubleshooting
@@ -138,7 +138,7 @@ Successfully created comprehensive workflow management integration between **Ope
 - Performance trend tracking
 - Database persistence (SQLite)
 
-### ✅ Hephaestus Integration
+### ✅ CrewAI Integration
 - Automatic ticket creation
 - Status synchronization
 - Progress updates to tickets
@@ -235,7 +235,7 @@ Integration Layer
 │   ├── Cost Calculation
 │   └── Performance Metrics
 │
-└── Hephaestus Bridge
+└── CrewAI Bridge
     ├── Ticket Creation
     ├── Status Sync
     └── Completion Handling
@@ -248,7 +248,7 @@ OpenEvolve Core Layer
 
 Data Persistence Layer
 ├── Analytics Database (SQLite)
-├── Hephaestus Mappings (SQLite)
+├── CrewAI Mappings (SQLite)
 └── BubbleLabs State (Memory + DB)
 ```
 
@@ -264,7 +264,7 @@ from openevolve_workflow_manager import OpenEvolveWorkflowManager, WorkflowTempl
 # Initialize
 manager = OpenEvolveWorkflowManager(
     analytics_db_path='analytics.db',
-    enable_hephaestus=True
+    enable_crewai=True
 )
 
 # Create workflow
@@ -423,7 +423,7 @@ OpenEvolve + BubbleLabs Integration Demo
 - [x] Real-time monitoring
 - [x] State validation
 - [x] Analytics tracking
-- [x] Hephaestus integration
+- [x] CrewAI integration
 - [x] MCP tools
 - [x] Event callbacks
 - [x] Error handling
@@ -444,7 +444,7 @@ OpenEvolve + BubbleLabs Integration Demo
 - [x] BubbleLabs visual designer
 - [x] OpenEvolve workflow engine
 - [x] Analytics database
-- [x] Hephaestus project management
+- [x] CrewAI project management
 - [x] MCP protocol
 - [x] BubbleLab UI UI
 
@@ -472,7 +472,7 @@ OpenEvolve + BubbleLabs Integration Demo
 ### Required
 - `bubblelabs_integration.py` - BubbleLabs integration
 - `bubblelabs_analytics.py` - Analytics tracking
-- `bubblelabs_hephaestus_bridge.py` - Hephaestus integration
+- `bubblelabs_crewai_bridge.py` - CrewAI integration
 - `workflow_structures.py` - Workflow data structures
 - `workflow_engine.py` - Execution engine
 - `team_manager.py` - Team management
@@ -481,7 +481,7 @@ OpenEvolve + BubbleLabs Integration Demo
 - `analytics_manager.py` - Analytics management
 
 ### Optional
-- `hephaestus_integration.py` - For project management
+- `crewai_integration.py` - For project management
 
 ---
 
@@ -492,8 +492,8 @@ OpenEvolve + BubbleLabs Integration Demo
 # Analytics database path
 export OPENEVOLVE_ANALYTICS_DB="openevolve_analytics.db"
 
-# Enable Hephaestus integration
-export ENABLE_HEPHAESTUS="true"
+# Enable CrewAI integration
+export ENABLE_CREWAI="true"
 ```
 
 ---
@@ -508,7 +508,7 @@ The OpenEvolve + BubbleLabs integration is **COMPLETE** and **PRODUCTION READY**
 2. ✅ **Execute Workflows** - Synchronous or asynchronous
 3. ✅ **Monitor Progress** - Real-time status updates
 4. ✅ **Track Analytics** - Token usage, costs, performance
-5. ✅ **Manage Projects** - Automatic Hephaestus tickets
+5. ✅ **Manage Projects** - Automatic CrewAI tickets
 6. ✅ **Control Externally** - MCP tools for agents
 7. ✅ **Validate States** - State machine enforcement
 8. ✅ **Handle Events** - Callback-based event system

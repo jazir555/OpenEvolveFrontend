@@ -191,7 +191,7 @@ python data_consistency_verification.py sovereign_decomposition.db report_sovere
 - **Line 390-426:** Connection not returned on error
 - **Line 417-424:** Numeric totals not verified
 
-### bubblelabs_hephaestus_bridge.py
+### bubblelabs_crewai_bridge.py
 - **Line 110-111:** Mappings dict not persisted
 - **Line 408-439:** Thread shutdown race condition
 - **Line 467-570:** Background sync has no retry logic

@@ -16,7 +16,7 @@ Successfully implemented **ALL Phase 2 thread safety fixes** across 6 ACE integr
 | File | Fixes Applied | Locks Added | Comments |
 |------|--------------|-------------|----------|
 | **ace_mcp_tools.py** | 6 fixes | 1 lock | MCP Tools Registry Race, TOCTOU fixes |
-| **ace_hephaestus_bridge.py** | 4 fixes | 1 lock | Skillbook Race Conditions, TOCTOU fixes |
+| **ace_crewai_bridge.py** | 4 fixes | 1 lock | Skillbook Race Conditions, TOCTOU fixes |
 | **ace_analytics.py** | 7 fixes | 2 locks | Team Performance Aggregation, defaultdict Races |
 | **ace_knowledge_artifacts.py** | 4 fixes | 2 locks | Counter Updates, Artifact List Races |
 | **ace_workflow_knowledge_extractor.py** | 7 fixes | 4 locks | Artifact List Races, Skillbook Access |
@@ -96,8 +96,8 @@ class UsageMetrics:
 **Impact:** CRITICAL - Prevents corruption of shared skillbook
 
 #### Files Fixed:
-1. **ace_hephaestus_bridge.py**
-   - Added `_skillbook_lock = threading.RLock()` to ACEHephaestusWorkflowBridge
+1. **ace_crewai_bridge.py**
+   - Added `_skillbook_lock = threading.RLock()` to ACECrewAIWorkflowBridge
    - Synchronized `_learn_from_execution()` method
    - Synchronized `inject_skills()` method
    - Synchronized `save_skillbook()` method
@@ -166,7 +166,7 @@ def record_workflow_performance(self, ...):
    - `inject_ace_skills_into_context()`: Replace `os.path.exists()` check with try-except
    - **Lines Modified:** 137-143, 232-236, 574-590, 771-775
 
-2. **ace_hephaestus_bridge.py**
+2. **ace_crewai_bridge.py**
    - `__init__()`: Replace `os.path.exists()` check with try-except
    - **Lines Modified:** 138-147
 
@@ -373,7 +373,7 @@ To prevent deadlocks, maintain consistent lock acquisition order:
 | File | TS-1 | TS-3 | TS-4 | TS-5 | TS-6 | TS-7 | TS-11 | Total |
 |------|------|------|------|------|------|------|-------|-------|
 | ace_mcp_tools.py | 1 | - | - | - | 4 | - | - | 5 |
-| ace_hephaestus_bridge.py | - | - | 3 | - | 1 | - | - | 4 |
+| ace_crewai_bridge.py | - | - | 3 | - | 1 | - | - | 4 |
 | ace_analytics.py | - | - | - | 5 | 1 | 1 | - | 7 |
 | ace_knowledge_artifacts.py | - | 1 | - | - | - | - | 2 | 3 |
 | ace_workflow_knowledge_extractor.py | - | - | 2 | - | 1 | - | 4 | 7 |
@@ -435,7 +435,7 @@ The codebase is now **production-ready** for concurrent and multi-threaded envir
 ## Files Modified
 
 1. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_mcp_tools.py`
-2. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_hephaestus_bridge.py`
+2. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_crewai_bridge.py`
 3. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_analytics.py`
 4. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_knowledge_artifacts.py`
 5. `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_workflow_knowledge_extractor.py`

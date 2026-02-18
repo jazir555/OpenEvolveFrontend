@@ -32,19 +32,19 @@ from enum import Enum
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 # Import adapter components
-from adaptive_mdap_adapter import (
+from .adaptive_mdap_adapter import (
     get_adapter,
     CanonicalSubProblem,
     CanonicalComplexityScore,
     TaskStatus
 )
 
-from maker_adapter import (
+from .maker_adapter import (
     get_maker_adapter,
     CanonicalMakerResult
 )
 
-from openevolve_integration import (
+from .openevolve_integration import (
     get_openevolve_integration,
     WorkflowComplexityAnalysis,
     MAKERWorkflowDecision

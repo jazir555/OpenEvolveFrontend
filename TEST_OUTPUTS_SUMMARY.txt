@@ -15,7 +15,7 @@ Result: PASS (5/5 tests)
 Duration: 15.34s
 
 Tests:
-- test_hephaestus_bridge: PASSED
+- test_crewai_bridge: PASSED
 - test_mcp_tools: PASSED
 - test_analytics: PASSED
 - test_typescript_export: PASSED

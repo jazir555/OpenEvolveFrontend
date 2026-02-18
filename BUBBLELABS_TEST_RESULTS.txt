@@ -69,7 +69,7 @@
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │ From test_bubblelabs_complete_integration.py:                               │
-│   ✗ test_hephaestus_bridge                                                  │
+│   ✗ test_crewai_bridge                                                  │
 │   ✗ test_mcp_tools                                                          │
 │   ✗ test_analytics                                                          │
 │   ✗ test_typescript_export                                                  │

@@ -112,8 +112,8 @@ openevolve:
       timeout_ms: 30000
       enabled: true
 
-    # Hephaestus Integration (Delegation System)
-    hephaestus:
+    # CrewAI Integration (Delegation System)
+    crewai:
       base_url: http://localhost:8012
       health_check: http://localhost:8012/health
       timeout_ms: 45000
@@ -425,8 +425,8 @@ decomposition:
     priority_weighting: balanced  # speed, quality, balanced
     domain_detection: true
 
-  # Hephaestus Integration (10 params)
-  hephaestus:
+  # CrewAI Integration (10 params)
+  crewai:
     enabled: true
     mcp_server_url: http://localhost:8012/mcp
     delegation_timeout_seconds: 300
@@ -877,7 +877,7 @@ features:
   mdap_integration: true
   maker_integration: true
   roma_integration: true
-  hephaestus_integration: true
+  crewai_integration: true
 
   # Experimental Features
   experimental_features: true

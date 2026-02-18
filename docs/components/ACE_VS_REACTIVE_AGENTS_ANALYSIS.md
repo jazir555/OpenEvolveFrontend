@@ -9,7 +9,7 @@
 
 After detailed analysis of both systems, **I recommend using ACE (Agentic Context Engine) exclusively** and removing Reactive Agents from the integration plan.
 
-**Key Decision**: ACE is better aligned with Hephaestus's architecture, provides more sophisticated learning capabilities, and integrates cleanly with the existing Python-based workflow.
+**Key Decision**: ACE is better aligned with CrewAI's architecture, provides more sophisticated learning capabilities, and integrates cleanly with the existing Python-based workflow.
 
 ---
 
@@ -27,7 +27,7 @@ After detailed analysis of both systems, **I recommend using ACE (Agentic Contex
 | **Dependencies** | Python 3.11+, LiteLLM | Docker, Supabase, Node.js, pnpm |
 | **Async Learning** | Yes (parallel Reflector, serialized SkillManager) | No explicit async mode |
 | **Standalone Mode** | Yes (works without external services) | No (requires full stack) |
-| **Tech Stack Compatibility** | ✅ Python (matches Hephaestus) | ❌ TypeScript/Node.js (mismatch) |
+| **Tech Stack Compatibility** | ✅ Python (matches CrewAI) | ❌ TypeScript/Node.js (mismatch) |
 
 ---
 
@@ -53,7 +53,7 @@ Agent (next task uses improved knowledge)
 4. **TOON Format**: 16-62% token savings through optimized format
 5. **Async Learning**: Parallel processing for faster learning
 6. **Research-Backed**: Based on Stanford/SambaNova paper
-7. **Python Native**: Seamless integration with Hephaestus
+7. **Python Native**: Seamless integration with CrewAI
 8. **Graceful Degradation**: Works with or without dependencies
 9. **Production Ready**: Proven 20-35% improvement on complex tasks
 10. **100+ LLM Providers**: Through LiteLLM integration
@@ -97,7 +97,7 @@ Request → Reactive Agents API → Select best configuration → Execute
 **Weaknesses:**
 1. **Experimental**: Explicitly marked as not production-ready
 2. **Heavy Stack**: Requires Docker, Supabase, Node.js, pnpm
-3. **Tech Stack Mismatch**: TypeScript/Node.js vs Python-based Hephaestus
+3. **Tech Stack Mismatch**: TypeScript/Node.js vs Python-based CrewAI
 4. **External Service**: Adds another moving part to deployment
 5. **Less Sophisticated**: Hyperparameter tuning vs pattern learning
 6. **Evaluation Overhead**: Requires setup of evaluation criteria
@@ -151,9 +151,9 @@ client = OpenAI(base_url="http://localhost:3000/v1")
 
 ### 3. Tech Stack Alignment
 
-**Hephaestus Architecture:**
+**CrewAI Architecture:**
 ```
-Hephaestus (Python)
+CrewAI (Python)
     ├── OpenEvolve (Python) ✅
     ├── Decomposition (Python) ✅
     ├── Steer (Python) ✅
@@ -161,7 +161,7 @@ Hephaestus (Python)
 
 Vs:
 
-Hephaestus (Python)
+CrewAI (Python)
     ├── OpenEvolve (Python) ✅
     ├── Decomposition (Python) ✅
     ├── Steer (Python) ✅
@@ -200,7 +200,7 @@ Hephaestus (Python)
 - Works immediately
 - No code changes needed
 
-**Winner**: Reactive Agents (but not relevant for Hephaestus integration)
+**Winner**: Reactive Agents (but not relevant for CrewAI integration)
 
 ### Scenario 3: Long-Running Knowledge Accumulation
 
@@ -312,7 +312,7 @@ uv sync  # already in agentic-context-engine folder
 
 **Reasons:**
 
-1. **Tech Stack Alignment**: ACE is Python, matching Hephaestus/Decomposition/OpenEvolve/Steer
+1. **Tech Stack Alignment**: ACE is Python, matching CrewAI/Decomposition/OpenEvolve/Steer
 
 2. **Superior Learning**: ACE learns strategies and patterns, not just tunes parameters
 
@@ -324,13 +324,13 @@ uv sync  # already in agentic-context-engine folder
 
 6. **Operational Simplicity**: One Python library vs 5 Docker services
 
-7. **Better with Hephaestus**: ACE's three-role system (Agent/Reflector/SkillManager) maps naturally to Hephaestus's 6-phase workflow
+7. **Better with CrewAI**: ACE's three-role system (Agent/Reflector/SkillManager) maps naturally to CrewAI's 6-phase workflow
 
 8. **Future Flexibility**: Can add hyperparameter tuning to ACE if needed. Cannot add pattern learning to Reactive Agents.
 
-### What ACE Provides That Hephaestus Needs
+### What ACE Provides That CrewAI Needs
 
-1. **Continuous Learning**: Each Hephaestus phase improves from previous executions
+1. **Continuous Learning**: Each CrewAI phase improves from previous executions
 2. **Pattern Recognition**: Learns which approaches work for which problem types
 3. **Context Persistence**: Skillbook accumulates knowledge across workflows
 4. **Self-Reflection**: No external feedback required
@@ -340,7 +340,7 @@ uv sync  # already in agentic-context-engine folder
 
 **ACE Integration Complete:**
 - ✅ `ace_mcp_tools.py` (7 MCP tools created)
-- ✅ `ace_hephaestus_bridge.py` (6-phase execution bridge created)
+- ✅ `ace_crewai_bridge.py` (6-phase execution bridge created)
 - ✅ All imports validated successfully
 - ✅ Graceful degradation implemented
 - ✅ Ready for production use
@@ -394,7 +394,7 @@ Reactive Agents provides:
 - Web dashboard (nice-to-have, not essential)
 - Hyperparameter tuning (can be added to ACE if needed)
 
-**The sophisticated pattern learning of ACE combined with the orchestration capabilities of Hephaestus creates a powerful, production-ready system for continuous agent improvement.**
+**The sophisticated pattern learning of ACE combined with the orchestration capabilities of CrewAI creates a powerful, production-ready system for continuous agent improvement.**
 
 ---
 

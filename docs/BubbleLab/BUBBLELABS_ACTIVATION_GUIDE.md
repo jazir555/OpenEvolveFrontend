@@ -112,7 +112,7 @@ OPENEVOLVE_WS_URL=ws://localhost:8000/ws
 ENABLE_ROMA=true
 ENABLE_INVENTION=true
 ENABLE_LEANAIDE=true
-ENABLE_HEPHAEUSTUS=true
+ENABLE_CREWAI=true
 ```
 
 ---
@@ -222,7 +222,7 @@ registerPlugin({
     maker: true,
     mdap: true,
     decomposition: true,
-    hephaestus: true,
+    crewai: true,
     roma: true,
     invention: true,
   },
@@ -573,7 +573,7 @@ ls ../../BubbleLab/apps/bubble-studio/src/plugins/openevolve/
   - [ ] MDAP
   - [ ] Knowledge Query
   - [ ] LeanAIDE
-  - [ ] Hephaestus
+  - [ ] CrewAI
   - [ ] ROMA
   - [ ] Invention
 - [ ] **Config Panels Open**: Can open configuration for each node

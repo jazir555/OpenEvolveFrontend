@@ -39,7 +39,7 @@ The foundational infrastructure powering all OpenEvolve operations.
 
 | Component | Status | Key Files | Notes |
 |-----------|--------|-----------|-------|
-| **Hephaestus/CrewAI Orchestrator** | ✅ Complete | `hephaestus_core.py`, `crewai_unified_flow.py` | Multi-agent orchestration engine |
+| **CrewAI/CrewAI Orchestrator** | ✅ Complete | `crewai_core.py`, `crewai_unified_flow.py` | Multi-agent orchestration engine |
 | **OpenEvolve Core** | ✅ Complete | `evolution.py`, `openevolve_integration.py` | Quality Diversity, MAP-Elites, NSGA-II |
 | **Decomposition Engine** | ✅ Complete | `decomposition_engine.py`, `universal_decomposition_engine.py` | 7+ decomposition strategies |
 | **Team Systems** | ✅ Complete | `red_team.py`, `blue_team.py`, `evaluator_team.py` | Red/Blue/Gold team coordination |

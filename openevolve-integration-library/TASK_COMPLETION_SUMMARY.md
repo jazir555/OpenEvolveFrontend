@@ -34,7 +34,7 @@ src/
 │   ├── evolution.ts           # Evolution integration
 │   ├── knowledge.ts           # Knowledge Engine integration
 │   ├── maker.ts               # Maker Engine integration
-│   └── hephaestus.ts          # Hephaestus integration
+│   └── crewai.ts          # CrewAI integration
 ├── types/
 │   └── index.ts               # All TypeScript types (comprehensive)
 ├── utils/
@@ -70,7 +70,7 @@ await client.integrations.leanaide.execute({...});
 - ✓ Evolution (evolutionary algorithms, adversarial)
 - ✓ Knowledge Engine (knowledge graphs, extraction)
 - ✓ Maker Engine (tools, workflows)
-- ✓ Hephaestus (delegation, orchestration)
+- ✓ CrewAI (delegation, orchestration)
 
 ### 3. Core Features
 - ✓ TypeScript type definitions
@@ -135,7 +135,7 @@ const decomposition = await client.integrations.decomposition.execute({
 - `client.integrations.evolution` - Evolutionary algorithms
 - `client.integrations.knowledge` - Knowledge graphs
 - `client.integrations.maker` - Tool creation
-- `client.integrations.hephaestus` - Orchestration
+- `client.integrations.crewai` - Orchestration
 
 ### Unified Interface
 All integrations support:
@@ -205,7 +205,7 @@ All integrations support:
 ✓ src/integrations/evolution.ts - Evolution integration
 ✓ src/integrations/knowledge.ts - Knowledge integration
 ✓ src/integrations/maker.ts - Maker integration
-✓ src/integrations/hephaestus.ts - Hephaestus integration
+✓ src/integrations/crewai.ts - CrewAI integration
 ✓ src/utils/helpers.ts - Utility functions
 ✓ examples/basic-usage.ts - Basic examples
 ✓ examples/react-usage.tsx - React examples

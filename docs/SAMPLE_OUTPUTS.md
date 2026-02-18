@@ -40,7 +40,7 @@ Test 6: Testing get_available_modules()...
     ✓ parameter_manager
     ✓ knowledge_engine
     ✗ leanaide
-    ✓ hephaestus
+    ✓ crewai
     ✓ openevolve
     ✓ decomposition
     ✓ maker_engine
@@ -71,7 +71,7 @@ OpenEvolve Module Import Status
   parameter_manager....................... ✓ Available
   knowledge_engine........................ ✓ Available
   leanaide................................ ✗ Not Available
-  hephaestus.............................. ✓ Available
+  crewai.............................. ✓ Available
   openevolve.............................. ✓ Available
   decomposition........................... ✓ Available
   maker_engine............................ ✓ Available

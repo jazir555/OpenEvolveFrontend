@@ -85,6 +85,15 @@ class DeterministicPipeline:
         self._sync_llm()
         self.refinement_loop = None
         
+        # Capture integration
+        self.capturer = None
+        cap_module = optional_import("determinism_stack.capture")
+        if cap_module:
+            try:
+                self.capturer = getattr(cap_module, "EvolvedCodeCapturer", None)()
+            except Exception:
+                self.capturer = None
+
         # Observability integration
         self.observability = None
         obs_module = optional_import("monitoring_system")
@@ -298,6 +307,21 @@ class DeterministicPipeline:
                 self.observability.add_custom_metric("determinism_pipeline_success_total", 1 if not errors else 0, MetricType.COUNTER)
             except Exception:
                 pass
+
+        # --- Real Business Logic: Capture Evolved Code (Persistence) ---
+        if self.capturer and not errors and output:
+            try:
+                self.capturer.capture_evolution(
+                    problem=prompt,
+                    solution=str(output),
+                    metrics={"execution_time": execution_time},
+                    metadata={
+                        "layers_used": self.config.enable_layers,
+                        "timestamp": timestamp or datetime.now(timezone.utc).isoformat()
+                    }
+                )
+            except Exception as exc:
+                logger.debug(f"Capture failed: {exc}")
 
         return DeterminismResult(
             success=len(errors) == 0,

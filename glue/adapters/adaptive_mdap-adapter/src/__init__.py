@@ -134,6 +134,9 @@ from .gauntlet_advanced import (
 )
 
 from .icr_advanced import (
+    ICRPatternType,
+    ICRPattern,
+    ICRPrediction,
     PatternCluster,
     PatternSimilarityResult,
     AdaptiveThresholdResult,
@@ -246,6 +249,9 @@ __all__ = [
     "AdvancedGauntletIntegration",
     "get_advanced_gauntlet_integration",
     # Advanced ICR Integration
+    "ICRPatternType",
+    "ICRPattern",
+    "ICRPrediction",
     "PatternCluster",
     "PatternSimilarityResult",
     "AdaptiveThresholdResult",

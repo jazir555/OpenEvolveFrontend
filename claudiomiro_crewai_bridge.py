@@ -2,14 +2,14 @@
 Claudiomiro-CrewAI Bridge
 
 This module bridges Claudiomiro's autonomous development capabilities with
-CrewAI's workflow orchestration. It replaces the AGPL-licensed Hephaestus
+CrewAI's workflow orchestration. It replaces the AGPL-licensed CrewAI
 integration with MIT-licensed CrewAI.
 
-This replaces claudiomiro_hephaestus_bridge.py with local CrewAI execution.
+This replaces claudiomiro_crewai_bridge.py with local CrewAI execution.
 
 IMPORTANT: This bridge integrates Claudiomiro's complete development automation
 with CrewAI workflows. It maintains the same 6-phase structure while using
-CrewAI for orchestration instead of AGPL-licensed Hephaestus.
+CrewAI for orchestration instead of AGPL-licensed CrewAI.
 
 Phase Mapping:
 - Phase 1: Setup -> Claudiomiro task decomposition
@@ -19,7 +19,7 @@ Phase Mapping:
 - Phase 5: Reassemble -> Claudiomiro integration
 - Phase 6: Final -> Claudiomiro commit and push
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -33,7 +33,7 @@ from functools import wraps
 from datetime import datetime
 from pathlib import Path
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     ZeroErrorWorkflow,
     WorkflowDefinition,

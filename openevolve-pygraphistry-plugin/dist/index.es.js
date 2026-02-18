@@ -20,7 +20,7 @@ let O = {
     aceEnabled: !1,
     romaEnabled: !1,
     datapizzaEnabled: !1,
-    hephaestusEnabled: !1,
+    crewaiEnabled: !1,
     claudiomiroEnabled: !1,
     steerEnabled: !1,
     researchQuestEnabled: !1,
@@ -1198,14 +1198,14 @@ const js = ({
       /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors", children: [
         /* @__PURE__ */ e.jsxs("div", { children: [
           /* @__PURE__ */ e.jsx("p", { className: "font-medium text-slate-700", children: "Project Management" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-xs text-slate-500", children: "Ticket Tracking (Hephaestus)" })
+          /* @__PURE__ */ e.jsx("p", { className: "text-xs text-slate-500", children: "Ticket Tracking (CrewAI)" })
         ] }),
         /* @__PURE__ */ e.jsx(
           "button",
           {
-            onClick: () => i("hephaestusEnabled"),
-            className: `w-12 h-6 rounded-full transition-colors relative ${t.features.hephaestusEnabled ? "bg-indigo-600" : "bg-slate-300"}`,
-            children: /* @__PURE__ */ e.jsx("span", { className: `absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${t.features.hephaestusEnabled ? "translate-x-6" : ""}` })
+            onClick: () => i("crewaiEnabled"),
+            className: `w-12 h-6 rounded-full transition-colors relative ${t.features.crewaiEnabled ? "bg-indigo-600" : "bg-slate-300"}`,
+            children: /* @__PURE__ */ e.jsx("span", { className: `absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${t.features.crewaiEnabled ? "translate-x-6" : ""}` })
           }
         )
       ] }),
@@ -2673,13 +2673,13 @@ const js = ({
     ] })
   ] }) : /* @__PURE__ */ e.jsx("div", { className: "p-6 text-center border-2 border-dashed border-rose-100 rounded-lg bg-rose-50/30 text-rose-400", children: /* @__PURE__ */ e.jsx("p", { className: "font-medium italic", children: "DataPizza Multi-Agent visualization is currently disabled in settings." }) });
 }, zs = () => {
-  const m = v.getState().features.hephaestusEnabled, [i, h] = x(!1), [n, d] = x(null), [o, b] = x(null), p = async () => {
+  const m = v.getState().features.crewaiEnabled, [i, h] = x(!1), [n, d] = x(null), [o, b] = x(null), p = async () => {
     if (m) {
       h(!0), b(null);
       try {
-        const r = await fetch("/api/openevolve/hephaestus/summary");
+        const r = await fetch("/api/openevolve/crewai/summary");
         if (!r.ok)
-          throw new Error("Failed to fetch Hephaestus summary");
+          throw new Error("Failed to fetch CrewAI summary");
         const c = await r.json();
         d(c);
       } catch (r) {
@@ -2711,7 +2711,7 @@ const js = ({
     /* @__PURE__ */ e.jsxs("div", { className: "flex justify-between items-center", children: [
       /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
         /* @__PURE__ */ e.jsx("div", { className: "w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-white font-bold text-xs shadow-sm", children: "H" }),
-        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-bold text-slate-800", children: "Hephaestus Project Tracking" })
+        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-bold text-slate-800", children: "CrewAI Project Tracking" })
       ] }),
       /* @__PURE__ */ e.jsx(
         "button",
@@ -4696,8 +4696,8 @@ const js = ({
       const p = await fetch("/api/openevolve/planner/e2e");
       i(await p.json());
     }
-    if (t.features.hephaestusEnabled) {
-      const p = await fetch("/api/openevolve/hephaestus/summary");
+    if (t.features.crewaiEnabled) {
+      const p = await fetch("/api/openevolve/crewai/summary");
       n(await p.json());
     }
     if (t.features.romaEnabled) {
@@ -4711,14 +4711,14 @@ const js = ({
   };
   return C(() => {
     b();
-  }, [t.features.e2ePlannerEnabled, t.features.hephaestusEnabled, t.features.romaEnabled]), /* @__PURE__ */ e.jsxs("div", { className: "p-4 flex flex-col gap-6", children: [
+  }, [t.features.e2ePlannerEnabled, t.features.crewaiEnabled, t.features.romaEnabled]), /* @__PURE__ */ e.jsxs("div", { className: "p-4 flex flex-col gap-6", children: [
     t.features.romaEnabled && d && /* @__PURE__ */ e.jsxs("div", { className: "p-4 border rounded-xl bg-slate-50 border-indigo-200", children: [
       /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-bold text-slate-800 mb-2", children: "ROMA Recursive Meta-Agent" }),
       /* @__PURE__ */ e.jsx("p", { className: "text-[10px] text-slate-500 uppercase font-bold mb-3 tracking-widest", children: "Synthesized Response" }),
       /* @__PURE__ */ e.jsx("div", { className: "p-3 bg-white border rounded shadow-inner text-xs text-slate-600 leading-relaxed italic", children: d.synthesized_result })
     ] }),
-    t.features.hephaestusEnabled && h && /* @__PURE__ */ e.jsxs("div", { className: "p-4 border rounded-xl bg-white shadow-sm", children: [
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-bold text-slate-800 mb-4", children: "Hephaestus Workflow Status" }),
+    t.features.crewaiEnabled && h && /* @__PURE__ */ e.jsxs("div", { className: "p-4 border rounded-xl bg-white shadow-sm", children: [
+      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-bold text-slate-800 mb-4", children: "CrewAI Workflow Status" }),
       /* @__PURE__ */ e.jsx("div", { className: "flex gap-4", children: Object.entries(h.status_distribution || {}).map(([p, s]) => /* @__PURE__ */ e.jsxs("div", { className: "flex-1 p-2 bg-slate-50 rounded border text-center", children: [
         /* @__PURE__ */ e.jsx("p", { className: "text-[8px] font-bold text-slate-400 uppercase", children: p }),
         /* @__PURE__ */ e.jsx("p", { className: "text-xl font-black text-indigo-600", children: s })
@@ -5213,7 +5213,7 @@ export {
   Cs as ExtractionViz,
   Ys as GauntletViz,
   xt as GlobalAnalyticsViz,
-  zs as HephaestusViz,
+  zs as CrewAIViz,
   Fs as KGViz,
   Qs as LLTLViz,
   lt as Lean4Viz,

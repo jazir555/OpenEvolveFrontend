@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Created comprehensive MCP (Model Context Protocol) tools for LeanAide that enable Hephaestus agents to leverage AI-powered formal mathematics capabilities. The implementation includes 8 fully-functional tools with async support, comprehensive error handling, and security hardening.
+Created comprehensive MCP (Model Context Protocol) tools for LeanAide that enable CrewAI agents to leverage AI-powered formal mathematics capabilities. The implementation includes 8 fully-functional tools with async support, comprehensive error handling, and security hardening.
 
 **Files Created:**
 1. `leanaide_mcp_tools.py` (924 lines) - Main implementation
@@ -18,7 +18,7 @@ Created comprehensive MCP (Model Context Protocol) tools for LeanAide that enabl
 ### Architecture
 
 ```
-Hephaestus Agents
+CrewAI Agents
     ↓
 LeanAide MCP Tools (8 tools)
     ↓
@@ -352,12 +352,12 @@ def get_client(...) -> LeanAideClient:
 
 ---
 
-## Integration with Hephaestus
+## Integration with CrewAI
 
 ### Basic Integration
 
 ```python
-from hephaestus_client import HephaestusClient
+from crewai_client import CrewAIClient
 from leanaide_mcp_tools import leanaide_translate_theorem
 
 # Translate theorem
@@ -367,7 +367,7 @@ result = leanaide_translate_theorem(
 
 if result['success']:
     lean_code = result['lean_code']
-    # Use in Hephaestus workflow
+    # Use in CrewAI workflow
 ```
 
 ### MCP Tool Discovery
@@ -761,7 +761,7 @@ The LeanAide MCP tools implementation is **complete and production-ready** with:
 - Complete documentation
 - Test suite
 
-The tools follow the established patterns from `roma_mcp_tools.py` and `ace_mcp_tools.py`, ensuring consistency across the OpenEvolve codebase. They enable Hephaestus agents to leverage LeanAide's powerful autoformalization and proof generation capabilities for mathematical reasoning tasks.
+The tools follow the established patterns from `roma_mcp_tools.py` and `ace_mcp_tools.py`, ensuring consistency across the OpenEvolve codebase. They enable CrewAI agents to leverage LeanAide's powerful autoformalization and proof generation capabilities for mathematical reasoning tasks.
 
 ---
 

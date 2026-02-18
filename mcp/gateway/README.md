@@ -1,6 +1,6 @@
 # Unified MCP Gateway
 
-A centralized gateway that coordinates tools from multiple MCP (Model Context Protocol) servers including kg-gen, Graphiti, OpenEvolve, Hephaestus, ROMA, and ACE into a single unified namespace for agent consumption.
+A centralized gateway that coordinates tools from multiple MCP (Model Context Protocol) servers including kg-gen, Graphiti, OpenEvolve, CrewAI, ROMA, and ACE into a single unified namespace for agent consumption.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ A centralized gateway that coordinates tools from multiple MCP (Model Context Pr
                           │
                     ┌─────▼─────┐
                     │  Agents   │
-                    │(Hephaestus│
+                    │(CrewAI│
                     │   ROMA    │
                     │    ACE)   │
                     └───────────┘
@@ -158,9 +158,9 @@ Tools are organized into namespaces for clarity:
   - `openevolve/evolve_code`
   - `openevolve/evolve_function`
 
-- **hephaestus/**: Orchestration tools (Hephaestus)
-  - `hephaestus/delegate_task`
-  - `hephaestus/coordinate_agents`
+- **crewai/**: Orchestration tools (CrewAI)
+  - `crewai/delegate_task`
+  - `crewai/coordinate_agents`
 
 - **roma/**: Recursive meta-agent tools (ROMA)
   - `roma/solve_recursive`
@@ -240,16 +240,16 @@ curl "http://localhost:8080/api/tools?namespace=kggen"
 curl "http://localhost:8080/api/tools?category=knowledge"
 ```
 
-## Integration with Hephaestus
+## Integration with CrewAI
 
 ```python
-from Hephaestus.src.mcp.gateway_integration import (
-    get_hephaestus_gateway,
+from CrewAI.src.mcp.gateway_integration import (
+    get_crewai_gateway,
     delegate_to_agent_with_mcp_tools
 )
 
 # Initialize gateway
-gateway = await get_hephaestus_gateway()
+gateway = await get_crewai_gateway()
 
 # Delegate task with MCP tools
 result = await delegate_to_agent_with_mcp_tools(

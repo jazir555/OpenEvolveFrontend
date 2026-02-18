@@ -163,11 +163,11 @@ asyncio.run(generate_docs())
 ### Example 1: Full Workflow
 
 ```python
-from leanaide_hephaestus_bridge import LeanAideHephaestusBridge
+from leanaide_crewai_bridge import LeanAideCrewAIBridge
 import asyncio
 
 async def full_workflow():
-    bridge = LeanAideHephaestusBridge()
+    bridge = LeanAideCrewAIBridge()
     
     result = await bridge.execute_full_workflow(
         "Prove that there are infinitely many prime numbers"
@@ -188,7 +188,7 @@ asyncio.run(full_workflow())
 ### Example 2: Mathematical Content Detection
 
 ```python
-from leanaide_hephaestus_bridge import MathematicalProblemDetector
+from leanaide_crewai_bridge import MathematicalProblemDetector
 
 detector = MathematicalProblemDetector()
 

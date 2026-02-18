@@ -106,7 +106,7 @@ class MDAPEvolutionConfig:
     fallback_to_standard: bool = True
 
     # Integration
-    hephaestus_enabled: bool = False
+    crewai_enabled: bool = False
     ace_learning_enabled: bool = True
     verify_with_leanaide: bool = True
 ```
@@ -211,7 +211,7 @@ Each fallback can be configured:
 - Formal proof checking
 - Lean 4 code validation
 
-#### **Hephaestus**
+#### **CrewAI**
 - Tracking MDAP-evolution tickets
 - Distributed execution monitoring
 - Resource management
@@ -471,7 +471,7 @@ WORKFLOW_AVAILABLE              # workflow_structures
 EVOLUTION_WORKFLOW_AVAILABLE    # leanaide_evolutionary_workflow
 MDAP_WORKFLOW_AVAILABLE         # leanaide_mdap_workflow
 LEANAIDE_AVAILABLE              # leanaide_workflow_integration
-HEPHAESTUS_AVAILABLE            # hephaestus_client
+CREWAI_AVAILABLE            # crewai_client
 ACE_AVAILABLE                   # ace_knowledge_artifacts
 ```
 

@@ -65,13 +65,24 @@ from dataclasses import dataclass, field
 import uuid
 import json
 
-from .roma_integration import (
-    ROMAIntegration,
-    ROMAResult,
-    ROMADecomposition,
-    ROMASolution,
-)
-from ..core.entity_knowledge_graph import EntityKnowledgeGraph
+# Import required integrations with graceful degradation
+try:
+    from .roma_integration import (
+        ROMAIntegration,
+        ROMAResult,
+        ROMADecomposition,
+        ROMASolution,
+    )
+except (ImportError, ModuleNotFoundError):
+    ROMAIntegration = None
+    ROMAResult = None
+    ROMADecomposition = None
+    ROMASolution = None
+
+try:
+    from knowledge_engine.core.entity_knowledge_graph import EntityKnowledgeGraph
+except (ImportError, ModuleNotFoundError):
+    EntityKnowledgeGraph = None
 
 
 logger = logging.getLogger(__name__)

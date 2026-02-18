@@ -56,9 +56,9 @@ KNOWLEDGE_ENGINE_ENABLED=true
 BEDROCK_KB_ENABLED=false
 ELASTICSEARCH_URL=http://localhost:9200
 
-# Optional: Hephaestus Delegation
-HEPHAESTUS_ENABLED=false
-HEPHAESTUS_URL=http://localhost:9000
+# Optional: CrewAI Delegation
+CREWAI_ENABLED=false
+CREWAI_URL=http://localhost:9000
 ```
 
 ### Step 4: Verify Installation

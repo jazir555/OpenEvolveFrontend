@@ -33,7 +33,7 @@ Templates:        ░░░░░░░░░░   0.0% ( 0/20)
 - [ ] **SlackBubble** (34 ops) - `packages/bubble-core/src/bubbles/service-bubble/slack-bubble.ts`
 - [ ] **WorkflowOrchestratorBubble** (34 ops) - `packages/bubble-core/src/bubbles/service-bubble/workflow-orchestrator-bubble.ts`
 - [ ] **ElasticsearchBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/elasticsearch-bubble.ts`
-- [ ] **HephaestusBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/hephaestus-bubble.ts`
+- [ ] **CrewAIBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/crewai-bubble.ts`
 - [ ] **PostgresqlBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/postgresql-bubble.ts`
 - [ ] **QdrantBubble** (33 ops) - `packages/bubble-core/src/bubbles/service-bubble/qdrant-bubble.ts`
 - [ ] **AGIIncBubble** (31 ops) - `packages/bubble-core/src/bubbles/service-bubble/agi-inc.ts`
@@ -55,7 +55,7 @@ Templates:        ░░░░░░░░░░   0.0% ( 0/20)
 ### Service Bubbles
 - [ ] **GoogleCalendarBubble** (20 ops) - `packages/bubble-core/src/bubbles/service-bubble/google-calendar.ts`
 - [ ] **GoogleDriveBubble** (12 ops) - `packages/bubble-core/src/bubbles/service-bubble/google-drive.ts`
-- [ ] **HephaestusBubble** (15 ops) - `integrations/openevolve/service-bubbles/hephaestus-bubble.ts`
+- [ ] **CrewAIBubble** (15 ops) - `integrations/openevolve/service-bubbles/crewai-bubble.ts`
 - [ ] **SendGridBubble** (15 ops) - `integrations/openevolve/service-bubbles/sendgrid-bubble.ts`
 - [ ] **TwilioBubble** (15 ops) - `integrations/openevolve/service-bubbles/twilio-bubble.ts`
 - [ ] **WorkflowOrchestratorBubble** (15 ops) - `integrations/openevolve/service-bubbles/workflow-orchestrator-bubble.ts`

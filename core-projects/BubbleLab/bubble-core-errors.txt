@@ -163,11 +163,11 @@ src/bubbles/service-bubble/google-sheets-bubble.ts(1477,14): error TS2749: 'Copy
 src/bubbles/service-bubble/google-sheets-bubble.ts(1548,14): error TS2749: 'SheetDataResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetDataResultSchema'?
 src/bubbles/service-bubble/google-sheets-bubble.ts(1573,21): error TS2749: 'SheetDataResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetDataResultSchema'?
 src/bubbles/service-bubble/google-sheets/google-sheets.ts(14,3): error TS6133: 'ExternalServiceError' is declared but its value is never read.
-src/bubbles/service-bubble/hephaestus-bubble.ts(200,3): error TS2344: Type '{ success: boolean; meta: { operation: string; model?: string | undefined; language?: string | undefined; tokens?: { input?: number | undefined; output?: number | undefined; total?: number | undefined; } | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+src/bubbles/service-bubble/crewai-bubble.ts(200,3): error TS2344: Type '{ success: boolean; meta: { operation: string; model?: string | undefined; language?: string | undefined; tokens?: { input?: number | undefined; output?: number | undefined; total?: number | undefined; } | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
   Types of property 'error' are incompatible.
     Type 'string | undefined' is not assignable to type 'string'.
       Type 'undefined' is not assignable to type 'string'.
-src/bubbles/service-bubble/hephaestus-bubble.ts(979,106): error TS2339: Property 'join' does not exist on type 'never'.
+src/bubbles/service-bubble/crewai-bubble.ts(979,106): error TS2339: Property 'join' does not exist on type 'never'.
 src/bubbles/service-bubble/http-bubble.ts(34,11): error TS6196: 'RequestMetrics' is declared but never used.
 src/bubbles/service-bubble/http-bubble.ts(162,65): error TS2344: Type '{ status: number; success: boolean; headers: Record<string, string>; body: string; statusText: string; metrics: { responseTime: number; totalAttempts: number; lastAttemptTime: number; retryCount: number; fromCache?: boolean | undefined; circuitBreakerTripped?: boolean | undefined; }; ... 5 more ...; errorCode?: stri...' does not satisfy the constraint 'BubbleOperationResult'.
   Types of property 'error' are incompatible.

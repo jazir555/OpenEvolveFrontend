@@ -115,7 +115,7 @@ The `WorkflowTicketMapping` class had two `__init__` methods. The first only con
 Removed the first (useless) `__init__` method, kept only the second one with parameters.
 
 ### Files Modified
-- `bubblelabs_hephaestus_bridge.py` (lines 39-44 removed)
+- `bubblelabs_crewai_bridge.py` (lines 39-44 removed)
 
 ---
 
@@ -228,7 +228,7 @@ Removed the first (useless) `__init__` method, kept only the second one with par
 ## FILES MODIFIED
 
 ### Primary Changes:
-1. **bubblelabs_hephaestus_bridge.py**
+1. **bubblelabs_crewai_bridge.py**
    - Removed duplicate `__init__` method
    - Lines removed: 6
    - Net change: -6 lines

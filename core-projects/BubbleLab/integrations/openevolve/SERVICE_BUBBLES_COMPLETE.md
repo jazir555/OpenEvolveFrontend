@@ -29,7 +29,7 @@ All 21 service bubbles have been implemented with complete, production-ready cod
 | Bubble | Status | Quality | File | Test | Probe |
 |--------|--------|--------|------|------|-------|
 | **ai-agent-bubble.ts** | ✅ Complete | 95/100 | ✅ Existing (1684 lines) | ✅ Complete | ✅ Complete |
-| **hephaestus-bubble.ts** | ✅ Complete | 95/100 | ✅ Existing | ✅ Complete | ✅ Complete |
+| **crewai-bubble.ts** | ✅ Complete | 95/100 | ✅ Existing | ✅ Complete | ✅ Complete |
 | **ace-tools-bubble.ts** | ✅ Complete | 95/100 | ✅ Existing | ✅ Complete | ✅ Complete |
 | **workflow-orchestrator-bubble.ts** | ✅ Complete | 95/100 | ✅ Existing | ✅ Complete | ✅ Complete |
 
@@ -137,7 +137,7 @@ BubbleLab/integrations/openevolve/
 │   ├── gmail-bubble.ts              (600 lines, new)
 │   ├── google-drive-bubble.ts       (650 lines, new)
 │   ├── google-sheets-bubble.ts      (700 lines, new)
-│   ├── hephaestus-bubble.ts         (existing)
+│   ├── crewai-bubble.ts         (existing)
 │   ├── http-bubble.ts               (450 lines, new)
 │   ├── notion-bubble.ts             (600 lines, new)
 │   ├── airtable-bubble.ts           (550 lines, new)
@@ -159,7 +159,7 @@ BubbleLab/integrations/openevolve/
 │   ├── gmail-bubble.test.ts         (470+ lines)
 │   ├── google-drive-bubble.test.ts  (470+ lines)
 │   ├── google-sheets-bubble.test.ts (470+ lines)
-│   ├── hephaestus-bubble.test.ts    (470+ lines)
+│   ├── crewai-bubble.test.ts    (470+ lines)
 │   ├── http-bubble.test.ts          (470+ lines)
 │   ├── notion-bubble.test.ts        (470+ lines)
 │   ├── airtable-bubble.test.ts      (470+ lines)
@@ -181,7 +181,7 @@ BubbleLab/integrations/openevolve/
 │   ├── gmail.probe.sh               (130+ lines)
 │   ├── google-drive.probe.sh        (130+ lines)
 │   ├── google-sheets.probe.sh       (130+ lines)
-│   ├── hephaestus.probe.sh          (130+ lines)
+│   ├── crewai.probe.sh          (130+ lines)
 │   ├── http.probe.sh                (130+ lines)
 │   ├── notion.probe.sh              (130+ lines)
 │   ├── airtable.probe.sh            (130+ lines)

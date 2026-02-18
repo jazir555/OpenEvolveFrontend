@@ -101,9 +101,9 @@ def get_workflow_analytics(
 
 ---
 
-#### Issue #4: Add authorization to Hephaestus bridge
+#### Issue #4: Add authorization to CrewAI bridge
 **Status:** ✅ FIXED
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 
 **Implementation:**
 - Added authentication to `create_ticket_from_workflow()`
@@ -575,7 +575,7 @@ def control_workflow(instance_id: str, action: str, csrf_token: str, session_id:
    - Protected export functions
    - Session-based access control
 
-4. **bubblelabs_hephaestus_bridge.py** (documented)
+4. **bubblelabs_crewai_bridge.py** (documented)
    - Authentication for ticket operations
    - Authorization checks for updates
    - Protected workflow synchronization

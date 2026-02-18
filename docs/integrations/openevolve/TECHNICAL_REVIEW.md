@@ -208,7 +208,7 @@
 
 ---
 
-### 5. HephaestusBubble (hephaestus-bubble.ts)
+### 5. CrewAIBubble (crewai-bubble.ts)
 
 **Correctness**: 68/100
 
@@ -217,7 +217,7 @@
 #### Critical Issues:
 1. **Does NOT extend ServiceBubble or AIAgentBubble**
    ```typescript
-   export class HephaestusBubble {  // ❌ Should extend AIAgentBubble
+   export class CrewAIBubble {  // ❌ Should extend AIAgentBubble
    ```
 
 2. **Creates AIAgentBubble but doesn't use it properly**:
@@ -235,7 +235,7 @@
 4. **Direct fetch usage** - Line 148
 
 5. **No actual MCP tool integration**
-   - Claims to integrate with Hephaestus MCP server
+   - Claims to integrate with CrewAI MCP server
    - But only does HTTP calls, no MCP protocol usage
 
 6. **Missing gauntlet execution state management**

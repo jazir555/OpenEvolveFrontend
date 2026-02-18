@@ -4,7 +4,7 @@ OpenEvolve-CrewAI Delegation Integration
 This module provides PROPER integration between OpenEvolve and CrewAI by DELEGATING
 workflow orchestration to CrewAI instead of just syncing tickets.
 
-It replaces the AGPL-licensed Hephaestus delegation with MIT-licensed CrewAI,
+It replaces the AGPL-licensed CrewAI delegation with MIT-licensed CrewAI,
 maintaining full functional parity while providing better license compatibility.
 
 Architecture:
@@ -29,9 +29,9 @@ Usage:
     # Monitor progress
     status = await delegator.get_workflow_status(workflow_id)
 
-This replaces openevolve_hephaestus_delegation.py with MIT-licensed CrewAI.
+This replaces openevolve_crewai_delegation.py with MIT-licensed CrewAI.
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -45,7 +45,7 @@ from typing import Dict, List, Optional, Any, Literal
 from dataclasses import dataclass, field
 from datetime import datetime
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
     ZeroErrorConfig,
@@ -125,7 +125,7 @@ class OpenEvolveCrewAIDelegator:
     - OpenEvolve provides domain-specific logic for decomposition and solving
     - Callback system allows CrewAI agents to invoke OpenEvolve functions
 
-    This replaces OpenEvolveHephaestusDelegator with MIT-licensed CrewAI.
+    This replaces OpenEvolveCrewAIDelegator with MIT-licensed CrewAI.
     """
 
     def __init__(
@@ -189,7 +189,7 @@ class OpenEvolveCrewAIDelegator:
 
         logger.info("[OpenEvolve] Starting CrewAI services...")
 
-        # CrewAI doesn't require external services like Hephaestus
+        # CrewAI doesn't require external services like CrewAI
         # Just mark as running
         self.running = True
         logger.info("[OpenEvolve] [OK] CrewAI services ready")

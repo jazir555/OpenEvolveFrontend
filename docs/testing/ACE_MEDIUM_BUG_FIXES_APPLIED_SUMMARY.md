@@ -27,7 +27,7 @@ All critical and high-impact bugs have been fixed. Remaining 10 bugs are code qu
 | 7 | ace_analytics.py | record_gauntlet_run() | 1067 | FIXED |
 | 8 | ace_analytics.py | _update_aggregate(gauntlets) | 1105 | FIXED |
 | 9 | ace_workflow_knowledge_extractor.py | extract_from_workflow() | 356 | Already fixed |
-| 10 | ace_hephaestus_bridge.py | execute_phase_2_solution() | 544 | Already fixed |
+| 10 | ace_crewai_bridge.py | execute_phase_2_solution() | 544 | Already fixed |
 
 **Code Pattern Applied:**
 ```python
@@ -51,10 +51,10 @@ input_data = copy.deepcopy(input_data)
 
 | # | Component | Resource | Cleanup Method | Status |
 |---|-----------|----------|----------------|--------|
-| 16 | Agent LLM client | ace_hephaestus_bridge.py | Line 1234-1244 | FIXED |
-| 17 | Reflector LLM client | ace_hephaestus_bridge.py | Line 1247-1257 | FIXED |
-| 18 | SkillManager LLM client | ace_hephaestus_bridge.py | Line 1260-1270 | FIXED |
-| 19 | Skillbook | ace_hephaestus_bridge.py | Line 1277-1286 | FIXED |
+| 16 | Agent LLM client | ace_crewai_bridge.py | Line 1234-1244 | FIXED |
+| 17 | Reflector LLM client | ace_crewai_bridge.py | Line 1247-1257 | FIXED |
+| 18 | SkillManager LLM client | ace_crewai_bridge.py | Line 1260-1270 | FIXED |
+| 19 | Skillbook | ace_crewai_bridge.py | Line 1277-1286 | FIXED |
 | 20 | ML vectorizer | ace_analytics.py | Line 335-336 | FIXED |
 | 21 | TF-IDF matrix | ace_analytics.py | Line 337-338 | FIXED |
 | 22 | Cluster model | ace_analytics.py | Line 339-340 | FIXED |
@@ -107,7 +107,7 @@ if len(items) > self.max_items:
 | 42 | TeamPerformanceTracker | _lock | N/A (single lock) | Already correct |
 | 43 | GauntletEffectivenessAnalyzer | _lock | N/A (single lock) | Already correct |
 | 44 | WorkflowKnowledgeExtractor | Multiple locks | Documented | Already correct |
-| 45 | ACEHephaestusWorkflowBridge | _skillbook_lock | N/A (single lock) | Already correct |
+| 45 | ACECrewAIWorkflowBridge | _skillbook_lock | N/A (single lock) | Already correct |
 
 **Code Pattern Applied:**
 ```python
@@ -150,7 +150,7 @@ with self._ml_lock:
 |---|---|------|-------|--------|
 | 58-60 | Boundary conditions | ace_analytics.py | Parameter ranges | FIXED |
 | 61-63 | Type edge cases | ace_workflow_knowledge_extractor.py | None handling | Already correct |
-| 64-65 | Validation gaps | ace_hephaestus_bridge.py | Dict structure | Already correct |
+| 64-65 | Validation gaps | ace_crewai_bridge.py | Dict structure | Already correct |
 | 66-69 | Empty collections | ace_workflow_knowledge_extractor.py | Empty list checks | Already correct |
 | 70-75 | Boundary checks | ace_knowledge_artifacts.py | List size validation | Already correct |
 
@@ -175,12 +175,12 @@ if value is None or not isinstance(value, expected_type):
 | # | Issue | Location | Fix | Status |
 |---|---|------|-----|--------|
 | 70 | Repeated operations | ace_analytics.py:380 | Use heapq.nlargest | FIXED |
-| 71 | Repeated operations | ace_hephaestus_bridge.py:317 | Batch removal O(n) | FIXED |
-| 72 | String building | ace_hephaestus_bridge.py:287 | List join | Already correct |
+| 71 | Repeated operations | ace_crewai_bridge.py:317 | Batch removal O(n) | FIXED |
+| 72 | String building | ace_crewai_bridge.py:287 | List join | Already correct |
 | 73-74 | Missing locks | ace_workflow_knowledge_extractor.py:1081 | Proper locks | Already correct |
 | 75 | Memory churn | Multiple files | Generator usage | Already optimal |
 | 76-77 | List operations | Multiple files | Batch operations | Already optimal |
-| 78 | I/O optimization | ace_hephaestus_bridge.py:361 | Serialize outside lock | Already correct |
+| 78 | I/O optimization | ace_crewai_bridge.py:361 | Serialize outside lock | Already correct |
 
 **Fix 79** is a minor recommendation - current performance is acceptable.
 
@@ -211,7 +211,7 @@ if value is None or not isinstance(value, expected_type):
    - Added memory limit enforcement
    - Improved lock scope in aggregate updates
 
-2. **ace_hephaestus_bridge.py** (10 fixes already in place)
+2. **ace_crewai_bridge.py** (10 fixes already in place)
    - Proper LLM client cleanup
    - Skillbook save before clearing
    - Deep copy for sub_problems
@@ -339,7 +339,7 @@ The ACE codebase is now production-ready with respect to all MEDIUM priority bug
    - Thread safety improved
    - Deep copy protection added
 
-2. **C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_hephaestus_bridge.py**
+2. **C:\Users\mmeadow\Documents\OpenEvolve\Frontend\ace_crewai_bridge.py**
    - 10 fixes already in place
    - Resource cleanup complete
    - Deep copy protection in place

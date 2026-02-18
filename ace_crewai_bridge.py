@@ -2,10 +2,10 @@
 ACE (Agentic Context Engine) CrewAI Workflow Bridge
 
 This module bridges ACE's self-improving capabilities with CrewAI's workflow
-orchestration. It replaces the AGPL-licensed Hephaestus integration with
+orchestration. It replaces the AGPL-licensed CrewAI integration with
 MIT-licensed CrewAI.
 
-This replaces ace_hephaestus_bridge.py with local CrewAI execution.
+This replaces ace_crewai_bridge.py with local CrewAI execution.
 
 Architecture:
     CrewAI (6 phases) -> ACE Bridge -> ACE Learning (Agent + Reflector + SkillManager)
@@ -17,7 +17,7 @@ The bridge provides:
 4. Continuous skill updates
 5. Checkpoint management
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-29
 """
@@ -33,7 +33,7 @@ from functools import wraps
 from datetime import datetime
 from pathlib import Path
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     ZeroErrorWorkflow,
     create_workflow_definition,
@@ -150,7 +150,7 @@ class ACECrewAIWorkflowBridge:
 
     This bridge enables CrewAI agents to learn from each phase's execution
     using ACE's three-role learning loop (Agent, Reflector, SkillManager).
-    Replaces ACEHephaestusWorkflowBridge with MIT-licensed CrewAI.
+    Replaces ACECrewAIWorkflowBridge with MIT-licensed CrewAI.
 
     Phase Mapping:
         - Phase 1 (Setup): Learn from problem analysis
@@ -1335,10 +1335,10 @@ class ACECrewAIWorkflowBridge:
 # BACKWARD COMPATIBILITY
 # ============================================================================
 
-# Alias for backward compatibility - maps old Hephaestus class name to new CrewAI class
-ACEHephaestusWorkflowBridge = ACECrewAIWorkflowBridge
+# Alias for backward compatibility - maps old CrewAI class name to new CrewAI class
+ACECrewAIWorkflowBridge = ACECrewAIWorkflowBridge
 
 __all__ = [
     "ACECrewAIWorkflowBridge",
-    "ACEHephaestusWorkflowBridge",  # Backward compatibility alias
+    "ACECrewAIWorkflowBridge",  # Backward compatibility alias
 ]

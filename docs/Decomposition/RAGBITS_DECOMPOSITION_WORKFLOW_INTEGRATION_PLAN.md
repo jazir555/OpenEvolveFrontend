@@ -27,7 +27,7 @@ This document outlines a comprehensive plan to integrate **RAGBits** (Rapid AI B
 - Chat UI infrastructure
 - CLI tools for development
 
-> **Note**: The Decomposition Workflow already uses **Hephaestus** for LLM management, which provides LiteLLM support for 100+ models. This integration plan focuses on RAGBits components that **complement** the existing Hephaestus infrastructure, not replace it.
+> **Note**: The Decomposition Workflow already uses **CrewAI** for LLM management, which provides LiteLLM support for 100+ models. This integration plan focuses on RAGBits components that **complement** the existing CrewAI infrastructure, not replace it.
 
 The integration aims to enhance the Decomposition Workflow by:
 1. **Providing robust document search capabilities** for knowledge extraction
@@ -46,7 +46,7 @@ The integration aims to enhance the Decomposition Workflow by:
 
 | Package | Purpose | Integration Relevance |
 |---------|---------|----------------------|
-| **ragbits-core** | Prompts, vector stores, embeddings | Use vector stores and embeddings (LLMs handled by Hephaestus) |
+| **ragbits-core** | Prompts, vector stores, embeddings | Use vector stores and embeddings (LLMs handled by CrewAI) |
 | **ragbits-agents** | Multi-agent coordination, A2A protocol, tools | Enhance team-based agent orchestration |
 | **ragbits-document-search** | Document ingestion, vector search, RAG | Power knowledge extraction and search |
 | **ragbits-evaluate** | Evaluation framework for RAG components | Enhance gauntlet evaluation |
@@ -56,15 +56,15 @@ The integration aims to enhance the Decomposition Workflow by:
 ### Key Features
 
 ```python
-# Agent Creation with RAGBits (using Hephaestus for LLMs)
+# Agent Creation with RAGBits (using CrewAI for LLMs)
 from ragbits.agents import Agent
 
-# Get LLM from Hephaestus
-llm = hephaestus_client.get_llm(model_name="gpt-4")
+# Get LLM from CrewAI
+llm = crewai_client.get_llm(model_name="gpt-4")
 
 # Create specialized agents
 agent = Agent(
-    llm=llm,  # LLM provided by Hephaestus
+    llm=llm,  # LLM provided by CrewAI
     tools=[search_tool, analyze_tool]
 )
 
@@ -81,7 +81,7 @@ from ragbits.evaluate import EvaluationEngine
 evaluator = EvaluationEngine(metrics=["precision", "recall", "f1"])
 ```
 
-> **Integration Note**: RAGBits agents can accept any LLM instance, making them compatible with Hephaestus's LLM management system. The integration uses Hephaestus for model orchestration while leveraging RAGBits for agent coordination, document search, and evaluation.
+> **Integration Note**: RAGBits agents can accept any LLM instance, making them compatible with CrewAI's LLM management system. The integration uses CrewAI for model orchestration while leveraging RAGBits for agent coordination, document search, and evaluation.
 
 ---
 
@@ -160,7 +160,7 @@ evaluator = EvaluationEngine(metrics=["precision", "recall", "f1"])
                     │                               │
                     ▼                               ▼
         ┌─────────────────────┐         ┌─────────────────────┐
-        │  Hephaestus         │         │  Vector Stores      │
+        │  CrewAI         │         │  Vector Stores      │
         │  (LLM Orchestration)│         │  (Qdrant, PGVector) │
         │  LiteLLM Support    │         │  (RAGBits)           │
         └─────────────────────┘         └─────────────────────┘
@@ -446,7 +446,7 @@ class HybridKnowledgeManager:
 
 ---
 
-> **Note**: Phase 1 (LLM Integration) has been omitted as Hephaestus already provides LiteLLM support and model management functionality. The integration plan focuses on RAGBits components that complement the existing Hephaestus infrastructure.
+> **Note**: Phase 1 (LLM Integration) has been omitted as CrewAI already provides LiteLLM support and model management functionality. The integration plan focuses on RAGBits components that complement the existing CrewAI infrastructure.
 
 ### Phase 1: Document Search & Intermediary Storage (Week 1-3)
 
@@ -1923,7 +1923,7 @@ Before each phase goes to production:
 
 **Total Duration**: 11 weeks
 
-> **Note**: LLM integration via Hephaestus is already in place, reducing the total implementation time.
+> **Note**: LLM integration via CrewAI is already in place, reducing the total implementation time.
 
 ---
 

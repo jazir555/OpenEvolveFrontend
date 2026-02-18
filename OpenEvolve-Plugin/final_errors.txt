@@ -496,7 +496,7 @@ src/index.ts(219,14): error TS2739: Type '{ enabled: true; attackStrategy: "pgd"
 src/index.ts(228,14): error TS2739: Type '{ strategy: "hierarchical"; maxDepth: number; pruningThreshold: number; granularity: "medium"; parallelDecomposition: true; }' is missing the following properties from type 'DecompositionConfig': dependencyAnalysis, constraintPropagation
 src/index.ts(237,3): error TS2739: Type '{ enabled: true; endpoint: string; timeout: number; }' is missing the following properties from type 'KnowledgeEngineConfig': maxRetries, cacheEnabled, cacheTTL, graphType
 src/index.ts(242,3): error TS2739: Type '{ enabled: true; endpoint: string; timeout: number; }' is missing the following properties from type 'LeanAIDEConfig': maxRetries, formalizationStrategy, verificationEnabled, leanVersion
-src/index.ts(247,3): error TS2739: Type '{ enabled: true; endpoint: string; timeout: number; }' is missing the following properties from type 'HephaestusConfig': maxRetries, delegationStrategy, orchestrationMode, maxConcurrentTasks
+src/index.ts(247,3): error TS2739: Type '{ enabled: true; endpoint: string; timeout: number; }' is missing the following properties from type 'CrewAIConfig': maxRetries, delegationStrategy, orchestrationMode, maxConcurrentTasks
 src/index.ts(264,3): error TS2740: Type 'OpenEvolvePlugin' is missing the following properties from type 'OpenEvolvePlugin': id, version, config, destroy, and 2 more.
 src/index.ts(264,33): error TS2559: Type 'Partial<OpenEvolveNodeConfig>' has no properties in common with type 'Partial<OpenEvolvePluginState>'.
 src/nodes/AdversarialNode.ts(411,11): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type '{ type: string; description: string; required?: boolean; default?: any; enum?: any[]; minimum?: number; maximum?: number; pattern?: string; }'.
@@ -525,7 +525,7 @@ src/nodes/index.ts(91,8): error TS2614: Module '"./EvolutionNode"' has no export
 src/nodes/index.ts(100,8): error TS2614: Module '"./AdversarialNode"' has no exported member 'AdversarialParams'. Did you mean to use 'import AdversarialParams from "./AdversarialNode"' instead?
 src/nodes/index.ts(116,8): error TS2614: Module '"./LeanAIDENode"' has no exported member 'LeanTaskType'. Did you mean to use 'import LeanTaskType from "./LeanAIDENode"' instead?
 src/nodes/index.ts(117,8): error TS2614: Module '"./LeanAIDENode"' has no exported member 'LeanProofParams'. Did you mean to use 'import LeanProofParams from "./LeanAIDENode"' instead?
-src/nodes/index.ts(126,8): error TS2614: Module '"./HephaestusNode"' has no exported member 'HephaestusParams'. Did you mean to use 'import HephaestusParams from "./HephaestusNode"' instead?
+src/nodes/index.ts(126,8): error TS2614: Module '"./CrewAINode"' has no exported member 'CrewAIParams'. Did you mean to use 'import CrewAIParams from "./CrewAINode"' instead?
 src/nodes/index.ts(135,8): error TS2614: Module '"./MDAPNode"' has no exported member 'MDAPParams'. Did you mean to use 'import MDAPParams from "./MDAPNode"' instead?
 src/nodes/index.ts(136,8): error TS2614: Module '"./MDAPNode"' has no exported member 'MDAPResult'. Did you mean to use 'import MDAPResult from "./MDAPNode"' instead?
 src/nodes/index.ts(144,8): error TS2614: Module '"./MAKERNode"' has no exported member 'Tone'. Did you mean to use 'import Tone from "./MAKERNode"' instead?
@@ -557,8 +557,8 @@ src/nodes/init.ts(30,3): error TS2322: Type 'typeof KnowledgeQueryNode' is not a
   Type 'KnowledgeQueryNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(31,3): error TS2322: Type 'typeof LeanAideNode' is not assignable to type 'NodeClass'.
   Type 'LeanAideNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
-src/nodes/init.ts(32,3): error TS2322: Type 'typeof HephaestusNode' is not assignable to type 'NodeClass'.
-  Type 'HephaestusNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
+src/nodes/init.ts(32,3): error TS2322: Type 'typeof CrewAINode' is not assignable to type 'NodeClass'.
+  Type 'CrewAINode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(33,3): error TS2322: Type 'typeof MDAPNode' is not assignable to type 'NodeClass'.
   Type 'MDAPNode' is missing the following properties from type 'OpenEvolveBaseNode': status, metrics, executionAttempts, beforeExecute, and 19 more.
 src/nodes/init.ts(34,3): error TS2322: Type 'typeof MAKERNode' is not assignable to type 'NodeClass'.
@@ -581,7 +581,7 @@ src/plugin.ts(98,3): error TS2353: Object literal may only specify known propert
 src/schemas/adversarial.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/decomposition.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/evolution.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
-src/schemas/hephaestus.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
+src/schemas/crewai.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/invention.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/knowledge.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
 src/schemas/leanaide.ts(5,10): error TS2305: Module '"@/types/plugin"' has no exported member 'ParameterSchema'.
@@ -684,11 +684,11 @@ src/types/extended-plugin-types.ts(386,18): error TS2430: Interface 'ExtendedOpe
       Property 'elitism' is optional in type 'ExtendedEvolutionConfig' but required in type 'EvolutionConfig'.
 src/types/index.ts(199,18): error TS2430: Interface 'SolutionNodeData' incorrectly extends interface 'OpenEvolveNodeData'.
   Types of property 'type' are incompatible.
-    Type '"solution"' is not assignable to type '"evolution" | "adversarial" | "decomposition" | "knowledge" | "leanaide" | "hephaestus" | "mdap" | "maker"'. Did you mean '"evolution"'?
+    Type '"solution"' is not assignable to type '"evolution" | "adversarial" | "decomposition" | "knowledge" | "leanaide" | "crewai" | "mdap" | "maker"'. Did you mean '"evolution"'?
 src/types/index.ts(201,12): error TS2552: Cannot find name 'SolutionConfig'. Did you mean 'EvolutionConfig'?
 src/types/index.ts(237,18): error TS2430: Interface 'VerificationNodeData' incorrectly extends interface 'OpenEvolveNodeData'.
   Types of property 'type' are incompatible.
-    Type '"verification"' is not assignable to type '"evolution" | "adversarial" | "decomposition" | "knowledge" | "leanaide" | "hephaestus" | "mdap" | "maker"'.
+    Type '"verification"' is not assignable to type '"evolution" | "adversarial" | "decomposition" | "knowledge" | "leanaide" | "crewai" | "mdap" | "maker"'.
 src/types/index.ts(239,12): error TS2304: Cannot find name 'VerificationConfig'.
 src/types/nodes.ts(1404,18): error TS2430: Interface 'ParameterDefinition' incorrectly extends interface 'ParameterSchema'.
   Types of property 'required' are incompatible.

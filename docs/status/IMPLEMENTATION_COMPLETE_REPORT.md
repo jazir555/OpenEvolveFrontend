@@ -16,7 +16,7 @@ Successfully integrated LeanAide evolutionary proof generation capabilities into
 3. **Suggest evolutionary proof strategies** based on problem complexity
 4. **Generate enhanced sub-problems** with Lean-specific metadata
 5. **Integrate with ROMA** for recursive decomposition
-6. **Create Hephaestus tickets** for tracking formalization progress
+6. **Create CrewAI tickets** for tracking formalization progress
 
 The implementation is **production-ready**, **fully tested**, **backward compatible**, and **extensively documented**.
 
@@ -95,7 +95,7 @@ class LeanSubProblemDecomposer:
 - Adds mathematical metadata
 - Generates Lean code stubs
 - Includes evolutionary configuration
-- Creates Hephaestus tickets
+- Creates CrewAI tickets
 
 #### EvolutionaryStrategySuggestor
 ```python
@@ -142,7 +142,7 @@ class LeanEnhancedSubProblem:
     mathematical_metadata: MathematicalProblemMetadata
     lean_code_stub: Optional[str]
     evolutionary_config: Optional[Dict[str, Any]]
-    verification_ticket: Optional[str]  # Hephaestus
+    verification_ticket: Optional[str]  # CrewAI
     formalization_status: str
 ```
 
@@ -223,7 +223,7 @@ LeanEnhancedSubProblem
     ↓
 Integration Layer:
   • ROMA (recursive decomposition)
-  • Hephaestus (ticket tracking)
+  • CrewAI (ticket tracking)
   • Workflow (execution)
 ```
 
@@ -475,14 +475,14 @@ if config["enable_evolution"]:
 - **Mathematical metadata** attached to each sub-problem
 - **Lean code stubs** for formalization
 - **Evolutionary config** for difficult problems
-- **Hephaestus tickets** for progress tracking
+- **CrewAI tickets** for progress tracking
 - **ROMA integration** for recursive decomposition
 - **Workflow compatibility** with existing systems
 
 ### ✅ Integration
 
 - **ROMA:** Recursive decomposition for complex components
-- **Hephaestus:** Automatic ticket creation and tracking
+- **CrewAI:** Automatic ticket creation and tracking
 - **Workflow:** Seamless integration with existing workflow
 - **Backward Compatible:** No breaking changes
 - **Error Handling:** Graceful fallbacks at every level
@@ -523,14 +523,14 @@ evolutionary:
     parallel_evaluation: true
 ```
 
-### Enable ROMA/Hephaestus
+### Enable ROMA/CrewAI
 
 ```yaml
 roma_integration:
   enabled: true
   max_recursion_depth: 3
 
-hephaestus_integration:
+crewai_integration:
   enabled: true
   tickets:
     ticket_type: "lean_formalization"
@@ -644,7 +644,7 @@ The LeanAide decomposition integration is **complete**, **tested**, and **produc
 - [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/)
 - [OpenEvolve Integration](./openevolve_integration.md)
 - [ROMA Architecture](./ROMA_ARCHITECTURE.md)
-- [Hephaestus Integration](./hephaestus_integration.md)
+- [CrewAI Integration](./crewai_integration.md)
 
 ---
 

@@ -239,7 +239,7 @@ Add Phase 1 and Phase 2 tasks to appropriate sections.
 
 **Phase 2 (LeanAide)**:
 - See `PHASE2_LEANAIDE_CONTINUOUS_MATH_TASKS.md` for detailed tasks
-- See `leanaide_hephaestus_bridge.py` for current integration
+- See `leanaide_crewai_bridge.py` for current integration
 - See `LEANAIDE_INTEGRATION_GUIDE.md` for LeanAide documentation
 
 **FRM Analysis**:

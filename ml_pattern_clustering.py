@@ -86,6 +86,33 @@ except ImportError:
     ONEKE_AVAILABLE = False
     logger.warning("OneKE integration not available")
 
+# Karate Club Integration - NEW
+try:
+    from knowledge_engine.integrations.karateclub_integration import KarateClubGraphAnalyzer
+    KARATECLUB_AVAILABLE = True
+    logger.info("Karate Club integration available for graph analysis")
+except ImportError:
+    KARATECLUB_AVAILABLE = False
+    logger.warning("Karate Club integration not available")
+
+# kg-gen Integration - NEW
+try:
+    from knowledge_engine.integrations.kggen.kggen_pipeline import KGGenPipeline
+    KG_GEN_AVAILABLE = True
+    logger.info("kg-gen integration available for graph generation")
+except ImportError:
+    KG_GEN_AVAILABLE = False
+    logger.warning("kg-gen integration not available")
+
+# AI Knowledge Graph Integration - NEW
+try:
+    from integrations.ai_knowledge_graph.bridge import AIKnowledgeGraphBridge
+    AI_KG_AVAILABLE = True
+    logger.info("AI Knowledge Graph integration available")
+except ImportError:
+    AI_KG_AVAILABLE = False
+    logger.warning("AI Knowledge Graph integration not available")
+
 # =============================================================================
 # DATA MODELS
 # =============================================================================
@@ -1481,6 +1508,90 @@ class TemporalKnowledgeGraph:
             new_node.version = old_node.version + 1
             
             return new_node
+
+    def save_to_disk(self, file_path: str = "temporal_knowledge_graph.json") -> bool:
+        """
+        Save the temporal knowledge graph to disk.
+        
+        Following CLAUDE.md Constitution: Persist in UTC format.
+        """
+        from pathlib import Path
+        try:
+            with self._lock:
+                # Convert nodes to serializable format
+                nodes_data = {nid: node.to_dict() for nid, node in self.nodes.items()}
+                
+                data = {
+                    "nodes": nodes_data,
+                    "edges": self.edges,
+                    "timestamp_utc": datetime.now().isoformat(),
+                    "version": "1.0.0"
+                }
+                
+                path = Path(file_path)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2)
+                
+                logger.info(f"Temporal knowledge graph saved to {file_path}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to save temporal knowledge graph: {e}")
+            return False
+
+    def load_from_disk(self, file_path: str = "temporal_knowledge_graph.json") -> bool:
+        """
+        Load the temporal knowledge graph from disk.
+        """
+        from pathlib import Path
+        try:
+            path = Path(file_path)
+            if not path.exists():
+                logger.warning(f"Storage file {file_path} not found")
+                return False
+                
+            with self._lock:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Load nodes
+                for nid, node_data in data.get("nodes", {}).items():
+                    # Parse dates if they exist
+                    vf = node_data.get('valid_from')
+                    vu = node_data.get('valid_until')
+                    
+                    node = TemporalKnowledgeNode(
+                        node_id=nid,
+                        content=node_data.get('content', ''),
+                        node_type=node_data.get('node_type', 'fact'),
+                        valid_from=datetime.fromisoformat(vf) if vf else None,
+                        valid_until=datetime.fromisoformat(vu) if vu else None,
+                        confidence=node_data.get('confidence', 0.5),
+                        derived_from=node_data.get('derived_from', []),
+                        metadata=node_data.get('metadata', {})
+                    )
+                    node.version = node_data.get('version', 1)
+                    node.previous_version_id = node_data.get('previous_version_id')
+                    node.related_nodes = node_data.get('related_nodes', [])
+                    
+                    self.nodes[nid] = node
+                    
+                    if self.graph:
+                        self.graph.add_node(nid, **node.metadata)
+                
+                # Load edges
+                self.edges = [tuple(e) for e in data.get("edges", [])]
+                if self.graph:
+                    for s, t, r in self.edges:
+                        self.graph.add_edge(s, t, relation=r)
+                
+                logger.info(f"Loaded {len(self.nodes)} nodes and {len(self.edges)} edges from {file_path}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to load temporal knowledge graph: {e}")
+            return False
+
     
     def query_temporal(
         self,
@@ -1728,7 +1839,10 @@ class MLKnowledgeExtraction:
         embedding_model: str = 'all-MiniLM-L6-v2',
         clustering_algorithm: str = 'dbscan',
         enable_deepke: bool = True,
-        enable_oneke: bool = True
+        enable_deepke: bool = True,
+        enable_oneke: bool = True,
+        enable_karateclub: bool = True,
+        enable_kggen: bool = True
     ):
         """
         Initialize ML knowledge extraction.
@@ -1738,6 +1852,8 @@ class MLKnowledgeExtraction:
             clustering_algorithm: Clustering algorithm to use
             enable_deepke: Enable DeepKE integration
             enable_oneke: Enable OneKE integration
+            enable_karateclub: Enable KarateClub integration
+            enable_kggen: Enable kg-gen integration
         """
         self.entity_extractor = EntityExtractor(embedding_model)
         self.relation_extractor = RelationExtractor()
@@ -1748,7 +1864,7 @@ class MLKnowledgeExtraction:
         self.temporal_graph = TemporalKnowledgeGraph()
         self.validator = KnowledgeValidator()
         
-        # DeepKE Integration - WIRED TO CORE
+        # DeepKE Integration
         self.deepke_extractor: Optional[DeepKEExtractor] = None
         self.deepke_enabled = enable_deepke and DEEPKE_AVAILABLE
         if self.deepke_enabled:
@@ -1759,7 +1875,7 @@ class MLKnowledgeExtraction:
                 logger.warning(f"Failed to create DeepKE extractor: {e}")
                 self.deepke_enabled = False
         
-        # OneKE Integration - WIRED TO CORE
+        # OneKE Integration
         self.oneke_extractor: Optional[OneKEExtractor] = None
         self.oneke_enabled = enable_oneke and ONEKE_AVAILABLE
         if self.oneke_enabled:
@@ -1769,10 +1885,41 @@ class MLKnowledgeExtraction:
             except Exception as e:
                 logger.warning(f"Failed to create OneKE extractor: {e}")
                 self.oneke_enabled = False
+
+        # Karate Club Integration
+        self.graph_analyzer: Optional[Any] = None
+        self.karateclub_enabled = enable_karateclub and KARATECLUB_AVAILABLE
+        if self.karateclub_enabled:
+            try:
+                self.graph_analyzer = KarateClubGraphAnalyzer()
+                logger.info("KarateClub graph analyzer integrated")
+            except Exception as e:
+                logger.warning(f"Failed to create KarateClub analyzer: {e}")
+                self.karateclub_enabled = False
+
+        # kg-gen Integration
+        self.kggen_pipeline: Optional[Any] = None
+        self.kggen_enabled = enable_kggen and KG_GEN_AVAILABLE
+        if self.kggen_enabled:
+            try:
+                self.kggen_pipeline = KGGenPipeline()
+                logger.info("kg-gen pipeline integrated")
+            except Exception as e:
+                logger.warning(f"Failed to create kg-gen pipeline: {e}")
+                self.kggen_enabled = False
+
+        # AI Knowledge Graph Integration
+        self.ai_kg_bridge: Optional[Any] = None
+        if AI_KG_AVAILABLE:
+            try:
+                self.ai_kg_bridge = AIKnowledgeGraphBridge()
+                logger.info("AI Knowledge Graph bridge integrated")
+            except Exception as e:
+                logger.warning(f"Failed to create AI-KG bridge: {e}")
         
         self._lock = threading.RLock()
         
-        logger.info("ML Knowledge Extraction initialized (with DeepKE/OneKE)")
+        logger.info("ML Knowledge Extraction initialized (Full Stack: DeepKE/OneKE/KarateClub/kg-gen/AI-KG)")
     
     def initialize_external_extractors(self) -> Dict[str, bool]:
         """
@@ -1897,6 +2044,26 @@ class MLKnowledgeExtraction:
             metadata={'sources': list(result['sources'].keys())}
         )
         result['temporal_nodes'] = [node.to_dict()]
+
+        # 3. kg-gen Graph Generation
+        if self.kggen_enabled and self.kggen_pipeline:
+            try:
+                kg_result = self.kggen_pipeline.generate_graph(text)
+                result['kggen_graph'] = kg_result
+                logger.info(f"kg-gen generated graph with {len(kg_result.get('nodes', []))} nodes")
+            except Exception as e:
+                logger.error(f"kg-gen graph generation failed: {e}")
+
+        # 4. KarateClub Graph Analysis
+        if self.karateclub_enabled and self.graph_analyzer:
+            try:
+                # Analyze the current temporal graph or kg-gen graph
+                graph_to_analyze = result.get('kggen_graph') or self.temporal_graph.to_dict()
+                analysis = self.graph_analyzer.analyze_graph(graph_to_analyze)
+                result['graph_analysis'] = analysis
+                logger.info("KarateClub graph analysis completed")
+            except Exception as e:
+                logger.error(f"KarateClub graph analysis failed: {e}")
         
         return result
     
@@ -2006,6 +2173,21 @@ class MLKnowledgeExtraction:
                     'available': ONEKE_AVAILABLE,
                     'enabled': self.oneke_enabled,
                     'initialized': self.oneke_extractor.is_available() if self.oneke_extractor else False
+                },
+                'karateclub': {
+                    'available': KARATECLUB_AVAILABLE,
+                    'enabled': self.karateclub_enabled,
+                    'initialized': self.graph_analyzer.is_available() if self.graph_analyzer else False
+                },
+                'kg_gen': {
+                    'available': KG_GEN_AVAILABLE,
+                    'enabled': self.kggen_enabled,
+                    'initialized': self.kggen_pipeline is not None
+                },
+                'ai_kg': {
+                    'available': AI_KG_AVAILABLE,
+                    'enabled': self.ai_kg_bridge is not None,
+                    'initialized': self.ai_kg_bridge.is_available() if self.ai_kg_bridge else False
                 }
             }
         }

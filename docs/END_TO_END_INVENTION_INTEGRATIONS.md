@@ -30,7 +30,7 @@ The End-to-End Invention Planner integrates with multiple OpenEvolve systems to 
    - Knowledge Engine - Scientific knowledge retrieval
    - Red/Blue Team - Adversarial testing
    - BubbleLabs - Analytics and persistence
-   - Hephaestus - Distributed task delegation
+   - CrewAI - Distributed task delegation
 
 ---
 
@@ -492,30 +492,30 @@ validation_results = await validation.validate_sop(sop)
 
 ---
 
-### 10. Hephaestus Integration
+### 10. CrewAI Integration
 
 **Purpose**: Distributed task delegation for heavy computations.
 
 **Status**: Optional (performance enhancement if available)
 
 **Modules**:
-- `hephaestus_client.py` - Hephaestus client
-- `hephaestus_integration.py` - Integration layer
+- `crewai_client.py` - CrewAI client
+- `crewai_integration.py` - Integration layer
 
 **Configuration**:
 
 ```python
-from hephaestus_client import HephaestusClient
+from crewai_client import CrewAIClient
 
-hephaestus = HephaestusClient(url="http://localhost:9000")
+crewai = CrewAIClient(url="http://localhost:9000")
 
 # Delegate heavy tasks
-math_formalization = await hephaestus.delegate(
+math_formalization = await crewai.delegate(
     task="formalize_math",
     data={"equations": equations, "domain": domain}
 )
 
-error_analysis = await hephaestus.delegate(
+error_analysis = await crewai.delegate(
     task="analyze_errors",
     data={"steps": atomic_steps}
 )
@@ -547,7 +547,7 @@ error_analysis = await hephaestus.delegate(
 │              │      │                  │      │              │
 │ • Voting     │      │ • SOP Generator  │      │ • LeanAide   │
 │ • Decomp     │      │ • Components     │      │ • Knowledge  │
-│ • Evolution  │      │ • Integrated     │      │ • Hephaestus │
+│ • Evolution  │      │ • Integrated     │      │ • CrewAI │
 └──────────────┘      └──────────────────┘      └──────────────┘
         │                         │                         │
         └─────────────────────────┼─────────────────────────┘
@@ -901,12 +901,12 @@ def check_all_integrations():
     except ImportError:
         print("  ✗ BubbleLabs Analytics")
 
-    # Hephaestus
+    # CrewAI
     try:
-        from hephaestus_client import HephaestusClient
-        print("  ✓ Hephaestus (distributed)")
+        from crewai_client import CrewAIClient
+        print("  ✓ CrewAI (distributed)")
     except ImportError:
-        print("  ✗ Hephaestus")
+        print("  ✗ CrewAI")
 
     print("\n" + "=" * 50)
     print("Core integrations sufficient for basic operation.")

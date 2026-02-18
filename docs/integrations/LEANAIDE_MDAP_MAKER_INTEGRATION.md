@@ -70,7 +70,7 @@ class LeanMDAPConfig:
     verify_strategies: bool = True
     confidence_threshold: float = 0.7
     fallback_to_evolution: bool = True
-    hephaestus_enabled: bool = False
+    crewai_enabled: bool = False
 ```
 
 **MDAP Strategies:**
@@ -365,12 +365,12 @@ if LEANAIDE_AVAILABLE:
     )
 ```
 
-### Hephaestus Tracking
+### CrewAI Tracking
 
 ```python
 # Track MDAP tickets if enabled
-if config.hephaestus_enabled and HEPHAESTUS_AVAILABLE:
-    hephaestus_client = HephaestusClient()
+if config.crewai_enabled and CREWAI_AVAILABLE:
+    crewai_client = CrewAIClient()
     # Create ticket for each MDAP task
     # Update status as tasks complete
 ```
@@ -562,7 +562,7 @@ from leanaide_mdap_workflow import (
     MDAP_AVAILABLE,
     MAKER_AVAILABLE,
     WORKFLOW_AVAILABLE,
-    HEPHAESTUS_AVAILABLE,
+    CREWAI_AVAILABLE,
     ACE_AVAILABLE
 )
 
@@ -570,7 +570,7 @@ print(f"LeanAide: {LEANAIDE_AVAILABLE}")
 print(f"MDAP: {MDAP_AVAILABLE}")
 print(f"MAKER: {MAKER_AVAILABLE}")
 print(f"Workflow: {WORKFLOW_AVAILABLE}")
-print(f"Hephaestus: {HEPHAESTUS_AVAILABLE}")
+print(f"CrewAI: {CREWAI_AVAILABLE}")
 print(f"ACE: {ACE_AVAILABLE}")
 ```
 
@@ -605,7 +605,7 @@ The LeanAide MDAP/MAKER workflow integration provides:
 
 6. **Integration with existing components**
    - LeanAide client for verification
-   - Hephaestus for tracking
+   - CrewAI for tracking
    - Knowledge Engine for storage
 
 This integration adds powerful Lean theorem proving capabilities to the OpenEvolve decomposition workflow while maintaining backward compatibility and graceful fallbacks.

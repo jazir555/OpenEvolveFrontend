@@ -54,7 +54,7 @@ export interface PyGraphistryPluginState {
     aceEnabled: boolean;
     romaEnabled: boolean;
     datapizzaEnabled: boolean;
-    hephaestusEnabled: boolean;
+    crewaiEnabled: boolean;
     claudiomiroEnabled: boolean;
     steerEnabled: boolean;
     researchQuestEnabled: boolean;
@@ -485,7 +485,7 @@ export interface TicketActivity {
   status: string;
 }
 
-export interface HephaestusResult {
+export interface CrewAIResult {
   total_tickets: number;
   status_distribution: Record<string, number>;
   recent_activity: TicketActivity[];

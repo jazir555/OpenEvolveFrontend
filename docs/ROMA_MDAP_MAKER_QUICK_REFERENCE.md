@@ -11,7 +11,7 @@
 ### Option 1: Auto-Selection (Recommended for Critical Tasks)
 
 ```python
-from hephaestus_unified_bridge import execute_phase_2_solve
+from crewai_unified_bridge import execute_phase_2_solve
 
 # Automatically selects ROMA-MDAP-MAKER for critical zero-error tasks
 result = execute_phase_2_solve(
@@ -38,7 +38,7 @@ result = solve_sub_problem_with_team(
 ### Option 3: Full Workflow
 
 ```python
-from roma_mdap_maker_hephaestus_bridge import execute_full_workflow
+from roma_mdap_maker_crewai_bridge import execute_full_workflow
 
 result = execute_full_workflow(
     problem_statement="Design zero-error financial trading system",
@@ -99,8 +99,8 @@ ROMA-MDAP-MAKER is automatically selected when these keywords are detected:
    - 7 MCP tools
    - Solve, analyze, verify functions
 
-3. **roma_mdap_maker_hephaestus_bridge.py** (~900 lines)
-   - Full 6-phase Hephaestus workflow integration
+3. **roma_mdap_maker_crewai_bridge.py** (~900 lines)
+   - Full 6-phase CrewAI workflow integration
    - execute_phase_1_setup through execute_phase_6_final_validation
 
 ### Modified Files (3)
@@ -110,11 +110,11 @@ ROMA-MDAP-MAKER is automatically selected when these keywords are detected:
    - Auto-selection logic
    - Helper functions
 
-5. **hephaestus_unified_bridge.py**
+5. **crewai_unified_bridge.py**
    - Phase routing updated
    - Status reporting
 
-6. **decomposition_hephaestus_bridge.py**
+6. **decomposition_crewai_bridge.py**
    - Parameter passing updated
 
 ---
@@ -159,7 +159,7 @@ ROMA-MDAP-MAKER is automatically selected when these keywords are detected:
 ## Status Check
 
 ```python
-from hephaestus_unified_bridge import get_unified_bridge_status
+from crewai_unified_bridge import get_unified_bridge_status
 
 status = get_unified_bridge_status()
 print(f"Total methods: {status['total_execution_methods']}")
@@ -189,7 +189,7 @@ ROMA-MDAP-MAKER: True
 ## Example: Full Integration
 
 ```python
-from hephaestus_unified_bridge import (
+from crewai_unified_bridge import (
     execute_phase_1_setup,
     execute_phase_2_solve,
 )

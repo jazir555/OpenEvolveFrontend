@@ -4468,36 +4468,36 @@ The following tasks are crucial for completing the full implementation:
 
 ---
 
-## 7.0 Integration with Hephaestus Framework
+## 7.0 Integration with CrewAI Framework
 
 ### 7.1 Overview of Integration
 
-The Sovereign-Grade Decomposition Workflow (SGDW) seamlessly integrates with the Hephaestus framework, creating a powerful synergy between structured decomposition and adaptive agentic workflows. This integration allows for both top-down systematic problem solving and emergent, discovery-driven work creation.
+The Sovereign-Grade Decomposition Workflow (SGDW) seamlessly integrates with the CrewAI framework, creating a powerful synergy between structured decomposition and adaptive agentic workflows. This integration allows for both top-down systematic problem solving and emergent, discovery-driven work creation.
 
 ### 7.2 Architectural Integration Points
 
 The integration occurs at multiple levels to maximize the benefits of both systems:
 
 #### 7.2.1 Workflow Coordination Layer
-The **SGD Orchestrator Agent** serves as a bridge between OpenEvolve's structured decomposition and Hephaestus' dynamic ticket-based workflow system:
+The **SGD Orchestrator Agent** serves as a bridge between OpenEvolve's structured decomposition and CrewAI' dynamic ticket-based workflow system:
 
-* **Phase Mapping**: Each sub-problem in the SGDW maps to a Hephaestus ticket that can be worked on by specialized agents
-* **Ticket Generation**: When the SGDW identifies sub-problems, it creates corresponding Hephaestus tickets with appropriate phase assignments
-* **Status Synchronization**: Progress updates from Hephaestus agents are reported back to the SGDW's WorkflowState
+* **Phase Mapping**: Each sub-problem in the SGDW maps to a CrewAI ticket that can be worked on by specialized agents
+* **Ticket Generation**: When the SGDW identifies sub-problems, it creates corresponding CrewAI tickets with appropriate phase assignments
+* **Status Synchronization**: Progress updates from CrewAI agents are reported back to the SGDW's WorkflowState
 
 #### 7.2.2 Team-Gauntlet to Agent Mapping
-The SGDW's team-based approach integrates with Hephaestus' agent system:
+The SGDW's team-based approach integrates with CrewAI' agent system:
 
-* **Blue Teams → Implementation Agents**: Solver and Patcher teams become Phase 2 Implementation agents in Hephaestus
+* **Blue Teams → Implementation Agents**: Solver and Patcher teams become Phase 2 Implementation agents in CrewAI
 * **Red Teams → Validation Agents**: Critique agents become Phase 3 Validation agents that can discover and report issues
 * **Gold Teams → Quality Assurance Agents**: Verification agents become specialized Quality Assurance agents that validate completion
 
 #### 7.2.3 Self-Healing Integration
-The SGDW's self-healing mechanisms complement Hephaestus' self-adapting workflow:
+The SGDW's self-healing mechanisms complement CrewAI' self-adapting workflow:
 
-* **Issue Discovery**: When a Hephaestus agent discovers a problem during validation, it can create new tickets that feed back into the SGDW as sub-problems requiring rework
-* **Dynamic Adaptation**: The SGDW can dynamically spawn new sub-problems based on discoveries made by Hephaestus agents
-* **Feedback Loops**: Critique reports from the SGDW can spawn new Hephaestus tickets for investigation and resolution
+* **Issue Discovery**: When a CrewAI agent discovers a problem during validation, it can create new tickets that feed back into the SGDW as sub-problems requiring rework
+* **Dynamic Adaptation**: The SGDW can dynamically spawn new sub-problems based on discoveries made by CrewAI agents
+* **Feedback Loops**: Critique reports from the SGDW can spawn new CrewAI tickets for investigation and resolution
 
 ### 7.3 Implementation Architecture
 
@@ -4506,8 +4506,8 @@ The `SGDOrchestratorAgent` acts as the integration layer:
 
 ```python
 class SGDOrchestratorAgent:
-    def __init__(self, hephaestus_api_base: str, openevolve_api_base: str, polling_interval: int = 30):
-        self.hephaestus_api_base = hephaestus_api_base
+    def __init__(self, crewai_api_base: str, openevolve_api_base: str, polling_interval: int = 30):
+        self.crewai_api_base = crewai_api_base
         self.openevolve_api_base = openevolve_api_base
         self.polling_interval = polling_interval
         self.running = False
@@ -4520,21 +4520,21 @@ class SGDOrchestratorAgent:
             await asyncio.sleep(self.polling_interval)
 
     async def synchronize_workflows(self):
-        """Synchronize the state between OpenEvolve's SGDW and Hephaestus ticket system."""
-        # Check for new sub-problems in SGDW to convert to Hephaestus tickets
+        """Synchronize the state between OpenEvolve's SGDW and CrewAI ticket system."""
+        # Check for new sub-problems in SGDW to convert to CrewAI tickets
         await self.process_new_sub_problems()
         
-        # Update SGDW with progress from Hephaestus agents
+        # Update SGDW with progress from CrewAI agents
         await self.update_sub_problem_status()
         
-        # Process any issues discovered by Hephaestus agents that affect SGDW
+        # Process any issues discovered by CrewAI agents that affect SGDW
         await self.process_agent_discoveries()
 ```
 
 #### 7.3.2 Ticket Creation from Sub-Problems
-When the SGDW creates a decomposition plan, the orchestrator creates corresponding Hephaestus tickets:
+When the SGDW creates a decomposition plan, the orchestrator creates corresponding CrewAI tickets:
 
-* **Phase Assignment**: Sub-problems are assigned to appropriate Hephaestus phases based on their type:
+* **Phase Assignment**: Sub-problems are assigned to appropriate CrewAI phases based on their type:
   * Analysis sub-problems → Phase 1 (Analysis)
   * Implementation sub-problems → Phase 2 (Implementation)  
   * Verification sub-problems → Phase 3 (Validation)
@@ -4544,9 +4544,9 @@ When the SGDW creates a decomposition plan, the orchestrator creates correspondi
 #### 7.3.3 State Synchronization
 The orchestrator maintains synchronization between the systems:
 
-* **Progress Tracking**: Updates from Hephaestus agents are reflected in the SGDW's WorkflowState
-* **Dependency Management**: Hephaestus ticket dependencies mirror SGDW sub-problem dependencies
-* **Result Integration**: Solutions from Hephaestus agents are aggregated back into the SGDW for final assembly
+* **Progress Tracking**: Updates from CrewAI agents are reflected in the SGDW's WorkflowState
+* **Dependency Management**: CrewAI ticket dependencies mirror SGDW sub-problem dependencies
+* **Result Integration**: Solutions from CrewAI agents are aggregated back into the SGDW for final assembly
 
 ### 7.4 Enhanced Workflow Patterns
 
@@ -4554,14 +4554,14 @@ The orchestrator maintains synchronization between the systems:
 Combines structured decomposition with emergent discovery:
 
 1. **Initial Decomposition**: Use SGDW for systematic problem breakdown
-2. **Agent Exploration**: Use Hephaestus agents to explore and discover unforeseen aspects
+2. **Agent Exploration**: Use CrewAI agents to explore and discover unforeseen aspects
 3. **Adaptive Integration**: Incorporate discoveries back into the SGDW structure
 
 #### 7.4.2 Multi-Tier Validation
 Leverages both systems' validation capabilities:
 
 1. **SGDW Gauntlets**: Rigorous, configurable validation using Red and Gold team gauntlets
-2. **Hephaestus Validation**: Real-world testing and integration validation by agents
+2. **CrewAI Validation**: Real-world testing and integration validation by agents
 3. **Cross-Verification**: Results validated by both systems ensure high confidence
 
 ### 7.5 Microscopic Integration Implementation Details
@@ -4570,7 +4570,7 @@ Leverages both systems' validation capabilities:
 The integration operates through precise, microscopic data synchronization:
 
 * **API Endpoints Integration**:
-  * `POST /workflows/{workflow_id}/sub-problems` → Creates Hephaestus tickets via `POST /tickets`
+  * `POST /workflows/{workflow_id}/sub-problems` → Creates CrewAI tickets via `POST /tickets`
   * `GET /tickets/{ticket_id}/status` → Updates `SubProblem.status` in SGDW
   * `PUT /tickets/{ticket_id}/solution` → Updates `SolutionAttempt.content` in SGDW
   * `POST /tickets/{ticket_id}/critique` → Creates `CritiqueReport` in SGDW
@@ -4603,16 +4603,16 @@ The integration operates through precise, microscopic data synchronization:
 #### 7.5.3 Gauntlet-to-Agent Behavioral Mapping
 
 * **Gauntlet Round Execution**:
-  * Each gauntlet round becomes a separate Hephaestus agent evaluation task
-  * `Quorum` settings map to `Required Approvals` in Hephaestus ticket system
+  * Each gauntlet round becomes a separate CrewAI agent evaluation task
+  * `Quorum` settings map to `Required Approvals` in CrewAI ticket system
   * `Per-Agent Requirements` translate to specialized agent instructions
   * `Collaboration Mode` settings control whether agents can see peer evaluations
 
 * **Advanced Gauntlet Configurations**:
-  * `Adaptive Gauntlets` → Hephaestus agents adjust evaluation criteria based on solution complexity
-  * `Hierarchical Gauntlets` → Multi-tier Hephaestus validation workflow
-  * `Competitive Gauntlets` → Hephaestus agents compete to validate best solutions
-  * `Collaborative Gauntlets` → Hephaestus agents work together to improve solutions
+  * `Adaptive Gauntlets` → CrewAI agents adjust evaluation criteria based on solution complexity
+  * `Hierarchical Gauntlets` → Multi-tier CrewAI validation workflow
+  * `Competitive Gauntlets` → CrewAI agents compete to validate best solutions
+  * `Collaborative Gauntlets` → CrewAI agents work together to improve solutions
 
 #### 7.5.4 Real-Time Synchronization Mechanisms
 
@@ -4622,75 +4622,75 @@ The integration operates through precise, microscopic data synchronization:
   * Decreases to 60 seconds during idle periods to conserve resources
 
 * **Event-Driven Synchronization**:
-  * Webhook endpoints for immediate status updates from Hephaestus
+  * Webhook endpoints for immediate status updates from CrewAI
   * `ticket.created`, `ticket.updated`, `ticket.completed` events trigger SGDW updates
   * Real-time progress tracking through event streaming
 
 * **Conflict Resolution Protocols**:
-  * When both systems update status simultaneously, Hephaestus results take precedence
+  * When both systems update status simultaneously, CrewAI results take precedence
   * Version control for solution attempts to prevent data loss
   * Rollback capabilities when synchronization errors occur
 
 #### 7.5.5 Microscopic Process Orchestration
 
 * **Stage 0 Integration (Content Analysis)**:
-  * Hephaestus `Phase 1 Analysis Agent` performs initial problem analysis
+  * CrewAI `Phase 1 Analysis Agent` performs initial problem analysis
   * Results feed into `AnalyzedContext` object for SGDW
-  * Domain identification and keyword extraction via specialized Hephaestus agents
+  * Domain identification and keyword extraction via specialized CrewAI agents
 
 * **Stage 1 Integration (Decomposition)**:
-  * Hephaestus `Phase 1 Planning Agent` generates decomposition plan
-  * Creates `DecompositionPlan` with sub-problems as Hephaestus tickets
+  * CrewAI `Phase 1 Planning Agent` generates decomposition plan
+  * Creates `DecompositionPlan` with sub-problems as CrewAI tickets
   * Dependency mapping between tickets based on sub-problem dependencies
 
 * **Stage 3 Integration (Sub-Problem Solving)**:
-  * Each sub-problem iteration maps to Hephaestus ticket lifecycle
+  * Each sub-problem iteration maps to CrewAI ticket lifecycle
   * Solution generation → Ticket implementation
   * Critique → Ticket validation and critique
   * Verification → Ticket quality assurance
   * Patching → Ticket rework and revalidation
 
 * **Stage 4 Integration (Reassembly)**:
-  * Hephaestus `Phase 3 Integration Agent` handles solution assembly
-  * Assembler team gauntlet runs as Hephaestus integration validation
-  * Conflict resolution via Hephaestus coordination agents
+  * CrewAI `Phase 3 Integration Agent` handles solution assembly
+  * Assembler team gauntlet runs as CrewAI integration validation
+  * Conflict resolution via CrewAI coordination agents
 
 * **Stage 5 Integration (Final Verification)**:
-  * Final Red team gauntlet → Final Hephaestus security validation
-  * Final Gold team gauntlet → Final Hephaestus quality assurance
-  * Self-healing loops trigger new Hephaestus tickets when failures detected
+  * Final Red team gauntlet → Final CrewAI security validation
+  * Final Gold team gauntlet → Final CrewAI quality assurance
+  * Self-healing loops trigger new CrewAI tickets when failures detected
 
 #### 7.5.6 Configuration and Parameter Mapping
 
 * **Team Configuration Synchronization**:
-  * `ModelConfig` objects in OpenEvolve map to agent specifications in Hephaestus
-  * Team specialization parameters control agent behavior in Hephaestus
+  * `ModelConfig` objects in OpenEvolve map to agent specifications in CrewAI
+  * Team specialization parameters control agent behavior in CrewAI
   * Domain and problem-type specializations translate to agent expertise settings
 
 * **Gauntlet Parameter Translation**:
-  * `quorum_required_approvals` → Hephaestus "required_approvals" field
-  * `min_overall_confidence` → Hephaestus "minimum_quality_score" field
-  * `max_score_variance` → Hephaestus "maximum_variance_threshold" field
-  * `per_judge_requirements` → Hephaestus "agent_specific_requirements" mapping
+  * `quorum_required_approvals` → CrewAI "required_approvals" field
+  * `min_overall_confidence` → CrewAI "minimum_quality_score" field
+  * `max_score_variance` → CrewAI "maximum_variance_threshold" field
+  * `per_judge_requirements` → CrewAI "agent_specific_requirements" mapping
 
 #### 7.5.7 Microscopic Control Implementation
 
 * **Per-Subproblem Configuration**:
-  * Each `SubProblem` can specify precise `evolution_params` that control Hephaestus agent behavior:
-    - `max_iterations`: Maximum number of solution attempts in Hephaestus
+  * Each `SubProblem` can specify precise `evolution_params` that control CrewAI agent behavior:
+    - `max_iterations`: Maximum number of solution attempts in CrewAI
     - `temperature`: Controls randomness of agent decision-making (0.0-2.0)
     - `top_p`: Nucleus sampling parameter for agent responses
     - `early_stopping_threshold`: Performance threshold for solution termination
     - `resource_limits`: CPU, memory, and API token usage constraints
 
 * **Fine-Grained Team Assignment**:
-  * Individual sub-problems can have specific team assignments that map to specialized Hephaestus agents:
-    - `solver_team_name` → Specific Hephaestus agent class (e.g., "CodeImplementationAgent", "ResearchAgent", "AnalysisAgent")
+  * Individual sub-problems can have specific team assignments that map to specialized CrewAI agents:
+    - `solver_team_name` → Specific CrewAI agent class (e.g., "CodeImplementationAgent", "ResearchAgent", "AnalysisAgent")
     - `red_team_gauntlet_name` → Specific validation agent type with attack patterns
     - `gold_team_gauntlet_name` → Specific quality assurance agent with evaluation criteria
 
 * **Dynamic Resource Allocation**:
-  * Resource allocation per sub-problem in Hephaestus based on `ai_suggested_complexity_score`:
+  * Resource allocation per sub-problem in CrewAI based on `ai_suggested_complexity_score`:
     - Complexity 1-3: 1 CPU, 512MB RAM, 1000 API tokens
     - Complexity 4-6: 2 CPU, 1GB RAM, 5000 API tokens
     - Complexity 7-10: 4+ CPU, 2+GB RAM, 20000+ API tokens
@@ -4698,14 +4698,14 @@ The integration operates through precise, microscopic data synchronization:
 #### 7.5.8 Advanced Orchestration Workflows
 
 * **Parallel Sub-Problem Coordination**:
-  * When `parallel_processing_enabled` is true, multiple Hephaestus agents work simultaneously:
+  * When `parallel_processing_enabled` is true, multiple CrewAI agents work simultaneously:
     - Maximum concurrent agents limited by `max_parallel_sub_problems`
     - Dependency tracking ensures dependent tasks wait for prerequisites
     - Resource load balancing prevents system overload
 
 * **Self-Healing Implementation**:
   * When a solution fails final verification, the system creates precise recovery workflows:
-    - Hephaestus agents analyze `CritiqueReport` and `VerificationReport` content
+    - CrewAI agents analyze `CritiqueReport` and `VerificationReport` content
     - New tickets created with specific remediation instructions
     - Original failing ticket marked as "requires_rework" and blocked until dependencies resolved
     - Automatic retry logic with exponential backoff (1s, 2s, 4s, 8s...)
@@ -4714,12 +4714,12 @@ The integration operates through precise, microscopic data synchronization:
   * Solutions and critiques stored in shared knowledge base accessible to both systems:
     - Qdrant vector store integration for semantic search
     - Knowledge artifacts automatically extracted after each successful sub-problem
-    - Cross-system learning: Hephaestus agents learn from SGDW gauntlet results
-    - SGDW teams learn from Hephaestus agent discoveries
+    - Cross-system learning: CrewAI agents learn from SGDW gauntlet results
+    - SGDW teams learn from CrewAI agent discoveries
 
 #### 7.5.9 Execution Pipeline Details
 
-* **Hephaestus Agent Execution Environment**:
+* **CrewAI Agent Execution Environment**:
   * Each agent runs in isolated Docker container with specific resource limits
   * Claude Code CLI sessions for code-related tasks
   * Git worktrees for codebase isolation and version control
@@ -4744,8 +4744,8 @@ The integration operates through precise, microscopic data synchronization:
 #### 7.5.10 Advanced Integration Features
 
 * **Adaptive System Behavior**:
-  * Hephaestus agents adapt their approach based on SGDW gauntlet results
-  * SGDW adjusts gauntlet parameters based on Hephaestus agent performance
+  * CrewAI agents adapt their approach based on SGDW gauntlet results
+  * SGDW adjusts gauntlet parameters based on CrewAI agent performance
   * Dynamic team assignment based on problem characteristics and past performance
   * Automatic optimization of polling intervals and synchronization frequency
 
@@ -4773,7 +4773,7 @@ The integration operates through precise, microscopic data synchronization:
     - `GET /api/v1/teams/{team_id}` - Retrieve team configuration
     - `GET /api/v1/gauntlets/{gauntlet_id}` - Retrieve gauntlet definition
     
-  - Hephaestus API endpoints used by SGD orchestrator:
+  - CrewAI API endpoints used by SGD orchestrator:
     - `POST /api/v1/tickets` - Create new ticket from sub-problem
     - `GET /api/v1/tickets/{ticket_id}` - Retrieve ticket status and solution
     - `PUT /api/v1/tickets/{ticket_id}/status` - Update ticket status
@@ -4784,7 +4784,7 @@ The integration operates through precise, microscopic data synchronization:
 * **Data Structure Mappings**:
 
   ```python
-  # SubProblem to Hephaestus Ticket Mapping
+  # SubProblem to CrewAI Ticket Mapping
   sub_problem_to_ticket_mapping = {
       "id": "ticket_id",
       "description": "title",
@@ -4798,7 +4798,7 @@ The integration operates through precise, microscopic data synchronization:
       "evolution_params": "agent_config_overrides"
   }
   
-  # CritiqueReport to Hephaestus Validation Mapping
+  # CritiqueReport to CrewAI Validation Mapping
   critique_report_to_validation_mapping = {
       "is_approved": "validation_results.approved",
       "reports_by_judge": "validation_results.agent_feedback",
@@ -4808,7 +4808,7 @@ The integration operates through precise, microscopic data synchronization:
       "flaw_severity_scores": "validation_results.issue_severity_mapping"
   }
   
-  # VerificationReport to Hephaestus Quality Assurance Mapping
+  # VerificationReport to CrewAI Quality Assurance Mapping
   verification_report_to_qa_mapping = {
       "is_approved": "qa_results.passed",
       "average_score": "qa_results.average_quality_score",
@@ -4902,7 +4902,7 @@ The integration operates through precise, microscopic data synchronization:
     - Failed attempt rates and recovery success rates
   
   - Metric collection endpoints:
-    - Prometheus: `GET /metrics` for OpenEvolve, `GET /prometheus/metrics` for Hephaestus
+    - Prometheus: `GET /metrics` for OpenEvolve, `GET /prometheus/metrics` for CrewAI
     - Custom metrics stored in Qdrant vector database for historical analysis
     - Real-time dashboards with Grafana integration
 
@@ -4924,16 +4924,16 @@ The integration operates through precise, microscopic data synchronization:
         depends_on:
           - qdrant
           
-      hephaestus-api:
-        image: hephaestus:latest
+      crewai-api:
+        image: crewai:latest
         ports:
           - "8001:8001"
         environment:
-          - DATABASE_URL=sqlite:///hephaestus.db
+          - DATABASE_URL=sqlite:///crewai.db
           - QDRANT_URL=http://qdrant:6333
           - MCP_PORT=8001
         volumes:
-          - ./hephaestus_data:/data
+          - ./crewai_data:/data
         depends_on:
           - qdrant
           
@@ -4943,11 +4943,11 @@ The integration operates through precise, microscopic data synchronization:
           - "8002:8002"
         environment:
           - OPENEVOLVE_API_BASE=http://openevolve-api:8000
-          - HEPHAESTUS_API_BASE=http://hephaestus-api:8001
+          - CREWAI_API_BASE=http://crewai-api:8001
           - POLLING_INTERVAL=30
         depends_on:
           - openevolve-api
-          - hephaestus-api
+          - crewai-api
           
       qdrant:
         image: qdrant/qdrant:latest
@@ -4960,7 +4960,7 @@ The integration operates through precise, microscopic data synchronization:
 * **Database Schema Synchronization**:
   - SQLite table synchronization with triggers:
     ```sql
-    -- Trigger to sync sub-problem status changes to Hephaestus tickets
+    -- Trigger to sync sub-problem status changes to CrewAI tickets
     CREATE TRIGGER sync_subproblem_to_ticket
     AFTER UPDATE OF status ON sub_problems
     FOR EACH ROW
@@ -4974,14 +4974,14 @@ The integration operates through precise, microscopic data synchronization:
             WHEN NEW.status = 'failed' THEN 'blocked'
             ELSE 'backlog'
         END
-        WHERE ticket_id = (SELECT hephaestus_ticket_id FROM sub_problem_ticket_mapping WHERE sub_problem_id = NEW.id);
+        WHERE ticket_id = (SELECT crewai_ticket_id FROM sub_problem_ticket_mapping WHERE sub_problem_id = NEW.id);
     END;
     
     -- Foreign key table for mapping between systems
     CREATE TABLE sub_problem_ticket_mapping (
         id INTEGER PRIMARY KEY,
         sub_problem_id TEXT NOT NULL,
-        hephaestus_ticket_id TEXT NOT NULL,
+        crewai_ticket_id TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_synced TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (sub_problem_id) REFERENCES sub_problems(id)
@@ -4994,7 +4994,7 @@ The integration operates through precise, microscopic data synchronization:
     # gRPC service definitions for inter-system communication
     class SGDIntegrationService:
         def create_ticket_from_subproblem(self, request: SubProblemRequest) -> TicketResponse:
-            # Convert OpenEvolve SubProblem to Hephaestus Ticket
+            # Convert OpenEvolve SubProblem to CrewAI Ticket
             ticket_data = {
                 "title": f"Sub-problem {request.id}: {request.description[:50]}",
                 "description": request.description,
@@ -5003,11 +5003,11 @@ The integration operates through precise, microscopic data synchronization:
                 "agent_requirements": self.map_team_requirements(request.team_assignment),
                 "evolution_params": request.evolution_params
             }
-            return await hephaestus_client.create_ticket(ticket_data)
+            return await crewai_client.create_ticket(ticket_data)
         
         def get_ticket_solution(self, request: TicketSolutionRequest) -> SolutionResponse:
-            # Retrieve solution from Hephaestus and convert to OpenEvolve SolutionAttempt
-            ticket = await hephaestus_client.get_ticket(request.ticket_id)
+            # Retrieve solution from CrewAI and convert to OpenEvolve SolutionAttempt
+            ticket = await crewai_client.get_ticket(request.ticket_id)
             return SolutionResponse(
                 content=ticket.solution_content,
                 status=ticket.status,
@@ -5027,8 +5027,8 @@ The integration operates through precise, microscopic data synchronization:
             // Update sub-problem status in OpenEvolve
             updateSubProblemStatus(update.payload.sub_problem_id, update.payload.new_status);
         } else if (update.type === 'solution_completed') {
-            // Process completed solution from Hephaestus
-            processHephaestusSolution(update.payload.ticket_id, update.payload.solution);
+            // Process completed solution from CrewAI
+            processCrewAISolution(update.payload.ticket_id, update.payload.solution);
         }
     };
     ```
@@ -5040,12 +5040,12 @@ The integration operates through precise, microscopic data synchronization:
     jwt_payload = {
         "sub": "system_integration",
         "iss": "sgd_orchestrator",
-        "aud": ["openevolve", "hephaestus"],
+        "aud": ["openevolve", "crewai"],
         "exp": datetime.utcnow() + timedelta(hours=24),
         "iat": datetime.utcnow(),
         "permissions": {
             "openevolve": ["read:subproblems", "write:solutions", "read:teams"],
-            "hephaestus": ["write:tickets", "read:agents", "modify:status"]
+            "crewai": ["write:tickets", "read:agents", "modify:status"]
         },
         "integration_context": {
             "workflow_id": current_workflow_id,
@@ -5061,14 +5061,14 @@ The integration operates through precise, microscopic data synchronization:
     # Redis queue configuration for different message types
     queues = {
         "subproblem_to_ticket": "queue:sgdw:sub2ticket",
-        "ticket_to_solution": "queue:hephaestus:ticket2solution",
+        "ticket_to_solution": "queue:crewai:ticket2solution",
         "status_updates": "queue:sync:status",
         "error_recovery": "queue:recovery:tasks",
         "dead_letter": "queue:dlq:failed_messages"
     }
     
-    # Producer for sending sub-problems to Hephaestus
-    def send_subproblem_to_hephaestus(subproblem: SubProblem):
+    # Producer for sending sub-problems to CrewAI
+    def send_subproblem_to_crewai(subproblem: SubProblem):
         message = {
             "message_id": str(uuid.uuid4()),
             "timestamp": time.time(),
@@ -5131,8 +5131,8 @@ The integration operates through precise, microscopic data synchronization:
     ```python
     # File synchronization protocol for shared artifacts
     async def sync_solution_artifacts(subproblem_id: str, solution_attempt_id: str):
-        # Copy files from Hephaestus agent work directory to OpenEvolve solution storage
-        source_path = f"/hephaestus_worktrees/agent_{subproblem_id}/solution_artifacts/"
+        # Copy files from CrewAI agent work directory to OpenEvolve solution storage
+        source_path = f"/crewai_worktrees/agent_{subproblem_id}/solution_artifacts/"
         dest_path = f"/openevolve_solutions/{subproblem_id}/{solution_attempt_id}/"
         
         # Create synchronization manifest
@@ -5220,7 +5220,7 @@ The integration operates through precise, microscopic data synchronization:
         with tracer.start_as_current_span(operation_name) as span:
             span.set_attribute("subproblem.id", subproblem_id)
             span.set_attribute("system.source", "openevolve")
-            span.set_attribute("system.destination", "hephaestus")
+            span.set_attribute("system.destination", "crewai")
             # Perform the actual operation
             result = perform_operation(subproblem_id)
             span.set_attribute("operation.success", True)
@@ -5252,7 +5252,7 @@ The integration operates through precise, microscopic data synchronization:
     distance = Cosine
     
     [integration]
-    hephaestus_api_base = http://localhost:8001
+    crewai_api_base = http://localhost:8001
     sgd_orchestrator_api_base = http://localhost:8002
     sync_polling_interval = 30
     max_sync_retries = 5
@@ -5261,9 +5261,9 @@ The integration operates through precise, microscopic data synchronization:
     jwt_secret = integration-jwt-secret-key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     ```
   
-  - Hephaestus-specific configuration for integration:
+  - CrewAI-specific configuration for integration:
     ```ini
-    # hephaestus_integration.conf
+    # crewai_integration.conf
     [api]
     port = 8001
     host = 0.0.0.0
@@ -5272,7 +5272,7 @@ The integration operates through precise, microscopic data synchronization:
     max_request_size = 52428800  # 50MB (for large code solutions)
     
     [database]
-    url = sqlite:///hephaestus.db
+    url = sqlite:///crewai.db
     pool_size = 25
     max_overflow = 35
     pool_timeout = 45
@@ -5280,7 +5280,7 @@ The integration operates through precise, microscopic data synchronization:
     
     [qdrant]
     url = http://localhost:6333
-    collection_name = hephaestus_knowledge
+    collection_name = crewai_knowledge
     vector_size = 1536
     distance = Cosine
     
@@ -5289,7 +5289,7 @@ The integration operates through precise, microscopic data synchronization:
     agent_memory_limit = 4294967296  # 4GB in bytes
     agent_cpu_quota = 2.0  # CPU cores
     default_agent_timeout = 1800  # 30 minutes
-    agent_worktree_path = /tmp/hephaestus_worktrees
+    agent_worktree_path = /tmp/crewai_worktrees
     
     [integration]
     openevolve_api_base = http://localhost:8000
@@ -5313,20 +5313,20 @@ The integration operates through precise, microscopic data synchronization:
     OPENEVOLVE_JWT_SECRET=openevolve-jwt-secret-xxx
     OPENEVOLVE_API_KEYS='["sk-openai-xxx", "sk-anthropic-xxx"]'
     
-    # Hephaestus Settings
-    HEPHAESTUS_API_PORT=8001
-    HEPHAESTUS_DATABASE_URL=sqlite:///hephaestus.db
-    HEPHAESTUS_QDRANT_URL=http://localhost:6333
-    HEPHAESTUS_QDRANT_API_KEY=hephaestus-qdrant-key-yyy
-    HEPHAESTUS_AGENT_TIMEOUT=1800
-    HEPHAESTUS_MAX_AGENTS=10
-    HEPHAESTUS_JWT_SECRET=hephaestus-jwt-secret-yyy
-    HEPHAESTUS_API_KEYS='["sk-openai-yyy", "sk-anthropic-yyy"]'
+    # CrewAI Settings
+    CREWAI_API_PORT=8001
+    CREWAI_DATABASE_URL=sqlite:///crewai.db
+    CREWAI_QDRANT_URL=http://localhost:6333
+    CREWAI_QDRANT_API_KEY=crewai-qdrant-key-yyy
+    CREWAI_AGENT_TIMEOUT=1800
+    CREWAI_MAX_AGENTS=10
+    CREWAI_JWT_SECRET=crewai-jwt-secret-yyy
+    CREWAI_API_KEYS='["sk-openai-yyy", "sk-anthropic-yyy"]'
     
     # SGD Orchestrator Settings
     SGD_ORCHESTRATOR_PORT=8002
     SGD_OPENEVOLVE_API_BASE=http://localhost:8000
-    SGD_HEPHAESTUS_API_BASE=http://localhost:8001
+    SGD_CREWAI_API_BASE=http://localhost:8001
     SGD_POLLING_INTERVAL=30
     SGD_MAX_RETRIES=5
     SGD_JWT_SECRET=integration-jwt-secret-zzz
@@ -5380,26 +5380,26 @@ The integration operates through precise, microscopic data synchronization:
     OPENEVOLVE_PID=$!
     wait_for_service "OpenEvolve" "http://localhost:8000/health"
     
-    # Start Hephaestus
-    echo "Starting Hephaestus API..."
-    HEPHAESTUS_API_PORT=8001 HEPHAESTUS_DATABASE_URL=sqlite:///hephaestus.db HEPHAESTUS_QDRANT_URL=http://localhost:6333 uvicorn hephaestus.main:app --host 0.0.0.0 --port 8001 --workers 6 &
-    HEPHAESTUS_PID=$!
-    wait_for_service "Hephaestus" "http://localhost:8001/health"
+    # Start CrewAI
+    echo "Starting CrewAI API..."
+    CREWAI_API_PORT=8001 CREWAI_DATABASE_URL=sqlite:///crewai.db CREWAI_QDRANT_URL=http://localhost:6333 uvicorn crewai.main:app --host 0.0.0.0 --port 8001 --workers 6 &
+    CREWAI_PID=$!
+    wait_for_service "CrewAI" "http://localhost:8001/health"
     
     # Start SGD Orchestrator
     echo "Starting SGD Orchestrator..."
-    SGD_OPENEVOLVE_API_BASE=http://localhost:8000 SGD_HEPHAESTUS_API_BASE=http://localhost:8001 SGD_POLLING_INTERVAL=30 python -m sgd_orchestrator_agent &
+    SGD_OPENEVOLVE_API_BASE=http://localhost:8000 SGD_CREWAI_API_BASE=http://localhost:8001 SGD_POLLING_INTERVAL=30 python -m sgd_orchestrator_agent &
     SGD_PID=$!
     wait_for_service "SGD Orchestrator" "http://localhost:8002/health"
     
     # Store PIDs for potential cleanup
     echo $OPENEVOLVE_PID > openevolve.pid
-    echo $HEPHAESTUS_PID > hephaestus.pid
+    echo $CREWAI_PID > crewai.pid
     echo $SGD_PID > sgd_orchestrator.pid
     
     echo "All systems started successfully!"
     echo "OpenEvolve: http://localhost:8000"
-    echo "Hephaestus: http://localhost:8001"
+    echo "CrewAI: http://localhost:8001"
     echo "SGD Orchestrator: http://localhost:8002"
     ```
 
@@ -5412,7 +5412,7 @@ The integration operates through precise, microscopic data synchronization:
         keepalive 16;
     }
     
-    upstream hephaestus_backend {
+    upstream crewai_backend {
         server localhost:8001 max_fails=3 fail_timeout=30s;
         keepalive 16;
     }
@@ -5435,7 +5435,7 @@ The integration operates through precise, microscopic data synchronization:
         
         location /hephhealth {
             access_log off;
-            return 200 "Hephaestus OK\n";
+            return 200 "CrewAI OK\n";
             add_header Content-Type text/plain;
         }
         
@@ -5465,9 +5465,9 @@ The integration operates through precise, microscopic data synchronization:
             proxy_read_timeout 300s;
         }
         
-        # Hephaestus API
-        location /api/hephaestus/ {
-            proxy_pass http://hephaestus_backend;
+        # CrewAI API
+        location /api/crewai/ {
+            proxy_pass http://crewai_backend;
             proxy_http_version 1.1;
             proxy_set_header Connection "";
             proxy_set_header Host $host;
@@ -5554,10 +5554,10 @@ The integration operates through precise, microscopic data synchronization:
         
         return engine
     
-    # Hephaestus database engine configuration
-    def create_hephaestus_engine():
+    # CrewAI database engine configuration
+    def create_crewai_engine():
         engine = create_engine(
-            "sqlite:///hephaestus.db",
+            "sqlite:///crewai.db",
             poolclass=QueuePool,
             pool_size=25,  # Slightly larger for agent operations
             max_overflow=35,
@@ -5638,7 +5638,7 @@ The integration operates through precise, microscopic data synchronization:
     
     # Rate limiter instances
     openevolve_rate_limiter = SlidingWindowRateLimiter()
-    hephaestus_rate_limiter = SlidingWindowRateLimiter()
+    crewai_rate_limiter = SlidingWindowRateLimiter()
     
     # Rate limits configuration
     RATE_LIMITS = {
@@ -5647,10 +5647,10 @@ The integration operates through precise, microscopic data synchronization:
         "openevolve_get_subproblem": {"max_requests": 100, "window_size": 60},  # 100 per minute
         "openevolve_update_solution": {"max_requests": 50, "window_size": 60},  # 50 per minute
         
-        # Hephaestus API limits
-        "hephaestus_create_ticket": {"max_requests": 15, "window_size": 60},  # 15 per minute
-        "hephaestus_get_agent_status": {"max_requests": 200, "window_size": 60},  # 200 per minute
-        "hephaestus_submit_solution": {"max_requests": 30, "window_size": 60},  # 30 per minute
+        # CrewAI API limits
+        "crewai_create_ticket": {"max_requests": 15, "window_size": 60},  # 15 per minute
+        "crewai_get_agent_status": {"max_requests": 200, "window_size": 60},  # 200 per minute
+        "crewai_submit_solution": {"max_requests": 30, "window_size": 60},  # 30 per minute
         
         # SGD Orchestrator limits
         "sgd_sync_operation": {"max_requests": 500, "window_size": 60},  # 500 per minute
@@ -5807,15 +5807,15 @@ The integration operates through precise, microscopic data synchronization:
 Both systems can be configured to work together through shared configuration:
 
 * **Shared Knowledge Base**: Both systems can access and contribute to the same memory store
-* **Unified Monitoring**: Single dashboard showing both SGDW and Hephaestus progress
+* **Unified Monitoring**: Single dashboard showing both SGDW and CrewAI progress
 * **Coordinated Resource Management**: Shared API key pools and rate limiting
 
 #### 7.5.2 Deployment Architecture
 ```mermaid
 graph TB
     A[User Problem Input] --> B[SGDW Decomposition]
-    B --> C[Hephaestus Ticket Creation]
-    C --> D[Hephaestus Agents Work]
+    B --> C[CrewAI Ticket Creation]
+    C --> D[CrewAI Agents Work]
     D --> E[Progress Sync Back to SGDW]
     E --> F[Solution Assembly & Verification]
     F --> G[Final Output]
@@ -5830,7 +5830,7 @@ graph TB
 
 #### 7.6.1 Enhanced Problem-Solving Capabilities
 * **Structured Foundation**: SGDW provides systematic approach to complex problems
-* **Adaptive Discovery**: Hephaestus allows for emergent problem-solving and discovery
+* **Adaptive Discovery**: CrewAI allows for emergent problem-solving and discovery
 * **Hybrid Intelligence**: Combines the strengths of both structured and adaptive systems
 * **Mathematical Verification**: Integration with Lean 4 for formal verification of mathematical solutions
 * **Self-Play Integration**: PSV (Propose, Solve, Verify) framework for self-improving mathematical reasoning

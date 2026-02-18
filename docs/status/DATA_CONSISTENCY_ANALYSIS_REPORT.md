@@ -21,7 +21,7 @@ This report provides a comprehensive analysis of data consistency and integrity 
 ### System Components Analyzed
 
 1. **bubblelabs_analytics.py** - Analytics tracking with SQLite database
-2. **bubblelabs_hephaestus_bridge.py** - Workflow to ticket mapping
+2. **bubblelabs_crewai_bridge.py** - Workflow to ticket mapping
 3. **bubblelabs_mcp_tools.py** - MCP tools integration
 4. **bubblelabs_integration.py** - Core integration logic
 5. **bubblelabs_security.py** - Authentication and security layer
@@ -227,7 +227,7 @@ AND (strftime('%s', 'now') - start_time) > 86400  -- 24 hours
 ### 2.1 Instance-to-Definition Cache Inconsistency
 
 **Severity:** HIGH
-**Location:** `bubblelabs_hephaestus_bridge.py` (lines 571-593)
+**Location:** `bubblelabs_crewai_bridge.py` (lines 571-593)
 
 **Issue:**
 The `instance_to_definition_map` cache is updated asynchronously via background sync thread, but can be stale.
@@ -279,7 +279,7 @@ def _update_instance_cache(self) -> None:
 ### 2.2 Bridge Mappings Cache Consistency
 
 **Severity:** HIGH
-**Location:** `bubblelabs_hephaestus_bridge.py` (lines 110-111)
+**Location:** `bubblelabs_crewai_bridge.py` (lines 110-111)
 
 **Issue:**
 The `mappings` dict tracks workflow-to-ticket mappings but is not persisted. Lost on restart.
@@ -430,7 +430,7 @@ cancelled → running (INVALID!)
 ### 3.2 Ticket Status vs Workflow Status Mismatch
 
 **Severity:** HIGH
-**Location:** `bubblelabs_hephaestus_bridge.py` (lines 646-668)
+**Location:** `bubblelabs_crewai_bridge.py` (lines 646-668)
 
 **Issue:**
 Ticket status mapping is complex and can become inconsistent with workflow status.
@@ -523,7 +523,7 @@ self.workflow_definitions: Dict[str, BubbleWorkflowDefinition] = {}
 ### 4.1 Bridge vs BubbleLabs State Sync
 
 **Severity:** HIGH
-**Location:** `bubblelabs_hephaestus_bridge.py` (lines 467-570)
+**Location:** `bubblelabs_crewai_bridge.py` (lines 467-570)
 
 **Issue:**
 Background sync thread updates tickets but doesn't handle failures or retries.
@@ -531,7 +531,7 @@ Background sync thread updates tickets but doesn't handle failures or retries.
 **Evidence:**
 ```python
 # Lines 545-564: No error handling or retry
-self.hephaestus.update_ticket(
+self.crewai.update_ticket(
     ticket_id=ticket_id,
     status=ticket_status,
     description=description
@@ -540,7 +540,7 @@ self.hephaestus.update_ticket(
 
 **Failure Scenario:**
 1. Sync thread attempts to update ticket
-2. Hephaestus API is down (network error)
+2. CrewAI API is down (network error)
 3. Update fails silently (logged but not retried)
 4. Ticket status is stale
 5. Workflow completes but ticket never updates to "DONE"
@@ -557,7 +557,7 @@ self.hephaestus.update_ticket(
    def update_ticket_with_retry(self, ticket_id, status, description, max_retries=3):
        for attempt in range(max_retries):
            try:
-               return self.hephaestus.update_ticket(ticket_id, status, description)
+               return self.crewai.update_ticket(ticket_id, status, description)
            except Exception as e:
                if attempt == max_retries - 1:
                    raise
@@ -787,7 +787,7 @@ for param_name, param_value in final_parameters.items():
 Configuration is split between environment variables, config files, and hardcoded defaults. No clear precedence.
 
 **Examples:**
-- `bubblelabs_hephaestus_bridge.py` (line 743-747): Reads from `os.getenv()`
+- `bubblelabs_crewai_bridge.py` (line 743-747): Reads from `os.getenv()`
 - `config.yaml`: Static configuration file
 - Hardcoded defaults in code
 
@@ -907,7 +907,7 @@ if conn is None:
 
 ---
 
-### 6.2 bubblelabs_hephaestus_bridge.py Issues
+### 6.2 bubblelabs_crewai_bridge.py Issues
 
 #### Issue #1: Thread Shutdown Race Condition
 **Severity:** HIGH
@@ -1166,7 +1166,7 @@ python data_consistency_verification.py sovereign_decomposition.db report_sovere
 2. **Persist Bridge Mappings**
    - Create workflow_ticket_mappings table
    - Add CRUD operations
-   - Impacts: Hephaestus bridge
+   - Impacts: CrewAI bridge
    - Effort: 4 hours
 
 3. **Initialize Analytics Database**
@@ -1211,7 +1211,7 @@ python data_consistency_verification.py sovereign_decomposition.db report_sovere
 9. **Implement Background Sync Retry**
    - Add exponential backoff
    - Add dead letter queue
-   - Impacts: Hephaestus sync
+   - Impacts: CrewAI sync
    - Effort: 4 hours
 
 ### Low Priority (Technical Debt)

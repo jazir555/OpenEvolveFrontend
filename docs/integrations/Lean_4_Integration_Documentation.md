@@ -8,7 +8,7 @@
 4. [Integration with Decomposition Workflow Stages](#4-integration-with-decomposition-workflow-stages)
 5. [Lean 4 Mathematical Verification Components](#5-lean-4-mathematical-verification-components)
 6. [Gauntlet Integration for Proof Verification](#6-gauntlet-integration-for-proof-verification)
-7. [Hephaestus Task System Integration](#7-hephaestus-task-system-integration)
+7. [CrewAI Task System Integration](#7-crewai-task-system-integration)
 8. [OpenEvolve Evolution Backend Integration](#8-openevolve-evolution-backend-integration)
 9. [Verification at Each Workflow Stage](#9-verification-at-each-workflow-stage)
 10. [ImProver System Modifications](#10-improver-system-modifications)
@@ -37,7 +37,7 @@ The OpenEvolve Lean 4 Proving System Integration represents a paradigm shift in 
 The integration encompasses:
 - Mathematical verification of problem decomposition and solution components
 - Integration with the gauntlet system for proof-based validation
-- Connection with the Hephaestus task system for distributed verification
+- Connection with the CrewAI task system for distributed verification
 - Backend integration with OpenEvolve's evolution mechanisms
 - Systematic verification of subproblems, solutions, and their reassembly
 
@@ -91,7 +91,7 @@ The Lean 4 integration architecture consists of multiple interconnected layers:
 ├─────────────────────────────────────────┤
 │        Workflow Orchestrator            │
 ├─────────────────────────────────────────┤
-│        Hephaestus Integration           │
+│        CrewAI Integration           │
 ├─────────────────────────────────────────┤
 │         Core Workflow Engine            │
 ├─────────────────────────────────────────┤
@@ -333,11 +333,11 @@ Gauntlets track mathematical verification metrics:
 - Reusability of generated proofs
 - Mathematical insight extraction rate
 
-## 7. Hephaestus Task System Integration
+## 7. CrewAI Task System Integration
 
 ### 7.1 Task Verification Integration
 
-Hephaestus tasks incorporate mathematical verification:
+CrewAI tasks incorporate mathematical verification:
 
 - **Verification Tickets**: Special ticket types for mathematical verification tasks
 - **Proof Generation Tasks**: Tasks specifically for generating mathematical proofs
@@ -378,7 +378,7 @@ Communication protocols for mathematical verification:
 
 ### 7.5 Mathematical Knowledge Base Integration
 
-Hephaestus maintains mathematical knowledge:
+CrewAI maintains mathematical knowledge:
 
 - **Proof Library**: Repository of verified mathematical proofs
 - **Tactic Repository**: Collection of mathematical proof strategies
@@ -757,7 +757,7 @@ Test integration across the entire workflow:
 - **End-to-End Testing**: Test mathematical verification across the whole workflow
 - **Stage Integration Testing**: Test verification at each workflow stage
 - **Gauntlet Integration Testing**: Test integration with critique and verification gauntlets
-- **Hephaestus Integration Testing**: Test integration with task system
+- **CrewAI Integration Testing**: Test integration with task system
 - **Evolution Integration Testing**: Test integration with evolution backend
 
 ### 14.3 Mathematical Correctness Testing
@@ -2118,4 +2118,4 @@ Error-specific diagnostic messages to aid troubleshooting:
 
 ---
 
-This comprehensive documentation provides a detailed framework for integrating Lean 4 mathematical verification into the OpenEvolve workflow system. The integration encompasses all workflow stages, including the gauntlet system, Hephaestus task system, and OpenEvolve evolution backend, ensuring mathematical verification at every step of the process.
+This comprehensive documentation provides a detailed framework for integrating Lean 4 mathematical verification into the OpenEvolve workflow system. The integration encompasses all workflow stages, including the gauntlet system, CrewAI task system, and OpenEvolve evolution backend, ensuring mathematical verification at every step of the process.

@@ -130,7 +130,7 @@ OpenEvolve-Plugin/ (MERGED - Single Source of Truth)
 │   │   │   ├── decomposition.ts
 │   │   │   ├── knowledge.ts
 │   │   │   ├── leanaide.ts
-│   │   │   ├── hephaestus.ts
+│   │   │   ├── crewai.ts
 │   │   │   ├── roma.ts
 │   │   │   └── invention.ts
 │   │   ├── hooks/                     # React hooks (8)
@@ -161,7 +161,7 @@ OpenEvolve-Plugin/ (MERGED - Single Source of Truth)
 │   │   ├── decomposition.ts
 │   │   ├── knowledge.ts
 │   │   ├── leanaide.ts
-│   │   ├── hephaestus.ts
+│   │   ├── crewai.ts
 │   │   ├── roma.ts
 │   │   ├── invention.ts
 │   │   └── index.ts

@@ -4,9 +4,9 @@ OpenEvolve - CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 OpenEvolve's evolutionary coding capabilities.
 
-This replaces hephaestus_openevolve_bridge.py with local CrewAI execution.
+This replaces crewai_openevolve_bridge.py with local CrewAI execution.
 
-IMPORTANT: OpenEvolve is an evolutionary coding agent. The bridge maps Hephaestus
+IMPORTANT: OpenEvolve is an evolutionary coding agent. The bridge maps CrewAI
 phases to appropriate evolutionary tasks using CrewAI's zero-error workflow.
 
 Phase Mapping:
@@ -17,7 +17,7 @@ Phase Mapping:
 - Phase 5: Multi-objective -> Evolve for multiple goals
 - Phase 6: Final Selection -> Select best evolved program
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 """
 
 import logging
@@ -52,7 +52,7 @@ def execute_phase_1_setup(
     """
     Execute Phase 1: Problem Setup - Generate initial algorithm.
 
-    This is called by Hephaestus Phase 1 agents to set up the evolutionary problem.
+    This is called by CrewAI Phase 1 agents to set up the evolutionary problem.
 
     Args:
         problem_description: Description of the problem to solve
@@ -151,7 +151,7 @@ def execute_phase_2_optimize(
     """
     Execute Phase 2: Performance Optimization.
 
-    This is called by Hephaestus Phase 2 agents to optimize code for performance.
+    This is called by CrewAI Phase 2 agents to optimize code for performance.
 
     Args:
         initial_code: Initial algorithm code

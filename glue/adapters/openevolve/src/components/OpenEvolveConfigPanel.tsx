@@ -14,11 +14,15 @@ import { openevolvePlugin } from '../utils/createOpenEvolvePlugin';
 import { toast } from 'react-toastify';
 
 // Mock icons
-const Settings = () => <span>⚙️</span>;
-const Brain = () => <span>🧠</span>;
-const Shield = () => <span>🛡️</span>;
-const Puzzle = () => <span>🧩</span>;
-const Network = () => <span>🌐</span>;
+type MockIconProps = {
+  className?: string;
+};
+
+const Settings = ({ className }: MockIconProps) => <span className={className}>⚙️</span>;
+const Brain = ({ className }: MockIconProps) => <span className={className}>🧠</span>;
+const Shield = ({ className }: MockIconProps) => <span className={className}>🛡️</span>;
+const Puzzle = ({ className }: MockIconProps) => <span className={className}>🧩</span>;
+const Network = ({ className }: MockIconProps) => <span className={className}>🌐</span>;
 
 interface OpenEvolveConfigPanelProps {
   plugin?: OpenEvolvePlugin;

@@ -13,7 +13,7 @@
 - **DataPizza** = Python-native AI Agent Framework (for building intelligent agents)
 - **Claudiomiro** = Autonomous Development CLI (for doing coding work)
 
-**Recommendation**: **USE BOTH TOGETHER** - Each fills a different gap in the Hephaestus ecosystem.
+**Recommendation**: **USE BOTH TOGETHER** - Each fills a different gap in the CrewAI ecosystem.
 
 ---
 
@@ -146,7 +146,7 @@
 | **RAG Support** | ✅ Yes (full pipeline) | ❌ No |
 | **Memory** | ✅ Yes (conversational) | ❌ No |
 | **Custom Tools** | ✅ Yes (@tool decorator) | ❌ No (fixed workflow) |
-| **Hephaestus Fit** | Excellent (Phase 2-4 agents) | Excellent (Phase 2 execution) |
+| **CrewAI Fit** | Excellent (Phase 2-4 agents) | Excellent (Phase 2 execution) |
 
 ---
 
@@ -279,7 +279,7 @@ with ContextTracing().trace("my_ai_operation"):
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Hephaestus Orchestrator                             │
+│                         CrewAI Orchestrator                             │
 │  Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                    │
@@ -407,8 +407,8 @@ def _determine_execution_method(sub_problem_description: str) -> str:
    - `run_multi_agent_task()` - Execute with agent coordination
    - `get_datapizza_status()` - Check installation
 
-2. **Create DataPizza Hephaestus Bridge** (`datapizza_hephaestus_bridge.py`)
-   - Map Hephaestus phases to DataPizza agents
+2. **Create DataPizza CrewAI Bridge** (`datapizza_crewai_bridge.py`)
+   - Map CrewAI phases to DataPizza agents
    - Phase 2: Blue agent solving
    - Phase 3: Red agent critique
    - Phase 4: Gold agent verification

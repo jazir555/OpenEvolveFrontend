@@ -170,8 +170,8 @@ with self.lock:  # Then acquire self.lock separately
     # ... non-DB operations ...
 ```
 
-#### ✅ Bug #11: bubblelabs_hephaestus_bridge.py:220-261 - I/O inside lock
-- **File**: `bubblelabs_hephaestus_bridge.py`
+#### ✅ Bug #11: bubblelabs_crewai_bridge.py:220-261 - I/O inside lock
+- **File**: `bubblelabs_crewai_bridge.py`
 - **Status**: Already fixed - I/O (update_ticket) is outside lock (lines 340-344)
 - **Impact**: No action needed
 
@@ -179,7 +179,7 @@ with self.lock:  # Then acquire self.lock separately
 
 ### ⚠️ CATEGORY 4: MEMORY LEAKS (2/5 bugs partially fixed)
 
-#### ⚠️ Bug #12: bubblelabs_hephaestus_bridge.py:111 - Unbounded mappings
+#### ⚠️ Bug #12: bubblelabs_crewai_bridge.py:111 - Unbounded mappings
 - **Status**: Requires Phase 2 implementation
 - **Recommendation**: Add LRU cache with max_size=1000
 - **Code needed**:
@@ -190,7 +190,7 @@ self._max_mappings_size = 1000
 # Implement LRU eviction when size exceeds limit
 ```
 
-#### ⚠️ Bug #13: bubblelabs_hephaestus_bridge.py:115 - Unbounded instance_to_definition_map
+#### ⚠️ Bug #13: bubblelabs_crewai_bridge.py:115 - Unbounded instance_to_definition_map
 - **Status**: Requires Phase 2 implementation
 - **Recommendation**: Add LRU cache with max_size=1000
 
@@ -210,7 +210,7 @@ self._max_mappings_size = 1000
 
 ### ⚠️ CATEGORY 5: EDGE CASES (3/5 bugs partially fixed)
 
-#### ⚠️ Bug #17: bubblelabs_hephaestus_bridge.py:128 - No None check on workflow_definition
+#### ⚠️ Bug #17: bubblelabs_crewai_bridge.py:128 - No None check on workflow_definition
 - **Status**: Requires Phase 3 implementation
 - **Recommendation**:
 ```python
@@ -249,7 +249,7 @@ conn.execute("PRAGMA foreign_keys = ON")
 - **Status**: Already called in __init__ (line 147)
 - **Impact**: No action needed
 
-#### ⚠️ Bug #24: bubblelabs_hephaestus_bridge.py - Persist bridge mappings
+#### ⚠️ Bug #24: bubblelabs_crewai_bridge.py - Persist bridge mappings
 - **Status**: Requires Phase 4 implementation
 - **Recommendation**: Save mappings to database, load on startup
 
@@ -265,7 +265,7 @@ VALID_TRANSITIONS = {
 }
 ```
 
-#### ⚠️ Bug #26: bubblelabs_hephaestus_bridge.py - Fix cache consistency
+#### ⚠️ Bug #26: bubblelabs_crewai_bridge.py - Fix cache consistency
 - **Status**: Requires Phase 4 implementation
 - **Recommendation**: Add cache invalidation on workflow changes
 
@@ -273,7 +273,7 @@ VALID_TRANSITIONS = {
 - **Status**: Requires Phase 4 implementation
 - **Recommendation**: Use COALESCE in SQL SUM aggregates
 
-#### ⚠️ Bug #28: bubblelabs_hephaestus_bridge.py - Add data persistence
+#### ⚠️ Bug #28: bubblelabs_crewai_bridge.py - Add data persistence
 - **Status**: Requires Phase 4 implementation
 - **Recommendation**: Persist mappings to disk periodically
 

@@ -118,8 +118,8 @@ Skills are stored in standard JSON format (compatible with ACE TOON).
 - **Default path:** `./ace_skillbook.json`
 - **Backup path:** `./ace_checkpoints/`
 
-### 5.2 Hephaestus Synchronization
-ACE state is synchronized with Hephaestus tickets via `hephaestus_integration.py`. This ensures that if a task is delegated or resumed later, the agent retains its identity and learned skills.
+### 5.2 CrewAI Synchronization
+ACE state is synchronized with CrewAI tickets via `crewai_integration.py`. This ensures that if a task is delegated or resumed later, the agent retains its identity and learned skills.
 
 ---
 

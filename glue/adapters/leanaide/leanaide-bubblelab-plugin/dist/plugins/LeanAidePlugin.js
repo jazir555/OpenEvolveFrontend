@@ -1,5 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Brain } from 'lucide-react';
 import { LeanAideBubbleLabIntegration, } from '../integration/autoformalizationAnalytics';
 export const DEFAULT_LEANAIDE_PLUGIN_CONFIG = {

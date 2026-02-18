@@ -57,7 +57,7 @@ def validate_range(value: int, min_value: int, max_value: int, param_name: str) 
 Each module defines its own validation constants:
 
 ```python
-# bubblelabs_hephaestus_bridge.py
+# bubblelabs_crewai_bridge.py
 MAX_MAPPINGS = 1000
 MAX_DESCRIPTION_LENGTH = 10000
 MAX_SYNC_INTERVAL = 3600
@@ -134,7 +134,7 @@ def create_ticket_from_workflow(
     additional_labels: Optional[List[str]] = None
 ) -> Optional[str]:
     """
-    Create a Hephaestus ticket from a BubbleLabs workflow definition.
+    Create a CrewAI ticket from a BubbleLabs workflow definition.
 
     Raises:
         ValueError: If workflow_definition is None or empty
@@ -216,7 +216,7 @@ def update_ticket_progress(
     metrics: Optional[WorkflowMetrics] = None
 ) -> bool:
     """
-    Update Hephaestus ticket with workflow progress.
+    Update CrewAI ticket with workflow progress.
 
     Raises:
         ValueError: If workflow_instance_id is empty or progress is out of range
@@ -412,7 +412,7 @@ def create_ticket_from_workflow(self, workflow_definition: BubbleWorkflowDefinit
             raise ValueError(f"Maximum number of mappings ({MAX_MAPPINGS}) reached")
 
     # Perform API call OUTSIDE of lock to avoid holding during I/O
-    ticket_id = self.hephaestus.create_ticket(...)
+    ticket_id = self.crewai.create_ticket(...)
 
     if ticket_id:
         # Update cache atomically
@@ -637,7 +637,7 @@ def test_maximum_limits():
 ```python
 def test_state_validation():
     """Test that state is validated before operations."""
-    bridge = BubbleLabsHephaestusBridge()
+    bridge = BubbleLabsCrewAIBridge()
 
     # Update non-existent ticket
     result = bridge.update_ticket_progress("non-existent-id", 0.5, WorkflowStatus.RUNNING)

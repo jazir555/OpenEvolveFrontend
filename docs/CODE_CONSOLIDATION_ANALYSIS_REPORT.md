@@ -584,7 +584,7 @@ maker/
 ├── integrations/
 │   ├── openevolve.py       # OpenEvolve integration
 │   ├── bubblelabs.py       # BubbleLabs integration
-│   ├── hephaestus.py       # Hephaestus integration
+│   ├── crewai.py       # CrewAI integration
 │   └── leanaide.py         # LeanAide integration
 ├── workflows.py             # Common workflow patterns
 └── utils.py                 # Helper functions

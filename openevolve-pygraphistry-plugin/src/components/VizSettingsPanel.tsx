@@ -240,13 +240,13 @@ export const VizSettingsPanel: React.FC = () => {
         <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
           <div>
             <p className="font-medium text-slate-700">Project Management</p>
-            <p className="text-xs text-slate-500">Ticket Tracking (Hephaestus)</p>
+            <p className="text-xs text-slate-500">Ticket Tracking (CrewAI)</p>
           </div>
           <button 
-            onClick={() => toggleFeature('hephaestusEnabled')}
-            className={`w-12 h-6 rounded-full transition-colors relative ${state.features.hephaestusEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+            onClick={() => toggleFeature('crewaiEnabled')}
+            className={`w-12 h-6 rounded-full transition-colors relative ${state.features.crewaiEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
           >
-            <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${state.features.hephaestusEnabled ? 'translate-x-6' : ''}`} />
+            <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${state.features.crewaiEnabled ? 'translate-x-6' : ''}`} />
           </button>
         </div>
 

@@ -30,7 +30,7 @@ This report documents the comprehensive code quality analysis and improvement pl
 | File | Lines | Issues | Complexity | Documentation | Status |
 |------|-------|--------|------------|---------------|--------|
 | ace_mcp_tools.py | 1,115 | 5 | Medium | Low | ✅ Analyzed |
-| ace_hephaestus_bridge.py | 1,458 | 8 | High | Medium | ✅ Analyzed |
+| ace_crewai_bridge.py | 1,458 | 8 | High | Medium | ✅ Analyzed |
 | ace_analytics.py | 1,427 | 5 | High | Low | ✅ Analyzed |
 | ace_knowledge_artifacts.py | 971 | 4 | Low | Medium | ✅ Analyzed |
 | ace_workflow_knowledge_extractor.py | 1,184 | 5 | Medium | Low | ✅ Analyzed |
@@ -60,7 +60,7 @@ This report documents the comprehensive code quality analysis and improvement pl
    - `get_registered_tools()` - Complete Returns section
    - `list_mcp_tools()` - Thread safety documentation
 
-2. **ace_hephaestus_bridge.py**
+2. **ace_crewai_bridge.py**
    - `_initialize_ace_components()` - Side effects documentation
    - `cleanup_old_skills()` - Detailed Args with ranges
    - `save_skillbook()` - Complete Raises section
@@ -102,7 +102,7 @@ DEFAULT_DEDUP_THRESHOLD = 0.85      # Skill deduplication similarity (0-1)
 DEFAULT_EPOCHS = 1                  # Training epochs for offline learning
 DEFAULT_REFLECTOR_WORKERS = 3       # Parallel workers for async reflector
 
-# ace_hephaestus_bridge.py
+# ace_crewai_bridge.py
 DEFAULT_MAX_SKILLS = 1000           # Maximum skills before cleanup
 DEFAULT_MIN_HELPFUL = 5             # Minimum helpful count to keep skill
 
@@ -233,7 +233,7 @@ DEFAULT_SIMILARITY_THRESHOLD = 0.7  # Minimum similarity for clustering
        if not isinstance(sample_dict, dict):
    ```
 
-2. **ace_hephaestus_bridge.py: `input` → `input_data`**
+2. **ace_crewai_bridge.py: `input` → `input_data`**
    ```python
    # Before (shadows built-in)
    def _stub_result(self, phase: str, input: str):
@@ -442,7 +442,7 @@ git push origin code-quality-improvements
 python -m py_compile ace_*.py
 
 # Import check
-python -c "import ace_mcp_tools, ace_hephaestus_bridge"
+python -c "import ace_mcp_tools, ace_crewai_bridge"
 
 # Doctest
 python -m doctest ace_*.py -v
@@ -477,7 +477,7 @@ Impact:
 
 Files Modified:
 - ace_mcp_tools.py: Constants, docstrings, variable names
-- ace_hephaestus_bridge.py: Helpers, documentation, decomposition
+- ace_crewai_bridge.py: Helpers, documentation, decomposition
 - ace_analytics.py: Constants, naming, refactoring
 - ace_knowledge_artifacts.py: Constants, docstrings, validation
 - ace_workflow_knowledge_extractor.py: Helpers, naming, validation
@@ -558,7 +558,7 @@ Refs: CODE_QUALITY_FIXES_DETAILED.md, CODE_QUALITY_COMPLETE_REPORT.md
 
 ### Related Projects
 - ace_security_utils.py - Security validation utilities
-- Hephaestus integration - Workflow orchestration
+- CrewAI integration - Workflow orchestration
 - Sovereign decomposition - Problem decomposition
 
 ---
@@ -581,7 +581,7 @@ ace_mcp_tools.py:
   CQ-010: learn_from_samples_with_ace() too complex (Lines 406-552, 146 lines)
   CQ-011: Variable 's' not descriptive (Line 489)
 
-ace_hephaestus_bridge.py:
+ace_crewai_bridge.py:
   CQ-012: _initialize_ace_components() missing Returns/Raises (Lines 244-262)
   CQ-013: cleanup_old_skills() missing Args details (Lines 297-331)
   CQ-014: save_skillbook() missing Raises (Lines 333-392)
@@ -637,7 +637,7 @@ ace_stage6_integration.py:
 ```bash
 # Unit tests
 pytest tests/test_ace_mcp_tools.py -v
-pytest tests/test_ace_hephaestus_bridge.py -v
+pytest tests/test_ace_crewai_bridge.py -v
 pytest tests/test_ace_analytics.py -v
 pytest tests/test_ace_knowledge_artifacts.py -v
 pytest tests/test_ace_workflow_knowledge_extractor.py -v
@@ -647,7 +647,7 @@ pytest tests/test_ace_stage6_integration.py -v
 pytest tests/integration/test_ace_full_workflow.py -v
 
 # Coverage report
-pytest --cov=ace_mcp_tools --cov=ace_hephaestus_bridge \
+pytest --cov=ace_mcp_tools --cov=ace_crewai_bridge \
        --cov=ace_analytics --cov=ace_knowledge_artifacts \
        --cov=ace_workflow_knowledge_extractor --cov=ace_stage6_integration \
        --cov-report=html

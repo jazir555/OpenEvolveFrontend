@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 // Datapizza Configuration Panel Component
 // React component for configuring the Datapizza plugin
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Save, Settings, Database, Pipeline, Cpu, Network, Shield, Eye, EyeOff } from 'lucide-react';
 import { DATAPIZZA_PIPELINE_TYPES, DEFAULT_DATAPIZZA_CONFIG } from '../types/plugin-types';
 export function DatapizzaConfigPanel({ initialConfig, onSave, onCancel, showAdvanced = false }) {

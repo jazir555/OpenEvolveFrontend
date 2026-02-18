@@ -26,7 +26,7 @@ After ultra-comprehensive analysis using 4 specialized agents covering:
 ## Files Analyzed
 
 1. `ace_mcp_tools.py` (817 lines)
-2. `ace_hephaestus_bridge.py` (1027 lines)
+2. `ace_crewai_bridge.py` (1027 lines)
 3. `ace_analytics.py` (736 lines)
 4. `ace_knowledge_artifacts.py` (652 lines)
 5. `ace_workflow_knowledge_extractor.py` (462 lines)
@@ -59,7 +59,7 @@ After ultra-comprehensive analysis using 4 specialized agents covering:
 | HVE-4 | Missing File Permission Checks | All | Unauthorized access |
 | HVE-5 | SQL Injection via JSON | All | Data manipulation |
 | HVE-6 | Missing Content Type Validation | All | Type confusion attacks |
-| HVE-7 | Unvalidated Redirects | ace_hephaestus_bridge.py | Phishing |
+| HVE-7 | Unvalidated Redirects | ace_crewai_bridge.py | Phishing |
 | HVE-8 | Missing Authentication | ace_stage6_integration.py | Unauthorized access |
 
 ---
@@ -78,9 +78,9 @@ After ultra-comprehensive analysis using 4 specialized agents covering:
 | ID | Component | Leak Type | Impact |
 |----|-----------|-----------|---------|
 | RL-3 | Global MCP Tools Registry | Unbounded Dict | 1-5 MB per 10k |
-| RL-4 | ACEHephaestusWorkflowBridge | Skillbook Growth | 10-100 MB |
+| RL-4 | ACECrewAIWorkflowBridge | Skillbook Growth | 10-100 MB |
 | RL-5 | WorkflowKnowledgeExtractor | Unbounded Artifacts | 50-500 MB |
-| RL-6 | ace_hephaestus_bridge.py | File Handle Delegation | 1-6 handles/wf |
+| RL-6 | ace_crewai_bridge.py | File Handle Delegation | 1-6 handles/wf |
 | RL-7 | ace_mcp_tools.py | Stub Objects | <1 KB |
 | RL-8 | Decorator Closures | Circular References | 10-50 MB/func |
 | RL-9 | SolutionPatternMiner | ML Temp Objects | 800 KB/call |
@@ -95,17 +95,17 @@ After ultra-comprehensive analysis using 4 specialized agents covering:
 | ID | File | Lines | Issue | Impact |
 |----|------|-------|-------|---------|
 | TS-1 | ace_mcp_tools.py | 32-38 | Global MCP Tools Registry Race | Dictionary corruption |
-| TS-2 | ace_hephaestus_bridge.py | 220 | Non-Atomic File Write | File corruption |
+| TS-2 | ace_crewai_bridge.py | 220 | Non-Atomic File Write | File corruption |
 | TS-3 | ace_knowledge_artifacts.py | 96-104 | Non-Atomic Counter Updates | Lost counts |
-| TS-4 | ace_hephaestus_bridge.py | 138-143 | Shared Skillbook Access | Agent crashes |
+| TS-4 | ace_crewai_bridge.py | 138-143 | Shared Skillbook Access | Agent crashes |
 | TS-5 | ace_analytics.py | 333-357 | Team Performance Aggregation Race | Lost data |
 | TS-6 | All | Multiple | Check-Then-Act on File Exists | TOCTOU |
 | TS-7 | ace_analytics.py | 327 | defaultdict Race | Duplicate lists |
 | TS-8 | ace_analytics.py | 115-186 | ML Model State Mutation | Incorrect results |
-| TS-9 | ace_hephaestus_bridge.py | 850-902 | Nested Lock Acquisition | Deadlock |
+| TS-9 | ace_crewai_bridge.py | 850-902 | Nested Lock Acquisition | Deadlock |
 | TS-10 | ace_workflow_knowledge_extractor.py | 192-202 | Dictionary Update Race | Lost updates |
 | TS-11 | ace_analytics.py | 359-397 | Non-Atomic Average Calculation | Wrong statistics |
-| TS-12 | ace_hephaestus_bridge.py | 190 | Skillbook Iteration Invalidation | RuntimeError |
+| TS-12 | ace_crewai_bridge.py | 190 | Skillbook Iteration Invalidation | RuntimeError |
 
 ---
 
@@ -207,7 +207,7 @@ def operation():
 
 ### 4. Unbounded Memory Growth - HIGH
 
-**Files:** ace_analytics.py, ace_workflow_knowledge_extractor.py, ace_hephaestus_bridge.py
+**Files:** ace_analytics.py, ace_workflow_knowledge_extractor.py, ace_crewai_bridge.py
 
 **Vulnerability:**
 ```python

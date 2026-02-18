@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 
 # Test embedding service
-from embedding_service import (
+from knowledge_engine.embedding_service import (
     EmbeddingService,
     EmbeddingConfig,
     create_embedding_service,
@@ -27,7 +27,7 @@ from embedding_service import (
 )
 
 # Test confidence scorer
-from confidence_scorer import (
+from knowledge_engine.confidence_scorer import (
     ConfidenceScorer,
     ConfidenceFactors,
     calculate_confidence,
@@ -35,7 +35,7 @@ from confidence_scorer import (
 )
 
 # Test strategy recommender
-from core.strategy_recommender_complete import (
+from knowledge_engine.core.strategy_recommender_complete import (
     StrategyRecommendation,
     KeywordBasedRecommender,
     DomainBasedRecommender,
@@ -46,13 +46,13 @@ from core.strategy_recommender_complete import (
 )
 
 # Test full-featured backends
-from core.backends.full_featured_backends import (
+from knowledge_engine.core.backends.full_featured_backends import (
     FullFeaturedInMemoryBackend,
     create_full_featured_backend
 )
 
 # Test complete integration
-from __complete__ import (
+from knowledge_engine.__complete__ import (
     CompletedKnowledgeEngine,
     create_complete_knowledge_engine
 )

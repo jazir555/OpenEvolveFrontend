@@ -125,7 +125,7 @@ The system is production-ready despite one non-critical test timing out. All cri
 2. bubblelabs_mcp_tools.py
 3. bubblelabs_typescript_export.py
 4. bubblelabs_security.py
-5. bubblelabs_hephaestus_bridge.py
+5. bubblelabs_crewai_bridge.py
 6. bubblelabs_integration.py
 7. openevolve_bubblelabs_api.py
 8. env_helpers.py

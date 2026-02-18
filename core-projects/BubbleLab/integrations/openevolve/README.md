@@ -202,7 +202,7 @@ console.log('Service health:', health.services);
 //   services: {
 //     knowledgeEngine: { status: true, timing: 45 },
 //     workflowOrchestrator: { status: true, timing: 32 },
-//     hephaestus: { status: true, timing: 28 }
+//     crewai: { status: true, timing: 28 }
 //   }
 // }
 ```
@@ -246,7 +246,7 @@ REDIS_URL=redis://localhost:6379
 
 # Workflow Systems
 WORKFLOW OrchestrATOR_URL=http://localhost:8000
-HEPHAEUSTUS_URL=http://localhost:8001
+CREWAI_URL=http://localhost:8001
 
 # Circuit Breaker
 CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
@@ -268,7 +268,7 @@ BubbleLab/integrations/openevolve/
 │   ├── knowledge-engine-bubble.ts
 │   ├── workflow-orchestrator-bubble.ts
 │   ├── crewai-bubble.ts
-│   ├── hephaestus-bubble.ts
+│   ├── crewai-bubble.ts
 │   ├── postgresql-bubble.ts
 │   ├── redis-bubble.ts
 │   └── ace-tools-bubble.ts
@@ -298,7 +298,7 @@ BubbleLab/integrations/openevolve/
 - Knowledge Engines: Qdrant, Elasticsearch, Bedrock, EKS
 - Databases: PostgreSQL, Redis, Qdrant
 - Workflows: Decomposition, Evolutionary, MDAP, Adversarial
-- Business Logic: LeanAide, Hephaestus, ACE Tools
+- Business Logic: LeanAide, CrewAI, ACE Tools
 
 ✅ **Proper error handling implemented**
 - Transient vs permanent failure detection

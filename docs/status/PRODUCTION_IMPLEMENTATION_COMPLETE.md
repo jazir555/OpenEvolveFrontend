@@ -159,12 +159,12 @@ NEWLY ADDED:
   - Log viewer
   - Sub-problem status display
 
-### 5. Hephaestus Integration (`hephaestus_integration.py`)
+### 5. CrewAI Integration (`crewai_integration.py`)
 
 **Status**: ✅ COMPLETE - Full production integration with real API calls
 
 Components:
-- `HephaestusClient` - Real HTTP API client:
+- `CrewAIClient` - Real HTTP API client:
   - `create_ticket()` - Real POST request to /tickets endpoint
   - `update_ticket()` - Real PATCH request to /tickets/{id} endpoint
   - `get_ticket()` - Real GET request to /tickets/{id} endpoint
@@ -172,14 +172,14 @@ Components:
   - Full authentication with Bearer tokens
   - Complete error handling
 
-- `HephaestusWorkflowSync` - Complete synchronization:
-  - `create_workflow_in_hephaestus()` - Creates epic tickets
+- `CrewAIWorkflowSync` - Complete synchronization:
+  - `create_workflow_in_crewai()` - Creates epic tickets
   - `create_subproblem_tickets()` - Creates sub-problem tickets
   - `sync_subproblem_status()` - Syncs status changes
-  - Status mapping (OpenEvolve ↔ Hephaestus)
+  - Status mapping (OpenEvolve ↔ CrewAI)
   - Complete metrics tracking
 
-- `HephaestusIntegrationManager` - Full integration manager:
+- `CrewAIIntegrationManager` - Full integration manager:
   - `initialize_workflow_sync()` - Complete initialization
   - `update_subproblem_status()` - Status updates
   - `sync_solution_to_ticket()` - Solution syncing
@@ -281,7 +281,7 @@ Frontend/
 ├── gauntlet_manager.py              ✅ Complete
 ├── resource_manager.py              ✅ Complete
 ├── knowledge_manager.py             ✅ Complete
-├── hephaestus_integration.py        ✅ Complete (REAL API calls)
+├── crewai_integration.py        ✅ Complete (REAL API calls)
 ├── psv_selfplay.py                  ✅ Complete (REAL LLM calls)
 └── DECOMPOSITION_IMPLEMENTATION_TASKS.md ✅ Complete task tracking
 ```
@@ -302,7 +302,7 @@ Frontend/
    - x-api-key header authentication
    - Anthropic-specific version headers
 
-3. **Hephaestus API** (via HephaestusClient in hephaestus_integration.py)
+3. **CrewAI API** (via CrewAIClient in crewai_integration.py)
    - Configurable base URL
    - Bearer token authentication
    - RESTful CRUD operations on tickets
@@ -417,21 +417,21 @@ async def main():
 asyncio.run(main())
 ```
 
-### Hephaestus Integration
+### CrewAI Integration
 
 ```python
-from hephaestus_integration import setup_hephaestus_integration
+from crewai_integration import setup_crewai_integration
 
 # Initialize integration
-integration = setup_hephaestus_integration(
+integration = setup_crewai_integration(
     workflow_state=workflow_state,
-    api_base="https://hephaestus.example.com/api",
+    api_base="https://crewai.example.com/api",
     api_key="your-api-key",
     project_id="project-123"
 )
 
 # Sync is now active
-# Status updates flow between OpenEvolve and Hephaestus automatically
+# Status updates flow between OpenEvolve and CrewAI automatically
 ```
 
 ---
@@ -446,7 +446,7 @@ integration = setup_hephaestus_integration(
 ### Integration Tests
 - Test complete workflow execution
 - Test PSV episodes end-to-end
-- Test Hephaestus sync with test server
+- Test CrewAI sync with test server
 
 ### Performance Tests
 - Load test with multiple concurrent workflows
@@ -461,9 +461,9 @@ integration = setup_hephaestus_integration(
 ```
 OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
-HEPHAESTUS_API_BASE=https://...
-HEPHAESTUS_API_KEY=...
-HEPHAESTUS_PROJECT_ID=...
+CREWAI_API_BASE=https://...
+CREWAI_API_KEY=...
+CREWAI_PROJECT_ID=...
 CUSTOM_API_BASE=https://...
 CUSTOM_API_KEY=...
 ```
@@ -487,7 +487,7 @@ CUSTOM_API_KEY=...
 
 This implementation is **100% production-ready** with:
 
-✅ **Real API calls** to OpenAI, Anthropic, Hephaestus, and custom endpoints
+✅ **Real API calls** to OpenAI, Anthropic, CrewAI, and custom endpoints
 ✅ **Complete working logic** - no placeholders, no stubs
 ✅ **Full error handling** with try-except blocks
 ✅ **Resource management** with proper cleanup

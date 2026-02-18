@@ -11,7 +11,13 @@ from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 
 from workflow_structures import ModelConfig, Team
-from mdap_maker_complete import MAKEREngine, RecursiveMAKERSolver
+try:
+    from mdap_maker_complete import MAKEREngine, RecursiveMAKERSolver
+except ImportError:
+    # Fallback: Use MDAPMakerComplete if MAKEREngine not available
+    from mdap_maker_complete import MDAPMakerComplete
+    MAKEREngine = None
+    RecursiveMAKERSolver = None
 
 logger = logging.getLogger(__name__)
 
@@ -52,24 +58,31 @@ class GenericMAKERIntegration:
     ):
         self.config = config
         self.team = team
-        
+
         # Initialize MAKER components
-        self.maker_engine = MAKEREngine(
-            team=team,
-            k_ahead=config.k_ahead,
-            max_token_length=config.max_token_length,
-            max_steps=config.max_steps,
-            enable_red_flagging=config.enable_red_flagging
-        )
-        
-        self.recursive_solver = RecursiveMAKERSolver(
-            team=team,
-            max_depth=config.max_depth,
-            k_ahead=config.k_ahead,
-            num_candidates=config.num_candidates,
-            max_token_length=config.max_token_length
-        )
-        
+        if MAKEREngine is not None:
+            self.maker_engine = MAKEREngine(
+                team=team,
+                k_ahead=config.k_ahead,
+                max_token_length=config.max_token_length,
+                max_steps=config.max_steps,
+                enable_red_flagging=config.enable_red_flagging
+            )
+        else:
+            logger.warning("MAKEREngine not available, using MDAPMakerComplete fallback")
+            self.maker_engine = None
+
+        if RecursiveMAKERSolver is not None:
+            self.recursive_solver = RecursiveMAKERSolver(
+                team=team,
+                max_depth=config.max_depth,
+                k_ahead=config.k_ahead,
+                num_candidates=config.num_candidates,
+                max_token_length=config.max_token_length
+            )
+        else:
+            self.recursive_solver = None
+
         # Initialize cache if enabled
         self.cache = {}
         self.cache_enabled = config.enable_caching

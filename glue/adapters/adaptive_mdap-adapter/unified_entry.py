@@ -100,10 +100,11 @@ class UnifiedAdapterInterface:
         Returns:
             Analysis results
         """
+        import time
         from src import CanonicalSubProblem
 
         subproblem = CanonicalSubProblem(
-            id=f"analysis_{int(asyncio.get_event_loop().time() * 1000)}",
+            id=f"analysis_{int(time.time() * 1000)}",
             description=problem,
             domain=domain,
             depth=1

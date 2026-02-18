@@ -30,7 +30,7 @@ Frontend/
 │   ├── karateclub/             ← Graph embedding
 │   ├── OneKE/                  ← Knowledge engineering
 │   ├── global-chem/            ← Chemical knowledge
-│   ├── Hephaestus/             ← Orchestration system
+│   ├── CrewAI/             ← Orchestration system
 │   ├── Curie/                  ← Problem solving
 │   ├── neuromancer/            ← Neural networks
 │   ├── PAMI/                   ← Pattern mining
@@ -99,7 +99,7 @@ Frontend/
 │  decomposition_engine.py         [170,308!] 🔥 │
 │  problem_analyzer.py             [~2,000]       │
 │  decomposition_lean_enhanced     [44,984]       │
-│  decomposition_hephaestus_bridge [45,829]       │
+│  decomposition_crewai_bridge [45,829]       │
 │  decomposition_mcp_tools         [89,474]       │
 └─────────────────────────────────────────────────┘
 ```
@@ -111,9 +111,9 @@ Frontend/
 │           INTEGRATION CATEGORIES                      │
 ├──────────────────────────────────────────────────────┤
 │                                                       │
-│  🔗 HEPHAEUSUS          [6 files]                     │
-│     ├─ hephaestus_integration.py    [51,375 lines]   │
-│     ├─ hephaestus_client.py                          │
+│  🔗 CREWAIUS          [6 files]                     │
+│     ├─ crewai_integration.py    [51,375 lines]   │
+│     ├─ crewai_client.py                          │
 │     └─ [4 more]                                     │
 │                                                       │
 │  🔗 LEANAIDE            [26 files]                    │
@@ -127,7 +127,7 @@ Frontend/
 │  🔗 BUBBLELABS          [12 files]                    │
 │     ├─ bubblelabs_ui_component.py    [169,608!] 🔥  │
 │     ├─ bubblelabs_evolution_integ.   [~2,000]       │
-│     ├─ bubblelabs_hephaestus_bridge  [~3,000]       │
+│     ├─ bubblelabs_crewai_bridge  [~3,000]       │
 │     ├─ bubblelabs_maker_integ.       [~2,500]       │
 │     └─ [8 more]                                     │
 │                                                       │
@@ -167,7 +167,7 @@ Frontend/
 ├──────────────────────────────────────────────────┤
 │  ace_analytics.py               [60,335 lines]   │
 │  ace_knowledge_artifacts.py      [36,440 lines]   │
-│  ace_hephaestus_bridge.py        [53,592 lines]   │
+│  ace_crewai_bridge.py        [53,592 lines]   │
 │  ace_stage6_integration.py       [40,291 lines]   │
 │  ace_security_utils.py           [23,485 lines]   │
 └──────────────────────────────────────────────────┘
@@ -692,7 +692,7 @@ RISK:
 
 1. **bubblelabs_ui_component.py** - UI integration
 2. **leanaide_client.py** - External integration
-3. **hephaestus_integration.py** - Complex bridge
+3. **crewai_integration.py** - Complex bridge
 
 ---
 

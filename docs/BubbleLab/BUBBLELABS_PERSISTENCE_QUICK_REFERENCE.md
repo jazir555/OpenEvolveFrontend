@@ -3,7 +3,7 @@
 ## Fast Facts
 
 **What:** Workflow-to-ticket mappings now persist to SQLite database
-**Where:** `hephaestus_workflow_mappings.db` (created automatically)
+**Where:** `crewai_workflow_mappings.db` (created automatically)
 **Why:** Mappings survive application restarts
 **Cost:** ~500 bytes per mapping, < 10ms per operation
 
@@ -14,9 +14,9 @@
 ### It Just Works™
 ```python
 # No code changes needed!
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 ticket_id = bridge.create_ticket_from_workflow(workflow)
 
 # Mapping automatically saved to database
@@ -25,7 +25,7 @@ ticket_id = bridge.create_ticket_from_workflow(workflow)
 
 ### Custom Database Location
 ```python
-bridge = BubbleLabsHephaestusBridge(
+bridge = BubbleLabsCrewAIBridge(
     mappings_db_path="/custom/path/mappings.db"
 )
 ```
@@ -109,7 +109,7 @@ python check_database.py
 
 **Output:**
 ```
-Database file exists: hephaestus_workflow_mappings.db
+Database file exists: crewai_workflow_mappings.db
 File size: 24576 bytes
 
 Total mappings: 0
@@ -176,7 +176,7 @@ print(f"Exists: {os.path.exists(stats['database_path'])}")
 ### Slow Performance?
 ```python
 import sqlite3
-conn = sqlite3.connect("hephaestus_workflow_mappings.db")
+conn = sqlite3.connect("crewai_workflow_mappings.db")
 conn.execute("VACUUM")  # Optimize database
 conn.close()
 ```
@@ -189,7 +189,7 @@ conn.close()
 ```python
 import os
 
-bridge = BubbleLabsHephaestusBridge(
+bridge = BubbleLabsCrewAIBridge(
     mappings_db_path=os.getenv("MAPPINGS_DB", "mappings.db")
 )
 ```
@@ -236,7 +236,7 @@ bridge.cleanup_old_mappings(max_age_days=90)
 ### Weekly
 ```bash
 # Backup database
-cp hephaestus_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
+cp crewai_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
 ```
 
 ### Monthly
@@ -252,8 +252,8 @@ print(f"Growth rate: {stats['total_mappings']} mappings")
 
 | File | Purpose |
 |------|---------|
-| `bubblelabs_hephaestus_bridge.py` | Main implementation |
-| `hephaestus_workflow_mappings.db` | Database file (auto-created) |
+| `bubblelabs_crewai_bridge.py` | Main implementation |
+| `crewai_workflow_mappings.db` | Database file (auto-created) |
 | `verify_persistence_simple.py` | Quick verification |
 | `test_bubblelabs_persistence.py` | Comprehensive tests |
 | `check_database.py` | Database inspector |
@@ -293,7 +293,7 @@ A: Delete the database file. It will be recreated automatically on next run.
 - `python verify_persistence_simple.py` - Quick check
 - `python test_bubblelabs_persistence.py` - Full test suite
 
-**Issues:** Check logs for error messages tagged with `bubblelabs_hephaestus_bridge`
+**Issues:** Check logs for error messages tagged with `bubblelabs_crewai_bridge`
 
 ---
 

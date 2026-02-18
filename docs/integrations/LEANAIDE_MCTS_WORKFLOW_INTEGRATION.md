@@ -445,16 +445,16 @@ if not LEANAIDE_AVAILABLE:
 
 ## Integration with Existing Components
 
-### Hephaestus Integration
+### CrewAI Integration
 
 ```python
-if config.hephaestus_enabled and HEPHAESTUS_AVAILABLE:
-    hephaestus_client = HephaestusClient(
-        timeout=config.hephaestus_timeout
+if config.crewai_enabled and CREWAI_AVAILABLE:
+    crewai_client = CrewAIClient(
+        timeout=config.crewai_timeout
     )
 
-    # Track MCTS ticket in Hephaestus
-    ticket_id = await hephaestus_client.create_ticket({
+    # Track MCTS ticket in CrewAI
+    ticket_id = await crewai_client.create_ticket({
         "type": "mcts_proof_search",
         "sub_problem_id": sub_problem.id,
         "strategy": config.lean_mcts_strategy.value
@@ -663,4 +663,4 @@ print(f"Max score: {stats['max_score']:.3f}")
 
 The MCTS workflow integration provides a powerful, flexible approach to Lean 4 proof generation that seamlessly combines with existing evolutionary and adversarial methods. By analyzing search space characteristics and automatically selecting the appropriate strategy, it achieves optimal performance across a wide range of mathematical problems.
 
-The integration is production-ready with comprehensive error handling, monitoring, and fallback mechanisms. It leverages existing OpenEvolve components (Hephaestus, ACE, LeanAide) for a complete proof generation and verification pipeline.
+The integration is production-ready with comprehensive error handling, monitoring, and fallback mechanisms. It leverages existing OpenEvolve components (CrewAI, ACE, LeanAide) for a complete proof generation and verification pipeline.

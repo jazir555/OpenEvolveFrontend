@@ -43,9 +43,9 @@ Key Features:
 
 ## EXISTING PRODUCTION IMPLEMENTATIONS
 
-### Hephaestus Integration - COMPLETE (617 lines)
-**File**: `hephaestus_integration.py`
-- Real HTTP API calls to Hephaestus endpoints
+### CrewAI Integration - COMPLETE (617 lines)
+**File**: `crewai_integration.py`
+- Real HTTP API calls to CrewAI endpoints
 - Complete CRUD operations for tickets
 - Background sync loops with threading
 - Bidirectional synchronization
@@ -69,7 +69,7 @@ Key Features:
 ```
 [OK] workflow_enhanced_stages.py - 4,162 lines
 [OK] enhanced_stages_integration.py - 70 lines
-[OK] hephaestus_integration.py - 617 lines
+[OK] crewai_integration.py - 617 lines
 [OK] psv_selfplay.py - 783 lines
 [OK] lean4_integration.py - 460 lines
 
@@ -118,12 +118,12 @@ async def main():
 asyncio.run(main())
 ```
 
-### Use Hephaestus Integration
+### Use CrewAI Integration
 
 ```python
-from hephaestus_integration import setup_hephaestus_integration
+from crewai_integration import setup_crewai_integration
 
-integration = setup_hephaestus_integration(
+integration = setup_crewai_integration(
     workflow_state=workflow_state,
     api_base="https://your-api.com",
     api_key="your-key"

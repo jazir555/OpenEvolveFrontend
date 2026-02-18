@@ -1,12 +1,12 @@
 import { default as React } from 'react';
 export interface IntegrationConfig {
     leanAideApiEndpoint: string;
-    hephaestusApiEndpoint: string;
+    crewaiApiEndpoint: string;
     bubbleLabsApiEndpoint: string;
     researchQuestApiEndpoint: string;
     defaultTimeout: number;
     leanAideTimeout: number;
-    hephaestusTimeout: number;
+    crewaiTimeout: number;
     bubbleLabsTimeout: number;
     researchQuestTimeout: number;
     useAuthentication: boolean;
@@ -55,7 +55,7 @@ export interface IntegrationConfig {
         temperature: number;
         maxTokens: number;
     };
-    hephaestus: {
+    crewai: {
         parallelExecution: boolean;
         maxParallelTasks: number;
         delegationTimeout: number;

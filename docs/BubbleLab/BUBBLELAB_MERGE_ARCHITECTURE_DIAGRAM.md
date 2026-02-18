@@ -34,7 +34,7 @@
 │  │  • DecompositionNode                                 │   │
 │  │  • KnowledgeQueryNode                                │   │
 │  │  • LeanAIDENode                                      │   │
-│  │  • HephaestusNode                                    │   │
+│  │  • CrewAINode                                    │   │
 │  │  • MDAPNode                                          │   │
 │  │  • MAKERNode                                         │   │
 │  │  • NodeRegistry                                      │   │
@@ -49,7 +49,7 @@
 │  │  • useDecomposition                                  │   │
 │  │  • useKnowledgeEngine                                │   │
 │  │  • useLeanAIDE                                       │   │
-│  │  • useHephaestus                                     │   │
+│  │  • useCrewAI                                     │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                          ↓                                   │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -199,7 +199,7 @@
 │  │  └─────────────────────┘  └─────────────────────┘          │    │
 │  │                                                              │    │
 │  │  ┌─────────────────────┐  ┌─────────────────────┐          │    │
-│  │  │  Hephaestus Service │  │ Analytics Service   │          │    │
+│  │  │  CrewAI Service │  │ Analytics Service   │          │    │
 │  │  │  • Delegation       │  │  • Metrics          │          │    │
 │  │  │  • Orchestration    │  │  • Tracking         │          │    │
 │  │  └─────────────────────┘  └─────────────────────┘          │    │
@@ -412,8 +412,8 @@ openevolve-bubblelab-plugin-merged/
 │   │   │   └── index.ts
 │   │   ├── knowledge/
 │   │   │   └── knowledgeService.ts    [from P1]
-│   │   ├── hephaestus/
-│   │   │   └── hephaestusService.ts   [from P1]
+│   │   ├── crewai/
+│   │   │   └── crewaiService.ts   [from P1]
 │   │   └── index.ts
 │   │
 │   ├── integration/                   [INTEGRATION LAYER]
@@ -474,7 +474,7 @@ openevolve-bubblelab-plugin-merged/
 | **RAGBits Search** | ❌ | ✅ | `nodes/knowledge/` | Merge here |
 | **MDAP Integration** | ✅ | ❌ | `nodes/integration/` | Keep as-is |
 | **MAKER Integration** | ✅ | ❌ | `nodes/integration/` | Keep as-is |
-| **Hephaestus** | ✅ | ❌ | `services/hephaestus/` | Keep as-is |
+| **CrewAI** | ✅ | ❌ | `services/crewai/` | Keep as-is |
 | **LeanAIDE Client** | ❌ | ✅ | `services/leanaide/` | Keep as-is |
 | **RAGBits Client** | ❌ | ✅ | `services/ragbits/` | Keep as-is |
 | **Analytics** | ❌ | ✅ | `components/analytics/` | New location |

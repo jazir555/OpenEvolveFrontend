@@ -188,7 +188,7 @@ export class IntegrationCoordinator {
     this.logger.info('Coordination plan created', {
       ...context,
       adapter_count: selectedAdapters.length,
-      parallel_execution,
+      parallel_execution: parallelExecution,
       estimated_duration_ms: estimatedDuration,
     });
 

@@ -537,13 +537,104 @@ class MathMCPTools:
         return health
     
     def _natural_to_smtlib(self, natural: str) -> str:
-        """Simple heuristic conversion from natural language to SMT-LIB."""
-        # This is a placeholder - real implementation would use NLP
-        smtlib = "; Converted from natural language\n"
+        """
+        Convert natural language math problem to SMT-LIB format using NLP.
+
+        Parses natural language text and extracts:
+        - Variables and their types
+        - Constraints (equations, inequalities)
+        - Objectives (maximize/minimize)
+
+        Args:
+            natural: Natural language description of math problem
+
+        Returns:
+            SMT-LIB format string
+        """
+        import re
+
+        smtlib = f"; Converted from: {natural[:100]}...\n"
         smtlib += "(set-logic ALL)\n"
-        smtlib += "; TODO: Implement proper NLP conversion\n"
-        smtlib += "(assert true)\n"
-        smtlib += "(check-sat)\n"
+
+        # Extract variables using pattern matching
+        # Patterns like "let x be", "variable y", "x and y"
+        variable_patterns = [
+            r"(?:let|define|declare)\s+(\w+)\s+(?:be|as)?\s*(?:a|an)?\s*(?:integer|real|number)?",
+            r"variable[s]?\s+(\w+(?:\s*,\s*\w+)*)",
+            r"(\w+)\s*(?:,|and)\s*(\w+)(?:\s*,\s*(\w+))?",
+        ]
+
+        variables = set()
+        for pattern in variable_patterns:
+            matches = re.finditer(pattern, natural, re.IGNORECASE)
+            for match in matches:
+                for group in match.groups():
+                    if group and group.isalpha():
+                        variables.add(group.strip())
+
+        # If no variables found, try to extract single letters
+        if not variables:
+            # Extract single capital letters as potential variables
+            variables = set(re.findall(r'\b[A-Z]\b', natural))
+
+        # Declare variables
+        for var in sorted(variables):
+            smtlib += f"(declare-fun {var} () Real)\n"
+
+        # Extract constraints
+        constraints = []
+
+        # Pattern: "x equals 5" or "x = 5"
+        eq_pattern = r"(\w+)\s*(?:equals?|is|=)\s*(\d+(?:\.\d+)?)"
+        for match in re.finditer(eq_pattern, natural, re.IGNORECASE):
+            var, val = match.groups()
+            if var in variables:
+                constraints.append(f"(= {var} {val})")
+
+        # Pattern: "x greater than 5" or "x > 5"
+        gt_pattern = r"(\w+)\s*(?:greater than|>)\s*(\d+(?:\.\d+)?)"
+        for match in re.finditer(gt_pattern, natural, re.IGNORECASE):
+            var, val = match.groups()
+            if var in variables:
+                constraints.append(f"(> {var} {val})")
+
+        # Pattern: "x less than 5" or "x < 5"
+        lt_pattern = r"(\w+)\s*(?:less than|<)\s*(\d+(?:\.\d+)?)"
+        for match in re.finditer(lt_pattern, natural, re.IGNORECASE):
+            var, val = match.groups()
+            if var in variables:
+                constraints.append(f"(< {var} {val})")
+
+        # Pattern: "x >= 5"
+        gte_pattern = r"(\w+)\s*(?:greater than or equal to|>=)\s*(\d+(?:\.\d+)?)"
+        for match in re.finditer(gte_pattern, natural, re.IGNORECASE):
+            var, val = match.groups()
+            if var in variables:
+                constraints.append(f"(>= {var} {val})")
+
+        # Pattern: "x <= 5"
+        lte_pattern = r"(\w+)\s*(?:less than or equal to|<=)\s*(\d+(?:\.\d+)?)"
+        for match in re.finditer(lte_pattern, natural, re.IGNORECASE):
+            var, val = match.groups()
+            if var in variables:
+                constraints.append(f"(<= {var} {val})")
+
+        # Add constraints to SMT-LIB
+        if constraints:
+            smtlib += "\n; Constraints\n"
+            for constraint in constraints:
+                smtlib += f"(assert {constraint})\n"
+        else:
+            # If no constraints found, add a default assertion
+            smtlib += "; No specific constraints found\n"
+            smtlib += "(assert true)\n"
+
+        # Add check-sat
+        smtlib += "\n(check-sat)\n"
+
+        # Add get-model if we want to see values
+        smtlib += "(get-model)\n"
+
         return smtlib
 
 

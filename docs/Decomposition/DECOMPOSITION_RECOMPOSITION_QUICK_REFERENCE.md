@@ -279,7 +279,7 @@ class WorkflowState:
 from decomposition_crewai_bridge import execute_workflow
 
 # ❌ AVOID (AGPL)
-from decomposition_hephaestus_bridge import execute_workflow
+from decomposition_crewai_bridge import execute_workflow
 ```
 
 ### 2. Use Deterministic ROMA for Code

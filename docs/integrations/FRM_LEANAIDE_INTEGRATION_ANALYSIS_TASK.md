@@ -25,7 +25,7 @@ This task requests a comprehensive analysis to determine whether the **Formal-Re
 2. **Master Tasklist**: `MASTER_TASKLIST.md` - All implementation tasks and gaps across the ENTIRE workflow
 
 3. **Integration Architecture**: `DECOMPOSITION_WORKFLOW_INTEGRATION_ARCHITECTURE.md` - Current integration ecosystem with 11 components
-   - Hephaestus, ROMA, RAGbits, Claudiomiro, DataPizza, ACE, Knowledge Engine, Steer, LeanAide, etc.
+   - CrewAI, ROMA, RAGbits, Claudiomiro, DataPizza, ACE, Knowledge Engine, Steer, LeanAide, etc.
 
 4. **Implementation Tasks**: `DECOMPOSITION_IMPLEMENTATION_TASKS.md` - Detailed task breakdown for ALL stages
 
@@ -62,7 +62,7 @@ This task requests a comprehensive analysis to determine whether the **Formal-Re
 
 ### LeanAide Integration (Current)
 
-**Location**: `LeanAide/`, `leanaide_hephaestus_bridge.py`, `leanaide_client.py`, `leanaide_mcp_tools.py`
+**Location**: `LeanAide/`, `leanaide_crewai_bridge.py`, `leanaide_client.py`, `leanaide_mcp_tools.py`
 
 **Technology Stack**:
 - Python 3
@@ -171,7 +171,7 @@ Analyze FRM's potential across the ENTIRE 7-stage Decomposition Workflow, not ju
   - Does FRM's validation approach complement existing integration QA?
 
 **Stage 5: Final Verification & Self-Healing**
-- Current integrations: Steer, ACE, Hephaestus, LeanAide (for math)
+- Current integrations: Steer, ACE, CrewAI, LeanAide (for math)
 - Current capabilities: Red Team gauntlet, Gold Team verification, self-healing
 - Potential FRM contributions:
   - Schema validation vs formal verification (different levels)
@@ -412,7 +412,7 @@ For questions about this task:
 1. Review the referenced documentation files
 2. Examine FRM source code in `Formal-Reasoning-Mode/`
 3. Examine LeanAide integration in `leanaide_*.py` files
-4. Review existing integration patterns in `*_hephaestus_bridge.py` files
+4. Review existing integration patterns in `*_crewai_bridge.py` files
 
 ---
 

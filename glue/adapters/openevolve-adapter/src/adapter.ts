@@ -425,7 +425,7 @@ export interface LogContext {
   [key: string]: any;
 }
 
-class StructuredLogger {
+export class StructuredLogger {
   constructor(
     private readonly serviceName: string,
     private readonly logLevel: string = 'info',

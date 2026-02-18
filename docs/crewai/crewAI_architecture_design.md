@@ -1,5 +1,5 @@
 # CrewAI Architecture Design Document
-## Hephaestus (AGPL) → CrewAI (MIT) Migration Architecture
+## CrewAI (AGPL) → CrewAI (MIT) Migration Architecture
 
 **Date**: 2026-01-21
 **Version**: 1.0
@@ -9,7 +9,7 @@
 
 ## 1. EXECUTIVE SUMMARY
 
-This document outlines the complete architecture for replacing AGPL-licensed Hephaestus with MIT-licensed CrewAI while maintaining 100% functional parity with all existing integrations (ROMA, MDAP/MAKER, OpenEvolve, etc.).
+This document outlines the complete architecture for replacing AGPL-licensed CrewAI with MIT-licensed CrewAI while maintaining 100% functional parity with all existing integrations (ROMA, MDAP/MAKER, OpenEvolve, etc.).
 
 ### Key Design Principles
 - **Zero Error Guarantees**: Preserve all MDAP/MAKER voting mechanisms
@@ -22,14 +22,14 @@ This document outlines the complete architecture for replacing AGPL-licensed Hep
 
 ## 2. ARCHITECTURE OVERVIEW
 
-### 2.1 Hephaestus vs CrewAI Architecture Mapping
+### 2.1 CrewAI vs CrewAI Architecture Mapping
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    HEPHAESTUS (OLD)                          │
+│                    CREWAI (OLD)                          │
 ├─────────────────────────────────────────────────────────────┤
 │  Service-based architecture                                   │
-│  - External Hephaestus API server                            │
+│  - External CrewAI API server                            │
 │  - HTTP-based task management                                │
 │  - Database-backed state                                     │
 │  - Remote execution                                          │
@@ -117,10 +117,10 @@ This document outlines the complete architecture for replacing AGPL-licensed Hep
 
 ## 3. CREWAI FLOWS MAPPING
 
-### 3.1 Hephaestus 6-Phase → CrewAI Flows
+### 3.1 CrewAI 6-Phase → CrewAI Flows
 
 ```python
-# HEPHAESTUS (OLD) - Sequential 6-Phase
+# CREWAI (OLD) - Sequential 6-Phase
 def execute_full_workflow(problem):
     phase1 = execute_phase_1_setup(problem)
     phase2 = execute_phase_2_solve(phase1)
@@ -502,32 +502,32 @@ def select_execution_method(setup_result: Dict) -> str:
 
 ### 7.1 API Compatibility
 
-| Hephaestus API | CrewAI Equivalent | Status |
+| CrewAI API | CrewAI Equivalent | Status |
 |----------------|-------------------|--------|
-| `HephaestusClient()` | `CrewAIClient()` | ✅ Design Complete |
+| `CrewAIClient()` | `CrewAIClient()` | ✅ Design Complete |
 | `execute_phase_1_setup()` | `@start phase_1_setup()` | ✅ Design Complete |
 | `execute_phase_2_solve()` | `@listen phase_1_setup → phase_2_solve()` | ✅ Design Complete |
 | `execute_phase_3_critique()` | `@listen phase_2_solve → phase_3_critique()` | ✅ Design Complete |
 | `execute_phase_4_verify()` | `@listen phase_3_critique → phase_4_verify()` | ✅ Design Complete |
 | `execute_phase_5_reassemble()` | `@listen phase_4_verify → phase_5_reassemble()` | ✅ Design Complete |
 | `execute_phase_6_final_validation()` | `@listen phase_5_reassemble → phase_6_final_validation()` | ✅ Design Complete |
-| `HephaestusWorkflowSync` | `StateManager` | ✅ Design Complete |
+| `CrewAIWorkflowSync` | `StateManager` | ✅ Design Complete |
 | `TicketStatus` enum | `WorkflowState.status` | ✅ Design Complete |
 | `TicketType` enum | `ExecutionMethod` enum | ✅ Design Complete |
 
 ### 7.2 Integration Compatibility
 
-| Integration | Hephaestus Bridge | CrewAI Bridge | Status |
+| Integration | CrewAI Bridge | CrewAI Bridge | Status |
 |-------------|------------------|---------------|--------|
-| ROMA | `roma_hephaestus_bridge.py` | `roma_crewai_bridge.py` | ✅ Design Complete |
-| ROMA-MDAP-MAKER | `roma_mdap_maker_hephaestus_bridge.py` | `roma_mdap_maker_crewai_bridge.py` | ✅ Design Complete |
-| OpenEvolve | `openevolve_hephaestus_bridge.py` | `openevolve_crewai_bridge.py` | ✅ Design Complete |
-| BubbleLab | `bubblelabs_hephaestus_bridge.py` | `bubblelabs_crewai_bridge.py` | ✅ Design Complete |
-| LeanAide | `leanaide_hephaestus_bridge.py` | `leanaide_crewai_bridge.py` | ✅ Design Complete |
-| Claudiomiro | `claudiomiro_hephaestus_bridge.py` | `claudiomiro_crewai_bridge.py` | ✅ Design Complete |
-| DataPizza | `datapizza_hephaestus_bridge.py` | `datapizza_crewai_bridge.py` | ✅ Design Complete |
-| ACE | `ace_hephaestus_bridge.py` | `ace_crewai_bridge.py` | ✅ Design Complete |
-| STEER | `steer_hephaestus_bridge.py` | `steer_crewai_bridge.py` | ✅ Design Complete |
+| ROMA | `roma_crewai_bridge.py` | `roma_crewai_bridge.py` | ✅ Design Complete |
+| ROMA-MDAP-MAKER | `roma_mdap_maker_crewai_bridge.py` | `roma_mdap_maker_crewai_bridge.py` | ✅ Design Complete |
+| OpenEvolve | `openevolve_crewai_bridge.py` | `openevolve_crewai_bridge.py` | ✅ Design Complete |
+| BubbleLab | `bubblelabs_crewai_bridge.py` | `bubblelabs_crewai_bridge.py` | ✅ Design Complete |
+| LeanAide | `leanaide_crewai_bridge.py` | `leanaide_crewai_bridge.py` | ✅ Design Complete |
+| Claudiomiro | `claudiomiro_crewai_bridge.py` | `claudiomiro_crewai_bridge.py` | ✅ Design Complete |
+| DataPizza | `datapizza_crewai_bridge.py` | `datapizza_crewai_bridge.py` | ✅ Design Complete |
+| ACE | `ace_crewai_bridge.py` | `ace_crewai_bridge.py` | ✅ Design Complete |
+| STEER | `steer_crewai_bridge.py` | `steer_crewai_bridge.py` | ✅ Design Complete |
 
 ---
 
@@ -650,7 +650,7 @@ class RedFlagDetector:
 - [ ] Create `crewai_zero_error_workflow.py`
 
 ### Phase 3: Bridge Replacements (Days 4-7)
-- [ ] Port all 15 Hephaestus bridge files
+- [ ] Port all 15 CrewAI bridge files
 - [ ] Update all imports
 - [ ] Test bridge functionality
 
@@ -661,7 +661,7 @@ class RedFlagDetector:
 
 ### Phase 5: Configuration (Days 9-10)
 - [ ] Update all 8 configuration files
-- [ ] Remove Hephaestus references
+- [ ] Remove CrewAI references
 - [ ] Test config loading
 
 ### Phase 6: Testing (Days 10-14)
@@ -678,7 +678,7 @@ class RedFlagDetector:
 
 ## 10. CONCLUSION
 
-This architecture design provides a complete roadmap for replacing AGPL-licensed Hephaestus with MIT-licensed CrewAI while:
+This architecture design provides a complete roadmap for replacing AGPL-licensed CrewAI with MIT-licensed CrewAI while:
 
 ✅ **Preserving 100% functional parity**
 ✅ **Maintaining zero-error guarantees** with MDAP/MAKER

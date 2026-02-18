@@ -325,7 +325,7 @@ def fix_mcp_tools():
 # FIX 8, 11, 17, 22: bubblelabs_CREWAI_bridge.py
 # =============================================================================
 
-HEPHAEUSTUS_FIXES = '''
+CREWAI_FIXES = '''
     # Fix 8: Side effects documentation
     def create_ticket_from_workflow(...) -> Optional[str]:
         """

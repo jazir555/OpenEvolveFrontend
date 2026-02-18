@@ -1,11 +1,11 @@
 """
-CrewAI Unified Bridge - Complete Replacement for Hephaestus Unified Bridge
+CrewAI Unified Bridge - Complete Replacement for CrewAI Unified Bridge
 
-This module provides the unified bridge interface that replaces hephaestus_unified_bridge.py
+This module provides the unified bridge interface that replaces crewai_unified_bridge.py
 while maintaining full compatibility with the existing API.
 
 Key Features:
-1. Complete drop-in replacement for Hephaestus unified bridge
+1. Complete drop-in replacement for CrewAI unified bridge
 2. All 7 execution methods supported (Traditional, ROMA, ROMA-MDAP-MAKER, Claudiomiro, DataPizza, Hybrid, Auto)
 3. Full Phase 1-6 coordination
 4. Auto-selection algorithm
@@ -17,7 +17,7 @@ Architecture:
 The bridge maintains API compatibility while delegating to the CrewAI infrastructure
 built in Phase 1 (crewai_unified_flow.py, crewai_state_management.py, etc.)
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 """
 
 import logging
@@ -115,7 +115,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 class ExecutionMethodEnum(str, Enum):
-    """Execution methods (backward compatible with Hephaestus)"""
+    """Execution methods (backward compatible with CrewAI)"""
     TRADITIONAL = "traditional"
     ROMA = "roma"
     ROMA_MDAP_MAKER = "roma_mdap_maker"  # ZERO-ERROR
@@ -131,13 +131,13 @@ class ExecutionMethodEnum(str, Enum):
 
 class CrewAIUnifiedBridge:
     """
-    Complete replacement for HephaestusUnifiedBridge.
+    Complete replacement for CrewAIUnifiedBridge.
 
-    This class provides the same interface as the Hephaestus unified bridge
+    This class provides the same interface as the CrewAI unified bridge
     but uses local CrewAI execution instead of remote API calls.
 
     Key Features:
-    - Drop-in replacement for hephaestus_unified_bridge.py
+    - Drop-in replacement for crewai_unified_bridge.py
     - Supports all 7 execution methods
     - Full Phase 1-6 coordination
     - Auto-selection algorithm
@@ -220,7 +220,7 @@ def execute_phase_1_setup(
     """
     Phase 1: Problem Setup - Entry point for all workflows.
 
-    This is the main entry point that replaces the Hephaestus phase 1 setup.
+    This is the main entry point that replaces the CrewAI phase 1 setup.
 
     Args:
         problem_statement: The problem to solve

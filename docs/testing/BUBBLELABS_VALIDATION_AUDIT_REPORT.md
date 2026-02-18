@@ -10,7 +10,7 @@ This report provides a comprehensive audit of input validation coverage across a
 
 ## Validation Status by File
 
-### 1. bubblelabs_hephaestus_bridge.py ✅ (100% Complete)
+### 1. bubblelabs_crewai_bridge.py ✅ (100% Complete)
 
 **Current Status:** Excellent validation coverage
 

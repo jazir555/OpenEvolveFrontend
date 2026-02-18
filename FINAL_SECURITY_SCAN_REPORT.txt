@@ -13,7 +13,7 @@ Files to scan:
   - __init__.py
   - ace_analytics.py
   - ace_api_utils.py
-  - ace_hephaestus_bridge.py
+  - ace_crewai_bridge.py
   - ace_integration.py
   - ace_knowledge_artifacts.py
   - ace_mcp_tools.py
@@ -103,8 +103,8 @@ Files to scan:
   - bubblelabs_analytics_fixed.py
   - bubblelabs_evolution_controls.py
   - bubblelabs_evolution_integration.py
-  - bubblelabs_hephaestus_bridge.py
-  - bubblelabs_hephaestus_bridge_fixed.py
+  - bubblelabs_crewai_bridge.py
+  - bubblelabs_crewai_bridge_fixed.py
   - bubblelabs_integration.py
   - bubblelabs_integration_tests.py
   - bubblelabs_leanaide_diagram.py
@@ -127,7 +127,7 @@ Files to scan:
   - check_root_imports.py
   - ci_cd_pipeline.py
   - claudiomiro_config.py
-  - claudiomiro_hephaestus_bridge.py
+  - claudiomiro_crewai_bridge.py
   - claudiomiro_mcp_tools.py
   - clean_final_verification_test.py
   - collaboration.py
@@ -166,7 +166,7 @@ Files to scan:
   - dashboard_ui_components.py
   - data_consistency_verification.py
   - datapizza_config.py
-  - datapizza_hephaestus_bridge.py
+  - datapizza_crewai_bridge.py
   - datapizza_mcp_tools.py
   - debug_class.py
   - debug_source.py
@@ -175,7 +175,7 @@ Files to scan:
   - decomposition_engine_adaptive_enhancement.py
   - decomposition_engine_backup.py
   - decomposition_engine_lean_enhanced.py
-  - decomposition_hephaestus_bridge.py
+  - decomposition_crewai_bridge.py
   - decomposition_mcp_tools.py
   - decomposition_mdap_integration.py
   - deduplication_analysis.py
@@ -244,7 +244,7 @@ Files to scan:
   - evolve_sop.py
   - evolve_sop_facets.py
   - example_enhanced_decomposition.py
-  - example_hephaestus_delegation.py
+  - example_crewai_delegation.py
   - example_integration_usage.py
   - examples_leanaide_selfplay.py
   - export_import_manager.py
@@ -293,11 +293,11 @@ Files to scan:
   - guardrails_mcp_tools.py
   - health_checks.py
   - health_endpoint.py
-  - hephaestus_client.py
-  - hephaestus_example.py
-  - hephaestus_integration.py
-  - hephaestus_openevolve_bridge.py
-  - hephaestus_unified_bridge.py
+  - crewai_client.py
+  - crewai_example.py
+  - crewai_integration.py
+  - crewai_openevolve_bridge.py
+  - crewai_unified_bridge.py
   - hybrid_advanced_plugins.py
   - hybrid_config.py
   - hybrid_error_handling.py
@@ -337,7 +337,7 @@ Files to scan:
   - leanaide_evolution_mdap.py
   - leanaide_evolution_mdap_workflow.py
   - leanaide_evolutionary_workflow.py
-  - leanaide_hephaestus_bridge.py
+  - leanaide_crewai_bridge.py
   - leanaide_hybrid_maker_enhanced.py
   - leanaide_hybrid_strategies.py
   - leanaide_maker.py
@@ -404,8 +404,8 @@ Files to scan:
   - openevolve_bubblelabs_ui.py
   - openevolve_client.py
   - openevolve_dashboard.py
-  - openevolve_hephaestus_adapter.py
-  - openevolve_hephaestus_delegation.py
+  - openevolve_crewai_adapter.py
+  - openevolve_crewai_delegation.py
   - openevolve_imports.py
   - openevolve_integration.py
   - openevolve_leanaide_bridge.py
@@ -470,11 +470,11 @@ Files to scan:
   - roma_config_helper.py
   - roma_decomposition_comparison.py
   - roma_decomposition_hybrid.py
-  - roma_hephaestus_bridge.py
+  - roma_crewai_bridge.py
   - roma_mcp_tools.py
   - roma_mdap_maker_associative_integration.py
   - roma_mdap_maker_engine.py
-  - roma_mdap_maker_hephaestus_bridge.py
+  - roma_mdap_maker_crewai_bridge.py
   - roma_mdap_maker_mcp_tools.py
   - roma_mdap_maker_reliability_ssot.py
   - roma_recomposition_config.py
@@ -521,7 +521,7 @@ Files to scan:
   - sop_templates.py
   - sovereign_data_models.py
   - sovereign_database.py
-  - sovereign_decomposition_hephaestus_integration.py
+  - sovereign_decomposition_crewai_integration.py
   - sovereign_gauntlets.py
   - sovereign_integration.py
   - sovereign_knowledge_manager.py
@@ -540,7 +540,7 @@ Files to scan:
   - sovereign_validation.py
   - start_bubblelabs_integration.py
   - state.py
-  - steer_hephaestus_bridge.py
+  - steer_crewai_bridge.py
   - steer_mcp_tools.py
   - strategy_performance_tracker.py
   - strategy_templates.py

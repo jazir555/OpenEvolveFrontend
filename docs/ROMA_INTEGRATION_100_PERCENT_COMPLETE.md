@@ -103,8 +103,8 @@ All files now use one of these 5 standardized presets:
 6. ✅ maker_integration_bridge.py
 7. ✅ roma_mdap_maker_associative_integration.py
 8. ✅ roma_mdap_maker_mcp_tools.py
-9. ✅ hephaestus_unified_bridge.py
-10. ✅ roma_mdap_maker_hephaestus_bridge.py
+9. ✅ crewai_unified_bridge.py
+10. ✅ roma_mdap_maker_crewai_bridge.py
 11. ✅ decomposition_mcp_tools.py
 
 ### 🟡 Medium Priority (11 files)

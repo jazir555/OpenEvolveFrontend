@@ -44,7 +44,7 @@ The system integrates **11 specialized components**:
 
 | # | Integration | Purpose | Integration Status |
 |---|-------------|---------|-------------------|
-| 1 | **Hephaestus** | Project management & ticketing | ✅ Fully Integrated |
+| 1 | **CrewAI** | Project management & ticketing | ✅ Fully Integrated |
 | 2 | **OpenEvolve** | Core workflow orchestration | ✅ Core System |
 | 3 | **ROMA** | Recursive meta-agent decomposition | ✅ Fully Integrated |
 | 4 | **RAGbits** | RAG & knowledge retrieval | ✅ Integrated (KE) |
@@ -136,7 +136,7 @@ The system integrates **11 specialized components**:
 │  ────────────────────────────                                  │
 │  • Learn from refinement failures                               │
 │  • Build knowledge of effective fixes                           │
-│  Components: Claudiomiro, ACE, Hephaestus                       │
+│  Components: Claudiomiro, ACE, CrewAI                       │
 │                                                                 │
 │  STAGE 4: Configurable Reassembly                              │
 │  ───────────────────────────────                               │
@@ -148,7 +148,7 @@ The system integrates **11 specialized components**:
 │  ────────────────────────────────────────────                  │
 │  • Learn from verification failures                             │
 │  • Build self-healing knowledge                                 │
-│  Components: ACE, Steer, Hephaestus                             │
+│  Components: ACE, Steer, CrewAI                             │
 │                                                                 │
 │  STAGE 6: Knowledge Extraction & Learning                      │
 │  ──────────────────────────────────────────                    │
@@ -206,7 +206,7 @@ User Input (Problem Statement)
 │      - Knowledge Engine verification                        │
 │    3D. Iterative Refinement (if needed)                     │
 │      - Claudiomiro fixes issues                             │
-│      - Hephaestus tracks tickets                            │
+│      - CrewAI tracks tickets                            │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼ Verified Solutions
@@ -226,7 +226,7 @@ User Input (Problem Statement)
 │    * Analyze failure with ACE                               │
 │    * Generate fixes with Claudiomiro                        │
 │    * Re-run verification (max 3 loops)                      │
-│  Components: ACE, Steer, Hephaestus                         │
+│  Components: ACE, Steer, CrewAI                         │
 └─────────────────────────────────────────────────────────────┘
          │
          ▼ Final Solution
@@ -247,11 +247,11 @@ User Input (Problem Statement)
 
 ## 3. Core Integrations Deep Dive
 
-### 3.1 Hephaestus Integration
+### 3.1 CrewAI Integration
 
 **Purpose:** Project management, ticket tracking, and workflow coordination
 
-**Location:** `hephaestus_integration.py`, `hephaestus_client.py`, `hephaestus_*_bridge.py`
+**Location:** `crewai_integration.py`, `crewai_client.py`, `crewai_*_bridge.py`
 
 **Key Capabilities:**
 - ✅ Ticket creation for sub-problems
@@ -264,13 +264,13 @@ User Input (Problem Statement)
 **Integration Points:**
 ```python
 # Bridge files for different components
-- hephaestus_openevolve_bridge.py      # Main workflow orchestration
-- roma_hephaestus_bridge.py            # ROMA ticket management
-- claudiomiro_hephaestus_bridge.py     # Claudiomiro task tracking
-- datapizza_hephaestus_bridge.py       # DataPizza job queue
-- ace_hephaestus_bridge.py             # ACE learning tickets
-- steer_hephaestus_bridge.py           # Steer violation tracking
-- decomposition_hephaestus_bridge.py   # Core workflow tickets
+- crewai_openevolve_bridge.py      # Main workflow orchestration
+- roma_crewai_bridge.py            # ROMA ticket management
+- claudiomiro_crewai_bridge.py     # Claudiomiro task tracking
+- datapizza_crewai_bridge.py       # DataPizza job queue
+- ace_crewai_bridge.py             # ACE learning tickets
+- steer_crewai_bridge.py           # Steer violation tracking
+- decomposition_crewai_bridge.py   # Core workflow tickets
 ```
 
 **Stage Mapping:**
@@ -339,7 +339,7 @@ openevolve_structures.py              # Data structures
 
 # MCP Tools
 openevolve_mcp_tools.py               # Model Context Protocol tools
-openevolve_hephaestus_adapter.py      # Hephaestus delegation
+openevolve_crewai_adapter.py      # CrewAI delegation
 ```
 
 **UI Components:**
@@ -359,7 +359,7 @@ openevolve_hephaestus_adapter.py      # Hephaestus delegation
 
 **Purpose:** Recursive problem decomposition and meta-agent orchestration
 
-**Location:** `ROMA/`, `roma_hephaestus_bridge.py`, `roma_mcp_tools.py`, `roma_config.py`
+**Location:** `ROMA/`, `roma_crewai_bridge.py`, `roma_mcp_tools.py`, `roma_config.py`
 
 **Key Capabilities:**
 - ✅ Recursive decomposition with depth constraints
@@ -391,7 +391,7 @@ critique_with_roma()                   # Solution critique
 verify_with_roma()                     # Solution verification
 get_roma_status()                      # Status monitoring
 
-# Bridge functions (roma_hephaestus_bridge.py)
+# Bridge functions (roma_crewai_bridge.py)
 execute_phase_1_setup()                # Analysis (max_depth=3)
 execute_phase_2_solution()             # Solve (max_depth=2)
 execute_phase_3_critique()             # Critique (max_depth=1)
@@ -411,7 +411,7 @@ ROMA_MODEL = "claude-sonnet-4-20250514"  # Model
 
 **MDAP Maker Integration:**
 - `roma_mdap_maker_engine.py` - Multi-Stage Agent Pipeline creation
-- `roma_mdap_maker_hephaestus_bridge.py` - Bridge to Hephaestus
+- `roma_mdap_maker_crewai_bridge.py` - Bridge to CrewAI
 - Supports complex multi-stage workflows with specialized agents
 
 **Status:** ✅ **FULLY INTEGRATED**
@@ -472,7 +472,7 @@ vector_store = QdrantVectorStore(
 
 **Purpose:** Autonomous software development automation
 
-**Location:** `claudiomiro/`, `claudiomiro_hephaestus_bridge.py`, `claudiomiro_mcp_tools.py`
+**Location:** `claudiomiro/`, `claudiomiro_crewai_bridge.py`, `claudiomiro_mcp_tools.py`
 
 **Key Capabilities:**
 - ✅ Autonomous code generation
@@ -504,8 +504,8 @@ claudiomiro_test()                       # Test execution
 claudiomiro_fix()                        # Test fixing
 claudiomiro_commit()                     # Git commit
 
-# Hephaestus Bridge (claudiomiro_hephaestus_bridge.py)
-class ClaudiomiroHephaestusWorkflowBridge:
+# CrewAI Bridge (claudiomiro_crewai_bridge.py)
+class ClaudiomiroCrewAIWorkflowBridge:
     execute_phase_1_setup()              # Analyze codebase
     execute_phase_2_solution()           # Generate implementation
     execute_phase_3_critique()           # Review code
@@ -537,7 +537,7 @@ CLAUDIOMIRO_PARALLEL = True    # Enable parallel execution
 
 **Purpose:** Unified AI client abstraction layer
 
-**Location:** `datapizza/`, `datapizza_hephaestus_bridge.py`, `datapizza_mcp_tools.py`
+**Location:** `datapizza/`, `datapizza_crewai_bridge.py`, `datapizza_mcp_tools.py`
 
 **Key Capabilities:**
 - ✅ Multi-provider support (OpenAI, Anthropic, Google, Azure, Mistral, Bedrock, WatsonX)
@@ -585,7 +585,7 @@ memory.trim_to_fit()                    # Auto-trim when exceeding limit
 
 **Purpose:** Learning from agent execution feedback
 
-**Location:** `agentic-context-engine/`, `ace_hephaestus_bridge.py`, `ace_mcp_tools.py`
+**Location:** `agentic-context-engine/`, `ace_crewai_bridge.py`, `ace_mcp_tools.py`
 
 **Key Capabilities:**
 - ✅ Three-role learning: Agent → Reflector → SkillManager
@@ -626,8 +626,8 @@ ace_reflect_on_result()                  # Analyze execution
 ace_update_skillbook()                   # Update with insights
 ace_learn_from_workflow()                # Full learning cycle
 
-# Hephaestus Bridge
-class ACEHephaestusBridge:
+# CrewAI Bridge
+class ACECrewAIBridge:
     execute_phase_3_critique()           # Reflect on solutions
     execute_phase_5_refinement()         # Learn from failures
     execute_phase_6_extraction()         # Extract knowledge artifacts
@@ -724,7 +724,7 @@ results = vector_store.search(query_embedding, top_k=10)
 
 **Purpose:** Runtime safety verification and guardrails
 
-**Location:** `steer/`, `steer_hephaestus_bridge.py`, `steer_mcp_tools.py`
+**Location:** `steer/`, `steer_crewai_bridge.py`, `steer_mcp_tools.py`
 
 **Key Capabilities:**
 - ✅ Four guard types: Structure, Safety, Logic, Slop
@@ -763,8 +763,8 @@ steer_verify_safety()                    # Safety verification
 steer_verify_logic()                     # Logic verification
 steer_check_quality()                    # Quality checks
 
-# Hephaestus Bridge (steer_hephaestus_bridge.py)
-class SteerHephaestusBridge:
+# CrewAI Bridge (steer_crewai_bridge.py)
+class SteerCrewAIBridge:
     execute_phase_3_verification()       # Verify solution outputs
     execute_phase_5_safety_checks()      # Final safety validation
     log_incidents()                       # Track violations
@@ -810,7 +810,7 @@ rulebook.add_rule(
 
 **Purpose:** Lean 4 theorem proving and formal mathematical verification
 
-**Location:** `LeanAide/`, `leanaide_client.py`, `leanaide_hephaestus_bridge.py`, `leanaide_mcp_tools.py`
+**Location:** `LeanAide/`, `leanaide_client.py`, `leanaide_crewai_bridge.py`, `leanaide_mcp_tools.py`
 
 **Key Capabilities:**
 - ✅ Natural language to Lean 4 theorem translation
@@ -825,7 +825,7 @@ rulebook.add_rule(
 **Current Status:**
 - ✅ Standalone system fully operational
 - ✅ Production-ready async client (`leanaide_client.py`)
-- ✅ Complete Hephaestus bridge (`leanaide_hephaestus_bridge.py`)
+- ✅ Complete CrewAI bridge (`leanaide_crewai_bridge.py`)
 - ✅ MCP tools for agent integration (`leanaide_mcp_tools.py`)
 - ✅ Comprehensive test coverage
 - ✅ Full 6-phase workflow integration
@@ -834,7 +834,7 @@ rulebook.add_rule(
 ```python
 # LeanAide Integration Files
 leanaide_client.py                      # Production async client
-leanaide_hephaestus_bridge.py           # Complete Hephaestus integration
+leanaide_crewai_bridge.py           # Complete CrewAI integration
 leanaide_mcp_tools.py                   # MCP tools for agents
 test_leanaide_client.py                 # Client tests
 test_leanaide_mcp_tools.py              # MCP tools tests
@@ -850,9 +850,9 @@ LeanAide/dependency_graph/              # Theorem dependency analysis
 
 **Architecture:**
 ```
-Hephaestus Workflow
+CrewAI Workflow
     ↓
-LeanAideHephaestusBridge (6 phases)
+LeanAideCrewAIBridge (6 phases)
     ↓
 LeanAideClient (async, connection pooling)
     ↓
@@ -1061,10 +1061,10 @@ Reusable proof patterns and domain-specific tactics:
 - **Stage 5**: Self-play improvement of final proofs
 - **Stage 6**: Extract successful strategies for learning
 
-**Integration with Hephaestus:**
+**Integration with CrewAI:**
 ```python
 # 6-phase workflow for evolutionary proofs
-class LeanAideEvolutionaryHephaestusBridge:
+class LeanAideEvolutionaryCrewAIBridge:
     async def execute_phase_1_analysis():
         # Analyze theorem and select evolutionary approach
         pass
@@ -1190,21 +1190,21 @@ ClaraVerse = Clara Agent Studio (GUI) + Clara Flow SDK (Node.js)
 |-------|-------------------|----------------------|---------|
 | **Stage 0: Content Analysis** | ROMA, Knowledge Engine, ACE | RAGbits, DataPizza, LeanAide | Analyze problem context and extract requirements |
 | **Stage 1: AI-Assisted Decomposition** | ROMA, ACE, Claudiomiro | LeanAide, DataPizza | Generate sub-problems with dependencies |
-| **Stage 2: Manual Review** | OpenEvolve UI, Hephaestus | BubbleLab UI | Human oversight and approval |
+| **Stage 2: Manual Review** | OpenEvolve UI, CrewAI | BubbleLab UI | Human oversight and approval |
 | **Stage 3A: Solution Generation** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, LeanAide | Generate solutions for each sub-problem |
 | **Stage 3B: Critique (Red Team)** | ACE, Steer, DataPizza | ROMA, LeanAide | Critique solutions for flaws |
 | **Stage 3C: Verification (Gold Team)** | Steer, Knowledge Engine, DataPizza | ACE, LeanAide | Verify solution quality |
-| **Stage 3D: Refinement** | Claudiomiro, ACE, Hephaestus | ROMA, DataPizza, LeanAide | Fix identified issues |
+| **Stage 3D: Refinement** | Claudiomiro, ACE, CrewAI | ROMA, DataPizza, LeanAide | Fix identified issues |
 | **Stage 4: Reassembly** | Claudiomiro, ROMA, DataPizza | Knowledge Engine, ACE, LeanAide | Combine verified solutions |
-| **Stage 5: Final Verification** | Steer, ACE, Hephaestus | Claudiomiro, DataPizza, LeanAide | Run final gauntlets and self-healing |
-| **Stage 6: Knowledge Extraction** | ACE, RAGbits, Knowledge Engine | DataPizza, Hephaestus, LeanAide | Extract and store knowledge artifacts |
+| **Stage 5: Final Verification** | Steer, ACE, CrewAI | Claudiomiro, DataPizza, LeanAide | Run final gauntlets and self-healing |
+| **Stage 6: Knowledge Extraction** | ACE, RAGbits, Knowledge Engine | DataPizza, CrewAI, LeanAide | Extract and store knowledge artifacts |
 
 ### 4.2 Component Usage Frequency
 
 ```
 Components Used in Multiple Stages:
 ├── DataPizza              [██████████████████████████████████] 11/11 stages (100%)
-├── Hephaestus             [███████████████████████████████    ] 9/11 stages  (82%)
+├── CrewAI             [███████████████████████████████    ] 9/11 stages  (82%)
 ├── ACE                    [███████████████████████            ] 8/11 stages  (73%)
 ├── ROMA                   [████████████████████              ] 7/11 stages  (64%)
 ├── Claudiomiro            [██████████████████                ] 6/11 stages  (55%)
@@ -1221,16 +1221,16 @@ Components Used in Multiple Stages:
 
 ## 5. Bridge Architecture
 
-### 5.1 Hephaestus Bridge Pattern
+### 5.1 CrewAI Bridge Pattern
 
-All integrations follow a consistent bridge pattern to Hephaestus:
+All integrations follow a consistent bridge pattern to CrewAI:
 
 ```python
-class IntegrationHephaestusBridge:
+class IntegrationCrewAIBridge:
     """Base bridge pattern for all integrations"""
 
     def __init__(self, api_base: str, api_key: str, project_id: str):
-        self.hephaestus_client = HephaestusClient(api_base, api_key, project_id)
+        self.crewai_client = CrewAIClient(api_base, api_key, project_id)
         self.integration_client = IntegrationClient()
 
     def execute_phase_1_setup(self, **kwargs) -> Dict[str, Any]:
@@ -1279,14 +1279,14 @@ integration_mcp_tools.py
 
 | Bridge File | Integration | Purpose | Status |
 |-------------|-------------|---------|--------|
-| `hephaestus_openevolve_bridge.py` | OpenEvolve | Main workflow orchestration | ✅ Complete |
-| `roma_hephaestus_bridge.py` | ROMA | Recursive decomposition | ✅ Complete |
-| `claudiomiro_hephaestus_bridge.py` | Claudiomiro | Autonomous development | ✅ Complete |
-| `datapizza_hephaestus_bridge.py` | DataPizza | Unified LLM access | ✅ Complete |
-| `ace_hephaestus_bridge.py` | ACE | Learning from execution | ✅ Complete |
-| `steer_hephaestus_bridge.py` | Steer | Safety verification | ⚠️ Partial |
-| `decomposition_hephaestus_bridge.py` | Core Workflow | Main SGD workflow | ✅ Complete |
-| `roma_mdap_maker_hephaestus_bridge.py` | ROMA MDAP | Multi-stage pipelines | ✅ Complete |
+| `crewai_openevolve_bridge.py` | OpenEvolve | Main workflow orchestration | ✅ Complete |
+| `roma_crewai_bridge.py` | ROMA | Recursive decomposition | ✅ Complete |
+| `claudiomiro_crewai_bridge.py` | Claudiomiro | Autonomous development | ✅ Complete |
+| `datapizza_crewai_bridge.py` | DataPizza | Unified LLM access | ✅ Complete |
+| `ace_crewai_bridge.py` | ACE | Learning from execution | ✅ Complete |
+| `steer_crewai_bridge.py` | Steer | Safety verification | ⚠️ Partial |
+| `decomposition_crewai_bridge.py` | Core Workflow | Main SGD workflow | ✅ Complete |
+| `roma_mdap_maker_crewai_bridge.py` | ROMA MDAP | Multi-stage pipelines | ✅ Complete |
 
 ---
 
@@ -1370,7 +1370,7 @@ See `KNOWLEDGE_ENGINE_REQUIREMENTS_ANALYSIS.md` for detailed analysis.
 ├────────────────────────────────────────────────────────────────────┤
 │                                                                    │
 │  ✅ FULLY INTEGRATED (90-100%)                                     │
-│  ├─ Hephaestus              [███████████████████████████████] 95% │
+│  ├─ CrewAI              [███████████████████████████████] 95% │
 │  ├─ OpenEvolve Core         [███████████████████████████████] 95% │
 │  ├─ ROMA                    [███████████████████████████████] 90% │
 │  ├─ Claudiomiro             [███████████████████████████████] 90% │
@@ -1394,7 +1394,7 @@ See `KNOWLEDGE_ENGINE_REQUIREMENTS_ANALYSIS.md` for detailed analysis.
 
 | Integration | Bridge | MCP Tools | Documentation | Testing | Overall |
 |-------------|--------|-----------|---------------|----------|---------|
-| Hephaestus | ✅ | ✅ | ✅ | ⚠️ | **Healthy** |
+| CrewAI | ✅ | ✅ | ✅ | ⚠️ | **Healthy** |
 | OpenEvolve | ✅ | ✅ | ✅ | ⚠️ | **Healthy** |
 | ROMA | ✅ | ✅ | ✅ | ⚠️ | **Healthy** |
 | Claudiomiro | ✅ | ✅ | ✅ | ⚠️ | **Healthy** |
@@ -1420,7 +1420,7 @@ See `KNOWLEDGE_ENGINE_REQUIREMENTS_ANALYSIS.md` for detailed analysis.
 tests/
 ├── test_*_integration.py           # Integration tests (partial)
 ├── comprehensive_*_test.py          # Comprehensive tests (partial)
-├── test_hephaestus_*.py             # Hephaestus tests
+├── test_crewai_*.py             # CrewAI tests
 ├── test_openevolve_*.py            # OpenEvolve tests
 ├── test_sovereign_*.py             # Sovereign tests
 └── verify_*.py                      # Verification scripts
@@ -1456,7 +1456,7 @@ tests/
 
 **Tasks:**
 - Implement all four guard types (Structure, Safety, Logic, Slop)
-- Create SteerHephaestusBridge
+- Create SteerCrewAIBridge
 - Add comprehensive rulebook
 - Implement incident logging
 - Add teaching/fix suggestions
@@ -1506,7 +1506,7 @@ tests/
 **Status:** ✅ **Fully Integrated** (90%+)
 
 **Completed:**
-- ✅ Created complete LeanAideHephaestusBridge with 6-phase workflow
+- ✅ Created complete LeanAideCrewAIBridge with 6-phase workflow
 - ✅ Implemented LeanAide MCP tools for agent integration
 - ✅ Created production-ready async client with connection pooling
 - ✅ Integrated formal verification into workflow stages
@@ -1538,7 +1538,7 @@ tests/
 **Use Case:** Educational component for SGDW
 
 **Tasks:**
-- Create Lean4MOOCHephaestusBridge
+- Create Lean4MOOCCrewAIBridge
 - Add tutorial generation
 - Create learning path for users
 - Integrate with formal verification
@@ -1576,7 +1576,7 @@ class UnifiedServiceLayer:
     """Single entry point for all integrations"""
 
     def __init__(self):
-        self.hephaestus = HephaestusClient()
+        self.crewai = CrewAIClient()
         self.roma = ROMAClient()
         self.claudiomiro = ClaudiomiroClient()
         self.datapizza = DataPizzaClient()
@@ -1608,7 +1608,7 @@ class UnifiedServiceLayer:
 
 **Strengths:**
 - ✅ Core workflow fully operational (Stages 0-5)
-- ✅ High-value integrations complete (Hephaestus, ROMA, Claudiomiro, ACE, DataPizza)
+- ✅ High-value integrations complete (CrewAI, ROMA, Claudiomiro, ACE, DataPizza)
 - ✅ Strong bridge architecture pattern
 - ✅ Comprehensive MCP tool coverage
 - ✅ Learning system operational (ACE)
@@ -1672,10 +1672,10 @@ OpenEvolve/Frontend/
 │   └── [workflow files]
 │
 ├── Integrations
-│   ├── Hephaestus/
-│   │   ├── hephaestus_integration.py    # Main integration
-│   │   ├── hephaestus_client.py          # API client
-│   │   └── *_hephaestus_bridge.py       # 8 bridge files
+│   ├── CrewAI/
+│   │   ├── crewai_integration.py    # Main integration
+│   │   ├── crewai_client.py          # API client
+│   │   └── *_crewai_bridge.py       # 8 bridge files
 │   │
 │   ├── ROMA/
 │   │   └── src/roma_dspy/               # ROMA implementation
@@ -1744,7 +1744,7 @@ For questions about integrations:
 - Review integration-specific documentation
 - Check `*_integration.py` files for usage examples
 - Examine `*_mcp_tools.py` for available tools
-- See bridge files for Hephaestus integration patterns
+- See bridge files for CrewAI integration patterns
 
 ---
 

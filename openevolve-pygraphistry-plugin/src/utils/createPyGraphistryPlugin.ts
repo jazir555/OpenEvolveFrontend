@@ -21,7 +21,7 @@ let globalState: PyGraphistryPluginState = {
     aceEnabled: true,
     romaEnabled: true,
     datapizzaEnabled: true,
-    hephaestusEnabled: true,
+    crewaiEnabled: true,
     claudiomiroEnabled: true,
     steerEnabled: true,
     researchQuestEnabled: true,

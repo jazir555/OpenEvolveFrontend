@@ -254,8 +254,8 @@ def start_workflow_tracking(self, workflow_id: str, workflow_name: str, instance
 ```
 **Impact**: Prevents deadlock by establishing clear lock hierarchy
 
-#### Bug #11: bubblelabs_hephaestus_bridge.py:220-261 - I/O inside lock ✓ ALREADY FIXED
-**File**: `bubblelabs_hephaestus_bridge.py`
+#### Bug #11: bubblelabs_crewai_bridge.py:220-261 - I/O inside lock ✓ ALREADY FIXED
+**File**: `bubblelabs_crewai_bridge.py`
 **Status**: Code already shows I/O (update_ticket) is called outside lock (lines 340-344)
 
 ---
@@ -266,8 +266,8 @@ def start_workflow_tracking(self, workflow_id: str, workflow_name: str, instance
 **Status**: PARTIALLY FIXED - Some fixes already applied by linter/user
 
 **Remaining fixes needed**:
-1. Bug #12: bubblelabs_hephaestus_bridge.py:111 - LRU cache for mappings
-2. Bug #13: bubblelabs_hephaestus_bridge.py:115 - LRU cache for instance_to_definition_map
+1. Bug #12: bubblelabs_crewai_bridge.py:111 - LRU cache for mappings
+2. Bug #13: bubblelabs_crewai_bridge.py:115 - LRU cache for instance_to_definition_map
 3. Bug #14: bubblelabs_integration.py:77 - TTL-based eviction for workflow_instances
 4. Bug #15: bubblelabs_integration.py:79 - Thread cleanup with join(timeout=30)
 5. Bug #16: bubblelabs_analytics.py - Database cleanup with 90-day retention
@@ -278,7 +278,7 @@ def start_workflow_tracking(self, workflow_id: str, workflow_name: str, instance
 
 ### CATEGORY 5: EDGE CASES (5 bugs)
 
-#### Bug #17: bubblelabs_hephaestus_bridge.py:128 - No None check on workflow_definition
+#### Bug #17: bubblelabs_crewai_bridge.py:128 - No None check on workflow_definition
 **Status**: NEEDS FIX - Add validation at start of create_ticket_from_workflow()
 
 #### Bug #18: bubblelabs_mcp_tools.py:157 - No validation of empty problem_statement
@@ -310,11 +310,11 @@ if not parameter or not parameter.strip():
 **Required fixes**:
 1. Bug #22: bubblelabs_analytics.py - Enable foreign keys (PRAGMA foreign_keys = ON)
 2. Bug #23: bubblelabs_analytics.py - Ensure _init_database() called on startup
-3. Bug #24: bubblelabs_hephaestus_bridge.py - Persist bridge mappings to database
+3. Bug #24: bubblelabs_crewai_bridge.py - Persist bridge mappings to database
 4. Bug #25: bubblelabs_analytics.py - Add state validator with VALID_TRANSITIONS
-5. Bug #26: bubblelabs_hephaestus_bridge.py - Add cache invalidation on workflow changes
+5. Bug #26: bubblelabs_crewai_bridge.py - Add cache invalidation on workflow changes
 6. Bug #27: bubblelabs_analytics.py - Fix numeric totals drift with COALESCE
-7. Bug #28: bubblelabs_hephaestus_bridge.py - Add data persistence for mappings
+7. Bug #28: bubblelabs_crewai_bridge.py - Add data persistence for mappings
 
 **Note**: These require database schema changes and should be implemented in Phase 2.
 

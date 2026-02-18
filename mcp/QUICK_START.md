@@ -20,7 +20,7 @@ curl http://localhost:8080/health
 | `kggen/` | Knowledge graph memory | `kggen/add_memories`, `kggen/retrieve_relevant_memories` |
 | `graphiti/` | Knowledge graph | `graphiti/add_episode`, `graphiti/search_facts` |
 | `openevolve/` | Evolutionary computation | `openevolve/run_evolution`, `openevolve/evolve_code` |
-| `hephaestus/` | Orchestration | `hephaestus/delegate_task` |
+| `crewai/` | Orchestration | `crewai/delegate_task` |
 | `roma/` | Recursive meta-agent | `roma/solve_recursive` |
 | `ace/` | Learning engine | `ace/execute_task`, `ace/learn_from_execution` |
 
@@ -90,15 +90,15 @@ import asyncio
 asyncio.run(main())
 ```
 
-### With Hephaestus
+### With CrewAI
 ```python
-from Hephaestus.src.mcp.gateway_integration import (
-    get_hephaestus_gateway,
+from CrewAI.src.mcp.gateway_integration import (
+    get_crewai_gateway,
     delegate_to_agent_with_mcp_tools
 )
 
-async def use_hephaestus():
-    gateway = await get_hephaestus_gateway()
+async def use_crewai():
+    gateway = await get_crewai_gateway()
 
     result = await delegate_to_agent_with_mcp_tools(
         agent=my_agent,

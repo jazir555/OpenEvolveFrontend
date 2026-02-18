@@ -1055,14 +1055,14 @@ class LLMScorer:
     Uses Large Language Model to evaluate artifacts.
     """
 
-    async def score_with_llm(self, artifact_content, criteria, hephaestus_client):
+    async def score_with_llm(self, artifact_content, criteria, crewai_client):
         """
         Score artifact using LLM evaluation.
 
         Args:
             artifact_content: The artifact to score
             criteria: Scoring criteria and instructions
-            hephaestus_client: LLM client
+            crewai_client: LLM client
 
         Returns:
             {
@@ -1077,7 +1077,7 @@ class LLMScorer:
         prompt = self._build_evaluation_prompt(artifact_content, criteria)
 
         # Call LLM
-        response = await hephaestus_client.generate(
+        response = await crewai_client.generate(
             prompt=prompt,
             temperature=0.3,  # Lower temperature for more consistent scoring
             max_tokens=1000
@@ -1254,7 +1254,7 @@ criteria = {
 result = await llm_scorer.score_with_llm(
     artifact["content"],
     criteria,
-    hephaestus_client
+    crewai_client
 )
 
 # Result
@@ -2704,11 +2704,11 @@ def complete_scoring_pipeline(artifact, context):
     )
 
     # Step 4: LLM evaluation (if client available)
-    if context.get("hephaestus_client"):
+    if context.get("crewai_client"):
         llm_scores = await evaluate_with_llm(
             artifact["content"],
             context["evaluation_criteria"],
-            context["hephaestus_client"]
+            context["crewai_client"]
         )
     else:
         llm_scores = None
@@ -3410,21 +3410,21 @@ for hm in historical:
 #### Issue 4: LLM Scoring Fails
 
 **Possible Causes:**
-- Hephaestus client not configured
+- CrewAI client not configured
 - API key missing
 - Network issues
 
 **Solutions:**
 ```python
 # Check client availability
-if hephaestus_client is None:
+if crewai_client is None:
     logger.warning("LLM client not available, using heuristic scoring")
     # Fallback to non-LLM scoring
     score = calculate_heuristic_score(artifact)
 
 # Test connection
 try:
-    test_response = await hephaestus_client.generate("Test", max_tokens=10)
+    test_response = await crewai_client.generate("Test", max_tokens=10)
     print("LLM connection working:", test_response)
 except Exception as e:
     print(f"LLM connection failed: {e}")

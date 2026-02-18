@@ -61,7 +61,7 @@ All 23 HIGH severity API contract violations have been successfully identified, 
    - **Fix:** Created `SAFE_COPY_ATTRIBUTES` whitelist set
    - **Impact:** Prevents copying unsafe/internal attributes
 
-8. **bubblelabs_hephaestus_bridge.py** - Side effects not documented ✅
+8. **bubblelabs_crewai_bridge.py** - Side effects not documented ✅
    - **Issue:** `create_ticket_from_workflow()` mutates `self.mappings`
    - **Fix:** Added `Side Effects:` section
    - **Impact:** Developers know about state mutations
@@ -76,7 +76,7 @@ All 23 HIGH severity API contract violations have been successfully identified, 
     - **Fix:** Added None check with error return
     - **Impact:** No NoneType attribute errors
 
-11. **bubblelabs_hephaestus_bridge.py:408** - Return value mismatch ✅
+11. **bubblelabs_crewai_bridge.py:408** - Return value mismatch ✅
     - **Issue:** `stop_background_sync()` returns ambiguous bool
     - **Fix:** Changed to return str enum: "stopped", "already_stopped", "timeout"
     - **Impact:** Clear understanding of what happened
@@ -108,7 +108,7 @@ All 23 HIGH severity API contract violations have been successfully identified, 
     - **Fix:** Documented ValueError for security, Exception for others
     - **Impact:** Different handling for security vs general errors
 
-17. **bubblelabs_hephaestus_bridge.py** - No error raises documented ✅
+17. **bubblelabs_crewai_bridge.py** - No error raises documented ✅
     - **Issue:** `create_ticket_from_workflow()`, `update_ticket_progress()` lack Raises:
     - **Fix:** Added complete Raises: sections
     - **Impact:** Clear exception documentation
@@ -135,7 +135,7 @@ All 23 HIGH severity API contract violations have been successfully identified, 
     - **Fix:** Documented behavior in Note: section
     - **Impact:** Proper handling of incomplete data
 
-22. **bubblelabs_hephaestus_bridge.py:408** - Thread safety not documented ✅
+22. **bubblelabs_crewai_bridge.py:408** - Thread safety not documented ✅
     - **Issue:** `stop_background_sync()` thread safety unknown
     - **Fix:** Added `Thread Safety:` section
     - **Impact:** Prevents race conditions
@@ -174,7 +174,7 @@ All 23 HIGH severity API contract violations have been successfully identified, 
 - `get_shared_bubblelabs()` - Documented singleton pattern
 - All MCP tools - Added error key to Returns:
 
-### 5. bubblelabs_hephaestus_bridge.py (4 fixes)
+### 5. bubblelabs_crewai_bridge.py (4 fixes)
 - `create_ticket_from_workflow()` - Added Side Effects:
 - `update_ticket_progress()` - Added Raises:
 - `stop_background_sync()` - Changed return to str enum, added Thread Safety:
@@ -286,7 +286,7 @@ for attr_name in SAFE_COPY_ATTRIBUTES:
 **Before:**
 ```python
 def create_ticket_from_workflow(self, workflow_definition) -> Optional[str]:
-    """Create a Hephaestus ticket from workflow."""
+    """Create a CrewAI ticket from workflow."""
     # Mutates self.mappings
     return ticket_id
 ```
@@ -295,7 +295,7 @@ def create_ticket_from_workflow(self, workflow_definition) -> Optional[str]:
 ```python
 def create_ticket_from_workflow(self, workflow_definition) -> Optional[str]:
     """
-    Create a Hephaestus ticket from a BubbleLabs workflow definition.
+    Create a CrewAI ticket from a BubbleLabs workflow definition.
 
     Returns:
         Ticket ID if successful, None otherwise

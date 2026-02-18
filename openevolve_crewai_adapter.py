@@ -3,12 +3,12 @@ OpenEvolve-CrewAI Adapter
 
 This module provides adapter functions to bridge the existing OpenEvolve workflow
 engine with CrewAI's workflow orchestration. It replaces the AGPL-licensed
-Hephaestus adapter with MIT-licensed CrewAI.
+CrewAI adapter with MIT-licensed CrewAI.
 
 It allows existing OpenEvolve code to optionally delegate orchestration to CrewAI
 while maintaining backward compatibility.
 
-This replaces openevolve_hephaestus_adapter.py with local CrewAI execution.
+This replaces openevolve_crewai_adapter.py with local CrewAI execution.
 
 Usage:
     # Instead of running workflow locally, delegate to CrewAI
@@ -19,7 +19,7 @@ Usage:
         delegator=crewai_delegator,
     )
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -31,7 +31,7 @@ import time
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
-# Import CrewAI zero-error workflow (replaces Hephaestus)
+# Import CrewAI zero-error workflow (replaces CrewAI)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
     ZeroErrorConfig,
@@ -69,7 +69,7 @@ logger = logging.getLogger(__name__)
 
 
 class CrewAIBackendConfig:
-    """Configuration for CrewAI backend (replaces HephaestusBackendConfig)"""
+    """Configuration for CrewAI backend (replaces CrewAIBackendConfig)"""
 
     def __init__(
         self,

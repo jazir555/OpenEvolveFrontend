@@ -4,7 +4,7 @@ ROMA-MDAP-MAKER - CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 the ROMA-MDAP-MAKER integration system (ROMA + MAKER zero-error voting).
 
-This replaces roma_mdap_maker_hephaestus_bridge.py with local CrewAI execution.
+This replaces roma_mdap_maker_crewai_bridge.py with local CrewAI execution.
 
 ROMA-MDAP-MAKER Architecture:
     ROMA (Recursive Decomposition)
@@ -26,7 +26,7 @@ Zero-Error Guarantee:
 - Red-flagging: Detects and discards unreliable outputs
 - Hierarchical confidence: Tracks confidence across ROMA levels
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 """
 
 import logging

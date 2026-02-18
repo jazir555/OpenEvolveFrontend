@@ -115,13 +115,13 @@ openevolve:
       timeout_ms: 30000
       enabled: true
 
-    # Hephaestus Integration (Delegation System)
-    hephaestus:
-      base_url: "${HEPHAEUS_URL}"
-      health_check: "${HEPHAEUS_URL}/health"
+    # CrewAI Integration (Delegation System)
+    crewai:
+      base_url: "${CREWAI_URL}"
+      health_check: "${CREWAI_URL}/health"
       timeout_ms: 45000
       enabled: true
-      mcp_server_url: "${HEPHAEUS_URL}/mcp"
+      mcp_server_url: "${CREWAI_URL}/mcp"
 
     # Generic Knowledge Extraction
     generic_ke:
@@ -423,10 +423,10 @@ decomposition:
     priority_weighting: quality
     domain_detection: true
 
-  # Hephaestus Integration (10 params)
-  hephaestus:
+  # CrewAI Integration (10 params)
+  crewai:
     enabled: true
-    mcp_server_url: "${HEPHAEUS_URL}/mcp"
+    mcp_server_url: "${CREWAI_URL}/mcp"
     delegation_timeout_seconds: 600
     max_parallel_delegations: 20
     retry_on_failure: true
@@ -879,7 +879,7 @@ features:
   mdap_integration: true
   maker_integration: true
   roma_integration: true
-  hephaestus_integration: true
+  crewai_integration: true
 
   # Experimental Features
   experimental_features: false

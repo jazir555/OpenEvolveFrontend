@@ -36,7 +36,7 @@ from ragbits_integration.agents.tools.ragbits_enhanced_tools import (
 from ragbits_integration.agents.blue_team_agent import BlueTeamAgent
 
 # Create agent
-agent = BlueTeamAgent(hephaestus_client=hephaestus)
+agent = BlueTeamAgent(crewai_client=crewai)
 
 # Add RAGBits tools
 agent.tools["ragbits_search"] = RAGBitsKnowledgeSearchTool()
@@ -158,7 +158,7 @@ async def blue_team_with_knowledge():
     )
 
     agent = RAGBitsEnhancedBlueTeamAgent(
-        hephaestus_client=hephaestus,
+        crewai_client=crewai,
         enable_ragbits=True
     )
 
@@ -187,7 +187,7 @@ async def red_team_with_patterns():
         RAGBitsKnowledgeSearchTool
     )
 
-    agent = RedTeamAgent(hephaestus_client=hephaestus)
+    agent = RedTeamAgent(crewai_client=crewai)
     agent.tools["ragbits_search"] = RAGBitsKnowledgeSearchTool()
 
     # Search for critique patterns

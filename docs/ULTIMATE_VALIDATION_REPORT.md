@@ -134,9 +134,9 @@ _... and 40 more issues_
 - [LOW] ace_analytics.py:48 - Missing type hints
 - [LOW] ace_analytics.py:63 - Missing type hints
 - [LOW] ace_analytics.py:76 - Missing type hints
-- [LOW] ace_hephaestus_bridge.py:264 - Missing type hints
-- [LOW] ace_hephaestus_bridge.py:297 - Missing type hints
-- [LOW] ace_hephaestus_bridge.py:1002 - Missing type hints
+- [LOW] ace_crewai_bridge.py:264 - Missing type hints
+- [LOW] ace_crewai_bridge.py:297 - Missing type hints
+- [LOW] ace_crewai_bridge.py:1002 - Missing type hints
 - [LOW] ace_integration.py:60 - Missing type hints
 - [LOW] ace_integration.py:111 - Missing type hints
 - [LOW] ace_integration.py:313 - Missing type hints
@@ -213,7 +213,7 @@ _... and 1105 more issues_
 - [LOW] evolution.py - Missing module docstring
 - [LOW] gauntlet_manager.py - Missing module docstring
 - [LOW] gauntlet_server.py - Missing module docstring
-- [LOW] hephaestus_client.py - Missing module docstring
+- [LOW] crewai_client.py - Missing module docstring
 - [LOW] integrations.py - Missing module docstring
 
 _... and 6333 more issues_

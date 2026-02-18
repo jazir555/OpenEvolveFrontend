@@ -31,7 +31,7 @@
 ## CRITICAL ISSUES (Fix Immediately - 7 total)
 
 ### 1. BREAKING CHANGE: execute_full_workflow Function Signature Mismatch
-**File:** `ace_hephaestus_bridge.py:1031-1036`
+**File:** `ace_crewai_bridge.py:1031-1036`
 **Severity:** CRITICAL
 **Type:** API Breaking Change
 **Impact:** **Runtime TypeError - workflow execution will crash**
@@ -75,8 +75,8 @@ phase3_result = self.execute_phase_3_critique(
 
 ### 2. MISSING VARIABLE: timestamp Undefined
 **Files:**
-- `ace_hephaestus_bridge.py:345`
-- `ace_hephaestus_bridge.py:1169`
+- `ace_crewai_bridge.py:345`
+- `ace_crewai_bridge.py:1169`
 
 **Severity:** CRITICAL
 **Type:** Unbound Local Error
@@ -151,7 +151,7 @@ logger = logging.getLogger(__name__)
 ---
 
 ### 4. WORKFLOW EXECUTION CONTINUES AFTER PHASE FAILURE
-**File:** `ace_hephaestus_bridge.py:1031-1056`
+**File:** `ace_crewai_bridge.py:1031-1056`
 **Severity:** CRITICAL
 **Type:** Control Flow Error
 **Impact:** **Meaningless results generated after phase failure**
@@ -191,7 +191,7 @@ phase3_result = self.execute_phase_3_critique(...)
 ---
 
 ### 5. MISSING NONE CHECK: context Parameter Type Assumption
-**File:** `ace_hephaestus_bridge.py:414`
+**File:** `ace_crewai_bridge.py:414`
 **Severity:** CRITICAL
 **Type:** Type Error
 **Impact:** **AttributeError if context is not a dict**
@@ -280,17 +280,17 @@ for artifact_dict in artifacts:
 
 ### Static Analysis Bugs (15 HIGH)
 
-1. **Missing timestamp variable** (ace_hephaestus_bridge.py:1169) - Same as #2 above
+1. **Missing timestamp variable** (ace_crewai_bridge.py:1169) - Same as #2 above
 2. **Potential AttributeError - agent_output** (ace_mcp_tools.py:369) - No None check
 3. **KeyError risk in samples dict** (ace_mcp_tools.py:476) - Missing required key validation
 4. **Lock released too early** (ace_analytics.py:598-604) - Data accessed outside lock
 5. **None check missing** (ace_analytics.py:733) - Method call on None possible
 6. **KeyError risk** (ace_stage6_integration.py:427) - team_id required key not validated
 7. **IndexError risk** (ace_stage6_integration.py:655) - Empty list access
-8. **Wrong @wraps argument** (ace_mcp_tools.py:64, ace_hephaestus_bridge.py:64) - Should be `@wraps(func)` not `@wraps(name)`
+8. **Wrong @wraps argument** (ace_mcp_tools.py:64, ace_crewai_bridge.py:64) - Should be `@wraps(func)` not `@wraps(name)`
 9. **Race condition: skillbook updates** (ace_mcp_tools.py:674-676) - No lock on skillbook modification
 10. **TOCTOU race** (ace_mcp_tools.py:213-218) - File exists check then load
-11. **KeyError in sub_problem dict** (ace_hephaestus_bridge.py:531) - Assumes structure without validation
+11. **KeyError in sub_problem dict** (ace_crewai_bridge.py:531) - Assumes structure without validation
 12. **Wrong formula: weighted average** (ace_analytics.py:1048-1052) - Incorrect denominator
 13. **Uninitialized variable validation** (ace_knowledge_artifacts.py:463) - Validates after set
 14. **Type validation missing** (ace_workflow_knowledge_extractor.py:780) - Dict type not checked
@@ -301,9 +301,9 @@ for artifact_dict in artifacts:
 16. **No Deep Copy of ACE Objects** (ace_mcp_tools.py:214-222) - Skillbook shared across threads
 17. **Shallow Copy in get_registered_tools** (ace_mcp_tools.py:1050-1051) - Callers can modify references
 18. **Samples List Not Deep Copied** (ace_mcp_tools.py:476-483) - Modifications affect ACE
-19. **Skillbook Save Not Atomic** (ace_hephaestus_bridge.py:311-365) - Dict construction outside lock
-20. **Sub-Problems List Not Deep Copied** (ace_hephaestus_bridge.py:513-519) - Concurrent modifications
-21. **Reflector and SkillManager Updates Not Atomic** (ace_hephaestus_bridge.py:1106-1128) - Partial updates possible
+19. **Skillbook Save Not Atomic** (ace_crewai_bridge.py:311-365) - Dict construction outside lock
+20. **Sub-Problems List Not Deep Copied** (ace_crewai_bridge.py:513-519) - Concurrent modifications
+21. **Reflector and SkillManager Updates Not Atomic** (ace_crewai_bridge.py:1106-1128) - Partial updates possible
 22. **Team History Concurrent Modification** (ace_analytics.py:526-537) - Modified during iteration
 23. **Aggregate Update Not Atomic** (ace_analytics.py:547-590) - Partial field updates
 24. **from_dict No Deep Copy** (ace_knowledge_artifacts.py:332-342) - Lists/dicts from input used directly
@@ -315,8 +315,8 @@ for artifact_dict in artifacts:
 ### Logical Bugs (7 HIGH)
 
 29. **Incomplete condition validation** (ace_mcp_tools.py:178-183) - NaN bypass when disabled
-30. **DANGEROUS ASSUMPTION** (ace_hephaestus_bridge.py:414) - Context type not validated
-31. **MISSING BREAK IN LOGIC** (ace_hephaestus_bridge.py:1031-1036) - Same as #4 above
+30. **DANGEROUS ASSUMPTION** (ace_crewai_bridge.py:414) - Context type not validated
+31. **MISSING BREAK IN LOGIC** (ace_crewai_bridge.py:1031-1036) - Same as #4 above
 32. **Wrong formula** (ace_analytics.py:1048-1052) - Average calculation incorrect
 33. **Uninitialized variable validation** (ace_knowledge_artifacts.py:463-469) - Validation in __post_init__
 34. **ASSUMING DICT HAS KEY** (ace_workflow_knowledge_extractor.py:780-793) - No validation
@@ -324,15 +324,15 @@ for artifact_dict in artifacts:
 
 ### Performance Issues (2 HIGH)
 
-36. **O(n²) String Concatenation** (ace_hephaestus_bridge.py:1236) - 10-100x slower
-37. **O(n²) Skill Iteration** (ace_hephaestus_bridge.py:297-309) - 2-5x slower
+36. **O(n²) String Concatenation** (ace_crewai_bridge.py:1236) - 10-100x slower
+37. **O(n²) Skill Iteration** (ace_crewai_bridge.py:297-309) - 2-5x slower
 
 ### API Consistency (5 HIGH)
 
 38. **INCONSISTENT RETURN TYPES** (All files) - Some return dict, some raise, some return None
 39. **INCONSISTENT PARAMETER NAMES** (All files) - skillbook_path vs storage_path vs filepath
 40. **INCONSISTENT PARAMETER ORDER** (ace_stage6_integration.py) - Can't rely on positional args
-41. **Breaking changes in function signatures** (ace_hephaestus_bridge.py:1030-1036) - Same as #1
+41. **Breaking changes in function signatures** (ace_crewai_bridge.py:1030-1036) - Same as #1
 42. **Missing type hints** (All files) - Many functions lack complete type hints
 
 ### Edge Cases (15 HIGH)
@@ -351,7 +351,7 @@ for artifact_dict in artifacts:
 54. **Network timeout** (All files) - No timeout on HTTP requests
 55. **Malformed data** (ace_workflow_knowledge_extractor.py) - No schema validation
 56. **Interrupted operations** (All files) - State corruption on interrupt
-57. **Re-entrant calls** (ace_hephaestus_bridge.py) - State corruption
+57. **Re-entrant calls** (ace_crewai_bridge.py) - State corruption
 
 ---
 
@@ -392,9 +392,9 @@ for artifact_dict in artifacts:
 112. **DANGEROUS DEFAULT ARGUMENT** (ace_mcp_tools.py:698) - action parameter
 113. **CONDITION NEVER TRUE** (ace_mcp_tools.py:812) - Always empty skillbook
 114. **WRONG ORDER** (ace_mcp_tools.py:1000-1009) - Validation after use
-115. **Off-by-one error** (ace_hephaestus_bridge.py:301) - Loop bounds
-116. **TYPE CONFUSION** (ace_hephaestus_bridge.py:345) - timestamp variable
-117. **PASS WHERE SHOULD HAVE CODE** (ace_hephaestus_bridge.py:46-61) - Fallback validation
+115. **Off-by-one error** (ace_crewai_bridge.py:301) - Loop bounds
+116. **TYPE CONFUSION** (ace_crewai_bridge.py:345) - timestamp variable
+117. **PASS WHERE SHOULD HAVE CODE** (ace_crewai_bridge.py:46-61) - Fallback validation
 118. **Infinite loop potential** (ace_analytics.py:256-265) - KMeans with n_clusters=1
 119. **Floating point equality** (ace_analytics.py:270-278) - Direct float comparison
 120. **Missing not operator** (ace_analytics.py:583-587) - NaN check
@@ -415,7 +415,7 @@ for artifact_dict in artifacts:
 136. **Hard-coded values** (multiple files) - Magic numbers
 137. **Duplicate code** (multiple files) - Repeated patterns
 138. **Long functions** (ace_analytics.py:236-318) - 82 lines
-139. **Complex functions** (ace_hephaestus_bridge.py:1030-1056) - High cyclomatic complexity
+139. **Complex functions** (ace_crewai_bridge.py:1030-1056) - High cyclomatic complexity
 140. **Dead code** (ace_knowledge_artifacts.py:803) - Code after return
 141. **De Morgan's law** (ace_knowledge_artifacts.py:530-532) - Could be simplified
 142. **Case sensitivity** (ace_workflow_knowledge_extractor.py:651) - Inconsistent string matching
@@ -435,7 +435,7 @@ for artifact_dict in artifacts:
 
 ### Priority 1: CRITICAL (Fix This Week)
 
-1. **Fix execute_full_workflow breaking change** (ace_hephaestus_bridge.py:1031-1043)
+1. **Fix execute_full_workflow breaking change** (ace_crewai_bridge.py:1031-1043)
    ```python
    # BEFORE (BROKEN):
    phase3_result = self.execute_phase_3_critique(
@@ -448,7 +448,7 @@ for artifact_dict in artifacts:
    )
    ```
 
-2. **Fix timestamp undefined** (ace_hephaestus_bridge.py:345, 1169)
+2. **Fix timestamp undefined** (ace_crewai_bridge.py:345, 1169)
    ```python
    # Add at start of function:
    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -461,7 +461,7 @@ for artifact_dict in artifacts:
    logger = logging.getLogger(__name__)
    ```
 
-4. **Fix workflow execution continues after failure** (ace_hephaestus_bridge.py:1031-1056)
+4. **Fix workflow execution continues after failure** (ace_crewai_bridge.py:1031-1056)
    ```python
    # Add after each phase:
    if not phase_result.get("success", False):
@@ -470,7 +470,7 @@ for artifact_dict in artifacts:
        return results
    ```
 
-5. **Fix context type assumption** (ace_hephaestus_bridge.py:414)
+5. **Fix context type assumption** (ace_crewai_bridge.py:414)
    ```python
    # Add type check:
    if context and isinstance(context, dict):
@@ -546,7 +546,7 @@ for artifact_dict in artifacts:
 1. **execute_full_workflow End-to-End Test**
    ```python
    def test_full_workflow_execution():
-       bridge = ACEHephaestusWorkflowBridge()
+       bridge = ACECrewAIWorkflowBridge()
        result = bridge.execute_full_workflow(
            problem_statement="Test problem",
            context=None,
@@ -561,7 +561,7 @@ for artifact_dict in artifacts:
 2. **Phase Failure Handling Test**
    ```python
    def test_phase_failure_stops_workflow():
-       bridge = ACEHephaestusWorkflowBridge()
+       bridge = ACECrewAIWorkflowBridge()
        # Mock phase 2 to fail
        result = bridge.execute_full_workflow(...)
        # Should NOT execute phase 3 if phase 2 fails

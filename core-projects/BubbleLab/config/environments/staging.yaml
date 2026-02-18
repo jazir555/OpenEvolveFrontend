@@ -127,13 +127,13 @@ openevolve:
       timeout_ms: 30000
       enabled: true
 
-    # Hephaestus Integration (Delegation System)
-    hephaestus:
-      base_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}"
-      health_check: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/health"
+    # CrewAI Integration (Delegation System)
+    crewai:
+      base_url: "${CREWAI_URL:-https://staging-crewai.openevolve.example.com}"
+      health_check: "${CREWAI_URL:-https://staging-crewai.openevolve.example.com}/health"
       timeout_ms: 45000
       enabled: true
-      mcp_server_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/mcp"
+      mcp_server_url: "${CREWAI_URL:-https://staging-crewai.openevolve.example.com}/mcp"
 
     # Generic Knowledge Extraction
     generic_ke:
@@ -436,11 +436,11 @@ decomposition:
     priority_weighting: balanced
     domain_detection: true
 
-  # Hephaestus Integration (10 params)
-  hephaestus:
+  # CrewAI Integration (10 params)
+  crewai:
     enabled: true
     # ⚠️  SECURITY WARNING: Use environment variable for production URLs
-    mcp_server_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/mcp"
+    mcp_server_url: "${CREWAI_URL:-https://staging-crewai.openevolve.example.com}/mcp"
     delegation_timeout_seconds: 300
     max_parallel_delegations: 10
     retry_on_failure: true
@@ -889,7 +889,7 @@ features:
   mdap_integration: true
   maker_integration: true
   roma_integration: true
-  hephaestus_integration: true
+  crewai_integration: true
 
   # Experimental Features
   experimental_features: false

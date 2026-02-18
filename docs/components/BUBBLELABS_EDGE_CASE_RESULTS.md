@@ -12,7 +12,7 @@
 ## Files Tested
 
 - bubblelabs_analytics.py
-- bubblelabs_hephaestus_bridge.py
+- bubblelabs_crewai_bridge.py
 - bubblelabs_typescript_export.py
 - bubblelabs_mcp_tools.py
 

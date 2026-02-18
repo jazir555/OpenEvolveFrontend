@@ -51,9 +51,10 @@ echo ""
 echo "Test 1: Cache initialization"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter
 
 adapter = get_async_adapter()
@@ -77,9 +78,10 @@ echo ""
 echo "Test 2: Cache miss on first call"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -120,9 +122,10 @@ echo ""
 echo "Test 3: Cache hit on second call"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -164,9 +167,10 @@ echo ""
 echo "Test 4: Cache size limit enforcement"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -205,9 +209,10 @@ echo ""
 echo "Test 5: Cache hit rate calculation"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -251,9 +256,10 @@ echo ""
 echo "Test 6: Cache key generation"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():

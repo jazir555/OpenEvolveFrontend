@@ -47,12 +47,12 @@
 **Effort**: 3-4 days
 **Priority**: P1 (enables all other work)
 **Dependencies**: None
-**Files**: `leanaide_client.py`, `leanaide_hephaestus_bridge.py`
+**Files**: `leanaide_client.py`, `leanaide_crewai_bridge.py`
 
 ### Tasks
 
 #### 1.1 Extend MathematicalDomain Enum
-**File**: `leanaide_hephaestus_bridge.py`
+**File**: `leanaide_crewai_bridge.py`
 
 ```python
 class MathematicalDomain(Enum):
@@ -281,7 +281,7 @@ class LeanAideClient:
 **Effort**: 3-4 days
 **Priority**: P1 (domain-specific handling)
 **Dependencies**: Component 1, Component 2
-**Files**: `leanaide_client.py`, `leanaide_hephaestus_bridge.py`
+**Files**: `leanaide_client.py`, `leanaide_crewai_bridge.py`
 
 ### Tasks
 
@@ -367,11 +367,11 @@ class ScientificDomainSolver:
             return await self._fetch_general_knowledge(domain, pattern)
 ```
 
-#### 3.2 Update Hephaestus Bridge for Continuous Math
-**File**: `leanaide_hephaestus_bridge.py`
+#### 3.2 Update CrewAI Bridge for Continuous Math
+**File**: `leanaide_crewai_bridge.py`
 
 ```python
-class LeanAideHephaestusBridge:
+class LeanAideCrewAIBridge:
     async def execute_phase_1_setup(self, **kwargs) -> Dict[str, Any]:
         """
         Phase 1: Analysis - Enhanced for continuous mathematics
@@ -777,7 +777,7 @@ async def test_end_to_end_continuous_workflow():
     """Test complete continuous math workflow"""
     # Setup
     problem = "Model the spread of a disease using SIR model"
-    bridge = LeanAideHephaestusBridge()
+    bridge = LeanAideCrewAIBridge()
 
     # Phase 1: Analysis
     phase1_result = await bridge.execute_phase_1_setup(problem_text=problem)

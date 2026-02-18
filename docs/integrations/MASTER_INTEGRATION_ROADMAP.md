@@ -44,7 +44,7 @@ This roadmap synthesizes analysis of **18 projects** (9 integration candidates +
 - **ROMA** - Recursive Open Meta-Agent Framework
 - **ragbits** - GenAI building blocks (vector store, retrieval)
 - **LeanAgent** - Lean 4 LLM Agent (formal theorem proving)
-- **Hephaestus** - Semi-structured agentic framework (delegation)
+- **CrewAI** - Semi-structured agentic framework (delegation)
 - **BubbleLab** - Open source workflow automation platform
 - **datapizza-ai** - GenAI framework (reliable solutions)
 - **claudiomiro** - Autonomous development agent
@@ -391,7 +391,7 @@ gantt
 ┌───────────────────────────────────────────────────────────────────┐
 │                         SHARED SERVICES                             │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Hephaestus (Delegation)  │  Steer (Safety)  │  Knowledge Engine  │
+│  CrewAI (Delegation)  │  Steer (Safety)  │  Knowledge Engine  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -562,7 +562,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
 #### Deliverables
 
 - `leanaide_client.py` - Enhanced with continuous math
-- `leanaide_hephaestus_bridge.py` - Updated bridge
+- `leanaide_crewai_bridge.py` - Updated bridge
 - `leanaide_mcp_tools.py` - New MCP tools
 - `tests/test_leanaide_continuous_math.py` - Test suite
 - `docs/LEANAIDE_CONTINUOUS_MATH.md` - Documentation
@@ -598,7 +598,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
 ##### Week 2: Adapters & Bridges
 
 4. **AI-KG Integration** (2 days)
-   - Create `ai_knowledge_graph_hephaestus_bridge.py`
+   - Create `ai_knowledge_graph_crewai_bridge.py`
    - Expose MCP tools (SPO extraction, entity standardization, visualization)
    - Map AI-KG triples to KnowledgeArtifact schema
 
@@ -635,7 +635,7 @@ FRM Reassessment (P5) - LOWEST PRIORITY
 
 #### Deliverables
 
-- `ai_knowledge_graph_hephaestus_bridge.py` - NEW (AI-KG MCP bridge)
+- `ai_knowledge_graph_crewai_bridge.py` - NEW (AI-KG MCP bridge)
 - `deepke_adapter.py` - NEW (DeepKE adapter)
 - `knowledge_engine/orchestrator.py` - NEW (extraction coordinator)
 - `tests/test_deepke_aikg_integration.py` - Test suite
@@ -807,8 +807,8 @@ FRM Reassessment (P5) - LOWEST PRIORITY
     - Track SOP metrics
     - Performance visualization
 
-12. **Hephaestus Delegation** (Task 4.2)
-    - Use `hephaestus_client.py`
+12. **CrewAI Delegation** (Task 4.2)
+    - Use `crewai_client.py`
     - Delegate heavy computations
     - Math formalization, error analysis, red team testing
 
@@ -1019,7 +1019,7 @@ Reconsider FRM integration **ONLY after**:
 - ROMA/MAKER/MDAP (decomposition)
 - SOP Generator, SOP Component System (SOP generation)
 - Red/Blue Teams (adversarial testing)
-- Hephaestus (delegation)
+- CrewAI (delegation)
 - Steer (safety)
 - Sovereign (quality)
 - BubbleLabs (analytics)

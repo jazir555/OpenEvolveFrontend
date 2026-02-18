@@ -16,7 +16,7 @@ import asyncio
 from datetime import datetime, timezone
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../src'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set environment variables
 os.environ.setdefault("ADAPTIVE_MDAP_TIMEOUT_MS", "5000")
@@ -60,7 +60,10 @@ async def main():
     for sp in subproblems[:3]:  # Only 3 for sequential demo
         result = await adapter.analyze_complexity_async(sp, use_cache=False)
         sequential_results.append(result)
-        print(f"  Task {sp.id}: complexity={result.complexity_score.overall_score:.3f}")
+        if result.complexity_score:
+            print(f"  Task {sp.id}: complexity={result.complexity_score.overall_score:.3f}")
+        else:
+            print(f"  Task {sp.id}: No complexity score available (graceful degradation)")
 
     sequential_duration = (asyncio.get_event_loop().time() - start) * 1000
 

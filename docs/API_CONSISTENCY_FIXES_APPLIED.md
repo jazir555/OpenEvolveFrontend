@@ -152,7 +152,7 @@ def function_name(
 
 **Coverage:**
 - ✅ All 7 MCP tools in ace_mcp_tools.py
-- ✅ All 6 phase methods in ace_hephaestus_bridge.py
+- ✅ All 6 phase methods in ace_crewai_bridge.py
 - ✅ All 9 MCP tools in ace_stage6_integration.py
 - ✅ All utility functions
 
@@ -217,7 +217,7 @@ def method(self, param1: str, param2: int) -> Dict[str, Any]:
 
 ### ✅ Fix #6: Fixed Parameter Order Issues
 
-**Fixed execute_full_workflow in ace_hephaestus_bridge.py:**
+**Fixed execute_full_workflow in ace_crewai_bridge.py:**
 
 **Phase 3 Call - Before:**
 ```python
@@ -276,7 +276,7 @@ phase4_result = self.execute_phase_4_verify(
 
 ### 📝 Ready for Update
 1. `ace_mcp_tools.py` - Needs ace_api_utils import
-2. `ace_hephaestus_bridge.py` - Needs ace_api_utils import + param fixes
+2. `ace_crewai_bridge.py` - Needs ace_api_utils import + param fixes
 3. `ace_stage6_integration.py` - Needs ace_api_utils import
 
 ---

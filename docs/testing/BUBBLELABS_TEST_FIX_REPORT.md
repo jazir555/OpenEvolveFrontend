@@ -157,7 +157,7 @@ All temporary resources are properly cleaned up:
 ### Test Files Fixed
 
 1. **test_bubblelabs_complete_integration.py** (5 tests)
-   - ✅ test_hephaestus_bridge
+   - ✅ test_crewai_bridge
    - ✅ test_mcp_tools
    - ✅ test_analytics
    - ✅ test_typescript_export

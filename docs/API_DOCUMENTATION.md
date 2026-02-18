@@ -707,14 +707,14 @@ Answer a math question in natural language.
 }
 ```
 
-### LeanAide Hephaestus Bridge API
+### LeanAide CrewAI Bridge API
 
-#### LeanAideHephaestusBridge
+#### LeanAideCrewAIBridge
 
-Bridge between LeanAide and Hephaestus workflow phases.
+Bridge between LeanAide and CrewAI workflow phases.
 
 ```python
-from leanaide_hephaestus_bridge import LeanAideHephaestusBridge, LeanAideConfig
+from leanaide_crewai_bridge import LeanAideCrewAIBridge, LeanAideConfig
 import asyncio
 
 async def main():
@@ -725,7 +725,7 @@ async def main():
         ticket_base_url="http://localhost:8000"
     )
 
-    bridge = LeanAideHephaestusBridge(config)
+    bridge = LeanAideCrewAIBridge(config)
 
     # Run full workflow
     result = await bridge.execute_full_workflow(
@@ -865,7 +865,7 @@ LEANAIDE_TIMEOUT=120
 #### Configuration Object
 
 ```python
-from leanaide_hephaestus_bridge import LeanAideConfig
+from leanaide_crewai_bridge import LeanAideConfig
 
 config = LeanAideConfig(
     # Server configuration
@@ -887,7 +887,7 @@ config = LeanAideConfig(
     lean_workspace="./lean_workspace",
     lean_library_path="./lean_libraries",
 
-    # Hephaestus ticket settings
+    # CrewAI ticket settings
     enable_tickets=True,
     ticket_base_url="http://localhost:8000"
 )

@@ -26,7 +26,7 @@ After **ultra-comprehensive analysis** using 4 specialized AI agents covering se
 | File | Lines | Security | Thread Safety | Resources | Validation | Total Fixes |
 |------|-------|----------|---------------|-----------|------------|-------------|
 | **ace_mcp_tools.py** | 817 | 3 | 6 | 1 | 3 | **13** |
-| **ace_hephaestus_bridge.py** | 1027 | 0 | 4 | 2 | 0 | **6** |
+| **ace_crewai_bridge.py** | 1027 | 0 | 4 | 2 | 0 | **6** |
 | **ace_analytics.py** | 736 | 0 | 7 | 2 | 5 | **14** |
 | **ace_knowledge_artifacts.py** | 652 | 3 | 4 | 0 | 3 | **10** |
 | **ace_workflow_knowledge_extractor.py** | 462 | 0 | 7 | 2 | 0 | **9** |
@@ -200,12 +200,12 @@ class UsageMetrics:
 ---
 
 #### ✅ TS-4: Shared Skillbook Race Conditions (FIXED)
-**Files:** ace_hephaestus_bridge.py, ace_workflow_knowledge_extractor.py
+**Files:** ace_crewai_bridge.py, ace_workflow_knowledge_extractor.py
 
 **Fix:**
 ```python
 # THREAD SAFETY FIX: TS-4
-class ACEHephaestusWorkflowBridge:
+class ACECrewAIWorkflowBridge:
     def __init__(self, ...):
         self._skillbook_lock = threading.RLock()  # Reentrant for nested access
 
@@ -386,12 +386,12 @@ def clear_mcp_tools():
 ---
 
 #### ✅ RL-4: Skillbook Growth (FIXED)
-**File:** ace_hephaestus_bridge.py
+**File:** ace_crewai_bridge.py
 
 **Fix:**
 ```python
 # RESOURCE FIX: RL-4
-class ACEHephaestusWorkflowBridge:
+class ACECrewAIWorkflowBridge:
     def cleanup_old_skills(self, max_skills=1000, min_helpful=5):
         """Remove less helpful skills to keep size bounded."""
         if not self.skillbook:

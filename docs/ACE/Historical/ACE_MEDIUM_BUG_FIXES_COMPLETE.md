@@ -76,7 +76,7 @@ def _mine_patterns_fallback(
 **Location:** Line 1096
 **Issue:** new_ge not deep copied (ALREADY FIXED ABOVE)
 
-#### Fix #9: ace_hephaestus_bridge.py - execute_phase_2_solution()
+#### Fix #9: ace_crewai_bridge.py - execute_phase_2_solution()
 **Location:** Line 558
 **Issue:** sub_problem in loop not deep copied
 **Fix:**
@@ -229,7 +229,7 @@ def recommend_team_for_task(
 
 ### 1.3 Resource Lifecycle (10 locations)
 
-#### Fix #16-25: ace_hephaestus_bridge.py - LLM Client Cleanup
+#### Fix #16-25: ace_crewai_bridge.py - LLM Client Cleanup
 **Location:** Line 1228-1290
 **Status:** ALREADY FIXED - Proper LLM client cleanup implemented (lines 1231-1270)
 
@@ -565,7 +565,7 @@ elif context and isinstance(context, str):
 
 ### 3.3 Validation gaps
 
-#### Fix #64-65: ace_hephaestus_bridge.py - sub_problem validation
+#### Fix #64-65: ace_crewai_bridge.py - sub_problem validation
 **Location:** Lines 559-562
 **Status:** ALREADY FIXED
 
@@ -605,7 +605,7 @@ import heapq
 top_tags = heapq.nlargest(5, tag_counts.items(), key=lambda x: x[1])
 ```
 
-#### Fix #71: ace_hephaestus_bridge.py - cleanup_old_skills()
+#### Fix #71: ace_crewai_bridge.py - cleanup_old_skills()
 **Location:** Line 317
 **Issue:** O(n²) skill removal
 **Status:** ALREADY FIXED (lines 317-331)
@@ -627,7 +627,7 @@ if removed_count > 0:
     self._invalidate_skills_cache()
 ```
 
-#### Fix #72: ace_hephaestus_bridge.py - String building
+#### Fix #72: ace_crewai_bridge.py - String building
 **Location:** Line 287
 **Issue:** String concatenation in loop
 **Status:** ALREADY FIXED (lines 287-295)
@@ -676,7 +676,7 @@ def get_artifact_statistics(self) -> Dict[str, Any]:
 
 ### 4.4 I/O optimization
 
-#### Fix #78: ace_hephaestus_bridge.py - save_skillbook()
+#### Fix #78: ace_crewai_bridge.py - save_skillbook()
 **Location:** Line 361
 **Issue:** Serialize inside lock
 **Status:** ALREADY FIXED (lines 361-379)

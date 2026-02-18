@@ -11,7 +11,7 @@
 
 | # | File | Bug | Severity | Status |
 |---|------|-----|----------|--------|
-| 1 | bubblelabs_hephaestus_bridge.py | Duplicate `__init__` method | Low | ✅ Fixed |
+| 1 | bubblelabs_crewai_bridge.py | Duplicate `__init__` method | Low | ✅ Fixed |
 | 2 | bubblelabs_analytics.py | Missing UNIQUE constraint for ON CONFLICT | High | ✅ Fixed |
 
 ---
@@ -20,7 +20,7 @@
 
 ### Bug #1: Duplicate `__init__` Method in WorkflowTicketMapping
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 39-51
 **Severity:** Low
 **Impact:** Code quality issue (dead code, confusing)
@@ -31,7 +31,7 @@ The `WorkflowTicketMapping` class has two `__init__` methods. The first one (lin
 **Code:**
 ```python
 class WorkflowTicketMapping:
-    """Maps workflow instances to Hephaestus tickets."""
+    """Maps workflow instances to CrewAI tickets."""
 
     def __init__(self):  # ← This is useless
         self.workflow_id: str
@@ -108,13 +108,13 @@ Add a UNIQUE constraint on `(workflow_id, provider)` when creating the table.
 
 ### Fix #1: Remove Duplicate `__init__`
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Action:** Remove lines 39-44 (the first `__init__` method)
 
 **Fixed Code:**
 ```python
 class WorkflowTicketMapping:
-    """Maps workflow instances to Hephaestus tickets."""
+    """Maps workflow instances to CrewAI tickets."""
 
     def __init__(self, workflow_id: str):
         self.workflow_id = workflow_id
@@ -158,7 +158,7 @@ After fixes:
 
 ### 1. Syntax Check
 ```bash
-python -c "import ast; ast.parse(open('bubblelabs_hephaestus_bridge.py').read())"
+python -c "import ast; ast.parse(open('bubblelabs_crewai_bridge.py').read())"
 # ✅ No errors
 
 python -c "import ast; ast.parse(open('bubblelabs_analytics.py').read())"
@@ -231,7 +231,7 @@ assert metrics.provider_metrics["openai"]["total_tokens"] == 2000
 
 ### 3. Integration Tests
 ```python
-# Test full workflow with Hephaestus bridge
+# Test full workflow with CrewAI bridge
 bridge = create_bridge()
 definition = integration.create_workflow_definition_from_openevolve(...)
 ticket_id = bridge.create_ticket_from_workflow(definition)

@@ -38,7 +38,7 @@ Successfully created **20+ production-ready BubbleLab integration adapters** for
   - Workflow chaining
 
 #### AI Coordination
-- **`hephaestus-bubble.ts`** (289 lines)
+- **`crewai-bubble.ts`** (289 lines)
   - AI agent team management
   - Task delegation
   - Gauntlet execution
@@ -165,7 +165,7 @@ Successfully created **20+ production-ready BubbleLab integration adapters** for
 
 **Business Logic (3 systems)**
 - LeanAide Client → Integrated via HTTP API
-- Hephaestus Delegation → `hephaestus-bubble.ts`
+- CrewAI Delegation → `crewai-bubble.ts`
 - ACE MCP Tools → `ace-tools-bubble.ts`
 
 **Bridges (2 systems)**

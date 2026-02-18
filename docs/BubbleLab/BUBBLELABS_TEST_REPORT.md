@@ -36,7 +36,7 @@
 #### Test Results:
 | Test Name | Status | Error | Time |
 |-----------|--------|-------|------|
-| test_hephaestus_bridge | ERROR | fixture 'result' not found | 0.06s |
+| test_crewai_bridge | ERROR | fixture 'result' not found | 0.06s |
 | test_mcp_tools | ERROR | fixture 'result' not found | <0.01s |
 | test_analytics | ERROR | fixture 'result' not found | <0.01s |
 | test_typescript_export | ERROR | fixture 'result' not found | <0.01s |

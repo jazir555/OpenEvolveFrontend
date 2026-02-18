@@ -38,15 +38,22 @@ import uuid
 import json
 from enum import Enum
 
-# Import knowledge engine components
-from ..core.entity_knowledge_graph import EntityKnowledgeGraph
-from ..schemas.base import Entity, Relationship, KnowledgeArtifact, ArtifactType, ArtifactCategory
+# Import knowledge engine components with graceful degradation
+try:
+    from knowledge_engine.core.entity_knowledge_graph import EntityKnowledgeGraph
+    from knowledge_engine.schemas.base import Entity, Relationship, KnowledgeArtifact, ArtifactType, ArtifactCategory
+    EKG_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    EntityKnowledgeGraph = None
+    Entity = None
+    Relationship = None
+    KnowledgeArtifact = None
+    ArtifactType = None
+    ArtifactCategory = None
+    EKG_AVAILABLE = False
 
 
 logger = logging.getLogger(__name__)
-
-# ROMA-Entity Knowledge Graph integration availability flag
-EKG_AVAILABLE = True
 
 
 # ============================================================================

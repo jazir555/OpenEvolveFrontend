@@ -16,7 +16,7 @@ Successfully fixed **2 CRITICAL edge cases** that could cause crashes due to mis
 
 ### **Edge Case 1: No None Check on workflow_definition (CRITICAL)**
 
-**File:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py`
+**File:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py`
 **Function:** `sync_workflow_to_ticket()` (Line 407)
 **Severity:** CRITICAL - Could cause production crashes
 
@@ -231,8 +231,8 @@ All CRITICAL edge cases are properly handled.
 
 ## Files Modified
 
-### 1. bubblelabs_hephaestus_bridge.py
-**Path:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py`
+### 1. bubblelabs_crewai_bridge.py
+**Path:** `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py`
 **Changes:**
 - Line 407-460: Enhanced `sync_workflow_to_ticket()` with None checks and attribute validation
 - Added explicit None check for workflow object

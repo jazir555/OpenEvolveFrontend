@@ -72,13 +72,13 @@ These files import from wrapper modules, not directly from openevolve package:
 - `content_analyzer.py`
 - `decomposition_engine_backup.py`
 - `distributed_processing.py`
-- `example_hephaestus_delegation.py`
+- `example_crewai_delegation.py`
 - `gauntlet_manager.py`
 - `health_checks.py`
-- `hephaestus_openevolve_bridge.py`
+- `crewai_openevolve_bridge.py`
 - `openevolve_dashboard.py`
-- `openevolve_hephaestus_adapter.py`
-- `openevolve_hephaestus_delegation.py`
+- `openevolve_crewai_adapter.py`
+- `openevolve_crewai_delegation.py`
 - `sovereign_gauntlets.py`
 - `sovereign_knowledge_manager.py`
 - `sovereign_quality_assessment.py`
@@ -292,9 +292,9 @@ openevolve.api.run_evolution
 - **Integration:** Model Context Protocol integration
 - **Status:** ✅ Complete with fallback classes
 
-### 6. Hephaestus Integration
-- **Files:** openevolve_hephaestus_adapter.py, openevolve_hephaestus_delegation.py
-- **Integration:** Delegation to Hephaestus orchestration
+### 6. CrewAI Integration
+- **Files:** openevolve_crewai_adapter.py, openevolve_crewai_delegation.py
+- **Integration:** Delegation to CrewAI orchestration
 - **Status:** ✅ Complete
 
 ### 7. BubbleLabs Integration
@@ -388,8 +388,8 @@ openevolve.api.run_evolution
 **MCP Tools (2):**
 - openevolve_mcp_tools.py, decomposition_mcp_tools.py
 
-**Hephaestus (3):**
-- openevolve_hephaestus_adapter.py, openevolve_hephaestus_delegation.py, hephaestus_openevolve_bridge.py
+**CrewAI (3):**
+- openevolve_crewai_adapter.py, openevolve_crewai_delegation.py, crewai_openevolve_bridge.py
 
 **BubbleLabs (3):**
 - openevolve_bubblelabs_api.py, bubblelabs_integration.py, bubblelabs_ui_component.py

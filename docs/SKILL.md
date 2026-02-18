@@ -33,7 +33,7 @@ OpenEvolve Evolutionary Workflow (6 phases) = separate path
 - `openevolve_client.py` for LLM ensemble configuration handling.
 - `BubbleLab/integrations/openevolve/service-bubbles/crewai-bubble.ts` for BubbleLab orchestration endpoints.
 - `BubbleLab/integrations/openevolve/index.ts` for bubble registration and aliasing.
-- `BubbleLab/integrations/openevolve/service-bubbles/hephaestus-bubble.ts` for legacy aliasing.
+- `BubbleLab/integrations/openevolve/service-bubbles/crewai-bubble.ts` for legacy aliasing.
 
 ## CrewAI decorators behavior
 - If CrewAI is installed, `@start`, `@listen`, and `@router` are real decorators.
@@ -731,7 +731,7 @@ Ensemble routing (BubbleLab)
 - If the request is explicitly evolution-focused, call the OpenEvolve workflow path rather than the unified flow.
 
 Back-compat alias
-- The `hephaestus` bubble is an alias to `crewai` in BubbleLab integration. Use `crewai` in new code.
+- The `crewai` bubble is an alias to `crewai` in BubbleLab integration. Use `crewai` in new code.
 
 ## BubbleLab payload example
 ```json
@@ -857,9 +857,9 @@ Useful prompt/evaluator knobs:
 - If `OPENEVOLVE_AVAILABLE` is false, `OpenEvolveClient.evolve` returns a fallback result without evolution.
 - When no API key is present, `_prepare_config` inserts a local fallback model which can hide missing key issues.
 
-## Hephaestus compatibility notes
-- CrewAI replaces Hephaestus with local execution (no HTTP client needed).
-- Hephaestus bubble is aliased to CrewAI in BubbleLab for backward compatibility.
+## CrewAI compatibility notes
+- CrewAI replaces CrewAI with local execution (no HTTP client needed).
+- CrewAI bubble is aliased to CrewAI in BubbleLab for backward compatibility.
 - Legacy scripts expecting a remote DB should use `crewai_state_management` instead.
 
 ## Performance tuning (quick knobs)

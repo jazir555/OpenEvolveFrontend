@@ -1,5 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { LeanAidePlugin, pluginRegistry, PluginManager as BasePluginManager, } from './PluginInterface';
 const PluginManagerContext = createContext(undefined);
 export const PluginManagerProvider = ({ children }) => {

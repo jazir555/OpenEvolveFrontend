@@ -4,7 +4,7 @@ Decomposition Workflow - CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 the Sovereign-Grade Decomposition Workflow.
 
-This replaces decomposition_hephaestus_bridge.py with local CrewAI execution.
+This replaces decomposition_crewai_bridge.py with local CrewAI execution.
 
 IMPORTANT: The Decomposition Workflow uses CrewAI's zero-error workflow which provides:
 - Problem decomposition into sub-problems
@@ -20,7 +20,7 @@ Phase Mapping:
 - Phase 5: Reassembly -> Stage 4 (Configurable Reassembly)
 - Phase 6: Final Validation -> Stage 5 (Final Verification) + Stage 6 (Knowledge Extraction)
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 """
 
 import logging

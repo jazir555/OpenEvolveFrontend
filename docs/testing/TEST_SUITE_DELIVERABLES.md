@@ -286,7 +286,7 @@ python test_all_bugs_fixed.py
 **Verified Fixed:** 11 (91.7%)
 
 ✅ Bug #1: Incorrect parameter names (decomposition_mcp_tools.py)
-✅ Bug #2: Incorrect parameter names (roma_mdap_maker_hephaestus_bridge.py)
+✅ Bug #2: Incorrect parameter names (roma_mdap_maker_crewai_bridge.py)
 ✅ Bug #3: AdaptiveKSelector returns invalid k=1
 ✅ Bug #4: Crash on None task
 ✅ Bug #5: No k_ahead validation

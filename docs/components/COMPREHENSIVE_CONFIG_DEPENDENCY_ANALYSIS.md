@@ -19,21 +19,21 @@ This analysis identified **127 Python files** with complex dependencies, **15+ e
 
 ## 1. ENVIRONMENT VARIABLES INVENTORY
 
-### 1.1 Hephaestus Integration Variables
+### 1.1 CrewAI Integration Variables
 
 | Variable | Usage | Required? | Default | Validation | Security |
 |----------|-------|-----------|---------|------------|----------|
-| `HEPHAESTUS_API_KEY` | API authentication | Optional | None | ❌ No validation | ⚠️ Uses weak default "demo_key" |
-| `HEPHAESTUS_API_BASE` | API endpoint URL | Optional | `http://localhost:8080` | ✅ Has default | ✅ Secure |
-| `HEPHAESTUS_PROJECT_ID` | Project identifier | Optional | `test-project` | ✅ Has default | ✅ Secure |
+| `CREWAI_API_KEY` | API authentication | Optional | None | ❌ No validation | ⚠️ Uses weak default "demo_key" |
+| `CREWAI_API_BASE` | API endpoint URL | Optional | `http://localhost:8080` | ✅ Has default | ✅ Secure |
+| `CREWAI_PROJECT_ID` | Project identifier | Optional | `test-project` | ✅ Has default | ✅ Secure |
 
 **Files Using:**
-- `bubblelabs_hephaestus_bridge.py` (lines 744-746)
+- `bubblelabs_crewai_bridge.py` (lines 744-746)
 - `workflow_engine.py` (lines 1270-1272, 1523-1525, 1583-1585, 1671-1673, 1729-1731, 2059-2061, 2111-2113)
-- `hephaestus_example.py` (lines 64-66)
+- `crewai_example.py` (lines 64-66)
 
 **Issues Found:**
-1. ⚠️ **WEAK DEFAULT**: `workflow_engine.py` uses `demo_key` as default for HEPHAESTUS_API_KEY (lines 1271, 1524, 1584, 1672, 1730, 2060, 2112)
+1. ⚠️ **WEAK DEFAULT**: `workflow_engine.py` uses `demo_key` as default for CREWAI_API_KEY (lines 1271, 1524, 1584, 1672, 1730, 2060, 2112)
 2. ⚠️ **INCONSISTENT DEFAULTS**: Different files use different default ports (8000 vs 8080)
 3. ⚠️ **NO VALIDATION**: No validation that API key format is correct before use
 
@@ -231,22 +231,22 @@ elasticsearch==8.14.0          # Search engine
 ```
 
 **Issues Found:**
-1. ❌ **MISSING FROM REQUIREMENTS**: `hephaestus-client` not listed but used in code
+1. ❌ **MISSING FROM REQUIREMENTS**: `crewai-client` not listed but used in code
 2. ❌ **MISSING FROM REQUIREMENTS**: `bubblelabs` not listed but used in code
 3. ⚠️ **VERSION PINNING**: Some packages use `==` (too strict), others use `>=` (too loose)
 4. ⚠️ **CONFLICTING VERSIONS**: Multiple packages requiring different numpy versions (numpy 2.3.3 incompatible with some older packages)
 
 ### 3.2 Optional Dependencies with Graceful Degradation
 
-**✅ GOOD EXAMPLE** - Hephaestus Integration:
+**✅ GOOD EXAMPLE** - CrewAI Integration:
 ```python
-# bubblelabs_hephaestus_bridge.py (lines 22-30)
+# bubblelabs_crewai_bridge.py (lines 22-30)
 try:
-    from hephaestus_integration import HephaestusClient, TicketStatus, TicketType
-    HEPHAESTUS_AVAILABLE = True
+    from crewai_integration import CrewAIClient, TicketStatus, TicketType
+    CREWAI_AVAILABLE = True
 except ImportError:
-    HEPHAESTUS_AVAILABLE = False
-    HephaestusClient = None
+    CREWAI_AVAILABLE = False
+    CrewAIClient = None
     TicketStatus = None
     TicketType = None
 ```
@@ -276,12 +276,12 @@ from anthropic import Anthropic  # Will crash if not installed
 
 **Not in requirements.txt but used in code:**
 
-1. **hephaestus-client** or **hephaestus_integration**
-   - Used: `bubblelabs_hephaestus_bridge.py`, `workflow_engine.py`
+1. **crewai-client** or **crewai_integration**
+   - Used: `bubblelabs_crewai_bridge.py`, `workflow_engine.py`
    - Status: Custom module, needs to be in project or requirements
 
 2. **bubblelabs-integration** or **bubblelabs**
-   - Used: `bubblelabs_hephaestus_bridge.py`, `bubblelabs_mcp_tools.py`
+   - Used: `bubblelabs_crewai_bridge.py`, `bubblelabs_mcp_tools.py`
    - Status: Custom module, needs to be in project or requirements
 
 3. **Pillow** (PIL)
@@ -310,7 +310,7 @@ from anthropic import Anthropic  # Will crash if not installed
 ### 3.5 External Service Dependencies
 
 **Optional Services:**
-1. **Hephaestus API** (Project Management)
+1. **CrewAI API** (Project Management)
    - Status: Optional with graceful degradation
    - Default: Mock mode when unavailable
    - Configuration: Environment variables
@@ -341,7 +341,7 @@ from anthropic import Anthropic  # Will crash if not installed
 
 ### 4.1 Insecure Defaults
 
-1. **`demo_key` for HEPHAESTUS_API_KEY** (7 occurrences)
+1. **`demo_key` for CREWAI_API_KEY** (7 occurrences)
    - File: `workflow_engine.py`
    - Lines: 1271, 1524, 1584, 1672, 1730, 2060, 2112
    - Issue: Hardcoded demo credential
@@ -501,7 +501,7 @@ except ValueError as e:
 ### 6.3 Local/Project Imports
 
 **Custom modules that need to exist:**
-- `hephaestus_integration` / `hephaestus_client`
+- `crewai_integration` / `crewai_client`
 - `bubblelabs_integration`
 - `openevolve_integration`
 - `workflow_structures`
@@ -606,10 +606,10 @@ except ValueError as e:
 
 ### 9.1 Good Examples
 
-✅ **Hephaestus Integration:**
+✅ **CrewAI Integration:**
 ```python
 # Properly handles missing dependency
-if not HEPHAESTUS_AVAILABLE or not self.hephaestus:
+if not CREWAI_AVAILABLE or not self.crewai:
     logger.debug(f"Mock update: workflow {workflow_instance_id} progress {progress*100:.1f}%")
     return True
 ```
@@ -645,12 +645,12 @@ conn = sqlite3.connect(db_path)  # Can fail
 1. **Remove Insecure Defaults:**
    ```python
    # BAD:
-   hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY", "demo_key")
+   crewai_api_key = os.getenv("CREWAI_API_KEY", "demo_key")
 
    # GOOD:
-   hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-   if not hephaestus_api_key:
-       logger.error("HEPHAESTUS_API_KEY required for production")
+   crewai_api_key = os.getenv("CREWAI_API_KEY")
+   if not crewai_api_key:
+       logger.error("CREWAI_API_KEY required for production")
        # Either raise error or use mock mode explicitly
    ```
 
@@ -703,8 +703,8 @@ conn = sqlite3.connect(db_path)  # Can fail
    # Add missing packages:
    networkx>=2.0.0
    Pillow>=9.0.0
-   hephaestus-client>=1.0.0  # If external package
-   # or add: -e ./hephaestus  # If local package
+   crewai-client>=1.0.0  # If external package
+   # or add: -e ./crewai  # If local package
    ```
 
 ### 10.2 Short-Term Improvements (Medium Priority)
@@ -815,15 +815,15 @@ mkdocs-material>=9.5.0
 # =============================================================================
 # Missing Dependencies (Added)
 # =============================================================================
-# Note: Hephaestus and BubbleLabs integration modules need to be added
+# Note: CrewAI and BubbleLabs integration modules need to be added
 # based on your installation method (pip package or local module)
 
 # If external packages exist:
-# hephaestus-client>=1.0.0
+# crewai-client>=1.0.0
 # bubblelabs-client>=1.0.0
 
 # If local packages:
-# -e ./hephaestus
+# -e ./crewai
 # -e ./bubblelabs
 ```
 
@@ -862,11 +862,11 @@ export SOVEREIGN_ENV="production"
 
 ### 12.2 Optional Environment Variables
 
-**Hephaestus Integration (Optional):**
+**CrewAI Integration (Optional):**
 ```bash
-export HEPHAESTUS_API_BASE="https://hephaestus.example.com/api/v1"
-export HEPHAESTUS_API_KEY="your-hephaestus-key"
-export HEPHAESTUS_PROJECT_ID="your-project-id"
+export CREWAI_API_BASE="https://crewai.example.com/api/v1"
+export CREWAI_API_KEY="your-crewai-key"
+export CREWAI_PROJECT_ID="your-project-id"
 ```
 
 **Feature Flags (Optional):**
@@ -908,12 +908,12 @@ def validate_environment() -> Tuple[bool, List[str]]:
         if not os.getenv("JWT_SECRET"):
             errors.append("JWT_SECRET required in production")
 
-    # Check Hephaestus configuration
-    has_hephaestus_base = bool(os.getenv("HEPHAESTUS_API_BASE"))
-    has_hephaestus_key = bool(os.getenv("HEPHAESTUS_API_KEY"))
+    # Check CrewAI configuration
+    has_crewai_base = bool(os.getenv("CREWAI_API_BASE"))
+    has_crewai_key = bool(os.getenv("CREWAI_API_KEY"))
 
-    if has_hephaestus_base != has_hephaestus_key:
-        warnings.append("Partial Hephaestus configuration (both API_BASE and API_KEY recommended)")
+    if has_crewai_base != has_crewai_key:
+        warnings.append("Partial CrewAI configuration (both API_BASE and API_KEY recommended)")
 
     return len(errors) == 0, errors + warnings
 

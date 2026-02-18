@@ -36,7 +36,7 @@ Automatically extracts structured knowledge from workflow artifacts using patter
 ```python
 from ragbits_integration.knowledge_base import KnowledgeExtractor
 
-extractor = KnowledgeExtractor(hephaestus_client)
+extractor = KnowledgeExtractor(crewai_client)
 
 # Extract from single artifact
 result = await extractor.extract_from_artifact(
@@ -90,7 +90,7 @@ from ragbits_integration.knowledge_base import KnowledgeEnricher
 
 enricher = KnowledgeEnricher(
     storage_manager=storage,
-    hephaestus_client=hephaestus
+    crewai_client=crewai
 )
 
 # Enrich entities
@@ -205,7 +205,7 @@ from ragbits_integration.knowledge_base import AdvancedRAGEngine, SearchType
 
 engine = AdvancedRAGEngine(
     document_search=document_search,
-    hephaestus_client=hephaestus
+    crewai_client=crewai
 )
 
 # Simple hybrid search
@@ -293,7 +293,7 @@ from ragbits_integration.knowledge_base import (
 
 async def complete_knowledge_workflow():
     # Step 1: Extract knowledge from artifacts
-    extractor = KnowledgeExtractor(hephaestus_client)
+    extractor = KnowledgeExtractor(crewai_client)
 
     content = """
     Implement JWT-based authentication for the REST API.
@@ -313,7 +313,7 @@ async def complete_knowledge_workflow():
     print(f"Extracted {len(extraction_result.entities)} knowledge entities")
 
     # Step 2: Enrich extracted knowledge
-    enricher = KnowledgeEnricher(storage_manager, hephaestus_client)
+    enricher = KnowledgeEnricher(storage_manager, crewai_client)
 
     enrichment_result = await enricher.enrich_entities(
         entities=extraction_result.entities,
@@ -334,7 +334,7 @@ async def complete_knowledge_workflow():
     print(f"Recommended strategy: {optimization_report.optimized_strategy.value}")
 
     # Step 4: Query knowledge base with advanced RAG
-    rag_engine = AdvancedRAGEngine(document_search, hephaestus_client)
+    rag_engine = AdvancedRAGEngine(document_search, crewai_client)
 
     query_result = await rag_engine.query(
         query_text="Best practices for JWT authentication",

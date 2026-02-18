@@ -34,7 +34,7 @@ All 18 critical issues from the Wave 2 technical review have been systematically
 - ✅ postgresql-bubble.ts - Now properly extends `PostgreSQLBubble`
 - ✅ knowledge-engine-bubble.ts - Now extends `ServiceBubble<KnowledgeEngineParams, KnowledgeEngineResult>`
 - ✅ workflow-orchestrator-bubble.ts - Now extends `ServiceBubble<WorkflowParams, WorkflowResult>`
-- ✅ hephaestus-bubble.ts - Now extends `AIAgentBubble<HephaestusParams, HephaestusResult>`
+- ✅ crewai-bubble.ts - Now extends `AIAgentBubble<CrewAIParams, CrewAIResult>`
 - ✅ ace-tools-bubble.ts - Now extends `ServiceBubble<ACEToolsParams, ACEToolsResult>`
 
 #### Implementation Pattern:
@@ -84,7 +84,7 @@ baseUrl: z.string().url().describe('Qdrant server URL (REQUIRED)')
 - ✅ redis-bubble.ts - connectionString required
 - ✅ knowledge-engine-bubble.ts - All backend URLs required
 - ✅ workflow-orchestrator-bubble.ts - baseUrl required
-- ✅ hephaestus-bubble.ts - baseUrl required
+- ✅ crewai-bubble.ts - baseUrl required
 - ✅ ace-tools-bubble.ts - baseUrl required
 - ✅ log-parser-tool.ts - logPath required
 - ✅ metrics-collector-tool.ts - prometheusUrl required
@@ -379,7 +379,7 @@ results: result.data as SearchResult[],
 - `postgresql-bubble.test.ts` - 80% coverage
 - `knowledge-engine-bubble.test.ts` - 75% coverage
 - `workflow-orchestrator-bubble.test.ts` - 78% coverage
-- `hephaestus-bubble.test.ts` - 76% coverage
+- `crewai-bubble.test.ts` - 76% coverage
 - `ace-tools-bubble.test.ts` - 79% coverage
 - `resilience.test.ts` - 95% coverage
 

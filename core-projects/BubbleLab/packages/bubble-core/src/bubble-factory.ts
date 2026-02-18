@@ -61,6 +61,7 @@ export type BubbleClassWithMetadata<TResult extends object = object> = {
 export class BubbleFactory {
   private registry = new Map<BubbleName, BubbleClassWithMetadata<any>>();
   private static dependenciesPopulated = false;
+  private static optionalImportFailures = new Set<string>();
   private static detailedDepsCache = new Map<
     BubbleName,
     BubbleDependencySpec[]
@@ -83,12 +84,38 @@ export class BubbleFactory {
   /**
    * Register a bubble class with the factory
    */
-  register(name: BubbleName, bubbleClass: BubbleClassWithMetadata<any>): void {
+  register(
+    name: BubbleName,
+    bubbleClass?: BubbleClassWithMetadata<any> | null
+  ): void {
+    if (!bubbleClass) {
+      return;
+    }
     if (this.registry.has(name)) {
       // Silently skip if already registered - makes it idempotent
       return;
     }
     this.registry.set(name, bubbleClass);
+  }
+
+  private async safeImport<T extends Record<string, unknown>>(
+    modulePath: string
+  ): Promise<T | null> {
+    try {
+      return (await import(modulePath)) as T;
+    } catch (error) {
+      const message =
+        typeof error === 'object' && error && 'message' in error
+          ? String((error as { message?: unknown }).message)
+          : String(error);
+      if (!BubbleFactory.optionalImportFailures.has(modulePath)) {
+        console.warn(
+          `[BubbleFactory] Skipping optional bubble module '${modulePath}': ${message}`
+        );
+        BubbleFactory.optionalImportFailures.add(modulePath);
+      }
+      return null;
+    }
   }
 
   /**
@@ -174,7 +201,7 @@ export class BubbleFactory {
       'twilio',
       'stripe',
       'webhook',
-      'hephaestus',
+      'crewai',
       'airtable-wrapper',
       'openevolve-slack',
       'openevolve-gmail',
@@ -233,337 +260,341 @@ export class BubbleFactory {
     // This will be implemented in a separate file to avoid circular deps
     // Register all default bubbles
 
-    const { HelloWorldBubble } = await import(
+    const { HelloWorldBubble } = (await this.safeImport(
       './bubbles/service-bubble/hello-world.js'
-    );
-    const { AIAgentBubble } = await import(
+    )) ?? {};
+    const { AIAgentBubble } = (await this.safeImport(
       './bubbles/service-bubble/ai-agent.js'
-    );
-    const { PostgreSQLBubble } = await import(
+    )) ?? {};
+    const { PostgreSQLBubble } = (await this.safeImport(
       './bubbles/service-bubble/postgresql.js'
-    );
-    const { SlackBubble } = await import('./bubbles/service-bubble/slack.js');
-    const { TelegramBubble } = await import(
+    )) ?? {};
+    const { SlackBubble } = (await this.safeImport('./bubbles/service-bubble/slack.js')) ?? {};
+    const { TelegramBubble } = (await this.safeImport(
       './bubbles/service-bubble/telegram.js'
-    );
-    const { ResendBubble } = await import('./bubbles/service-bubble/resend.js');
-    const { HttpBubble } = await import('./bubbles/service-bubble/http.js');
-    const { StorageBubble } = await import(
+    )) ?? {};
+    const { ResendBubble } = (await this.safeImport('./bubbles/service-bubble/resend.js')) ?? {};
+    const { HttpBubble } = (await this.safeImport('./bubbles/service-bubble/http.js')) ?? {};
+    const { StorageBubble } = (await this.safeImport(
       './bubbles/service-bubble/storage.js'
-    );
-    const { GoogleDriveBubble } = await import(
+    )) ?? {};
+    const { GoogleDriveBubble } = (await this.safeImport(
       './bubbles/service-bubble/google-drive.js'
-    );
-    const { GmailBubble } = await import('./bubbles/service-bubble/gmail.js');
-    const { GoogleSheetsBubble } = await import(
+    )) ?? {};
+    const { GmailBubble } = (await this.safeImport('./bubbles/service-bubble/gmail.js')) ?? {};
+    const { GoogleSheetsBubble } = (await this.safeImport(
       './bubbles/service-bubble/google-sheets'
-    );
-    const { GoogleCalendarBubble } = await import(
+    )) ?? {};
+    const { GoogleCalendarBubble } = (await this.safeImport(
       './bubbles/service-bubble/google-calendar.js'
-    );
-    const { ApifyBubble } = await import('./bubbles/service-bubble/apify');
-    const { GithubBubble } = await import('./bubbles/service-bubble/github.js');
-    const { FollowUpBossBubble } = await import(
+    )) ?? {};
+    const { ApifyBubble } = (await this.safeImport('./bubbles/service-bubble/apify')) ?? {};
+    const { GithubBubble } = (await this.safeImport('./bubbles/service-bubble/github.js')) ?? {};
+    const { FollowUpBossBubble } = (await this.safeImport(
       './bubbles/service-bubble/followupboss.js'
-    );
-    const { NotionBubble } = await import(
+    )) ?? {};
+    const { NotionBubble } = (await this.safeImport(
       './bubbles/service-bubble/notion/notion.js'
-    );
-    const { DatabaseAnalyzerWorkflowBubble } = await import(
+    )) ?? {};
+    const { DatabaseAnalyzerWorkflowBubble } = (await this.safeImport(
       './bubbles/workflow-bubble/database-analyzer.workflow.js'
-    );
-    const { SlackNotifierWorkflowBubble } = await import(
+    )) ?? {};
+    const { SlackNotifierWorkflowBubble } = (await this.safeImport(
       './bubbles/workflow-bubble/slack-notifier.workflow.js'
-    );
-    const { SlackDataAssistantWorkflow } = await import(
+    )) ?? {};
+    const { SlackDataAssistantWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/slack-data-assistant.workflow.js'
-    );
+    )) ?? {};
 
-    const { ListBubblesTool } = await import(
+    const { ListBubblesTool } = (await this.safeImport(
       './bubbles/tool-bubble/list-bubbles-tool.js'
-    );
-    const { GetBubbleDetailsTool } = await import(
+    )) ?? {};
+    const { GetBubbleDetailsTool } = (await this.safeImport(
       './bubbles/tool-bubble/get-bubble-details-tool.js'
-    );
-    const { SQLQueryTool } = await import(
+    )) ?? {};
+    const { SQLQueryTool } = (await this.safeImport(
       './bubbles/tool-bubble/sql-query-tool.js'
-    );
-    const { ChartJSTool } = await import(
+    )) ?? {};
+    const { ChartJSTool } = (await this.safeImport(
       './bubbles/tool-bubble/chart-js-tool.js'
-    );
-    const { BubbleFlowValidationTool } = await import(
+    )) ?? {};
+    const { BubbleFlowValidationTool } = (await this.safeImport(
       './bubbles/tool-bubble/bubbleflow-validation-tool.js'
-    );
-    const { EditBubbleFlowTool } = await import(
+    )) ?? {};
+    const { EditBubbleFlowTool } = (await this.safeImport(
       './bubbles/tool-bubble/code-edit-tool.js'
-    );
-    const { WebSearchTool } = await import(
+    )) ?? {};
+    const { WebSearchTool } = (await this.safeImport(
       './bubbles/tool-bubble/web-search-tool.js'
-    );
-    const { WebScrapeTool } = await import(
+    )) ?? {};
+    const { WebScrapeTool } = (await this.safeImport(
       './bubbles/tool-bubble/web-scrape-tool.js'
-    );
-    const { WebExtractTool } = await import(
+    )) ?? {};
+    const { WebExtractTool } = (await this.safeImport(
       './bubbles/tool-bubble/web-extract-tool.js'
-    );
-    const { ResearchAgentTool } = await import(
+    )) ?? {};
+    const { ResearchAgentTool } = (await this.safeImport(
       './bubbles/tool-bubble/research-agent-tool.js'
-    );
-    const { RedditScrapeTool } = await import(
+    )) ?? {};
+    const { RedditScrapeTool } = (await this.safeImport(
       './bubbles/tool-bubble/reddit-scrape-tool.js'
-    );
-    const { InstagramTool } = await import(
+    )) ?? {};
+    const { InstagramTool } = (await this.safeImport(
       './bubbles/tool-bubble/instagram-tool.js'
-    );
-    const { LinkedInTool } = await import(
+    )) ?? {};
+    const { LinkedInTool } = (await this.safeImport(
       './bubbles/tool-bubble/linkedin-tool.js'
-    );
-    const { YouTubeTool } = await import(
+    )) ?? {};
+    const { YouTubeTool } = (await this.safeImport(
       './bubbles/tool-bubble/youtube-tool.js'
-    );
-    const { TikTokTool } = await import('./bubbles/tool-bubble/tiktok-tool.js');
-    const { TwitterTool } = await import(
+    )) ?? {};
+    const { TikTokTool } = (await this.safeImport('./bubbles/tool-bubble/tiktok-tool.js')) ?? {};
+    const { TwitterTool } = (await this.safeImport(
       './bubbles/tool-bubble/twitter-tool.js'
-    );
-    const { GoogleMapsTool } = await import(
+    )) ?? {};
+    const { GoogleMapsTool } = (await this.safeImport(
       './bubbles/tool-bubble/google-maps-tool.js'
-    );
-    const { LogParserTool } = await import(
+    )) ?? {};
+    const { LogParserTool } = (await this.safeImport(
       './bubbles/tool-bubble/log-parser-tool.js'
-    );
-    const { MetricsCollectorTool } = await import(
+    )) ?? {};
+    const { MetricsCollectorTool } = (await this.safeImport(
       './bubbles/tool-bubble/metrics-collector-tool.js'
-    );
-    const { VectorSearchTool } = await import(
+    )) ?? {};
+    const { VectorSearchTool } = (await this.safeImport(
       './bubbles/tool-bubble/vector-search-tool.js'
-    );
-    const { CSVProcessorTool } = await import(
+    )) ?? {};
+    const { CSVProcessorTool } = (await this.safeImport(
       './bubbles/tool-bubble/csv-processor-tool.js'
-    );
-    const { JSONValidatorTool } = await import(
+    )) ?? {};
+    const { JSONValidatorTool } = (await this.safeImport(
       './bubbles/tool-bubble/json-validator-tool.js'
-    );
-    const { DataTransformerTool } = await import(
+    )) ?? {};
+    const { DataTransformerTool } = (await this.safeImport(
       './bubbles/tool-bubble/data-transformer-tool.js'
-    );
-    const { FileProcessorTool } = await import(
+    )) ?? {};
+    const { FileProcessorTool } = (await this.safeImport(
       './bubbles/tool-bubble/file-processor-tool.js'
-    );
-    const { ImageProcessorTool } = await import(
+    )) ?? {};
+    const { ImageProcessorTool } = (await this.safeImport(
       './bubbles/tool-bubble/image-processor-tool.js'
-    );
-    const { XMLParserTool } = await import(
+    )) ?? {};
+    const { XMLParserTool } = (await this.safeImport(
       './bubbles/tool-bubble/xml-parser-tool.js'
-    );
-    const { PDFGeneratorTool } = await import(
+    )) ?? {};
+    const { PDFGeneratorTool } = (await this.safeImport(
       './bubbles/tool-bubble/pdf-generator-tool.js'
-    );
-    const { EmailValidatorTool } = await import(
+    )) ?? {};
+    const { EmailValidatorTool } = (await this.safeImport(
       './bubbles/tool-bubble/email-validator-tool.js'
-    );
-    const { URLValidatorTool } = await import(
+    )) ?? {};
+    const { URLValidatorTool } = (await this.safeImport(
       './bubbles/tool-bubble/url-validator-tool.js'
-    );
-    const { CodeFormatterTool } = await import(
+    )) ?? {};
+    const { CodeFormatterTool } = (await this.safeImport(
       './bubbles/tool-bubble/code-formatter-tool.js'
-    );
-    const { TextAnalyzerTool } = await import(
+    )) ?? {};
+    const { TextAnalyzerTool } = (await this.safeImport(
       './bubbles/tool-bubble/text-analyzer-tool.js'
-    );
-    const { SlackFormatterAgentBubble } = await import(
+    )) ?? {};
+    const { SlackFormatterAgentBubble } = (await this.safeImport(
       './bubbles/workflow-bubble/slack-formatter-agent.js'
-    );
-    const { PDFFormOperationsWorkflow } = await import(
+    )) ?? {};
+    const { PDFFormOperationsWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/pdf-form-operations.workflow.js'
-    );
-    const { PDFOcrWorkflow } = await import(
+    )) ?? {};
+    const { PDFOcrWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/pdf-ocr.workflow.js'
-    );
-    const { GenerateDocumentWorkflow } = await import(
+    )) ?? {};
+    const { GenerateDocumentWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/generate-document.workflow.js'
-    );
-    const { ParseDocumentWorkflow } = await import(
+    )) ?? {};
+    const { ParseDocumentWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/parse-document.workflow.js'
-    );
-    const { DataEnrichmentWorkflow } = await import(
+    )) ?? {};
+    const { DataEnrichmentWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/data-enrichment.workflow.js'
-    );
-    const { BackupRestoreWorkflow } = await import(
+    )) ?? {};
+    const { BackupRestoreWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/backup-restore.workflow.js'
-    );
-    const { MonitoringAlertWorkflow } = await import(
+    )) ?? {};
+    const { MonitoringAlertWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/monitoring-alert.workflow.js'
-    );
-    const { ETLPipelineWorkflow } = await import(
+    )) ?? {};
+    const { ETLPipelineWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/etl-pipeline.workflow.js'
-    );
-    const { APIAggregatorWorkflow } = await import(
+    )) ?? {};
+    const { APIAggregatorWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/api-aggregator.workflow.js'
-    );
-    const { ScheduledTaskWorkflow } = await import(
+    )) ?? {};
+    const { ScheduledTaskWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/scheduled-task.workflow.js'
-    );
-    const { EventHandlerWorkflow } = await import(
+    )) ?? {};
+    const { EventHandlerWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/event-handler.workflow.js'
-    );
-    const { MultiStepApprovalWorkflow } = await import(
+    )) ?? {};
+    const { MultiStepApprovalWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/multi-step-approval.workflow.js'
-    );
-    const { WebhookRepeaterWorkflow } = await import(
+    )) ?? {};
+    const { WebhookRepeaterWorkflow } = (await this.safeImport(
       './bubbles/workflow-bubble/webhook-repeater.workflow.js'
-    );
-    const { ElevenLabsBubble } = await import(
+    )) ?? {};
+    const { ElevenLabsBubble } = (await this.safeImport(
       './bubbles/service-bubble/eleven-labs.js'
-    );
-    const { AGIIncBubble } = await import(
+    )) ?? {};
+    const { AGIIncBubble } = (await this.safeImport(
       './bubbles/service-bubble/agi-inc.js'
-    );
-    const { AirtableBubble } = await import(
+    )) ?? {};
+    const { AirtableBubble } = (await this.safeImport(
       './bubbles/service-bubble/airtable.js'
-    );
-    const { FirecrawlBubble } = await import(
+    )) ?? {};
+    const { FirecrawlBubble } = (await this.safeImport(
       './bubbles/service-bubble/firecrawl.js'
-    );
-    const { InsForgeDbBubble } = await import(
+    )) ?? {};
+    const { InsForgeDbBubble } = (await this.safeImport(
       './bubbles/service-bubble/insforge-db.js'
-    );
-    const { AceToolsBubble } = await import(
+    )) ?? {};
+    const { AceToolsBubble } = (await this.safeImport(
       './bubbles/service-bubble/ace-tools-bubble.js'
-    );
-    const { WorkflowOrchestratorBubble } = await import(
+    )) ?? {};
+    const { WorkflowOrchestratorBubble } = (await this.safeImport(
       './bubbles/service-bubble/workflow-orchestrator-bubble.js'
-    );
-    const { QdrantBubble } = await import(
+    )) ?? {};
+    const { QdrantBubble } = (await this.safeImport(
       './bubbles/service-bubble/qdrant-bubble.js'
-    );
-    const { ElasticsearchBubble } = await import(
+    )) ?? {};
+    const { ElasticsearchBubble } = (await this.safeImport(
       './bubbles/service-bubble/elasticsearch-bubble.js'
-    );
-    const { RedisBubble } = await import(
+    )) ?? {};
+    const { RedisBubble } = (await this.safeImport(
       './bubbles/service-bubble/redis-bubble.js'
-    );
-    const { SendGridBubble } = await import(
+    )) ?? {};
+    const { SendGridBubble } = (await this.safeImport(
       './bubbles/service-bubble/sendgrid-bubble.js'
-    );
-    const { TwilioBubble } = await import(
+    )) ?? {};
+    const { TwilioBubble } = (await this.safeImport(
       './bubbles/service-bubble/twilio-bubble.js'
-    );
-    const { StripeBubble } = await import(
+    )) ?? {};
+    const { StripeBubble } = (await this.safeImport(
       './bubbles/service-bubble/stripe-bubble.js'
-    );
-    const { WebhookBubble } = await import(
+    )) ?? {};
+    const { WebhookBubble } = (await this.safeImport(
       './bubbles/service-bubble/webhook-bubble.js'
-    );
-    const { HephaestusBubble } = await import(
-      './bubbles/service-bubble/hephaestus-bubble.js'
-    );
-    const { AirtableWrapperBubble } = await import(
+    )) ?? {};
+    const { CrewAIBubble } = (await this.safeImport(
+      './bubbles/service-bubble/crewai-bubble.js'
+    )) ?? {};
+    const { AirtableWrapperBubble } = (await this.safeImport(
       './bubbles/service-bubble/airtable-wrapper.js'
-    );
-    const { OpenEvolveWorkflowBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveWorkflowBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-workflow-bubble.js'
-    );
-    const { OpenEvolveExecutionBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveExecutionBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-execution-bubble.js'
-    );
-    const { OpenEvolveTeamBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveTeamBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-team-bubble.js'
-    );
-    const { OpenEvolveGauntletBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveGauntletBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-gauntlet-bubble.js'
-    );
-    const { OpenEvolveSettingsBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveSettingsBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-settings-bubble.js'
-    );
-    const { OpenEvolveIcrBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveIcrBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-icr-bubble.js'
-    );
-    const { OpenEvolveDeterminismBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveDeterminismBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-determinism-bubble.js'
-    );
-    const { OpenEvolveDecompositionBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveDecompositionBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-decomposition-bubble.js'
-    );
-    const { OpenEvolveDecompositionWorkflowBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveDecompositionWorkflowBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-decomposition-workflow-bubble.js'
-    );
-    const { OpenEvolveKnowledgeEngineBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveKnowledgeEngineBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-knowledge-engine-bubble.js'
-    );
-    const { OpenEvolveWorkflowOrchestratorBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveWorkflowOrchestratorBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-workflow-orchestrator-bubble.js'
-    );
-    const { OpenEvolveAceToolsBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveAceToolsBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-ace-tools-bubble.js'
-    );
-    const { OpenEvolveCrewAIBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveCrewAIBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-crewai-bubble.js'
-    );
-    const { OpenEvolveLeanAideBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveLeanAideBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-leanaide-bubble.js'
-    );
-    const { OpenEvolveZ3ProverBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveZ3ProverBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-z3prover-bubble.js'
-    );
-    const { OpenEvolveGauntletTestingBubble } = await import(
+    )) ?? {};
+    const { OpenEvolveGauntletTestingBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-gauntlet-testing-bubble.js'
-    );
-    const { SlackBubble: OpenEvolveSlackBubbleBase } = await import(
+    )) ?? {};
+    const { SlackBubble: OpenEvolveSlackBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/slack-bubble.js'
-    );
-    const { GmailBubble: OpenEvolveGmailBubbleBase } = await import(
+    )) ?? {};
+    const { GmailBubble: OpenEvolveGmailBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/gmail-bubble.js'
-    );
-    const { HttpBubble: OpenEvolveHttpBubbleBase } = await import(
+    )) ?? {};
+    const { HttpBubble: OpenEvolveHttpBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/http-bubble.js'
-    );
-    const { GithubBubble: OpenEvolveGithubBubbleBase } = await import(
+    )) ?? {};
+    const { GithubBubble: OpenEvolveGithubBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/github-bubble.js'
-    );
-    const { ApifyBubble: OpenEvolveApifyBubbleBase } = await import(
+    )) ?? {};
+    const { ApifyBubble: OpenEvolveApifyBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/apify-bubble.js'
-    );
-    const { GoogleDriveBubble: OpenEvolveGoogleDriveBubbleBase } = await import(
+    )) ?? {};
+    const { GoogleDriveBubble: OpenEvolveGoogleDriveBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/google-drive-bubble.js'
-    );
-    const { GoogleSheetsBubble: OpenEvolveGoogleSheetsBubbleBase } = await import(
+    )) ?? {};
+    const { GoogleSheetsBubble: OpenEvolveGoogleSheetsBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/google-sheets-bubble.js'
-    );
-    const { AirtableBubble: OpenEvolveAirtableBubbleBase } = await import(
+    )) ?? {};
+    const { AirtableBubble: OpenEvolveAirtableBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/airtable-bubble.js'
-    );
-    const { NotionBubble: OpenEvolveNotionBubbleBase } = await import(
+    )) ?? {};
+    const { NotionBubble: OpenEvolveNotionBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/notion-bubble.js'
-    );
-    const { PostgreSQLBubble: OpenEvolvePostgreSQLBubbleBase } = await import(
+    )) ?? {};
+    const { PostgreSQLBubble: OpenEvolvePostgreSQLBubbleBase } = (await this.safeImport(
       './bubbles/service-bubble/postgresql-bubble.js'
-    );
+    )) ?? {};
     // Import RAGBits bubbles
-    const { RAGBitsIngestBubble } = await import(
+    const { RAGBitsIngestBubble } = (await this.safeImport(
       '../ragbits-bubblelab-integration/bubbles/ingest/RAGBitsIngestBubble.js'
-    );
-    const { RAGBitsSearchBubble } = await import(
+    )) ?? {};
+    const { RAGBitsSearchBubble } = (await this.safeImport(
       '../ragbits-bubblelab-integration/bubbles/search/RAGBitsSearchBubble.js'
-    );
-    const { RAGBitsIndexBubble } = await import(
+    )) ?? {};
+    const { RAGBitsIndexBubble } = (await this.safeImport(
       '../ragbits-bubblelab-integration/bubbles/index/RAGBitsIndexBubble.js'
-    );
-    const { RAGBitsGenerationBubble } = await import(
+    )) ?? {};
+    const { RAGBitsGenerationBubble } = (await this.safeImport(
       '../ragbits-bubblelab-integration/bubbles/generation/RAGBitsGenerationBubble.js'
-    );
+    )) ?? {};
 
     // Import CrewAI bubbles
-    const { CrewAIOrchestrationBubble, CrewAIResearchBubble } = await import(
+    const { CrewAIOrchestrationBubble, CrewAIResearchBubble } = (await this.safeImport(
       '../ragbits-bubblelab-integration/bubbles/crewai/CrewAIOrchestrationBubble.js'
-    );
+    )) ?? {};
 
     const wrapBubbleName = <T extends BubbleClassWithMetadata<any>>(
-      BubbleClass: T,
+      BubbleClass: T | undefined,
       bubbleName: BubbleName
-    ) =>
-      class extends (BubbleClass as unknown as new (...args: any[]) => any) {
+    ) => {
+      if (!BubbleClass) {
+        return undefined as unknown as T;
+      }
+      return class extends (BubbleClass as unknown as new (...args: any[]) => any) {
         static readonly bubbleName = bubbleName;
       } as unknown as T;
+    };
 
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
@@ -701,8 +732,8 @@ export class BubbleFactory {
     this.register('stripe' as BubbleName, StripeBubble as BubbleClassWithMetadata);
     this.register('webhook' as BubbleName, WebhookBubble as BubbleClassWithMetadata);
     this.register(
-      'hephaestus' as BubbleName,
-      HephaestusBubble as BubbleClassWithMetadata
+      'crewai' as BubbleName,
+      CrewAIBubble as BubbleClassWithMetadata
     );
     this.register(
       'airtable-wrapper' as BubbleName,

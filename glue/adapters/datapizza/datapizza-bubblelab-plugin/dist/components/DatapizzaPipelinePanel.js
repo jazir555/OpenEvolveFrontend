@@ -5,7 +5,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 // INTEGRATION STATUS: Production Implementation
 // - Uses useDatapizzaPipeline hook for all pipeline operations
 // - Follows Federation Constitution laws
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Play, Pause, Stop, Check, AlertTriangle, Info, Database, Pipeline, Clock, BarChart2 } from 'lucide-react';
 import { DATAPIZZA_PIPELINE_TYPES } from '../types/plugin-types';
 import { useDatapizzaPipeline } from '../hooks/useDatapizzaPipeline';

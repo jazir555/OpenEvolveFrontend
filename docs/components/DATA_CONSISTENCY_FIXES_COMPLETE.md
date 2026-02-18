@@ -9,7 +9,7 @@
 Fixed 1 of 2 CRITICAL data consistency issues:
 
 1. ✅ **COMPLETED:** Foreign Key Constraints Enforced in bubblelabs_analytics.py
-2. ❌ **NOT COMPLETED:** Bridge Mappings Persistence in bubblelabs_hephaestus_bridge.py
+2. ❌ **NOT COMPLETED:** Bridge Mappings Persistence in bubblelabs_crewai_bridge.py
 
 The second issue requires significant refactoring due to the file already being modified with LRU cache fixes. The current implementation uses in-memory LRU cache (`OrderedDict`) which conflicts with persistent database storage requirements.
 
@@ -201,7 +201,7 @@ def test_cascade_delete():
 ## Issue 2: Bridge Mappings Persistence - ❌ NOT COMPLETED
 
 ### File Analysis
-- `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py`
+- `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py`
 
 ### Current State
 
@@ -240,7 +240,7 @@ from pathlib import Path
 def __init__(
     self,
     bubblelabs_integration: Optional[BubbleLabsIntegration] = None,
-    hephaestus_client: Optional[HephaestusClient] = None,
+    crewai_client: Optional[CrewAIClient] = None,
     config: Optional[BubbleLabsTicketConfig] = None,
     batch_size: int = 10,
     db_path: Optional[str] = None  # ADD THIS PARAMETER
@@ -248,7 +248,7 @@ def __init__(
     # ... existing validation ...
 
     # ADD: Persistent storage for mappings
-    self._mappings_db_path = db_path or "hephaestus_mappings.db"
+    self._mappings_db_path = db_path or "crewai_mappings.db"
 
     # Initialize database schema
     self._init_mappings_database()
@@ -408,7 +408,7 @@ self._mappings_cache: OrderedDict = OrderedDict()
 self._MAX_CACHE_SIZE = 1000
 
 # Add database for persistent storage
-self._mappings_db_path = db_path or "hephaestus_mappings.db"
+self._mappings_db_path = db_path or "crewai_mappings.db"
 
 # Cache is subset of database
 # Database has ALL mappings
@@ -519,7 +519,7 @@ print("\n✅ All tests completed!")
 
 ### Files NOT Modified: 1
 
-2. **bubblelabs_hephaestus_bridge.py** ❌
+2. **bubblelabs_crewai_bridge.py** ❌
    - Requires significant refactoring
    - Conflicts with existing LRU cache implementation
    - Needs architectural decision on storage strategy
@@ -540,7 +540,7 @@ print("\n✅ All tests completed!")
 
 **Still At Risk:**
 - ⚠️ Workflow-to-ticket mappings lost on restart (Issue 2)
-- ⚠️ No persistence for Hephaestus bridge mappings
+- ⚠️ No persistence for CrewAI bridge mappings
 - ⚠️ Data loss if application crashes
 
 ---

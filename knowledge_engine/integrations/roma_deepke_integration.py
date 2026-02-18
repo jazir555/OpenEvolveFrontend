@@ -32,15 +32,25 @@ import uuid
 import json
 from pathlib import Path
 
-# Import required integrations
-from .roma_integration import ROMAIntegration, ROMAResult, ROMASolution
-from .deepke_integration import DeepKEIntegration, DeepKEResult
+# Import required integrations with graceful degradation
+try:
+    from .roma_integration import ROMAIntegration, ROMAResult, ROMASolution
+except (ImportError, ModuleNotFoundError):
+    ROMAIntegration = None
+    ROMAResult = None
+    ROMASolution = None
+
+try:
+    from .deepke_integration import DeepKEIntegration, DeepKEResult
+except (ImportError, ModuleNotFoundError):
+    DeepKEIntegration = None
+    DeepKEResult = None
 
 
 logger = logging.getLogger(__name__)
 
 # ROMA-DeepKE integration availability flag
-DEEPKE_AVAILABLE = True
+DEEPKE_AVAILABLE = ROMAIntegration is not None and DeepKEIntegration is not None
 
 
 @dataclass

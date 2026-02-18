@@ -9,6 +9,8 @@
     /* Bundler mode */
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
@@ -22,7 +24,10 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "react": ["../../bubblelab/node_modules/react"],
+      "react-dom": ["../../bubblelab/node_modules/react-dom"],
+      "react/jsx-runtime": ["../../bubblelab/node_modules/react/jsx-runtime"]
     },
 
     /* Declaration */

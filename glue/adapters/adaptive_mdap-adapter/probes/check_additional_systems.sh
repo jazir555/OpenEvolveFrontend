@@ -43,7 +43,7 @@ echo ""
 ###############################################################################
 echo "Test 1: Unified system monitor import"
 
-if python -c "import sys; sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src'); from src import get_unified_system_monitor; get_unified_system_monitor()" 2>&1 | grep -q ""; then
+if python -c "import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_unified_system_monitor; get_unified_system_monitor()" 2>&1 | grep -q ""; then
     pass "Unified system monitor imports"
 else
     fail "Unified system monitor import failed"
@@ -56,8 +56,9 @@ echo ""
 echo "Test 2: Overall system health check"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()
@@ -82,8 +83,9 @@ echo ""
 echo "Test 3: Individual system status checks"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()
@@ -117,8 +119,9 @@ echo ""
 echo "Test 4: Knowledge engine workflow execution"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()
@@ -148,8 +151,9 @@ echo ""
 echo "Test 5: Formal verification workflow execution"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()
@@ -179,8 +183,9 @@ echo ""
 echo "Test 6: Agent collaboration workflow execution"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()

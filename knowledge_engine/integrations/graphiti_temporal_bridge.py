@@ -263,7 +263,7 @@ class GraphitiTemporalBridge:
     async def search_with_temporal_filters(
         self,
         query: str,
-        filter_type: TemporalFilter = TemporalFilter.CURRENT,
+        filter_type: Optional[str] = None,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         max_results: int = 10,
@@ -294,7 +294,7 @@ class GraphitiTemporalBridge:
         try:
             # Build temporal filters
             temporal_filters = None
-            if filter_type != TemporalFilter.CURRENT:
+            if TemporalFilter is not None and filter_type != "CURRENT":
                 temporal_filters = {
                     "filter_type": filter_type,
                 }
@@ -363,7 +363,7 @@ class GraphitiTemporalBridge:
         """
         return await self.search_with_temporal_filters(
             query=query,
-            filter_type=TemporalFilter.TIME_RANGE,
+            filter_type="TIME_RANGE",
             start_time=timestamp - timedelta(hours=1),
             end_time=timestamp + timedelta(hours=1),
             max_results=max_results,

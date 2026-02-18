@@ -347,7 +347,7 @@ These are **test issues**, not code bugs. The tests need to be updated to match 
 |--------|-------|----------|--------|
 | roma_mdap_maker_engine.py | 10 | ~85% | Good |
 | roma_mdap_maker_mcp_tools.py | 8 | ~80% | Good |
-| ace_hephaestus_bridge.py | 5 | ~70% | Fair |
+| ace_crewai_bridge.py | 5 | ~70% | Fair |
 | ace_analytics.py | 2 | 0% | Blocked |
 | bubblelabs_integration.py | 6 | ~75% | Good |
 | decomposition_engine.py | 4 | ~60% | Fair |

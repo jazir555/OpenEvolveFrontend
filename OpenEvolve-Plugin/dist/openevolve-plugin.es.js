@@ -5094,11 +5094,11 @@ class ga extends vr {
     });
   }
   /**
-   * Execute Hephaestus task
+   * Execute CrewAI task
    *
    * @param inputs - Must contain 'input' and optionally 'taskType'
    * @param context - Execution context
-   * @returns Promise resolving to Hephaestus result
+   * @returns Promise resolving to CrewAI result
    */
   async execute(t, r) {
     try {
@@ -5148,7 +5148,7 @@ class ga extends vr {
       return r.updateProgress(100, `${i} task complete`), this.createSuccessResult(f);
     } catch (n) {
       return this.createErrorResult(
-        n instanceof Error ? n.message : "Unknown error during Hephaestus execution"
+        n instanceof Error ? n.message : "Unknown error during CrewAI execution"
       );
     }
   }
@@ -5162,7 +5162,7 @@ class ga extends vr {
    */
   async generateCode(t, r, n) {
     n.updateProgress(30, `Generating ${r} code`);
-    const a = await Se.post("/hephaestus/generate", {
+    const a = await Se.post("/crewai/generate", {
       description: t,
       language: r,
       include_tests: !0,
@@ -5187,7 +5187,7 @@ class ga extends vr {
    */
   async executeCode(t, r, n) {
     n.updateProgress(30, `Executing ${r} code`);
-    const a = await Se.post("/hephaestus/execute", {
+    const a = await Se.post("/crewai/execute", {
       code: t,
       language: r,
       timeout: this.config.timeoutMs
@@ -5211,7 +5211,7 @@ class ga extends vr {
    */
   async delegateTask(t, r, n) {
     n.updateProgress(30, `Delegating to ${r}`);
-    const i = (await Se.post("/hephaestus/delegate", {
+    const i = (await Se.post("/crewai/delegate", {
       task: t,
       target_service: r
     })).task_id || `delegate-${Date.now()}`, o = await this.monitorDelegation(i, n);
@@ -5238,7 +5238,7 @@ class ga extends vr {
   async optimizeCode(t, r, n) {
     var i, o, l, c;
     n.updateProgress(30, `Optimizing ${r} code`);
-    const a = await Se.post("/hephaestus/optimize", {
+    const a = await Se.post("/crewai/optimize", {
       code: t,
       language: r
     });
@@ -5268,7 +5268,7 @@ class ga extends vr {
       if (Date.now() - i > o)
         throw new Error("Delegation monitoring timeout exceeded");
       try {
-        const l = await Se.get(`/hephaestus/delegation/${t}`), c = Math.min(30 + a / 60 * 70, 95);
+        const l = await Se.get(`/crewai/delegation/${t}`), c = Math.min(30 + a / 60 * 70, 95);
         if (r.updateProgress(c, `Delegation status: ${l.status}`), l.status === "completed" || l.status === "failed")
           return l;
         await new Promise((u) => setTimeout(u, 5e3)), a++;
@@ -5332,7 +5332,7 @@ class ga extends vr {
       properties: {
         taskType: {
           type: "string",
-          description: "Type of Hephaestus task to execute",
+          description: "Type of CrewAI task to execute",
           enum: ["generate", "execute", "delegate", "optimize"],
           default: "generate"
         },
@@ -5378,7 +5378,7 @@ class ga extends vr {
    */
   async getAvailableServices() {
     try {
-      const t = await Se.get("/hephaestus/services");
+      const t = await Se.get("/crewai/services");
       return this.createSuccessResult({ services: t.services || [] });
     } catch (t) {
       return this.createErrorResult(
@@ -5395,7 +5395,7 @@ class ga extends vr {
    */
   async getQualityMetrics(t, r) {
     try {
-      const n = await Se.post("/hephaestus/quality", {
+      const n = await Se.post("/crewai/quality", {
         code: t,
         language: r
       });
@@ -5407,7 +5407,7 @@ class ga extends vr {
     }
   }
 }
-Z(ga, "DISPLAY_NAME", "Hephaestus Bridge"), Z(ga, "DESCRIPTION", "Code generation and execution bridge with delegation and optimization capabilities"), Z(ga, "ICON", "hephaestus"), Z(ga, "CATEGORY", "integration"), Z(ga, "VERSION", "1.0.0");
+Z(ga, "DISPLAY_NAME", "CrewAI Bridge"), Z(ga, "DESCRIPTION", "Code generation and execution bridge with delegation and optimization capabilities"), Z(ga, "ICON", "crewai"), Z(ga, "CATEGORY", "integration"), Z(ga, "VERSION", "1.0.0");
 class ya extends vr {
   constructor(t, r = {}) {
     super(t, {
@@ -6986,7 +6986,7 @@ jA({
   Adversarial: ma,
   KnowledgeQuery: ha,
   LeanAIDE: pa,
-  Hephaestus: ga,
+  CrewAI: ga,
   MDAP: ya,
   MAKER: va,
   ROMA: _m,
@@ -13608,12 +13608,12 @@ const _g = () => /* @__PURE__ */ s.jsx("span", { children: "??" }), TA = () => /
   ] });
 }, Eg = () => /* @__PURE__ */ s.jsx("span", { children: "🌐" }), KA = () => /* @__PURE__ */ s.jsx("span", { children: "🔑" }), YA = () => /* @__PURE__ */ s.jsx("span", { children: "🖥️" }), XA = () => /* @__PURE__ */ s.jsx("span", { children: "⏱️" }), QA = () => /* @__PURE__ */ s.jsx("span", { children: "⚙️" }), JA = () => /* @__PURE__ */ s.jsx("span", { children: "⚡" }), ZA = {
   leanAideApiEndpoint: "http://localhost:8000/api/v1",
-  hephaestusApiEndpoint: "http://localhost:8001/api/v1",
+  crewaiApiEndpoint: "http://localhost:8001/api/v1",
   bubbleLabsApiEndpoint: "http://localhost:8002/api/v1",
   researchQuestApiEndpoint: "http://localhost:8003/api/v1",
   defaultTimeout: 3e4,
   leanAideTimeout: 6e4,
-  hephaestusTimeout: 45e3,
+  crewaiTimeout: 45e3,
   bubbleLabsTimeout: 3e4,
   researchQuestTimeout: 3e4,
   useAuthentication: !0,
@@ -13662,7 +13662,7 @@ const _g = () => /* @__PURE__ */ s.jsx("span", { children: "??" }), TA = () => /
     temperature: 0.7,
     maxTokens: 4096
   },
-  hephaestus: {
+  crewai: {
     parallelExecution: !0,
     maxParallelTasks: 5,
     delegationTimeout: 12e4
@@ -13769,19 +13769,19 @@ const _g = () => /* @__PURE__ */ s.jsx("span", { children: "??" }), TA = () => /
               /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Base URL for LeanAide mathematical reasoning service" })
             ] }),
             /* @__PURE__ */ s.jsxs("div", { children: [
-              /* @__PURE__ */ s.jsx("label", { htmlFor: "hephaestusApiEndpoint", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Hephaestus API Endpoint" }),
+              /* @__PURE__ */ s.jsx("label", { htmlFor: "crewaiApiEndpoint", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "CrewAI API Endpoint" }),
               /* @__PURE__ */ s.jsx(
                 D,
                 {
-                  id: "hephaestusApiEndpoint",
+                  id: "crewaiApiEndpoint",
                   type: "url",
                   placeholder: "http://localhost:8001/api/v1",
-                  value: r.hephaestusApiEndpoint,
-                  onChange: (v) => d("hephaestusApiEndpoint", v.target.value),
+                  value: r.crewaiApiEndpoint,
+                  onChange: (v) => d("crewaiApiEndpoint", v.target.value),
                   className: "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 }
               ),
-              /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Base URL for Hephaestus task delegation service" })
+              /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Base URL for CrewAI task delegation service" })
             ] }),
             /* @__PURE__ */ s.jsxs("div", { children: [
               /* @__PURE__ */ s.jsx("label", { htmlFor: "bubbleLabsApiEndpoint", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "BubbleLabs API Endpoint" }),
@@ -14022,21 +14022,21 @@ const _g = () => /* @__PURE__ */ s.jsx("span", { children: "??" }), TA = () => /
               /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Timeout for LeanAide mathematical proofs (60 seconds)" })
             ] }),
             /* @__PURE__ */ s.jsxs("div", { children: [
-              /* @__PURE__ */ s.jsx("label", { htmlFor: "hephaestusTimeout", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Hephaestus Timeout (ms)" }),
+              /* @__PURE__ */ s.jsx("label", { htmlFor: "crewaiTimeout", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "CrewAI Timeout (ms)" }),
               /* @__PURE__ */ s.jsx(
                 D,
                 {
-                  id: "hephaestusTimeout",
+                  id: "crewaiTimeout",
                   type: "number",
                   min: "1000",
                   max: "300000",
                   step: "1000",
-                  value: r.hephaestusTimeout,
-                  onChange: (v) => d("hephaestusTimeout", parseInt(v.target.value) || 45e3),
+                  value: r.crewaiTimeout,
+                  onChange: (v) => d("crewaiTimeout", parseInt(v.target.value) || 45e3),
                   className: "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 }
               ),
-              /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Timeout for Hephaestus delegation tasks (45 seconds)" })
+              /* @__PURE__ */ s.jsx("p", { className: "mt-1 text-xs text-gray-500 dark:text-gray-400", children: "Timeout for CrewAI delegation tasks (45 seconds)" })
             ] }),
             /* @__PURE__ */ s.jsxs("div", { children: [
               /* @__PURE__ */ s.jsx("label", { htmlFor: "bubbleLabsTimeout", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "BubbleLabs Timeout (ms)" }),
@@ -14481,51 +14481,51 @@ const _g = () => /* @__PURE__ */ s.jsx("span", { children: "??" }), TA = () => /
             ] })
           ] }),
           /* @__PURE__ */ s.jsxs("div", { className: "p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-md", children: [
-            /* @__PURE__ */ s.jsx("h4", { className: "text-sm font-medium text-indigo-900 dark:text-indigo-400 mb-4", children: "Hephaestus Configuration" }),
+            /* @__PURE__ */ s.jsx("h4", { className: "text-sm font-medium text-indigo-900 dark:text-indigo-400 mb-4", children: "CrewAI Configuration" }),
             /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4", children: [
               /* @__PURE__ */ s.jsxs("div", { className: "flex items-start", children: [
                 /* @__PURE__ */ s.jsx("div", { className: "flex items-center h-5", children: /* @__PURE__ */ s.jsx(
                   D,
                   {
-                    id: "hephaestusParallelExecution",
+                    id: "crewaiParallelExecution",
                     type: "checkbox",
-                    checked: r.hephaestus.parallelExecution,
-                    onChange: (v) => f("hephaestus", "parallelExecution", v.target.checked),
+                    checked: r.crewai.parallelExecution,
+                    onChange: (v) => f("crewai", "parallelExecution", v.target.checked),
                     className: "h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded"
                   }
                 ) }),
                 /* @__PURE__ */ s.jsxs("div", { className: "ml-3", children: [
-                  /* @__PURE__ */ s.jsx("label", { htmlFor: "hephaestusParallelExecution", className: "text-sm font-medium text-gray-700 dark:text-gray-300", children: "Parallel Execution" }),
+                  /* @__PURE__ */ s.jsx("label", { htmlFor: "crewaiParallelExecution", className: "text-sm font-medium text-gray-700 dark:text-gray-300", children: "Parallel Execution" }),
                   /* @__PURE__ */ s.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: "Execute tasks in parallel" })
                 ] })
               ] }),
               /* @__PURE__ */ s.jsxs("div", { children: [
-                /* @__PURE__ */ s.jsx("label", { htmlFor: "hephaestusMaxParallelTasks", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Max Parallel Tasks" }),
+                /* @__PURE__ */ s.jsx("label", { htmlFor: "crewaiMaxParallelTasks", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Max Parallel Tasks" }),
                 /* @__PURE__ */ s.jsx(
                   D,
                   {
-                    id: "hephaestusMaxParallelTasks",
+                    id: "crewaiMaxParallelTasks",
                     type: "number",
                     min: "1",
                     max: "20",
-                    value: r.hephaestus.maxParallelTasks,
-                    onChange: (v) => f("hephaestus", "maxParallelTasks", parseInt(v.target.value)),
+                    value: r.crewai.maxParallelTasks,
+                    onChange: (v) => f("crewai", "maxParallelTasks", parseInt(v.target.value)),
                     className: "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   }
                 )
               ] }),
               /* @__PURE__ */ s.jsxs("div", { children: [
-                /* @__PURE__ */ s.jsx("label", { htmlFor: "hephaestusDelegationTimeout", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Delegation Timeout (ms)" }),
+                /* @__PURE__ */ s.jsx("label", { htmlFor: "crewaiDelegationTimeout", className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "Delegation Timeout (ms)" }),
                 /* @__PURE__ */ s.jsx(
                   D,
                   {
-                    id: "hephaestusDelegationTimeout",
+                    id: "crewaiDelegationTimeout",
                     type: "number",
                     min: "10000",
                     max: "600000",
                     step: "1000",
-                    value: r.hephaestus.delegationTimeout,
-                    onChange: (v) => f("hephaestus", "delegationTimeout", parseInt(v.target.value)),
+                    value: r.crewai.delegationTimeout,
+                    onChange: (v) => f("crewai", "delegationTimeout", parseInt(v.target.value)),
                     className: "w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   }
                 )
@@ -41870,7 +41870,7 @@ const Yz = "@openevolve/bubblelab-plugin", Xz = "1.0.0", Qz = {
     endpoint: "http://localhost:8081",
     timeout: 6e4
   },
-  hephaestus: {
+  crewai: {
     enabled: !0,
     endpoint: "http://localhost:8082",
     timeout: 3e4
@@ -41930,7 +41930,7 @@ export {
   Sz as EvolutionPage,
   bj as ExecutionMonitor,
   Tz as FormWrapper,
-  ga as HephaestusNode,
+  ga as CrewAINode,
   e1 as IntegrationConfigPanel,
   Rz as IntegrationUtils,
   jm as InventionNode,

@@ -495,27 +495,27 @@ os.environ['KNOWLEDGE_ENGINE_ENABLED'] = 'false'
 
 ---
 
-### Issue: Hephaestus Connection Failed
+### Issue: CrewAI Connection Failed
 
 **Symptom:**
 ```
-ConnectionError: Unable to connect to Hephaestus server
+ConnectionError: Unable to connect to CrewAI server
 ```
 
 **Solutions:**
 
 ```python
-# Option 1: Disable Hephaestus (default)
+# Option 1: Disable CrewAI (default)
 # System works without it
 
-# Option 2: Start Hephaestus server
-cd hephaestus
-python hephaestus_server.py
+# Option 2: Start CrewAI server
+cd crewai
+python crewai_server.py
 
 # Option 3: Check connection
 import aiohttp
 
-async def check_hephaestus(url):
+async def check_crewai(url):
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url + "/health") as resp:
@@ -524,8 +524,8 @@ async def check_hephaestus(url):
         return False
 
 # Option 4: Configure in .env
-# HEPHAESTUS_ENABLED=false  # Disable
-# HEPHAESTUS_URL=http://localhost:9000  # Set URL
+# CREWAI_ENABLED=false  # Disable
+# CREWAI_URL=http://localhost:9000  # Set URL
 ```
 
 ---

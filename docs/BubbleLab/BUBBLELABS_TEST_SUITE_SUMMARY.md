@@ -38,7 +38,7 @@ A complete, production-ready test suite for the BubbleLabs OpenEvolve Plugin wit
 | **TestLeanAideIntegration** | 10 | Translation, proofs, verification, MCTS, concurrency |
 | **TestEvolutionIntegration** | 6 | Workflow creation, adversarial testing, checkpoints |
 | **TestKnowledgeEngineIntegration** | 4 | Graph queries, multi-source, visualization |
-| **TestMakerHephaestusIntegration** | 8 | Tool creation, delegation, MDAP/MAKER sync |
+| **TestMakerCrewAIIntegration** | 8 | Tool creation, delegation, MDAP/MAKER sync |
 | **TestUIComponents** | 8 | Parameters, visualization, export/import, security |
 | **TestFullIntegration** | 5 | End-to-end workflows, pipelines |
 | **TestPerformance** | 3 | Performance benchmarks, memory usage |
@@ -121,9 +121,9 @@ python run_tests.py --parallel
 - ✅ Bedrock Knowledge Base integration (async)
 - ✅ Temporal metadata extraction
 
-### 5. Maker/Hephaestus Integration Tests
+### 5. Maker/CrewAI Integration Tests
 - ✅ Tool creation workflows
-- ✅ Hephaestus delegation
+- ✅ CrewAI delegation
 - ✅ Tool repository management
 - ✅ Ticket creation and updates
 - ✅ MDAP task synchronization
@@ -143,7 +143,7 @@ python run_tests.py --parallel
 - ✅ End-to-end workflow execution
 - ✅ LeanAide to Evolution pipeline
 - ✅ Knowledge Engine to Maker pipeline
-- ✅ Hephaestus ticket lifecycle
+- ✅ CrewAI ticket lifecycle
 - ✅ Async workflow execution
 
 ### 8. Performance Tests
@@ -217,7 +217,7 @@ Tests are categorized with markers:
 @pytest.mark.security      # Security tests
 @pytest.mark.performance   # Performance tests
 @pytest.mark.requires_api  # Tests requiring API keys
-@pytest.mark.requires_hephaestus  # Tests requiring Hephaestus
+@pytest.mark.requires_crewai  # Tests requiring CrewAI
 @pytest.mark.requires_leanaide    # Tests requiring LeanAide
 ```
 
@@ -229,7 +229,7 @@ Tests are categorized with markers:
 - `mock_workflow_state` - Mock workflow state
 - `mock_sub_problem` - Mock sub-problem
 - `mock_leanaide_client` - Mock LeanAide client
-- `mock_hephaestus_client` - Mock Hephaestus client
+- `mock_crewai_client` - Mock CrewAI client
 - `sample_lean_code` - Sample Lean 4 code
 - `sample_theorem_text` - Sample theorem
 - `event_loop` - Event loop for async tests
@@ -300,9 +300,9 @@ pytest test_bubblelabs_comprehensive.py::TestEvolutionIntegration -v
 pytest test_bubblelabs_comprehensive.py::TestKnowledgeEngineIntegration -v
 ```
 
-### Maker/Hephaestus
+### Maker/CrewAI
 ```bash
-pytest test_bubblelabs_comprehensive.py::TestMakerHephaestusIntegration -v
+pytest test_bubblelabs_comprehensive.py::TestMakerCrewAIIntegration -v
 ```
 
 ### UI Components

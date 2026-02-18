@@ -30,7 +30,7 @@ The BubbleLab OpenEvolve integration is **substantially complete** with signific
 #### ✅ **COMPLETE** (Ready for Production)
 1. **Configuration System** - 100% complete, 272 parameters documented
 2. **OpenEvolve Integration** - 14 adapters, 4,327 lines of production code
-3. **Core Service Bubbles** - 8 bubbles (Qdrant, Elasticsearch, PostgreSQL, Redis, Knowledge Engine, Workflow Orchestrator, Hephaestus, ACE Tools)
+3. **Core Service Bubbles** - 8 bubbles (Qdrant, Elasticsearch, PostgreSQL, Redis, Knowledge Engine, Workflow Orchestrator, CrewAI, ACE Tools)
 4. **Tool Bubbles** - 2 tools (Log Parser, Metrics Collector)
 5. **Workflow Templates** - 20 production workflows created
 6. **Canonical Data Models** - 9 schemas defined
@@ -106,7 +106,7 @@ The BubbleLab OpenEvolve integration is **substantially complete** with signific
 2. **elasticsearch-bubble.ts** (267 lines) - Full-text search
 3. **knowledge-engine-bubble.ts** (342 lines) - Hybrid search backend
 4. **workflow-orchestrator-bubble.ts** (312 lines) - Workflow coordination
-5. **hephaestus-bubble.ts** (289 lines) - AI agent team management
+5. **crewai-bubble.ts** (289 lines) - AI agent team management
 6. **postgresql-bubble.ts** (287 lines) - Extended PostgreSQL operations
 7. **redis-bubble.ts** (298 lines) - Caching and pub/sub
 8. **ace-tools-bubble.ts** (267 lines) - Analytics processing
@@ -351,7 +351,7 @@ Each file needs:
 - ✅ elasticsearch-bubble.ts
 - ✅ knowledge-engine-bubble.ts
 - ✅ workflow-orchestrator-bubble.ts
-- ✅ hephaestus-bubble.ts
+- ✅ crewai-bubble.ts
 - ✅ postgresql-bubble.ts
 - ✅ redis-bubble.ts
 - ✅ ace-tools-bubble.ts

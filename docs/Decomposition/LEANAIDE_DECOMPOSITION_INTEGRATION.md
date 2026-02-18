@@ -49,7 +49,7 @@ Enhanced Sub-Problems with:
 - Mathematical metadata
 - Lean code stubs
 - Evolutionary configuration
-- Hephaestus tickets
+- CrewAI tickets
 - ROMA integration hooks
 ```
 
@@ -162,9 +162,9 @@ roma_integration:
 - Knowledge extraction from similar proofs
 - Pattern learning from previous formalizations
 
-### 3. Hephaestus Integration
+### 3. CrewAI Integration
 
-Hephaestus ticket creation for tracking Lean formalization:
+CrewAI ticket creation for tracking Lean formalization:
 
 ```python
 # Tickets auto-created for Lean sub-problems
@@ -438,7 +438,7 @@ Lean-enhanced sub-problems include:
 - `mathematical_metadata`: MathematicalProblemMetadata
 - `lean_code_stub`: Generated Lean 4 code
 - `evolutionary_config`: Evolution strategy configuration
-- `verification_ticket`: Hephaestus ticket ID
+- `verification_ticket`: CrewAI ticket ID
 - `formalization_status`: Current formalization status
 
 ### Metadata:
@@ -580,4 +580,4 @@ Default timeouts (configurable):
 - [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/)
 - [LeanAide Integration Guide](./leanaide_integration.md)
 - [ROMA Architecture](./ROMA_ARCHITECTURE.md)
-- [Hephaestus Ticket System](./hephaestus_integration.md)
+- [CrewAI Ticket System](./crewai_integration.md)

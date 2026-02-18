@@ -1,4 +1,4 @@
-# BubbleLabs-Hephaestus Bridge: Workflow-to-Ticket Mappings Persistence Implementation Report
+# BubbleLabs-CrewAI Bridge: Workflow-to-Ticket Mappings Persistence Implementation Report
 
 **Date:** 2025-12-29
 **Author:** OpenEvolve Team
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-Successfully implemented complete SQLite database persistence for workflow-to-ticket mappings in `bubblelabs_hephaestus_bridge.py`. The implementation ensures that all mappings survive application restarts and provides comprehensive management features including cleanup and statistics.
+Successfully implemented complete SQLite database persistence for workflow-to-ticket mappings in `bubblelabs_crewai_bridge.py`. The implementation ensures that all mappings survive application restarts and provides comprehensive management features including cleanup and statistics.
 
 ### Key Achievements
 
@@ -282,10 +282,10 @@ All database operations include try-except blocks:
 ### Basic Usage
 
 ```python
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
 # Initialize bridge (mappings automatically loaded from database)
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 
 # Create ticket (automatically persisted)
 ticket_id = bridge.create_ticket_from_workflow(workflow_def)
@@ -298,7 +298,7 @@ ticket_id = bridge.create_ticket_from_workflow(workflow_def)
 
 ```python
 # Use custom database path
-bridge = BubbleLabsHephaestusBridge(
+bridge = BubbleLabsCrewAIBridge(
     mappings_db_path="/custom/path/mappings.db"
 )
 ```
@@ -340,7 +340,7 @@ for workflow_id, mapping in all_mappings.items():
 **No changes required!** The persistence implementation is backward compatible:
 
 1. **First run after upgrade:**
-   - Database file `hephaestus_workflow_mappings.db` created automatically
+   - Database file `crewai_workflow_mappings.db` created automatically
    - Existing memory-only mappings start being persisted
 
 2. **Subsequent runs:**
@@ -349,7 +349,7 @@ for workflow_id, mapping in all_mappings.items():
 
 3. **Optional: Customize database path:**
    ```python
-   bridge = BubbleLabsHephaestusBridge(
+   bridge = BubbleLabsCrewAIBridge(
        mappings_db_path="/custom/path/mappings.db"
    )
    ```
@@ -360,7 +360,7 @@ If you have existing data to migrate:
 
 ```python
 # Load existing bridge
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 
 # All existing mappings automatically persisted
 # on next ticket creation/update operation
@@ -372,7 +372,7 @@ bridge = BubbleLabsHephaestusBridge()
 
 ### Database Location
 
-**Default:** `hephaestus_workflow_mappings.db` (in working directory)
+**Default:** `crewai_workflow_mappings.db` (in working directory)
 
 **Options:**
 - Absolute path: `/var/lib/openevolve/mappings.db`
@@ -445,7 +445,7 @@ bridge.cleanup_old_mappings(max_age_days=365)
 3. **Backup database:**
    ```bash
    # Simple file backup
-   cp hephaestus_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
+   cp crewai_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
    ```
 
 ### Monitoring
@@ -547,7 +547,7 @@ The workflow-to-ticket mappings persistence implementation is **COMPLETE and PRO
 
 ### Files Modified
 
-- **C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py**
+- **C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py**
   - Added `sqlite3` import
   - Added `mappings_db_path` parameter to `__init__`
   - Implemented `_init_mappings_database()`
@@ -583,13 +583,13 @@ python verify_persistence_simple.py
 python test_bubblelabs_persistence.py
 
 # Check database file exists
-ls -lh hephaestus_workflow_mappings.db
+ls -lh crewai_workflow_mappings.db
 
 # View database schema
-sqlite3 hephaestus_workflow_mappings.db ".schema"
+sqlite3 crewai_workflow_mappings.db ".schema"
 
 # Query all mappings
-sqlite3 hephaestus_workflow_mappings.db "SELECT * FROM workflow_ticket_mappings;"
+sqlite3 crewai_workflow_mappings.db "SELECT * FROM workflow_ticket_mappings;"
 ```
 
 ---

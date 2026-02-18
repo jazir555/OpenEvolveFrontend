@@ -10,7 +10,7 @@ export { mdapParameters } from './mdap';
 export { decompositionParameters } from './decomposition';
 export { knowledgeParameters } from './knowledge';
 export { leanaideParameters } from './leanaide';
-export { hephaestusParameters } from './hephaestus';
+export { crewaiParameters } from './crewai';
 export { romaParameters } from './roma';
 export { inventionParameters } from './invention';
 /**

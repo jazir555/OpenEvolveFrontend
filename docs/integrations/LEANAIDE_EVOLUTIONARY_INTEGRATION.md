@@ -97,7 +97,7 @@ Reassembles evolved sub-proofs into complete proof.
          ┌───────────────┼───────────────┐
          │               │               │
 ┌────────▼────────┐ ┌───▼────┐ ┌──────▼──────────┐
-│  LeanAide       │ │  ACE   │ │  Hephaestus     │
+│  LeanAide       │ │  ACE   │ │  CrewAI     │
 │  Evolution      │ │  KM    │ │  Tracking       │
 └─────────────────┘ └────────┘ └─────────────────┘
 ```
@@ -314,9 +314,9 @@ class EvolutionaryConfig:
     lean_store_evolved_proofs: bool = True
     lean_track_evolution_statistics: bool = True
 
-    # Hephaestus integration
-    hephaestus_enabled: bool = False
-    hephaestus_timeout: float = 600.0
+    # CrewAI integration
+    crewai_enabled: bool = False
+    crewai_timeout: float = 600.0
 
     # ACE integration
     ace_learning_enabled: bool = True

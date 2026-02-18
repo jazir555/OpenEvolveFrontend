@@ -672,7 +672,7 @@ curl --max-time "$TIMEOUT" ...
 | **redis-bubble.ts** | Critical | 12 hrs | High | ioredis pkg | Base class, HTTP proxy, real client |
 | **knowledge-engine-bubble.ts** | High | 10 hrs | Medium | QdrantBubble, ElasticsearchBubble | Base class, mock embeddings |
 | **workflow-orchestrator-bubble.ts** | High | 16 hrs | High | All backends | Base class, no persistence |
-| **hephaestus-bubble.ts** | Medium | 8 hrs | Medium | None | Base class, MCP integration |
+| **crewai-bubble.ts** | Medium | 8 hrs | Medium | None | Base class, MCP integration |
 | **postgresql-bubble.ts** | Medium | 6 hrs | Low | PostgreSQLBubble base | Method calls, backup/restore |
 | **ace-tools-bubble.ts** | Medium | 8 hrs | Low | None | Base class, MCP tools |
 
@@ -861,7 +861,7 @@ export class RedisBubble extends ServiceBubble<RedisParams, RedisResult> {
 
 ---
 
-#### 5. hephaestus-bubble.ts
+#### 5. crewai-bubble.ts
 
 **Current Issues**:
 1. ❌ Does NOT extend AIAgentBubble
@@ -1073,7 +1073,7 @@ console.log(`[CircuitBreaker] State transition: ${oldState} -> ${newState}`);
 | RedisBubble | ⏸️ Needs Fixing | NO | Needs ioredis integration |
 | KnowledgeEngineBubble | ⏸️ Needs Fixing | NO | Depends on Qdrant/ES |
 | WorkflowOrchestratorBubble | ⏸️ Needs Fixing | NO | Most complex |
-| HephaestusBubble | ⏸️ Needs Fixing | NO | Needs MCP integration |
+| CrewAIBubble | ⏸️ Needs Fixing | NO | Needs MCP integration |
 | PostgreSQLBubble | ⏸️ Needs Fixing | NO | Fix method calls |
 | ACEToolsBubble | ⏸️ Needs Fixing | NO | Needs MCP integration |
 
@@ -1202,7 +1202,7 @@ console.log(`[CircuitBreaker] State transition: ${oldState} -> ${newState}`);
 
 ### Long Term (Next Month)
 
-8. ⏳ **Fix remaining 3 bubbles** (Hephaestus, Workflow, ACE)
+8. ⏳ **Fix remaining 3 bubbles** (CrewAI, Workflow, ACE)
    - Most complex integrations
    - Estimated effort: 32 hours
 
@@ -1294,7 +1294,7 @@ The QdrantBubble implementation demonstrates a **solid, production-ready pattern
 2. RedisBubble (12 hrs) - Critical, needs ioredis
 3. PostgreSQLBubble (6 hrs) - Quick win
 4. KnowledgeEngineBubble (10 hrs) - Depends on Qdrant/ES
-5. HephaestusBubble (8 hrs) - Medium complexity
+5. CrewAIBubble (8 hrs) - Medium complexity
 6. ACEToolsBubble (8 hrs) - Medium complexity
 7. WorkflowOrchestratorBubble (16 hrs) - Most complex, do last
 

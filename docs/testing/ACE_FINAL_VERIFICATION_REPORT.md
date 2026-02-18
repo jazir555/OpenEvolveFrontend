@@ -28,7 +28,7 @@ The 1 "failed" test is actually a **SUCCESS** - it correctly rejected an invalid
 ```
 All 6 ACE integration modules imported successfully
 - ace_mcp_tools.py
-- ace_hephaestus_bridge.py
+- ace_crewai_bridge.py
 - ace_analytics.py
 - ace_knowledge_artifacts.py
 - ace_workflow_knowledge_extractor.py
@@ -73,7 +73,7 @@ Result: Path validation correctly blocked absolute path outside base dir
 
 ---
 
-### ✅ TEST 3: ace_hephaestus_bridge.py Bug Fixes (1/1 PASS)
+### ✅ TEST 3: ace_crewai_bridge.py Bug Fixes (1/1 PASS)
 
 #### 3.1 None Context Handling (PASS ✅)
 ```
@@ -248,7 +248,7 @@ def record_usage(self, helpful: bool = True):
 - ✅ TeamPerformanceTracker: max_history_per_team=1000
 - ✅ GauntletEffectivenessAnalyzer: max_history_per_gauntlet=1000
 - ✅ WorkflowKnowledgeExtractor: max_artifacts=10000
-- ✅ ACEHephaestusWorkflowBridge: max_skills=1000
+- ✅ ACECrewAIWorkflowBridge: max_skills=1000
 
 ### FIFO/LRU Eviction ✅
 ```python
@@ -370,7 +370,7 @@ The following errors are **expected** and **not related to our fixes**:
 - ✅ Rate limiting on all tools
 - ✅ Safe error responses
 
-### ✅ ace_hephaestus_bridge.py (1,347 lines)
+### ✅ ace_crewai_bridge.py (1,347 lines)
 **Status:** ALL FIXES VERIFIED
 **Fixes Applied:** 12
 **Tests Passed:** 1/1

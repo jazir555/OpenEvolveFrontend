@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { BarChart3, Clock, Database, Shield } from 'lucide-react';
 import { LeanAideVerification, RagbitsKnowledgeSearch, } from '../components';
 import { elaborateCode, initializeLeanAideClient, initializeRagbitsClient, mathQuery, translateDefinition, translateTheorem, verifySolution, } from '../services';

@@ -170,7 +170,7 @@ I_mech = 0.87 (HIGH) → Transfer is mechanistically valid
 | High-Entropy Data Analysis | Γ₁ | ACI (Anomaly Characterization Index) | Stage 6 + Uncertainpy |
 | Adaptive Search | Γ₂ | MCTS with massive parallelism | Stage 3 + MCTS + 1000+ agents |
 | Statistical Validation | Γ₃ | Validate convergence | Stage 9 + Binary criteria |
-| Convergence Constraints | N_max | Guarantee termination | Stage 3 + Hephaestus |
+| Convergence Constraints | N_max | Guarantee termination | Stage 3 + CrewAI |
 
 **Key Innovation: ACI (Anomaly Characterization Index)**
 
@@ -198,7 +198,7 @@ High ACI = High E_D + High C_C
 - `mcts_protocols.py` (to create) - MCTS for protocol exploration
 - `uncertainpy` (GitHub integration) - Uncertainty quantification
 - `LLMRiskAnalyzer` (GitHub integration) - Risk analysis
-- `hephaestus_client.py` - Delegation for heavy computation
+- `crewai_client.py` - Delegation for heavy computation
 
 ---
 
@@ -574,7 +574,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 
 **Phase 4: Advanced Integrations**
 - BubbleLabs for analytics
-- Hephaestus for delegation
+- CrewAI for delegation
 - Sovereign for quality assurance
 - Claudiomiro/DataPizza/RAGBits for alternative strategies
 
@@ -952,7 +952,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 - MCTS protocol exploration
 
 **Phase 4: Advanced Integrations** (4-5 days)
-- BubbleLabs, Hephaestus, Sovereign
+- BubbleLabs, CrewAI, Sovereign
 - Claudiomiro, DataPizza, RAGBits
 - All 18+ integrations working
 
@@ -1063,7 +1063,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │  ALREADY INTEGRATED (9)                                          │  │
-│  │  Steer, ROMA, ragbits, LeanAgent, Hephaestus, BubbleLab,        │  │
+│  │  Steer, ROMA, ragbits, LeanAgent, CrewAI, BubbleLab,        │  │
 │  │  datapizza-ai, claudiomiro, agentic-context-engine              │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
@@ -1073,7 +1073,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         SHARED SERVICES                                  │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  • Hephaestus (Delegation)  • Steer (Safety)  • Knowledge Engine        │
+│  • CrewAI (Delegation)  • Steer (Safety)  • Knowledge Engine        │
 │  • ROMA (Meta-Agent)        • ACE (Learning)   • RAGbits (Retrieval)    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -1092,8 +1092,8 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 | **Phase II: Ψ₃** | Stage 3 | Decomposition Engine, MCTS | decomposition_engine.py, mcts_protocols.py |
 | **Phase II: I_mech** | Stage 4 | LeanAide, Lean 4 | leanaide_client.py, leanaide_evolutionary_workflow.py |
 | **Phase III: Γ₁** | Stage 6 | pygraphistry, Uncertainpy, LLMRiskAnalyzer | pygraphistry/, uncertainpy |
-| **Phase III: Γ₂** | Stage 3 | MCTS, Evolution, Hephaestus | evolution.py, evolutionary_optimization.py |
-| **Phase III: N_max** | Stage 3 | Hephaestus | hephaestus_client.py |
+| **Phase III: Γ₂** | Stage 3 | MCTS, Evolution, CrewAI | evolution.py, evolutionary_optimization.py |
+| **Phase III: N_max** | Stage 3 | CrewAI | crewai_client.py |
 | **Phase IV: Δ₁** | Stage 8 | SOP Generator, Research-Quest | sop_generator.py, sop_component_system.py |
 | **Phase IV: Δ₂** | Stage 8 | pygraphistry, AI-KG, kg-gen | pygraphistry/, ai-knowledge-graph/, kg-gen/ |
 | **Phase IV: Δ₃** | Stage 9 | Success Criteria, Binary Validation | success_criteria.py (to create) |
@@ -1131,7 +1131,7 @@ DeepKE (Extraction) → AI-KG (Processing) → Visualization
 │                       STAGE 3: DECOMPOSITION                             │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
 │  │ Ψ₃: Constraint Inversion (Decomposition Engine)                │    │
-│  │ MC-NEST: MCTS Search (MCTS, Evolution, Hephaestus)            │    │
+│  │ MC-NEST: MCTS Search (MCTS, Evolution, CrewAI)            │    │
 │  │ • Atomic step decomposition                                     │    │
 │  │ • Dependency graph construction                                 │    │
 │  │ • Parallel exploration (1000+ agents)                           │    │

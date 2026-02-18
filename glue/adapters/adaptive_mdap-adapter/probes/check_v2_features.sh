@@ -62,8 +62,11 @@ run_probe() {
     echo ""
 }
 
-# Change to probes directory
-# Run from current directory
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Change to probes directory for script execution
+cd "$SCRIPT_DIR"
 
 ###############################################################################
 # Run all v2.0 probes

@@ -1,7 +1,7 @@
 # GRANULAR IMPLEMENTATION TASK LIST FOR OPENEVOLVE SOVEREIGN-GRADE DECOMPOSITION WORKFLOW
 
 ## OVERVIEW
-This document contains a comprehensive, granular task list with specific files, locations, and implementation requirements for completing the OpenEvolve Sovereign-Grade Decomposition Workflow with Hephaestus integration. The implementation is currently 85% complete and requires specific focus on remaining components to reach 100% functionality.
+This document contains a comprehensive, granular task list with specific files, locations, and implementation requirements for completing the OpenEvolve Sovereign-Grade Decomposition Workflow with CrewAI integration. The implementation is currently 85% complete and requires specific focus on remaining components to reach 100% functionality.
 
 ---
 
@@ -37,12 +37,12 @@ This document contains a comprehensive, granular task list with specific files, 
 - [ ] **File:** `workflow_engine.py` - Implement run_gauntlet function with all advanced types (adaptive, hierarchical, competitive, collaborative)
 - [ ] **File:** `ui_components.py` - Complete Gauntlet Designer UI with all features from section 4.2
 
-### 5. Hephaestus Integration Completeness
-- [ ] **File:** `hephaestus_integration.py` - Complete bi-directional synchronization functionality
-- [ ] **File:** `workflow_engine.py` - Complete Hephaestus ticket creation and mapping
+### 5. CrewAI Integration Completeness
+- [ ] **File:** `crewai_integration.py` - Complete bi-directional synchronization functionality
+- [ ] **File:** `workflow_engine.py` - Complete CrewAI ticket creation and mapping
 - [ ] **File:** `workflow_engine.py` - Complete solution status synchronization between systems
 - [ ] **File:** `workflow_engine.py` - Complete critique and verification report synchronization
-- [ ] **File:** `workflow_engine.py` - Complete self-healing trigger from Hephaestus agent discoveries
+- [ ] **File:** `workflow_engine.py` - Complete self-healing trigger from CrewAI agent discoveries
 
 ### 6. UI/UX Components Completeness
 - [ ] **File:** `ui_components.py` - Complete Manual Review Panel as described in section 4.4
@@ -102,14 +102,14 @@ This document contains a comprehensive, granular task list with specific files, 
 - [ ] **File:** `workflow_engine.py` - Add database query optimization
 
 ### 13. Advanced Integration Features
-- [ ] **File:** `hephaestus_integration.py` - Add advanced error handling and retry mechanisms
-- [ ] **File:** `hephaestus_integration.py` - Add performance monitoring for integration
-- [ ] **File:** `hephaestus_integration.py` - Add configurable sync intervals
-- [ ] **File:** `hephaestus_integration.py` - Add conflict resolution for sync conflicts
+- [ ] **File:** `crewai_integration.py` - Add advanced error handling and retry mechanisms
+- [ ] **File:** `crewai_integration.py` - Add performance monitoring for integration
+- [ ] **File:** `crewai_integration.py` - Add configurable sync intervals
+- [ ] **File:** `crewai_integration.py` - Add conflict resolution for sync conflicts
 
 ### 14. Testing & Quality Assurance
 - [ ] **File:** `tests/test_workflow_engine.py` - Add comprehensive workflow engine tests
-- [ ] **File:** `tests/test_integration.py` - Add Hephaestus integration tests
+- [ ] **File:** `tests/test_integration.py` - Add CrewAI integration tests
 - [ ] **File:** `tests/test_gauntlet.py` - Add comprehensive gauntlet tests
 - [ ] **File:** `tests/test_ui_components.py` - Add UI component tests
 - [ ] **File:** `tests/test_performance.py` - Add performance and stress tests
@@ -177,7 +177,7 @@ This document contains a comprehensive, granular task list with specific files, 
 - [ ] Analytics Dashboard: Complete implementation per section 4.6
 - [ ] Knowledge Base Interface: Complete implementation per section 4.7
 
-### F. Hephaestus Integration (`hephaestus_integration.py`)
+### F. CrewAI Integration (`crewai_integration.py`)
 - [ ] Workflow initialization: Complete bi-directional setup
 - [ ] Ticket synchronization: Complete solution/status sync
 - [ ] Agent mapping: Team-to-agent mapping functionality
@@ -193,18 +193,18 @@ This document contains a comprehensive, granular task list with specific files, 
 - [ ] Problem statement flows from UI → Content Analysis → Decomposition → Solution → Assembly → Verification
 - [ ] Team configurations properly pass from Team Manager → Workflow Engine → LLM calls
 - [ ] Gauntlet configurations properly pass from Gauntlet Manager → Workflow Engine → Evaluation
-- [ ] Solution states properly sync between Workflow Engine ↔ Hephaestus Integration ↔ UI
+- [ ] Solution states properly sync between Workflow Engine ↔ CrewAI Integration ↔ UI
 
 ### 2. Control Flow Verification
 - [ ] Stage transitions work correctly (0→1→2→3→4→5→6)
 - [ ] Manual review properly pauses and resumes workflow execution
 - [ ] Self-healing loops function correctly when solutions fail verification
-- [ ] Hephaestus integration properly triggers when sub-problems are created
+- [ ] CrewAI integration properly triggers when sub-problems are created
 
 ### 3. Integration Verification
-- [ ] OpenEvolve team configurations map to Hephaestus agents correctly
-- [ ] OpenEvolve sub-problems create Hephaestus tickets with proper linking
-- [ ] Hephaestus agent discoveries flow back to OpenEvolve for self-healing
+- [ ] OpenEvolve team configurations map to CrewAI agents correctly
+- [ ] OpenEvolve sub-problems create CrewAI tickets with proper linking
+- [ ] CrewAI agent discoveries flow back to OpenEvolve for self-healing
 - [ ] Solution status updates properly synchronize between systems
 
 ---
@@ -215,7 +215,7 @@ This document contains a comprehensive, granular task list with specific files, 
 - [ ] All workflow stages execute without errors
 - [ ] All gauntlet types function correctly
 - [ ] All UI components render without errors
-- [ ] All Hephaestus integrations work as specified
+- [ ] All CrewAI integrations work as specified
 
 ### 2. Integration Verification
 - [ ] Bidirectional synchronization works in both directions

@@ -42,10 +42,10 @@
 - **Type:** placeholder_method
 - **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\google-sheets-bubble.ts
 
-### hephaestus (service)
+### crewai (service)
 - **Issue:** Method "generatedFunction" is a placeholder
 - **Type:** placeholder_method
-- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\hephaestus-bubble.ts
+- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\crewai-bubble.ts
 
 ### insforge-db (service)
 - **Issue:** Method "some" is a placeholder
@@ -194,20 +194,20 @@
 - **Type:** missing_timeout
 - **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\google-drive.ts
 
-### hephaestus (service)
+### crewai (service)
 - **Issue:** Method "map" is empty
 - **Type:** empty_method
-- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\hephaestus-bubble.ts
+- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\crewai-bubble.ts
 
-### hephaestus (service)
+### crewai (service)
 - **Issue:** Method "map" is empty
 - **Type:** empty_method
-- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\hephaestus-bubble.ts
+- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\crewai-bubble.ts
 
-### hephaestus (service)
+### crewai (service)
 - **Issue:** Method "test" is empty
 - **Type:** empty_method
-- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\hephaestus-bubble.ts
+- **File:** C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core\src\bubbles\service-bubble\crewai-bubble.ts
 
 ... and 45 more high priority gaps
 
@@ -405,7 +405,7 @@
 - **Issues:** 1
   - MEDIUM: Async functions without try-catch blocks
 
-#### hephaestus ⚠️ Incomplete
+#### crewai ⚠️ Incomplete
 - **Methods:** 11
 - **Placeholders:** 1
 - **Empty Methods:** 3

@@ -40,7 +40,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 11. **ROMA** - Recursive Meta-Agent
 12. **ragbits** - GenAI Building Blocks
 13. **LeanAgent** - Lean 4 LLM Agent
-14. **Hephaestus** - Delegation Framework
+14. **CrewAI** - Delegation Framework
 15. **BubbleLab** - Workflow Analytics
 16. **datapizza-ai** - GenAI Framework
 17. **claudiomiro** - Development Automation
@@ -1043,8 +1043,8 @@ This document contains a comprehensive list of all necessary tasks for integrati
   - [ ] Integrate with BubbleLab workflow analytics
   - [ ] Track invention workflow performance
   - [ ] Optimize workflow based on analytics
-- [ ] **Hephaestus integration**:
-  - [ ] Delegate invention tasks to Hephaestus agents
+- [ ] **CrewAI integration**:
+  - [ ] Delegate invention tasks to CrewAI agents
   - [ ] Monitor task execution
   - [ ] Aggregate results from agents
 - [ ] **Sovereign integration**:
@@ -1058,7 +1058,7 @@ This document contains a comprehensive list of all necessary tasks for integrati
 
 **Deliverables**:
 - `invention_planner/bubblelab_integration.py` - NEW
-- `invention_planner/hephaestus_integration.py` - NEW
+- `invention_planner/crewai_integration.py` - NEW
 - `invention_planner/sovereign_integration.py` - NEW
 - `invention_planner/kg_viz_integration.py` - NEW
 - `tests/test_integrations.py` - Integration tests

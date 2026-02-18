@@ -947,26 +947,26 @@ async def integrate_leanaide():
 asyncio.run(integrate_leanaide())
 ```
 
-### Example 20: Hephaestus Integration
+### Example 20: CrewAI Integration
 
 ```python
-async def integrate_hephaestus():
-    """Integrate with Hephaestus delegation system"""
+async def integrate_crewai():
+    """Integrate with CrewAI delegation system"""
 
     try:
-        from hephaestus_client import HephaestusClient
-        HEPHAESTUS_AVAILABLE = True
+        from crewai_client import CrewAIClient
+        CREWAI_AVAILABLE = True
     except ImportError:
-        HEPHAESTUS_AVAILABLE = False
-        print("Hephaestus not available")
+        CREWAI_AVAILABLE = False
+        print("CrewAI not available")
 
-    if not HEPHAESTUS_AVAILABLE:
+    if not CREWAI_AVAILABLE:
         return
 
     theorem = "forall n : nat, n + 0 = n"
 
-    # Delegate to Hephaestus with MAKER
-    client = HephaestusClient()
+    # Delegate to CrewAI with MAKER
+    client = CrewAIClient()
 
     result = await run_maker_hybrid(
         theorem=theorem,
@@ -978,13 +978,13 @@ async def integrate_hephaestus():
     )
 
     if result.success:
-        print("Hephaestus delegation successful!")
+        print("CrewAI delegation successful!")
         print(f"Proof:\n{result.best_proof}")
 
-        # Could send proof back to Hephaestus for validation
+        # Could send proof back to CrewAI for validation
         # client.validate_proof(result.best_proof)
 
-asyncio.run(integrate_hephaestus())
+asyncio.run(integrate_crewai())
 ```
 
 ---

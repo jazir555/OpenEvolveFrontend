@@ -14,13 +14,13 @@
 
 ## System Overview
 
-The OpenEvolve Sovereign-Grade Decomposition Workflow is a state-of-the-art AI orchestration system that breaks down complex, intractable problems into manageable sub-problems and solves them using a combination of specialized AI teams, programmable evaluation gauntlets, and human oversight. The system integrates seamlessly with the Hephaestus agentic framework to provide both systematic decomposition and emergent discovery capabilities.
+The OpenEvolve Sovereign-Grade Decomposition Workflow is a state-of-the-art AI orchestration system that breaks down complex, intractable problems into manageable sub-problems and solves them using a combination of specialized AI teams, programmable evaluation gauntlets, and human oversight. The system integrates seamlessly with the CrewAI agentic framework to provide both systematic decomposition and emergent discovery capabilities.
 
 ### Key Features
 - **Quantitative Volume of Analysis**: Overcomes individual AI model limitations through massive parallel processing and statistical consensus
 - **Sovereign-Grade Control**: Ultimate user control over every agent, process, and decision
 - **Self-Healing Automation**: Intelligent failure diagnosis and automatic correction loops
-- **Hephaestus Integration**: Hybrid structured decomposition with emergent agent workflows
+- **CrewAI Integration**: Hybrid structured decomposition with emergent agent workflows
 - **Multi-Modal Evaluation**: Red/Blue/Gold team gauntlets with complex programmable rules
 
 ---
@@ -39,7 +39,7 @@ The system follows a layered architecture with clear separation of concerns:
 ├─────────────────────────────────────────────────────────────┤
 │                   Persistence Layer                        │
 ├─────────────────────────────────────────────────────────────┤
-│            External Integrations (Hephaestus)              │
+│            External Integrations (CrewAI)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,7 +47,7 @@ The system follows a layered architecture with clear separation of concerns:
 - **Teams**: Groups of AI models assigned to specific roles (Blue, Red, Gold)
 - **Gauntlets**: Programmable evaluation processes with multi-round logic
 - **Workflow State**: Managed execution state for active workflows
-- **Integration Manager**: Coordinates OpenEvolve and Hephaestus systems
+- **Integration Manager**: Coordinates OpenEvolve and CrewAI systems
 
 ---
 
@@ -98,7 +98,7 @@ The system follows a layered architecture with clear separation of concerns:
 - Execution of all 6 workflow stages (0-6)
 - Team and gauntlet coordination
 - Self-healing loop management
-- Hephaestus integration coordination
+- CrewAI integration coordination
 
 **Key Stages:**
 - Stage 0: Content Analysis
@@ -126,12 +126,12 @@ The system follows a layered architecture with clear separation of concerns:
 - Analytics Dashboard UI
 - Knowledge Base UI
 
-### Hephaestus Integration (`hephaestus_integration.py`)
+### CrewAI Integration (`crewai_integration.py`)
 **Responsibilities:**
-- API communication with Hephaestus system
+- API communication with CrewAI system
 - Ticket creation and management
 - Real-time synchronization between systems
-- Status mapping between OpenEvolve and Hephaestus
+- Status mapping between OpenEvolve and CrewAI
 - Agent performance tracking
 
 **Key Features:**
@@ -140,9 +140,9 @@ The system follows a layered architecture with clear separation of concerns:
 - Real-time monitoring
 - Self-healing integration
 
-### Sovereign Integration (`sovereign_decomposition_hephaestus_integration.py`)
+### Sovereign Integration (`sovereign_decomposition_crewai_integration.py`)
 **Responsibilities:**
-- Complete integration orchestration between OpenEvolve and Hephaestus
+- Complete integration orchestration between OpenEvolve and CrewAI
 - Workflow initialization in both systems
 - Solution status synchronization
 - Agent discovery and feedback processing
@@ -214,12 +214,12 @@ The system follows a layered architecture with clear separation of concerns:
 ```
 [User Problem] → [Content Analysis] → [AI Decomposition] → [Manual Review] → [Sub-Problem Solving]
        ↓               ↓                    ↓                   ↓                   ↓
-   [Hephaestus] ←→ [Hephaestus] ←→ [Hephaestus] ←→ [Hephaestus] ←→ [Hephaestus Tickets]
+   [CrewAI] ←→ [CrewAI] ←→ [CrewAI] ←→ [CrewAI] ←→ [CrewAI Tickets]
        ↓               ↓                    ↓                   ↓                   ↓
 [Sync & Monitor] ←→ [Sync & Monitor] ←→ [Sync & Monitor] ←→ [Sync & Monitor] ←→ [Verification]
 ```
 
-Each sub-problem becomes a Hephaestus ticket with:
+Each sub-problem becomes a CrewAI ticket with:
 - Solution generation by Solver team
 - Critique by Red team gauntlet
 - Verification by Gold team gauntlet
@@ -233,17 +233,17 @@ Each sub-problem becomes a Hephaestus ticket with:
 - `workflow_engine.py` → `workflow_structures.py`: Uses all data models
 - `workflow_engine.py` → `team_manager.py`: Retrieves team configurations
 - `workflow_engine.py` → `gauntlet_manager.py`: Retrieves gauntlet configurations
-- `workflow_engine.py` → `hephaestus_integration.py`: Syncs with Hephaestus
+- `workflow_engine.py` → `crewai_integration.py`: Syncs with CrewAI
 - `ui_components.py` → All core modules: Provides UI functionality
 
 ### Control Flow Connections
 - `openevolve_orchestrator.py` → `workflow_engine.py`: Starts workflow execution
 - `workflow_engine.py` → UI components: Triggers manual review
-- `hephaestus_integration.py` ↔ `workflow_engine.py`: Bi-directional synchronization
+- `crewai_integration.py` ↔ `workflow_engine.py`: Bi-directional synchronization
 - `knowledge_manager.py` ↔ All modules: Extracts and applies knowledge
 
 ### External Dependencies
-- Hephaestus API: Ticket creation and status updates
+- CrewAI API: Ticket creation and status updates
 - LLM providers: OpenAI-compatible API calls
 - Database: Persistent storage of configurations
 - Qdrant: Vector storage for knowledge base
@@ -257,7 +257,7 @@ Each sub-problem becomes a Hephaestus ticket with:
 - ✅ Team and gauntlet management systems
 - ✅ Full workflow engine (stages 0-6)
 - ✅ UI/UX components
-- ✅ Hephaestus integration
+- ✅ CrewAI integration
 - ✅ Knowledge extraction system
 - ✅ Self-healing automation
 - ✅ Real-time monitoring
@@ -275,7 +275,7 @@ Each sub-problem becomes a Hephaestus ticket with:
 1. **Expand Unit Test Coverage**
    - Add tests for error handling edge cases
    - Test all gauntlet configurations
-   - Test hephaestus integration failure scenarios
+   - Test crewai integration failure scenarios
 
 2. **Performance Optimization**
    - Implement caching for frequently accessed data
@@ -323,6 +323,6 @@ Each sub-problem becomes a Hephaestus ticket with:
 
 ## Conclusion
 
-The OpenEvolve Sovereign-Grade Decomposition Workflow is a comprehensive, production-ready system that successfully implements the complete architecture described in the documentation. The system provides microscopic control over AI problem-solving processes while maintaining scalability and reliability through its integration with the Hephaestus framework.
+The OpenEvolve Sovereign-Grade Decomposition Workflow is a comprehensive, production-ready system that successfully implements the complete architecture described in the documentation. The system provides microscopic control over AI problem-solving processes while maintaining scalability and reliability through its integration with the CrewAI framework.
 
-The modular architecture allows for easy extension and maintenance, while the comprehensive integration with Hephaestus provides both structured decomposition and emergent discovery capabilities. The system is ready for production deployment with only minor enhancements needed for optimal performance.
+The modular architecture allows for easy extension and maintenance, while the comprehensive integration with CrewAI provides both structured decomposition and emergent discovery capabilities. The system is ready for production deployment with only minor enhancements needed for optimal performance.

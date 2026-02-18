@@ -63,12 +63,12 @@ export declare class LeanAideAutoformalizationEngine {
 export declare function create_leanaide_autoformalization_engine(config?: AutoformalizationConfig): LeanAideAutoformalizationEngine;
 export declare function autoformalize_with_mdap_maker(input: string, config?: AutoformalizationConfig): Promise<AutoformalizationResult>;
 export declare function useAutoformalizationAnalytics(): {
-    events: any;
-    metrics: any;
+    events: AutoformalizationEvent[];
+    metrics: AutoformalizationMetrics;
     isLoading: boolean;
-    trackEvent: any;
-    getMetrics: any;
-    reset: any;
+    trackEvent: (event: AutoformalizationEvent) => void;
+    getMetrics: () => AutoformalizationMetrics;
+    reset: () => void;
 };
 export interface EnhancedLeanAideVerificationProps extends LeanAideVerificationProps {
     enableAnalytics?: boolean;

@@ -14,7 +14,7 @@ Integration guide for Hybrid MAKER strategies with existing workflows and system
 2. [Workflow Integration](#workflow-integration)
 3. [Stage 3A/B/C Integration](#stage-3abc-integration)
 4. [LeanAide Integration](##leanaide-integration)
-5. [Hephaestus Integration](#hephaestus-integration)
+5. [CrewAI Integration](#crewai-integration)
 6. [Knowledge Engine Integration](#knowledge-engine-integration)
 7. [API Integration](#api-integration)
 8. [Testing Integration](#testing-integration)
@@ -29,7 +29,7 @@ The Hybrid MAKER system can be integrated into various workflows and systems. Th
 
 - OpenEvolve workflows (Stage 3A, 3B, 3C)
 - LeanAide theorem proving
-- Hephaestus delegation
+- CrewAI delegation
 - Knowledge Engine
 - REST APIs
 - Testing frameworks
@@ -51,7 +51,7 @@ The Hybrid MAKER system can be integrated into various workflows and systems. Th
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                   Integration Adapters                      │
-│  (LeanAide, Hephaestus, Knowledge Engine, etc.)             │
+│  (LeanAide, CrewAI, Knowledge Engine, etc.)             │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -561,28 +561,28 @@ class AdvancedLeanAideMAKER:
 
 ---
 
-## Hephaestus Integration
+## CrewAI Integration
 
-### Basic Hephaestus Integration
+### Basic CrewAI Integration
 
 ```python
-class HephaestusMAKERIntegration:
-    """Integrate MAKER with Hephaestus delegation system"""
+class CrewAIMAKERIntegration:
+    """Integrate MAKER with CrewAI delegation system"""
 
     def __init__(self):
         try:
-            from hephaestus_client import HephaestusClient
-            self.hephaestus = HephaestusClient()
+            from crewai_client import CrewAIClient
+            self.crewai = CrewAIClient()
             self.available = True
         except ImportError:
             self.available = False
-            print("Hephaestus not available")
+            print("CrewAI not available")
 
-    async def delegate_to_hephaestus(self, problem):
-        """Delegate problem solving to Hephaestus with MAKER"""
+    async def delegate_to_crewai(self, problem):
+        """Delegate problem solving to CrewAI with MAKER"""
 
         if not self.available:
-            raise RuntimeError("Hephaestus not available")
+            raise RuntimeError("CrewAI not available")
 
         # Use MAKER to decompose problem
         decomposition = run_maker_evolution(
@@ -597,7 +597,7 @@ class HephaestusMAKERIntegration:
 
         subtasks = decomposition['best_program'].split('\n')
 
-        # Delegate each subtask to Hephaestus
+        # Delegate each subtask to CrewAI
         results = []
         for subtask in subtasks:
             result = await self._delegate_subtask(subtask)
@@ -616,8 +616,8 @@ class HephaestusMAKERIntegration:
         return final_result
 
     async def _delegate_subtask(self, subtask):
-        """Delegate single subtask to Hephaestus"""
-        # This would use Hephaestus client to delegate
+        """Delegate single subtask to CrewAI"""
+        # This would use CrewAI client to delegate
         # Placeholder implementation
         return f"Solved: {subtask}"
 
@@ -626,14 +626,14 @@ class HephaestusMAKERIntegration:
         return min(1.0, len(assembly) / 1000.0)
 ```
 
-### Hephaestus Workflow Integration
+### CrewAI Workflow Integration
 
 ```python
-def create_hephaestus_maker_workflow():
-    """Create workflow integrating Hephaestus and MAKER"""
+def create_crewai_maker_workflow():
+    """Create workflow integrating CrewAI and MAKER"""
 
     workflow = {
-        "name": "Hephaestus_MAKER_Workflow",
+        "name": "CrewAI_MAKER_Workflow",
         "stages": [
             {
                 "name": "MAKER_Decomposition",
@@ -644,8 +644,8 @@ def create_hephaestus_maker_workflow():
                 }
             },
             {
-                "name": "Hephaestus_Delegation",
-                "type": "hephaestus_delegation",
+                "name": "CrewAI_Delegation",
+                "type": "crewai_delegation",
                 "depends_on": ["MAKER_Decomposition"],
                 "config": {
                     "parallel_delegation": True,
@@ -655,7 +655,7 @@ def create_hephaestus_maker_workflow():
             {
                 "name": "MAKER_Assembly",
                 "type": "maker_assembly",
-                "depends_on": ["Hephaestus_Delegation"],
+                "depends_on": ["CrewAI_Delegation"],
                 "config": {
                     "mode": "hybrid",
                     "voting_threshold": 3

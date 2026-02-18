@@ -339,10 +339,10 @@ The `resilience.ts` infrastructure is production-ready:
    - State persistence with Redis
    - Integrates with Python engines
 
-7. **HephaestusBubble** - 98/100 ✅
-   - File: `service-bubbles/hephaestus-bubble.ts`
-   - Test: `tests/hephaestus-bubble.test.ts`
-   - Probe: `probes/hephaestus.probe.sh`
+7. **CrewAIBubble** - 98/100 ✅
+   - File: `service-bubbles/crewai-bubble.ts`
+   - Test: `tests/crewai-bubble.test.ts`
+   - Probe: `probes/crewai.probe.sh`
    - Extends AIAgentBubble properly
    - Real MCP protocol integration
 
@@ -362,7 +362,7 @@ The `resilience.ts` infrastructure is production-ready:
 | PostgreSQLBubble | ✅ | ✅ | ✅ | ✅ | 95/100 | **YES** |
 | KnowledgeEngineBubble | ✅ | ✅ | ✅ | ✅ | 98/100 | **YES** |
 | WorkflowOrchestratorBubble | ✅ | ✅ | ✅ | ✅ | 98/100 | **YES** |
-| HephaestusBubble | ✅ | ✅ | ✅ | ✅ | 98/100 | **YES** |
+| CrewAIBubble | ✅ | ✅ | ✅ | ✅ | 98/100 | **YES** |
 | ACEToolsBubble | ✅ | ✅ | ✅ | ✅ | 98/100 | **YES** |
 
 **Federation Constitution Compliance**: 100% ✅
@@ -553,7 +553,7 @@ All 8 service bubbles fully comply with the Federation Constitution:
 - [x] PostgreSQLBubble (95/100)
 - [x] KnowledgeEngineBubble (98/100)
 - [x] WorkflowOrchestratorBubble (98/100)
-- [x] HephaestusBubble (98/100)
+- [x] CrewAIBubble (98/100)
 - [x] ACEToolsBubble (98/100)
 
 **Deployment Risk**: LOW
@@ -1139,7 +1139,7 @@ Apply Wave 5 security pattern to all 61 files:
 
 3. Deploy service bubbles (8 bubbles)
    - QdrantBubble, ElasticsearchBubble, RedisBubble, PostgreSQLBubble
-   - KnowledgeEngineBubble, WorkflowOrchestratorBubble, HephaestusBubble, ACEToolsBubble
+   - KnowledgeEngineBubble, WorkflowOrchestratorBubble, CrewAIBubble, ACEToolsBubble
    - **Effort**: 8 hours
    - **Owner**: Backend Team
    - **Risk**: LOW
@@ -1487,7 +1487,7 @@ Apply Wave 5 security pattern to all 61 files:
 - service-bubbles/postgresql-bubble.ts (95/100)
 - service-bubbles/knowledge-engine-bubble.ts (98/100)
 - service-bubbles/workflow-orchestrator-bubble.ts (98/100)
-- service-bubbles/hephaestus-bubble.ts (98/100)
+- service-bubbles/crewai-bubble.ts (98/100)
 - service-bubbles/ace-tools-bubble.ts (98/100)
 
 **Why Ready**:
@@ -2101,7 +2101,7 @@ Apply Wave 5 security pattern to all 61 files:
 - service-bubbles/postgresql-bubble.ts (95/100)
 - service-bubbles/knowledge-engine-bubble.ts (98/100)
 - service-bubbles/workflow-orchestrator-bubble.ts (98/100)
-- service-bubbles/hephaestus-bubble.ts (98/100)
+- service-bubbles/crewai-bubble.ts (98/100)
 - service-bubbles/ace-tools-bubble.ts (98/100)
 
 **Tool Bubble Files** (2 tools):

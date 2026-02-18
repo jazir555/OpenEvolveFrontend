@@ -1,4 +1,4 @@
-# BubbleLabs + Maker + Hephaestus Quick Reference
+# BubbleLabs + Maker + CrewAI Quick Reference
 
 ## 🚀 Quick Start
 
@@ -15,15 +15,15 @@ ui = create_bubblelabs_maker_integration()
 ui.render_maker_studio()
 ```
 
-### Initialize with Hephaestus
+### Initialize with CrewAI
 
 ```python
-from hephaestus_integration import HephaestusIntegrationManager
+from crewai_integration import CrewAIIntegrationManager
 from bubblelabs_maker_integration import create_bubblelabs_maker_integration
 
-# Setup Hephaestus
-heph_manager = HephaestusIntegrationManager(
-    api_base="https://api.hephaestus.com",
+# Setup CrewAI
+heph_manager = CrewAIIntegrationManager(
+    api_base="https://api.crewai.com",
     api_key="your-key",
     project_id="your-project"
 )
@@ -97,15 +97,15 @@ results = repo.search_tools("analysis")
 
 ---
 
-## 📋 Hephaestus Operations
+## 📋 CrewAI Operations
 
 ### Delegate Task
 
 ```python
-from bubblelabs_maker_integration import HephaestusDelegationManager
+from bubblelabs_maker_integration import CrewAIDelegationManager
 
 # Initialize
-delegation_mgr = HephaestusDelegationManager(hephaestus_manager)
+delegation_mgr = CrewAIDelegationManager(crewai_manager)
 
 # Delegate
 delegation = delegation_mgr.delegate_tool_execution(
@@ -122,8 +122,8 @@ print(f"Status: {delegation.status}")
 ### Sync Status
 
 ```python
-# Sync from Hephaestus
-synced = delegation_mgr.sync_from_hephaestus()
+# Sync from CrewAI
+synced = delegation_mgr.sync_from_crewai()
 print(f"Synced {synced} delegation(s)")
 
 # List delegations
@@ -202,7 +202,7 @@ config = create_maker_config(
 }
 ```
 
-### HephaestusDelegation
+### CrewAIDelegation
 
 ```python
 {
@@ -227,7 +227,7 @@ config = create_maker_config(
     "execution_time": 12.34,
     "success": true,
     "metrics": {...},
-    "hephaestus_ticket_id": "ticket_789"
+    "crewai_ticket_id": "ticket_789"
 }
 ```
 
@@ -349,11 +349,11 @@ config = create_maker_config(
 )
 ```
 
-### Hephaestus Config
+### CrewAI Config
 
 ```python
-heph_manager = HephaestusIntegrationManager(
-    api_base="https://api.hephaestus.com",  # API endpoint
+heph_manager = CrewAIIntegrationManager(
+    api_base="https://api.crewai.com",  # API endpoint
     api_key="your-key",                       # Authentication
     project_id="your-project"                 # Project ID
 )
@@ -400,19 +400,19 @@ else:
     print("✅ Maker Engine available")
 ```
 
-### Problem: Hephaestus connection fails
+### Problem: CrewAI connection fails
 
 ```python
-# Test Hephaestus connection
-from hephaestus_integration import HephaestusClient
+# Test CrewAI connection
+from crewai_integration import CrewAIClient
 
-client = HephaestusClient(api_base, api_key, project_id)
+client = CrewAIClient(api_base, api_key, project_id)
 test_ticket = client.create_ticket("Test", "Test connection")
 
 if test_ticket:
-    print("✅ Hephaestus connection OK")
+    print("✅ CrewAI connection OK")
 else:
-    print("❌ Check Hephaestus credentials")
+    print("❌ Check CrewAI credentials")
 ```
 
 ### Problem: Tool execution times out
@@ -515,12 +515,12 @@ result, _ = manager.execute_tool_workflow(
 )
 ```
 
-### Example 3: Hephaestus Workflow
+### Example 3: CrewAI Workflow
 
 ```python
-# Create and delegate tool with Hephaestus tracking
-heph_manager = HephaestusIntegrationManager(...)
-delegation_mgr = HephaestusDelegationManager(heph_manager)
+# Create and delegate tool with CrewAI tracking
+heph_manager = CrewAIIntegrationManager(...)
+delegation_mgr = CrewAIDelegationManager(heph_manager)
 
 workflow_manager = MakerWorkflowManager(
     delegation_manager=delegation_mgr
@@ -533,25 +533,25 @@ tool, _ = workflow_manager.create_tool_workflow(
     maker_mode="recursive"
 )
 
-# Execute with Hephaestus delegation
+# Execute with CrewAI delegation
 result, _ = workflow_manager.execute_tool_workflow(
     tool_id=tool.tool_id,
     input_data={"task": "Generate Q1 report"},
-    delegate_to_hephaestus=True
+    delegate_to_crewai=True
 )
 
 # Check delegation status
-if result.hephaestus_ticket_id:
-    print(f"Tracking in Hephaestus: {result.hephaestus_ticket_id}")
+if result.crewai_ticket_id:
+    print(f"Tracking in CrewAI: {result.crewai_ticket_id}")
 ```
 
 ---
 
 ## 🔗 Related Documentation
 
-- **Full API Documentation**: `BUBBLELABS_MAKER_HEPHAEUSTUS_DOCUMENTATION.md`
+- **Full API Documentation**: `BUBBLELABS_MAKER_CREWAI_DOCUMENTATION.md`
 - **Maker Engine Paper**: arXiv:2511.09030
-- **Hephaestus Integration**: `hephaestus_integration.py`
+- **CrewAI Integration**: `crewai_integration.py`
 - **ROMA MDAP**: `mdap_maker_complete.py`
 
 ---
@@ -560,7 +560,7 @@ if result.hephaestus_ticket_id:
 
 1. **Check Logs**: Look at `openevolve.log` for errors
 2. **Verify Dependencies**: Ensure all imports are available
-3. **Test Connection**: Verify Hephaestus API access
+3. **Test Connection**: Verify CrewAI API access
 4. **Review Config**: Check MAKER configuration parameters
 
 ---
@@ -570,7 +570,7 @@ if result.hephaestus_ticket_id:
 ### Before Using
 
 - [ ] Maker Engine imported successfully
-- [ ] Hephaestus configured (if using)
+- [ ] CrewAI configured (if using)
 - [ ] Tool repository initialized
 - [ ] API credentials set (if needed)
 
@@ -586,7 +586,7 @@ if result.hephaestus_ticket_id:
 
 - [ ] Valid tool ID
 - [ ] Proper input format
-- [ ] Hephaestus enabled (if tracking)
+- [ ] CrewAI enabled (if tracking)
 - [ ] Timeout configured
 
 ---

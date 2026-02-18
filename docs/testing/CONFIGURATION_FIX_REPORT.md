@@ -18,7 +18,7 @@ All HIGH severity configuration and dependency security issues have been success
 - `C:\Users\mmeadow\Documents\OpenEvolve\Frontend\api_server.py` (3 hardcoded keys)
 
 **Changes:**
-- Replaced all `"demo_key"` defaults with `os.getenv("HEPHAESTUS_API_KEY")`
+- Replaced all `"demo_key"` defaults with `os.getenv("CREWAI_API_KEY")`
 - Removed hardcoded API keys: `demo_key_12345`, `user_key_67890`, `readonly_key_11111`
 - Added validation to ensure API keys are set before use
 - Added helpful error messages guiding users to set environment variables
@@ -237,23 +237,23 @@ if is_production():
 
 ### Category 4: Missing Dependencies (4 fixes)
 
-#### ✅ 13. Added Hephaestus Client to Requirements
+#### ✅ 13. Added CrewAI Client to Requirements
 **File Modified:**
 - `requirements.txt`
 
 **Addition:**
 ```
 # Optional dependencies
-hephaestus-client>=0.1.0; extra=="hephaestus"
+crewai-client>=0.1.0; extra=="crewai"
 ```
 
 **Installation Options:**
 ```bash
-# Without hephaestus
+# Without crewai
 pip install -r requirements.txt
 
-# With hephaestus
-pip install -r requirements.txt[hephaestus]
+# With crewai
+pip install -r requirements.txt[crewai]
 ```
 
 **Security Impact:** Proper dependency management without breaking existing installs
@@ -293,7 +293,7 @@ networkx>=3.0  # For graph operations
 - Makes local packages properly importable
 - Entry points for CLI commands
 - Package data inclusion (YAML, JSON, templates)
-- Extras for dev, testing, hephaestus
+- Extras for dev, testing, crewai
 - Proper Python package structure
 
 **Entry Points:**
@@ -313,7 +313,7 @@ entry_points={
 pip install -e .
 
 # With all extras
-pip install -e ".[dev,testing,hephaestus]"
+pip install -e ".[dev,testing,crewai]"
 ```
 
 **Security Impact:** Proper package management and import resolution
@@ -470,7 +470,7 @@ logger.warning(
 - Server configuration
 - API keys (OpenAI, Anthropic, Google)
 - OpenEvolve configuration
-- Hephaestus integration
+- CrewAI integration
 - BubbleLabs integration
 - LLM generation parameters
 - Evolutionary algorithm parameters
@@ -498,14 +498,14 @@ logger.warning(
 **Features:**
 - Proper package structure
 - Entry points for CLI
-- Extras for dev, testing, hephaestus
+- Extras for dev, testing, crewai
 - Package data inclusion
 - Dependency management
 
 **Installation:**
 ```bash
 pip install -e .
-pip install -e ".[dev,testing,hephaestus]"
+pip install -e ".[dev,testing,crewai]"
 ```
 
 ---
@@ -515,7 +515,7 @@ pip install -e ".[dev,testing,hephaestus]"
 ### 1. `workflow_engine.py`
 **Changes:**
 - Removed 7 occurrences of `"demo_key"` default
-- Added validation for `HEPHAESTUS_API_KEY`
+- Added validation for `CREWAI_API_KEY`
 - Added helpful error messages
 - Prevents execution without proper API keys
 
@@ -545,7 +545,7 @@ pip install -e ".[dev,testing,hephaestus]"
 - Added `cryptography>=3.4.8`
 - Added `pyjwt>=2.4.0`
 - Added `python-dotenv>=0.21.0`
-- Added `hephaestus-client>=0.1.0` (optional)
+- Added `crewai-client>=0.1.0` (optional)
 
 **New Dependencies:** 12
 
@@ -681,7 +681,7 @@ python -c 'import secrets; print(secrets.token_hex(32))'
 # In .env or environment
 OPENAI_API_KEY=sk-your-actual-key-here
 ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
-HEPHAESTUS_API_KEY=your-hephaestus-key-here
+CREWAI_API_KEY=your-crewai-key-here
 ```
 
 ### Step 6: Update Application Code
@@ -735,12 +735,12 @@ BubbleLab UI run main.py
 ### 1. Removed Default API Keys
 **Before:**
 ```python
-api_key = os.getenv("HEPHAESTUS_API_KEY", "demo_key")
+api_key = os.getenv("CREWAI_API_KEY", "demo_key")
 ```
 
 **After:**
 ```python
-api_key = env_var_api_key("HEPHAESTUS_API_KEY", required=True)
+api_key = env_var_api_key("CREWAI_API_KEY", required=True)
 # Will raise ValidationError if not set
 ```
 
@@ -903,7 +903,7 @@ All 19 HIGH severity configuration and dependency issues have been successfully 
 12. ✅ Created unified config loader
 
 ### Missing Dependencies: ✅ 4/4 Fixed
-13. ✅ Added hephaestus-client
+13. ✅ Added crewai-client
 14. ✅ Verified bubblelabs dependencies
 15. ✅ Added networkx
 16. ✅ Fixed local package imports

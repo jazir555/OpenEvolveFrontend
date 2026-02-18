@@ -358,7 +358,7 @@
       "modified": true
     },
     {
-      "file": ".\\openevolve_hephaestus_adapter.py",
+      "file": ".\\openevolve_crewai_adapter.py",
       "fixes": [
         {
           "pattern": "direct_decomposition_import",

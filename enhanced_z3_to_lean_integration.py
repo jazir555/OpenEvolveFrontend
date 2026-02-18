@@ -135,10 +135,11 @@ class ProofCertificate:
     model_assignments: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        from dataclasses import asdict
         return {
             "type": self.certificate_type.value,
-            "z3_result": self.z3_result.to_dict() if self.z3_result else None,
-            "lean_result": self.lean_result.to_dict() if self.lean_result else None,
+            "z3_result": asdict(self.z3_result) if self.z3_result else None,
+            "lean_result": asdict(self.lean_result) if self.lean_result else None,
             "cross_validation_passed": self.cross_validation_passed,
             "hash": self.certificate_hash,
             "timestamp": self.timestamp,
@@ -274,7 +275,7 @@ class EnhancedZ3ToLeanIntegration:
             return self._translation_cache[cache_key]
 
         start_time = time.time()
-        theorem_name = theorem_name or f"theorem_{hash(z3_expr) % 1000000:07d}"
+        theorem_name = theorem_name or f"theorem_{hash(z3_expression) % 1000000:07d}"
 
         try:
             # Solve with Z3 to get model
@@ -917,7 +918,7 @@ def create_enhanced_integration(
 def translate_with_tactics(
     z3_expression: str,
     theorem_name: Optional[str] = None
-) -> Tuple[str, List[LeanTactic]]:
+) -> Tuple[str, List[LeanTactic], Optional[Dict[str, Any]]]:
     """Translate Z3 to Lean with generated tactics."""
     integration = create_enhanced_integration()
     return integration.z3_to_lean_enhanced(z3_expression, theorem_name, generate_tactics=True)
@@ -933,11 +934,12 @@ def batch_verify_parallel(
 
 def generate_proof_certificate(
     z3_result: Optional[Z3SolverResult],
-    lean_result: Optional[VerificationResult]
+    lean_result: Optional[VerificationResult],
+    cross_validated: bool = False
 ) -> ProofCertificate:
     """Generate proof certificate."""
     integration = create_enhanced_integration()
-    return integration.generate_proof_certificate(z3_result, lean_result)
+    return integration.generate_proof_certificate(z3_result, lean_result, cross_validated)
 
 
 # =============================================================================

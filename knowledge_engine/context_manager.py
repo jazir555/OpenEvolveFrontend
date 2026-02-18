@@ -55,8 +55,44 @@ class ContextManager:
                      return self.matryoshka.analyze_text(query, input_data)
                 return "Matryoshka unavailable for large text."
             else:
-                 # Small text: Just return it or use RAG if implemented
-                 return f"Analysis of text:\n{input_data[:1000]}..." # Placeholder
+                # Small text: Implement semantic chunking and relevance scoring
+                logger.info(f"Processing small text ({len(input_data)} chars) with semantic analysis")
+
+                # If DSPy is available, use it for retrieval-augmented analysis
+                if DSPY_AVAILABLE:
+                    try:
+                        import dspy
+
+                        # Split text into chunks
+                        chunk_size = 1000
+                        chunks = [input_data[i:i+chunk_size] for i in range(0, len(input_data), chunk_size)]
+
+                        # Score each chunk by relevance to query
+                        scored_chunks = []
+                        for chunk in chunks:
+                            # Simple keyword overlap scoring
+                            query_words = set(query.lower().split())
+                            chunk_words = set(chunk.lower().split())
+                            overlap = len(query_words & chunk_words)
+                            score = overlap / max(len(query_words), 1)
+                            scored_chunks.append((chunk, score))
+
+                        # Sort by relevance and take top chunks
+                        scored_chunks.sort(key=lambda x: x[1], reverse=True)
+                        top_chunks = [chunk for chunk, score in scored_chunks[:3] if score > 0.1]
+
+                        if top_chunks:
+                            relevant_text = "\n\n...\n\n".join(top_chunks)
+                            return f"Query-relevant context extracted:\n\n{relevant_text}\n\n[Original text length: {len(input_data)} chars, Extracted: {len(relevant_text)} chars]"
+                        else:
+                            # No high-relevance chunks found, return beginning of text
+                            return f"Context preview:\n\n{input_data[:2000]}\n\n[Showing first 2000 chars of {len(input_data)} total]"
+
+                    except Exception as e:
+                        logger.warning(f"DSPy semantic analysis failed: {e}, using simple fallback")
+                        return self._simple_text_analysis(query, input_data)
+                else:
+                    return self._simple_text_analysis(query, input_data)
                  
         elif input_type == 'url':
              # For URL, we always use Matryoshka as we don't know size easily without fetching
@@ -148,6 +184,48 @@ class ContextManager:
                 return f"Context from {document_path} (Truncated, DSPy unavailable):\n{content}..."
             except Exception as e:
                 return f"Error reading document: {e}"
+
+    def _simple_text_analysis(self, query: str, text: str) -> str:
+        """
+        Simple text analysis using keyword matching and sliding window.
+
+        Args:
+            query: Query string
+            text: Full text to analyze
+
+        Returns:
+            Relevant text excerpt
+        """
+        query_words = set(query.lower().split())
+        query_words.discard('the')  # Remove common stop words
+        query_words.discard('a')
+        query_words.discard('an')
+
+        # Split text into sentences (rough approximation)
+        sentences = text.replace('. ', '.<EOS>').replace('! ', '!<EOS>').replace('? ', '?<EOS>').split('<EOS>')
+
+        # Score each sentence by keyword overlap
+        scored_sentences = []
+        for sentence in sentences:
+            if len(sentence.strip()) < 10:  # Skip very short sentences
+                continue
+            sentence_words = set(sentence.lower().split())
+            overlap = len(query_words & sentence_words)
+            if overlap > 0:
+                score = overlap / max(len(query_words), 1)
+                scored_sentences.append((sentence.strip(), score))
+
+        # Sort by relevance and take top sentences
+        if scored_sentences:
+            scored_sentences.sort(key=lambda x: x[1], reverse=True)
+            top_sentences = [s for s, score in scored_sentences[:5] if score > 0]
+            relevant_text = ' '.join(top_sentences)
+
+            return f"Query-relevant context:\n\n{relevant_text}\n\n[Found {len(scored_sentences)} relevant sentences, showing top 5]\n[Original text length: {len(text)} chars]"
+
+        # No keyword matches found, return beginning of text
+        preview_length = min(2000, len(text))
+        return f"Text preview (no keyword matches):\n\n{text[:preview_length]}\n\n[Showing first {preview_length} chars of {len(text)} total]"
 
     # Backward compatibility methods for tests
     def get_context(self, context_id: Optional[str] = None) -> Dict[str, Any]:

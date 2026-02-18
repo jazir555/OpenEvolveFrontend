@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-Successfully integrated **4 major components** with Hephaestus:
+Successfully integrated **4 major components** with CrewAI:
 1. **OpenEvolve** (Evolutionary Coding Agent)
 2. **Decomposition Workflow** (Teams/Gauntlets Problem Solving)
 3. **Steer** (Active Reliability Layer)
@@ -25,7 +25,7 @@ Successfully integrated **4 major components** with Hephaestus:
 
 ### 1. OpenEvolve Integration ✅
 
-**Purpose**: Enable evolutionary code optimization within Hephaestus workflows
+**Purpose**: Enable evolutionary code optimization within CrewAI workflows
 
 **Files Created**:
 - `openevolve_mcp_tools.py` (745 lines)
@@ -33,10 +33,10 @@ Successfully integrated **4 major components** with Hephaestus:
   - Functions: `evolve_code`, `evolve_function`, `evolve_algorithm`, `discover_algorithm`, `optimize_prompt`
   - Graceful fallback when OpenEvolve not installed
 
-- `hephaestus_openevolve_bridge.py` (450 lines)
+- `crewai_openevolve_bridge.py` (450 lines)
   - 6 phase execution functions (Phases 1-6)
-  - Maps Hephaestus phases to evolutionary tasks
-  - `HephaestusOpenEvolveWorkflowBridge` class
+  - Maps CrewAI phases to evolutionary tasks
+  - `CrewAIOpenEvolveWorkflowBridge` class
   - Full workflow support
 
 **Status**: ✅ Validated and working
@@ -54,9 +54,9 @@ Successfully integrated **4 major components** with Hephaestus:
   - Functions: `analyze_problem`, `decompose_problem`, `solve_with_team`, `critique_with_gauntlet`, `verify_with_gauntlet`
   - Graceful fallback when components not available
 
-- `decomposition_hephaestus_bridge.py` (900 lines)
+- `decomposition_crewai_bridge.py` (900 lines)
   - 6 phase execution functions mapped to decomposition stages
-  - `DecompositionHephaestusWorkflowBridge` class
+  - `DecompositionCrewAIWorkflowBridge` class
   - Full `execute_full_workflow()` method
   - Evolution parameter passthrough verified
 
@@ -75,10 +75,10 @@ Successfully integrated **4 major components** with Hephaestus:
   - Functions: `verify_json_output`, `verify_slop_filter`, `verify_pii_safety`, `verify_citations`, `verify_sql_security`
   - Graceful fallback when Steer not installed
 
-- `steer_hephaestus_bridge.py` (450 lines)
+- `steer_crewai_bridge.py` (450 lines)
   - 6 phase verification functions
   - `@steer_capture` decorator for automatic verification
-  - `SteerHephaestusWorkflowBridge` class
+  - `SteerCrewAIWorkflowBridge` class
   - Default verifications per phase configured
 
 **Status**: ✅ Validated and working
@@ -97,15 +97,15 @@ Successfully integrated **4 major components** with Hephaestus:
   - Graceful fallback when ACE not installed
   - Support for skillbook persistence
 
-- `ace_hephaestus_bridge.py` (680 lines)
+- `ace_crewai_bridge.py` (680 lines)
   - 6 phase execution functions with ACE learning
-  - `ACEHephaestusWorkflowBridge` class
+  - `ACECrewAIWorkflowBridge` class
   - `@ace_capture` decorator for automatic learning
   - `execute_full_workflow()` method with continuous improvement
   - Checkpoint management for skillbook snapshots
 
 **Why ACE Over Reactive Agents**:
-- ✅ Python native (matches Hephaestus stack)
+- ✅ Python native (matches CrewAI stack)
 - ✅ Sophisticated pattern learning (vs just hyperparameter tuning)
 - ✅ No external services required (vs Docker/Supabase/Node.js)
 - ✅ Production ready with published research (vs experimental)
@@ -120,7 +120,7 @@ Successfully integrated **4 major components** with Hephaestus:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│                          Hephaestus (Orchestrator)                              │
+│                          CrewAI (Orchestrator)                              │
 │                                                                                  │
 │  Phases 1-6: Manages task lifecycle, spawns agents, coordinates work            │
 └────────────┬─────────────────────────────────────────────────────────────────────┘
@@ -196,7 +196,7 @@ Successfully integrated **4 major components** with Hephaestus:
 ### Example 1: Simple Evolutionary Coding
 ```python
 from openevolve_mcp_tools import evolve_code_with_openevolve
-from steer_hephaestus_bridge import steer_capture
+from steer_crewai_bridge import steer_capture
 
 @steer_capture(verifications=["json"])
 def evolve_my_code(code):
@@ -210,12 +210,12 @@ result = evolve_my_code("def sort(arr): ...")
 
 ### Example 2: Complex Problem Decomposition
 ```python
-from decomposition_hephaestus_bridge import DecompositionHephaestusWorkflowBridge
-from steer_hephaestus_bridge import steer_capture
+from decomposition_crewai_bridge import DecompositionCrewAIWorkflowBridge
+from steer_crewai_bridge import steer_capture
 
 @steer_capture(verifications=["json", "slop", "citations"])
 def solve_complex_problem(problem):
-    bridge = DecompositionHephaestusWorkflowBridge()
+    bridge = DecompositionCrewAIWorkflowBridge()
     return bridge.execute_full_workflow(
         problem_statement=problem,
         use_evolution=True,  # OpenEvolve in ALL stages
@@ -227,10 +227,10 @@ result = solve_complex_problem("Design scalable architecture")
 
 ### Example 3: Continuous Learning with ACE ⭐ NEW
 ```python
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
 # Initialize ACE bridge
-bridge = ACEHephaestusWorkflowBridge(
+bridge = ACECrewAIWorkflowBridge(
     model="gpt-4o-mini",
     skillbook_path="workflow_skills.json",
 )
@@ -253,18 +253,18 @@ result2 = bridge.execute_full_workflow(
 
 ### Example 4: Verified Agent with Learning ⭐ NEW
 ```python
-from ace_hephaestus_bridge import ace_capture
-from steer_hephaestus_bridge import steer_capture
-from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+from ace_crewai_bridge import ace_capture
+from steer_crewai_bridge import steer_capture
+from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-bridge = ACEHephaestusWorkflowBridge(model="gpt-4o-mini")
+bridge = ACECrewAIWorkflowBridge(model="gpt-4o-mini")
 
 @steer_capture(verifications=["json", "slop"])
 @ace_capture(bridge, enable_learning=True)
-def my_hephaestus_phase(input_data):
+def my_crewai_phase(input_data):
     return llm.generate(input_data)
 
-result = my_hephaestus_phase({"query": "test"})
+result = my_crewai_phase({"query": "test"})
 # Automatically verified by Steer
 # Automatically learned from by ACE
 ```
@@ -273,7 +273,7 @@ result = my_hephaestus_phase({"query": "test"})
 
 ## Phase/Component Mapping
 
-| Hephaestus Phase | Decomposition Stage | OpenEvolve Activity | Steer Verification | ACE Learning |
+| CrewAI Phase | Decomposition Stage | OpenEvolve Activity | Steer Verification | ACE Learning |
 |------------------|---------------------|---------------------|-------------------|--------------|
 | Phase 1: Setup | Stage 0-1 | Evolves analysis & decomposition | json, slop | Learns analysis patterns |
 | Phase 2: Solution | Stage 3A | Evolves solutions | json, slop | Learns solution strategies |
@@ -290,7 +290,7 @@ result = my_hephaestus_phase({"query": "test"})
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    HEPHAESTUS WORKFLOW                          │
+│                    CREWAI WORKFLOW                          │
 └─────────────────────────────────────────────────────────────────┘
             ↓
     ┌───────────────┐
@@ -371,7 +371,7 @@ result = my_hephaestus_phase({"query": "test"})
 ### Issue #1: workflow_structures.py
 **File**: `workflow_structures.py:124`
 **Error**: `non-default argument 'role' follows default argument`
-**Impact**: Affects `openevolve_hephaustus_delegation.py` and `openevolve_hephaestus_adapter.py`
+**Impact**: Affects `openevolve_hephaustus_delegation.py` and `openevolve_crewai_adapter.py`
 **Status**: ✅ Fixed in this session
 
 ---
@@ -382,13 +382,13 @@ All 8 integration files validated:
 
 ```
 ✅ openevolve_mcp_tools.py - 7 tools, imported successfully
-✅ hephaestus_openevolve_bridge.py - imported successfully
+✅ crewai_openevolve_bridge.py - imported successfully
 ✅ decomposition_mcp_tools.py - 9 tools, imported successfully
-✅ decomposition_hephaestus_bridge.py - 6 phase executors
+✅ decomposition_crewai_bridge.py - 6 phase executors
 ✅ steer_mcp_tools.py - 7 tools, imported successfully
-✅ steer_hephaestus_bridge.py - 6 phase verifiers
+✅ steer_crewai_bridge.py - 6 phase verifiers
 ✅ ace_mcp_tools.py - 7 tools, imported successfully ⭐ NEW
-✅ ace_hephaestus_bridge.py - 6 phase learning functions ⭐ NEW
+✅ ace_crewai_bridge.py - 6 phase learning functions ⭐ NEW
 ```
 
 **Total MCP Tools**: 30
@@ -400,7 +400,7 @@ All 8 integration files validated:
 ## Key Achievements
 
 1. ✅ **Proper Architecture**: Correctly identified OpenEvolve as evolutionary coding, not decomposition
-2. ✅ **Complete Integration**: All 4 components fully integrated with Hephaestus
+2. ✅ **Complete Integration**: All 4 components fully integrated with CrewAI
 3. ✅ **Parameter Passthrough**: Evolution parameters properly flow through all stages
 4. ✅ **Graceful Degradation**: All components handle missing dependencies
 5. ✅ **Production Ready**: No placeholders, stubs, or toy implementations
@@ -416,7 +416,7 @@ All 8 integration files validated:
 |------|---------|
 | `FINAL_INTEGRATION_SUMMARY.md` | Original 3-component integration |
 | `INTEGRATION_VALIDATION_REPORT.md` | Validation test results |
-| `STEER_HEPHAEUSTUS_INTEGRATION.md` | Steer integration documentation |
+| `STEER_CREWAI_INTEGRATION.md` | Steer integration documentation |
 | `COMPLETE_ARCHITECTURE.md` | Full architecture overview |
 | `DATACLASS_BUG_FIXES_COMPLETE.md` | Dataclass bug fixes |
 | `ACE_VS_REACTIVE_AGENTS_ANALYSIS.md` | Comparative analysis ⭐ NEW |
@@ -441,10 +441,10 @@ If needed, the following could be addressed:
 **STATUS**: ✅ ALL INTEGRATIONS COMPLETE WITH ACE
 
 **What Was Done**:
-- Integrated OpenEvolve (evolutionary coding) with Hephaestus
-- Integrated Decomposition Workflow (teams/gauntlets) with Hephaestus
-- Integrated Steer (reliability layer) with Hephaestus
-- **Integrated ACE (continuous learning) with Hephaestus** ⭐ NEW
+- Integrated OpenEvolve (evolutionary coding) with CrewAI
+- Integrated Decomposition Workflow (teams/gauntlets) with CrewAI
+- Integrated Steer (reliability layer) with CrewAI
+- **Integrated ACE (continuous learning) with CrewAI** ⭐ NEW
 - Created 8 integration files (5,700+ lines)
 - Registered 30 MCP tools
 - Built 4 workflow bridges

@@ -929,9 +929,9 @@ def solve_sub_problem_with_team(
 ### 4.3 Bridge Function Updates
 
 ```python
-# Enhanced decomposition_hephaestus_bridge.py
+# Enhanced decomposition_crewai_bridge.py
 
-class DecompositionHephaestusWorkflowBridge:
+class DecompositionCrewAIWorkflowBridge:
     def execute_phase_3a_solution(
         self,
         sub_problems: List[SubProblem],

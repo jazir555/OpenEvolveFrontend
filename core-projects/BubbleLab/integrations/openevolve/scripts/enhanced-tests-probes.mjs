@@ -17,7 +17,7 @@ const ALL_BUBBLES = [
   { category: 'service', name: 'redis', className: 'RedisBubble', testParams: { host: 'localhost', port: 6379 }, probeEndpoints: ['PING', 'INFO', 'DBSIZE', 'CLIENT LIST', 'CONFIG GET *'] },
   { category: 'service', name: 'postgresql', className: 'PostgreSQLBubble', testParams: { host: 'localhost', port: 5432 }, probeEndpoints: ['SELECT 1', 'SELECT version()', 'SELECT current_database()', 'SELECT current_user', 'SELECT pg_postmaster_start_time()'] },
   { category: 'service', name: 'ai-agent', className: 'AIAgentBubble', testParams: { model: 'gpt-4' }, probeEndpoints: ['/v1/models', '/v1/chat/completions', '/v1/embeddings', '/v1/files', '/v1/assistants'] },
-  { category: 'service', name: 'hephaestus', className: 'HephaestusBubble', testParams: { baseUrl: 'http://localhost:8000' }, probeEndpoints: ['/health', '/v1/capabilities', '/v1/workflows', '/v1/status', '/v1/version'] },
+  { category: 'service', name: 'crewai', className: 'CrewAIBubble', testParams: { baseUrl: 'http://localhost:8000' }, probeEndpoints: ['/health', '/v1/capabilities', '/v1/workflows', '/v1/status', '/v1/version'] },
   { category: 'service', name: 'ace-tools', className: 'ACEToolsBubble', testParams: {}, probeEndpoints: ['/health', '/v1/tools', '/v1/status', '/v1/capabilities', '/v1/metrics'] },
   { category: 'service', name: 'workflow-orchestrator', className: 'WorkflowOrchestratorBubble', testParams: { baseUrl: 'http://localhost:8080' }, probeEndpoints: ['/health', '/v1/workflows', '/v1/executions', '/v1/status', '/v1/schedules'] },
   { category: 'service', name: 'slack', className: 'SlackBubble', testParams: {}, probeEndpoints: ['/api/auth.test', '/api/conversations.list', '/api/team.info', '/api/users.list', '/api/channels.list'] },

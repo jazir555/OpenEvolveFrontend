@@ -150,20 +150,20 @@ export class WorkflowOrchestratorBubble extends ServiceBubble<WorkflowParams, Wo
 }
 ```
 
-### 6. HephaestusBubble
-**File**: `service-bubbles/hephaestus-bubble.ts`
+### 6. CrewAIBubble
+**File**: `service-bubbles/crewai-bubble.ts`
 **Fixes Required**:
 ```typescript
 // 1. Extend AIAgentBubble (not ServiceBubble)
-export class HephaestusBubble extends AIAgentBubble<HephaestusParams, HephaestusResult> {
+export class CrewAIBubble extends AIAgentBubble<CrewAIParams, CrewAIResult> {
   // 2. Remove magic default
-  baseUrl: z.string().url().describe('Hephaestus URL (REQUIRED)'),
+  baseUrl: z.string().url().describe('CrewAI URL (REQUIRED)'),
 
   // 3. Either use aiAgent properly or remove it
   // If keeping:
   private aiAgent: AIAgentBubble;
 
-  async action(): Promise<HephaestusResult> {
+  async action(): Promise<CrewAIResult> {
     // Actually use this.aiAgent.action() here
   }
 }
@@ -330,7 +330,7 @@ With the infrastructure complete and QdrantBubble as a reference, the remaining 
    - WorkflowOrchestratorBubble (orchestration)
 
 3. **Lower Priority** (Can be done post-deployment):
-   - HephaestusBubble (AI agent)
+   - CrewAIBubble (AI agent)
    - ACEToolsBubble (analytics)
    - LogParserTool (utility)
    - MetricsCollectorTool (monitoring)

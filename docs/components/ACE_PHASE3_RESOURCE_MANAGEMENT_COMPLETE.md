@@ -14,7 +14,7 @@ Successfully implemented all Phase 3 Resource Management fixes across 6 ACE inte
 ### Files Modified
 
 1. ✅ `ace_mcp_tools.py` - MCP tools registry cleanup
-2. ✅ `ace_hephaestus_bridge.py` - Skillbook pruning and cleanup
+2. ✅ `ace_crewai_bridge.py` - Skillbook pruning and cleanup
 3. ✅ `ace_analytics.py` - Team/gauntlet history limits
 4. ✅ `ace_knowledge_artifacts.py` - Dataclass memory docs
 5. ✅ `ace_workflow_knowledge_extractor.py` - Artifact limits and cleanup
@@ -132,7 +132,7 @@ def _add_artifact_with_limit(self, artifact: KnowledgeArtifact):
 
 ### 4. Fix Skillbook Growth (RL-4)
 
-**File:** `ace_hephaestus_bridge.py` - `ACEHephaestusWorkflowBridge` class
+**File:** `ace_crewai_bridge.py` - `ACECrewAIWorkflowBridge` class
 
 **Changes:**
 - Added `max_skills` parameter to `__init__()` (default: 1000)
@@ -194,7 +194,7 @@ def cleanup_old_skills(self, max_skills: Optional[int] = None, min_helpful: Opti
 **Classes with Cleanup:**
 1. `TeamPerformanceTracker` (ace_analytics.py)
 2. `GauntletEffectivenessAnalyzer` (ace_analytics.py)
-3. `ACEHephaestusWorkflowBridge` (ace_hephaestus_bridge.py)
+3. `ACECrewAIWorkflowBridge` (ace_crewai_bridge.py)
 4. `WorkflowKnowledgeExtractor` (ace_workflow_knowledge_extractor.py)
 
 **Code Pattern:**
@@ -346,7 +346,7 @@ Memory Management:
 Similar documentation added to:
 - `GauntletEffectivenessAnalyzer`
 - `WorkflowKnowledgeExtractor`
-- `ACEHephaestusWorkflowBridge`
+- `ACECrewAIWorkflowBridge`
 
 ---
 
@@ -357,7 +357,7 @@ Similar documentation added to:
 | RL-1 | Unbounded Team History | ace_analytics.py | ✅ Fixed | ~30 |
 | RL-2 | Unbounded Gauntlet History | ace_analytics.py | ✅ Fixed | ~30 |
 | RL-3 | Global Registry Growth | ace_mcp_tools.py, ace_stage6_integration.py | ✅ Fixed | ~20 |
-| RL-4 | Skillbook Growth | ace_hephaestus_bridge.py | ✅ Fixed | ~40 |
+| RL-4 | Skillbook Growth | ace_crewai_bridge.py | ✅ Fixed | ~40 |
 | RL-5 | Unbounded Artifacts List | ace_workflow_knowledge_extractor.py | ✅ Fixed | ~25 |
 | - | Cleanup Methods | All 6 files | ✅ Added | ~80 |
 | - | Context Manager Support | All resource-holding classes | ✅ Added | ~40 |
@@ -403,7 +403,7 @@ with WorkflowKnowledgeExtractor(max_artifacts=100) as extractor:
 
 ```python
 # Test skillbook pruning
-bridge = ACEHephaestusWorkflowBridge(max_skills=10, min_helpful=5)
+bridge = ACECrewAIWorkflowBridge(max_skills=10, min_helpful=5)
 # Add skills with varying helpful counts
 bridge.cleanup_old_skills()
 assert len(bridge.skillbook.skills()) <= 10
@@ -433,7 +433,7 @@ print(f"Cleared {count1} + {count2} tools from registries")
    tracker = TeamPerformanceTracker(max_history_per_team=5000)  # ~25 MB
    analyzer = GauntletEffectivenessAnalyzer(max_history_per_gauntlet=5000)  # ~15 MB
    extractor = WorkflowKnowledgeExtractor(max_artifacts=50000)  # ~500 MB
-   bridge = ACEHephaestusWorkflowBridge(max_skills=5000)  # ~10 MB
+   bridge = ACECrewAIWorkflowBridge(max_skills=5000)  # ~10 MB
    ```
 
 2. **Use context managers for automatic cleanup:**
@@ -464,7 +464,7 @@ print(f"Cleared {count1} + {count2} tools from registries")
 tracker = TeamPerformanceTracker(max_history_per_team=100)
 analyzer = GauntletEffectivenessAnalyzer(max_history_per_gauntlet=100)
 extractor = WorkflowKnowledgeExtractor(max_artifacts=1000)
-bridge = ACEHephaestusWorkflowBridge(max_skills=100)
+bridge = ACECrewAIWorkflowBridge(max_skills=100)
 ```
 
 ---

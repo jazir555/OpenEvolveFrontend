@@ -5053,7 +5053,7 @@ def formal_verified_refinement(
 **Monitoring Integration:**
 ```python
 class RefinementMonitoring:
-    """Monitor refinement metrics with Hephaestus integration."""
+    """Monitor refinement metrics with CrewAI integration."""
     
     def track_refinement(
         self,
@@ -5061,7 +5061,7 @@ class RefinementMonitoring:
         detllm_result: Optional[ReproducibilityReport] = None
     ):
         """Track refinement event in monitoring system."""
-        ticket = HephaestusTicket(
+        ticket = CrewAITicket(
             type=TicketType.REFINEMENT_CYCLE,
             data={
                 'iterations_used': result.iterations_used,
@@ -5073,7 +5073,7 @@ class RefinementMonitoring:
             }
         )
         
-        self.hephaestus.log(ticket)
+        self.crewai.log(ticket)
 ```
 
 ### Best Practices

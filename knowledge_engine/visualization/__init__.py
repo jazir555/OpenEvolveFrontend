@@ -652,6 +652,27 @@ def create_graph_visualization(
     return fig
 
 
+# Import from other visualization modules
+try:
+    from .graph_explorer import GraphExplorer
+    from .temporal_viz import TemporalVisualizer
+    from .community_viz import CommunityVisualizer
+    from .config import VisualizationOptions, NodeFilter, EdgeFilter, CommunityVisualizationOptions, TemporalVisualizationOptions
+    from .export_handlers import ExportHandler as AdvancedExportHandler
+    VISUALIZATION_MODULES_AVAILABLE = True
+except ImportError:
+    VISUALIZATION_MODULES_AVAILABLE = False
+    GraphExplorer = None
+    TemporalVisualizer = None
+    CommunityVisualizer = None
+    VisualizationOptions = None
+    NodeFilter = None
+    EdgeFilter = None
+    CommunityVisualizationOptions = None
+    TemporalVisualizationOptions = None
+    AdvancedExportHandler = None
+
+
 # Export all components
 __all__ = [
     'VisualizationConfig',
@@ -661,5 +682,14 @@ __all__ = [
     'KnowledgeGraphVisualizer',
     'MetricsVisualizer',
     'EvolutionVisualizer',
-    'create_graph_visualization'
+    'create_graph_visualization',
+    # Advanced modules (may not be available)
+    'GraphExplorer',
+    'TemporalVisualizer',
+    'CommunityVisualizer',
+    'VisualizationOptions',
+    'NodeFilter',
+    'EdgeFilter',
+    'CommunityVisualizationOptions',
+    'TemporalVisualizationOptions',
 ]

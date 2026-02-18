@@ -237,8 +237,8 @@ export RAGBITS_PGVECTOR_CONN="postgresql://..."
 # Embeddings
 export RAGBITS_EMBEDDING_MODEL=text-embedding-3-small
 
-# Hephaestus
-export RAGBITS_HEPHAESTUS_ENDPOINT=http://localhost:8000
+# CrewAI
+export RAGBITS_CREWAI_ENDPOINT=http://localhost:8000
 
 # Logging
 export RAGBITS_LOG_LEVEL=INFO
@@ -369,7 +369,7 @@ ragbits_integration/
 - ✅ Gold Team agent (verification)
 - ✅ A2A protocol for inter-agent messaging
 - ✅ Agent tools (knowledge search, evaluation, patterns)
-- ✅ Hephaestus LLM integration
+- ✅ CrewAI LLM integration
 - ✅ Message routing and delivery
 - ✅ Request/response tracking
 - ✅ Refinement workflow support
@@ -413,7 +413,7 @@ ragbits_integration/
 **Documentation**: See Phase 1 features above
 
 ### Phase 2: Agent Coordination with A2A ✅ COMPLETE
-- Base workflow agent with Hephaestus
+- Base workflow agent with CrewAI
 - Blue, Red, and Gold team agents
 - Agent tools (search, evaluation, patterns)
 - A2A communication protocol

@@ -15,7 +15,7 @@ This document summarizes all API consistency fixes applied to the ACE modules.
    - Standardized error response format
    - Added parameter naming conventions to docstring
 
-3. **ace_hephaestus_bridge.py** - UPDATED
+3. **ace_crewai_bridge.py** - UPDATED
    - Added ace_api_utils imports
    - Fixed parameter order in execute_full_workflow
    - Replaced hardcoded defaults with constants
@@ -217,7 +217,7 @@ def function_name(
 
 ### Applied To
 - ✅ All public functions in ace_mcp_tools.py
-- ✅ All public methods in ace_hephaestus_bridge.py
+- ✅ All public methods in ace_crewai_bridge.py
 - ✅ All MCP tools in ace_stage6_integration.py
 
 ---
@@ -274,7 +274,7 @@ def method(self, param1: str, param2: int) -> Dict[str, Any]:
 ## Fix #6: Fixed execute_full_workflow Parameter Order
 
 ### Problem
-In ace_hephaestus_bridge.py, the execute_full_workflow method called phase methods
+In ace_crewai_bridge.py, the execute_full_workflow method called phase methods
 with incorrect parameter names and order.
 
 ### Solution
@@ -438,7 +438,7 @@ initialize_ace_agent(
 
 ### Files Modified
 1. `ace_mcp_tools.py` - 7 MCP tools updated
-2. `ace_hephaestus_bridge.py` - 6 phase methods + workflow updated
+2. `ace_crewai_bridge.py` - 6 phase methods + workflow updated
 3. `ace_stage6_integration.py` - 9 MCP tools updated
 
 ### Lines of Code

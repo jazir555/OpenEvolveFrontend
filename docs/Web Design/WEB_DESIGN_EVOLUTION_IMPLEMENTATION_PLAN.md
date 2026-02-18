@@ -328,7 +328,7 @@ BubbleLab provides a robust foundation with:
      - Combined evolutionary and MCTS approaches
      - Multi-modal optimization
 
-3. **Decomposition Engine + Workflow** (`decomposition_engine.py`, `decomposition_maker_integration.py`, `decomposition_hephaestus_bridge.py`)
+3. **Decomposition Engine + Workflow** (`decomposition_engine.py`, `decomposition_maker_integration.py`, `decomposition_crewai_bridge.py`)
    - Problem breakdown into sub-problems
    - Hierarchical optimization
    - Parallel evolution tracks

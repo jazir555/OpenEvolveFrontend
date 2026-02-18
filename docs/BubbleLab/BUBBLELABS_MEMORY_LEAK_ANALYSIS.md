@@ -10,7 +10,7 @@
 
 This report provides a comprehensive analysis of potential memory and resource leaks in the BubbleLabs integration system. The analysis covered 5 core files:
 
-1. `bubblelabs_hephaestus_bridge.py` (755 lines)
+1. `bubblelabs_crewai_bridge.py` (755 lines)
 2. `bubblelabs_mcp_tools.py` (804 lines)
 3. `bubblelabs_analytics.py` (813 lines)
 4. `bubblelabs_integration.py` (286 lines)
@@ -22,7 +22,7 @@ This report provides a comprehensive analysis of potential memory and resource l
 
 ## 1. CRITICAL MEMORY LEAKS (Unbounded Growth)
 
-### 1.1 bubblelabs_hephaestus_bridge.py
+### 1.1 bubblelabs_crewai_bridge.py
 
 #### CRITICAL: `self.mappings` Dictionary - No Eviction Policy
 **Location:** Line 111
@@ -54,7 +54,7 @@ self.mappings: Dict[str, WorkflowTicketMapping] = {}
 from functools import lru_cache
 from collections import OrderedDict
 
-class BubbleLabsHephaestusBridge:
+class BubbleLabsCrewAIBridge:
     def __init__(self, max_mappings: int = 1000, mapping_ttl: int = 86400):
         self.max_mappings = max_mappings
         self.mapping_ttl = mapping_ttl  # 24 hours
@@ -556,7 +556,7 @@ def cleanup_inactive_buckets(self, idle_seconds: int = 3600):
 
 ### 2.1 Background Sync Thread - May Not Stop Properly
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Location:** Lines 376-439
 **Severity:** MEDIUM
 **Status:** PARTIALLY FIXED
@@ -694,8 +694,8 @@ def __del__(self):
 
 | File | Line | Issue | Severity | Impact |
 |------|------|-------|----------|--------|
-| `bubblelabs_hephaestus_bridge.py` | 111 | `self.mappings` - no eviction | CRITICAL | Grows with every workflow |
-| `bubblelabs_hephaestus_bridge.py` | 115 | `self.instance_to_definition_map` - no eviction | CRITICAL | Grows with every instance |
+| `bubblelabs_crewai_bridge.py` | 111 | `self.mappings` - no eviction | CRITICAL | Grows with every workflow |
+| `bubblelabs_crewai_bridge.py` | 115 | `self.instance_to_definition_map` - no eviction | CRITICAL | Grows with every instance |
 | `bubblelabs_analytics.py` | 225-271 | Database tables - no cleanup | CRITICAL | Unbounded DB growth |
 | `bubblelabs_integration.py` | 77 | `self.workflow_instances` - no eviction | CRITICAL | Grows with every instance |
 | `bubblelabs_integration.py` | 78 | `self.workflow_definitions` - no eviction | MEDIUM | Grows with every definition |
@@ -708,7 +708,7 @@ def __del__(self):
 
 | File | Line | Issue | Severity | Impact |
 |------|------|-------|----------|--------|
-| `bubblelabs_hephaestus_bridge.py` | 376-439 | Background sync thread - partial cleanup | MEDIUM | May not stop in time |
+| `bubblelabs_crewai_bridge.py` | 376-439 | Background sync thread - partial cleanup | MEDIUM | May not stop in time |
 | `bubblelabs_ui_component.py` | 709 | UI workflow thread - no cleanup | HIGH | Thread never joined |
 
 ### Resource Leaks
@@ -730,7 +730,7 @@ def __del__(self):
 
 ### Priority 1 (Immediate Action Required)
 
-1. **Add eviction policy to `bubblelabs_hephaestus_bridge.py`**
+1. **Add eviction policy to `bubblelabs_crewai_bridge.py`**
    - Implement LRU cache for `self.mappings` (max 1000 entries)
    - Implement TTL-based expiration (24 hours)
    - Add cleanup method
@@ -789,7 +789,7 @@ A comprehensive memory leak test script has been created at:
 
 The test script includes:
 
-1. **BubbleLabs-Hephaestus Bridge Test**
+1. **BubbleLabs-CrewAI Bridge Test**
    - Creates 100 workflows
    - Tests background sync thread lifecycle
    - Verifies mapping cleanup
@@ -886,8 +886,8 @@ Set up alerts for:
 The BubbleLabs integration system has **several potential memory leaks** that should be addressed:
 
 **Critical Issues (5):**
-1. Unbounded mappings in hephaestus_bridge
-2. Unbounded instance cache in hephaestus_bridge
+1. Unbounded mappings in crewai_bridge
+2. Unbounded instance cache in crewai_bridge
 3. Unbounded database tables in analytics
 4. Unbounded workflow instances in integration
 5. Unbounded workflow definitions in integration
@@ -926,8 +926,8 @@ The BubbleLabs integration system has **several potential memory leaks** that sh
 
 | File | Variable | Type | Initial Size | Growth Rate |
 |------|----------|------|--------------|-------------|
-| `bubblelabs_hephaestus_bridge.py` | `self.mappings` | Dict | 0 | 1 per workflow |
-| `bubblelabs_hephaestus_bridge.py` | `self.instance_to_definition_map` | Dict | 0 | 1 per instance |
+| `bubblelabs_crewai_bridge.py` | `self.mappings` | Dict | 0 | 1 per workflow |
+| `bubblelabs_crewai_bridge.py` | `self.instance_to_definition_map` | Dict | 0 | 1 per instance |
 | `bubblelabs_integration.py` | `self.workflow_instances` | Dict | 0 | 1 per instance |
 | `bubblelabs_integration.py` | `self.workflow_definitions` | Dict | 0 | 1 per definition |
 | `bubblelabs_integration.py` | `self.running_threads` | Dict | 0 | 1 per running workflow |
@@ -942,7 +942,7 @@ The BubbleLabs integration system has **several potential memory leaks** that sh
 
 | File | Line | Type | Daemon? | Cleanup? |
 |------|------|------|---------|----------|
-| `bubblelabs_hephaestus_bridge.py` | 395 | Thread | Yes | Partial |
+| `bubblelabs_crewai_bridge.py` | 395 | Thread | Yes | Partial |
 | `bubblelabs_ui_component.py` | 709 | Thread | No | No |
 
 ### 12.3 File Operations Found

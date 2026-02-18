@@ -51,8 +51,10 @@ echo ""
 echo "Test 1: Async adapter import"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+import os
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter
 adapter = get_async_adapter()
 print('OK')
@@ -72,9 +74,10 @@ echo ""
 echo "Test 2: Async complexity analysis"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -106,9 +109,10 @@ echo ""
 echo "Test 3: Batch processing"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -143,9 +147,10 @@ echo ""
 echo "Test 4: Cache functionality"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():
@@ -179,9 +184,10 @@ echo ""
 echo "Test 5: Concurrent execution limit"
 
 TEST_OUTPUT=$(python -c "
+import os
 import sys
 import asyncio
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')) if os.path.exists('../src') else 'src')
+sys.path.insert(0, os.path.abspath('..'))
 from src import get_async_adapter, CanonicalSubProblem
 
 async def test():

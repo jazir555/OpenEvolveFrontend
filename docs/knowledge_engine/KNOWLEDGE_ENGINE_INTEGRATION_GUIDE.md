@@ -46,7 +46,7 @@ graph TD
     A[OpenEvolve Ecosystem] --> B[Sovereign-Grade Decomposition Workflow]
     A --> C[Lean 4 Mathematical Verification]
     A --> D[PSV Self-Play System]
-    A --> E[Hephaestus Agent System]
+    A --> E[CrewAI Agent System]
     A --> F[Knowledge Engine]
     
     B -->|Execution Data| F
@@ -76,14 +76,14 @@ classDiagram
         +extract_from_sgdw()
         +extract_from_lean4()
         +extract_from_psv()
-        +extract_from_hephaestus()
+        +extract_from_crewai()
     }
     
     class KnowledgeRetriever {
         +retrieve_for_sgdw()
         +retrieve_for_lean4()
         +retrieve_for_psv()
-        +retrieve_for_hephaestus()
+        +retrieve_for_crewai()
     }
     
     class KnowledgeLearner {
@@ -97,7 +97,7 @@ classDiagram
         +share_with_sgdw()
         +share_with_lean4()
         +share_with_psv()
-        +share_with_hephaestus()
+        +share_with_crewai()
     }
     
     KnowledgeEngine --> KnowledgeExtractor
@@ -118,12 +118,12 @@ flowchart TD
     
     F[Lean 4 Proofs] --> B
     G[PSV Knowledge] --> B
-    H[Hephaestus Knowledge] --> B
+    H[CrewAI Knowledge] --> B
     
     D --> I[SGDW Optimization]
     D --> J[Lean 4 Enhancement]
     D --> K[PSV Improvement]
-    D --> L[Hephaestus Optimization]
+    D --> L[CrewAI Optimization]
 ```
 
 ## 3. Stage-by-Stage Integration
@@ -342,20 +342,20 @@ sequenceDiagram
 - Adaptive difficulty calibration
 - Continuous self-improvement
 
-### 3.4 Hephaestus Agent System Integration
+### 3.4 CrewAI Agent System Integration
 
 #### 3.4.1 Agent Knowledge Extraction
 
 ```mermaid
 sequenceDiagram
-    participant Hephaestus as Hephaestus
+    participant CrewAI as CrewAI
     participant KE as Knowledge Engine
     
-    Hephaestus->>KE: Submit agent execution data
+    CrewAI->>KE: Submit agent execution data
     KE->>KE: Extract agent strategy patterns
     KE->>KE: Analyze agent performance metrics
     KE->>KE: Identify successful agent behaviors
-    KE->>Hephaestus: Confirm knowledge extraction complete
+    KE->>CrewAI: Confirm knowledge extraction complete
 ```
 
 **Integration Benefits**:
@@ -368,15 +368,15 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Hephaestus as Hephaestus
+    participant CrewAI as CrewAI
     participant KE as Knowledge Engine
     
-    Hephaestus->>KE: Request knowledge for agent execution
+    CrewAI->>KE: Request knowledge for agent execution
     KE->>KE: Retrieve relevant agent strategies
     KE->>KE: Analyze historical agent performance
-    KE->>Hephaestus: Return knowledge-enhanced execution plans
+    KE->>CrewAI: Return knowledge-enhanced execution plans
     
-    Hephaestus->>KE: Submit agent results for knowledge update
+    CrewAI->>KE: Submit agent results for knowledge update
     KE->>KE: Extract knowledge from agent results
     KE->>KE: Update agent knowledge base
 ```
@@ -397,12 +397,12 @@ graph TD
     B --> C[SGDW Adapter]
     B --> D[Lean 4 Adapter]
     B --> E[PSV Adapter]
-    B --> F[Hephaestus Adapter]
+    B --> F[CrewAI Adapter]
     
     C --> G[SGDW Knowledge Exchange]
     D --> H[Lean 4 Knowledge Exchange]
     E --> I[PSV Knowledge Exchange]
-    F --> J[Hephaestus Knowledge Exchange]
+    F --> J[CrewAI Knowledge Exchange]
     
     K[Monitoring] --> B
     L[Security] --> B
@@ -479,7 +479,7 @@ graph TD
     B --> C[SGDW Knowledge Sharing]
     B --> D[Lean 4 Knowledge Sharing]
     B --> E[PSV Knowledge Sharing]
-    B --> F[Hephaestus Knowledge Sharing]
+    B --> F[CrewAI Knowledge Sharing]
     
     G[Knowledge Synchronization] --> B
     H[Knowledge Conflict Resolution] --> B
@@ -1044,7 +1044,7 @@ The OpenEvolve Knowledge Engine integration guide provides a comprehensive overv
 
 Key takeaways from this guide:
 
-1. **Comprehensive Integration**: The Knowledge Engine integrates with all major OpenEvolve components (SGDW, Lean 4, PSV, Hephaestus)
+1. **Comprehensive Integration**: The Knowledge Engine integrates with all major OpenEvolve components (SGDW, Lean 4, PSV, CrewAI)
 2. **Stage-by-Stage Knowledge Contribution**: Knowledge is contributed at every stage of the problem-solving workflow
 3. **Cross-System Learning**: Knowledge is shared and reused across all systems for continuous improvement
 4. **Performance Optimization**: Integration is designed for high performance and scalability

@@ -13,7 +13,7 @@ All fixes follow the **Anti-Corruption Layer** pattern from CLAUDE.md:
 
 ## 🚫 Core Projects (Immutable - DO NOT EDIT)
 
-- **hephaestus** - Task management system
+- **crewai** - Task management system
 - **openevolve** - Evolutionary coding framework
 - **roma** - Decomposition system
 - **bubblelab** - Enterprise platform
@@ -34,24 +34,24 @@ All fixes follow the **Anti-Corruption Layer** pattern from CLAUDE.md:
 
 ## 📦 Bug Fix Adapters
 
-### 1. HephaestusConfigOverride
+### 1. CrewAIConfigOverride
 
-**Fixes invalid paths in Hephaestus config:**
+**Fixes invalid paths in CrewAI config:**
 - `phases_folder`: `./example_workflows/crackme_solving` → `./example_workflows/prd_to_software`
-- `worktree_base`: `/tmp/hephaestus_worktrees` → `./hephaestus_worktrees`
+- `worktree_base`: `/tmp/crewai_worktrees` → `./crewai_worktrees`
 - `project_root`: `/tmp/test_3gaur34` → `.`
 - `main_repo_path`: `/tmp/test_3gaur34` → `.`
 
 **Usage:**
 ```python
-from integrations.bug_fixes import HephaestusConfigOverride
+from integrations.bug_fixes import CrewAIConfigOverride
 
 # Get fixed config
-config_override = HephaestusConfigOverride()
+config_override = CrewAIConfigOverride()
 fixed_config = config_override.get_fixed_config()
 
-# Use with Hephaestus
-from Hephaestus.src.core.simple_config import load_config
+# Use with CrewAI
+from CrewAI.src.core.simple_config import load_config
 original_config = load_config()
 fixed_config = config_override.apply_fixes(original_config)
 ```
@@ -131,7 +131,7 @@ from integrations.bug_fixes import ConfigProvider
 # Setup configuration
 provider = ConfigProvider()
 provider.setup_env()  # Creates .env in integrations/bug_fixes/
-provider.ensure_directories()  # Creates hephaestus_worktrees, etc.
+provider.ensure_directories()  # Creates crewai_worktrees, etc.
 
 # Load into environment
 provider.load_dotenv()
@@ -162,7 +162,7 @@ provider.load_dotenv()
 # At application startup
 from integrations.bug_fixes import (
     ConfigProvider,
-    HephaestusConfigOverride,
+    CrewAIConfigOverride,
     EvolutionConfigurationWrapper,
     AdversarialImportResolver
 )
@@ -180,9 +180,9 @@ if issues:
     for issue in issues:
         print(f"  - {issue}")
 
-# 3. Apply Hephaestus config fix
-hephaestus_override = HephaestusConfigOverride()
-hephaestus_config = hephaestus_override.get_fixed_config()
+# 3. Apply CrewAI config fix
+crewai_override = CrewAIConfigOverride()
+crewai_config = crewai_override.get_fixed_config()
 
 # 4. Use Evolution configuration wrapper
 evolution_config = EvolutionConfigurationWrapper(
@@ -198,9 +198,9 @@ patch_adversarial_maker_init()
 ### Individual Bug Fixes
 
 ```python
-# Fix just Hephaestus config
-from integrations.bug_fixes import HephaestusConfigOverride
-config = HephaestusConfigOverride().get_fixed_config()
+# Fix just CrewAI config
+from integrations.bug_fixes import CrewAIConfigOverride
+config = CrewAIConfigOverride().get_fixed_config()
 
 # Fix just Evolution config
 from integrations.bug_fixes import EvolutionConfigurationWrapper
@@ -239,16 +239,16 @@ integrations/bug_fixes/.env
 ```python
 # Test bug fixes
 from integrations.bug_fixes import (
-    HephaestusConfigOverride,
+    CrewAIConfigOverride,
     EvolutionConfigurationWrapper,
     AdversarialImportResolver,
     ConfigProvider
 )
 
-# Test 1: Hephaestus config
-hephaestus_config = HephaestusConfigOverride().get_fixed_config()
-assert hephaestus_config['paths']['worktree_base'] == './hephaestus_worktrees'
-print("✓ Hephaestus config fix works")
+# Test 1: CrewAI config
+crewai_config = CrewAIConfigOverride().get_fixed_config()
+assert crewai_config['paths']['worktree_base'] == './crewai_worktrees'
+print("✓ CrewAI config fix works")
 
 # Test 2: Evolution wrapper
 evolution_config = EvolutionConfigurationWrapper(max_iterations=100)
@@ -283,7 +283,7 @@ print("✓ Config provider works")
 ┌─────────────────────────────────────────────────────────────┐
 │              Bug Fix Adapters (This Directory)               │
 │  ┌──────────────────┐  ┌──────────────────┐                 │
-│  │ HephaestusConfig │  │  EvolutionConfig │                 │
+│  │ CrewAIConfig │  │  EvolutionConfig │                 │
 │  │     Override     │  │     Wrapper      │                 │
 │  └──────────────────┘  └──────────────────┘                 │
 │  ┌──────────────────┐  ┌──────────────────┐                 │
@@ -295,7 +295,7 @@ print("✓ Config provider works")
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     Core Projects                             │
-│  (hephaestus, openevolve, roma, etc.)                       │
+│  (crewai, openevolve, roma, etc.)                       │
 │              DO NOT EDIT - IMMUTABLE                         │
 └─────────────────────────────────────────────────────────────┘
 ```

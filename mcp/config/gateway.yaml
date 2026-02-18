@@ -34,12 +34,12 @@ servers:
     description: "OpenEvolve evolutionary computation system"
     health_check_interval: 60
 
-  hephaestus:
+  crewai:
     enabled: true
     url: "http://localhost:8004"
     timeout: 45
-    namespace: "hephaestus"
-    description: "Hephaestus orchestration and delegation system"
+    namespace: "crewai"
+    description: "CrewAI orchestration and delegation system"
     health_check_interval: 60
 
   roma:
@@ -91,7 +91,7 @@ namespaces:
   kggen: "kggen"
   graphiti: "graphiti"
   openevolve: "openevolve"
-  hephaestus: "hephaestus"
+  crewai: "crewai"
   roma: "roma"
   ace: "ace"
 

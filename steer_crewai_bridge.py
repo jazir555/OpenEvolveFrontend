@@ -4,7 +4,7 @@ Steer-CrewAI Bridge
 This module provides the bridge between CrewAI workflow phases and
 Steer's reliability layer for AI agent outputs with MIT-licensed CrewAI.
 
-This replaces steer_hephaestus_bridge.py with local CrewAI execution.
+This replaces steer_crewai_bridge.py with local CrewAI execution.
 
 IMPORTANT: Steer is NOT a workflow or decomposition system.
 Steer provides deterministic verification (Reality Locks) for probabilistic LLM outputs.
@@ -14,7 +14,7 @@ Phase Mapping:
 - Pre-execution: Verify inputs before processing
 - Post-execution: Verify outputs before returning to user
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-21
 """
@@ -310,7 +310,7 @@ class SteerCrewAIWorkflowBridge:
     This class provides a high-level interface that CrewAI can use
     to add reliability verification to agent outputs.
 
-    Replaces SteerHephaestusWorkflowBridge with MIT-licensed CrewAI.
+    Replaces SteerCrewAIWorkflowBridge with MIT-licensed CrewAI.
     """
 
     def __init__(self, state_storage_dir: str = "./crewai_states"):

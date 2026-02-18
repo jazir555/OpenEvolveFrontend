@@ -139,6 +139,7 @@ class GauntletType(Enum):
     DOMAIN_CHEMISTRY = "domain_chemistry"
     DOMAIN_ENGINEERING = "domain_engineering"
     DOMAIN_WEB3 = "domain_web3"
+    Z3_LEAN_FORMAL_VERIFICATION = "z3_lean_formal_verification"
     MULTI_OBJECTIVE = "multi_objective"
     EVOLUTIONARY = "evolutionary"
     TEMPORAL = "temporal"
@@ -3131,6 +3132,8 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
         "adversarial": lambda n, c: AdversarialGauntlet(n, c, red_team=kwargs.get("red_team"), blue_team=kwargs.get("blue_team")),
         "formal": FormalVerificationGauntlet,
         "formal_verification": FormalVerificationGauntlet,
+        "z3_lean": lambda n, c: _create_z3_lean_gauntlet(n, c, **kwargs),
+        "z3_lean_formal_verification": lambda n, c: _create_z3_lean_gauntlet(n, c, **kwargs),
         "logical_sandbox": LogicalSandboxGauntlet,
         "lean": LeanVerificationGauntlet,
         "lean_verification": LeanVerificationGauntlet,
@@ -3155,12 +3158,23 @@ def create_gauntlet(gauntlet_type: str, name: Optional[str] = None, config: Opti
     return gauntlet_class(name, config)
 
 
+def _create_z3_lean_gauntlet(name: str, config: Dict, **kwargs) -> BaseGauntlet:
+    """Helper to create Z3+Lean gauntlet with local import to avoid circularity."""
+    try:
+        from z3_to_lean_integration import Z3LeanFormalVerificationGauntlet
+        return Z3LeanFormalVerificationGauntlet(name, config)
+    except ImportError:
+        logging.error("Z3-Lean integration not available for gauntlet creation")
+        return FormalVerificationGauntlet(name, config)
+
+
 # List all available gauntlet types
 def list_available_gauntlets() -> Dict[str, str]:
     """List all available gauntlet types with descriptions."""
     return {
         "adversarial": "Red team attacks and robustness testing",
         "formal_verification": "Z3-based formal proofs and property verification (REAL Z3)",
+        "z3_lean_formal_verification": "Hybrid Z3 solver and Lean 4 prover for comprehensive verification",
         "logical_sandbox": "Digital twin logical sandboxing using Z3 invariants",
         "lean_verification": "Lean 4 theorem prover verification (REAL LeanAide)",
         "statistical": "Monte Carlo validation and hypothesis testing",

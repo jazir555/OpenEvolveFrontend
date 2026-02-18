@@ -174,7 +174,7 @@ When creating or editing a Bubble, OpenEvolve services appear in the service cat
 │    🧩 Decomposition            │
 │    📚 Knowledge Engine         │
 │    🤖 LeanAide                 │
-│    🔧 Hephaestus               │
+│    🔧 CrewAI               │
 │    🏛️ ROMA                     │
 │    💡 Invention Planner         │
 └─────────────────────────────────┘
@@ -705,7 +705,7 @@ export const OPENEVOLVE_CONFIG = {
     'decomposition',
     'knowledge',
     'leanaide',
-    'hephaestus',
+    'crewai',
     'roma',
     'invention',
   ],

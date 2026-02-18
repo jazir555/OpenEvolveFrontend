@@ -39,7 +39,7 @@ These gaps will cause failures in production and **must be fixed immediately** b
 |--------|------|-------|----------|
 | `storage.ts` | Service | TODO comments in upload/download logic | P0 |
 | `file-processor-tool.ts` | Tool | Incomplete file parsing implementations | P0 |
-| `hephaestus-bubble.ts` | Service | Placeholder in generatedFunction | P0 |
+| `crewai-bubble.ts` | Service | Placeholder in generatedFunction | P0 |
 | `slack-formatter-agent.ts` | Workflow | Partial implementation | P0 |
 
 **Impact:** These bubbles will fail at runtime when called.
@@ -355,7 +355,7 @@ These are enhancements that improve maintainability and observability.
 
 **Needs Work (15 bubbles):**
 - ⚠️ `storage.ts` - Has TODOs, needs completion
-- ⚠️ `hephaestus-bubble.ts` - Placeholder implementation
+- ⚠️ `crewai-bubble.ts` - Placeholder implementation
 - ⚠️ `insforge-db.ts` - Empty methods
 - ⚠️ `agi-inc.ts` - Needs timeout and retry
 - ⚠️ `stripe-bubble.ts` - Needs error handling
@@ -459,7 +459,7 @@ These are `-bubble.ts` variants of existing implementations. Most need completio
    - **Impact:** File operations fail
    - **Fix:** 4 hours
 
-2. **`hephaestus-bubble.ts` - Code generation**
+2. **`crewai-bubble.ts` - Code generation**
    - **Issue:** Returns placeholder
    - **Impact:** Code generation fails
    - **Fix:** 8 hours
@@ -685,7 +685,7 @@ Before merging any bubble code, verify:
 18. google-sheets/ ✅
 19. google-sheets-bubble.ts ⚠️
 20. hello-world.ts ✅
-21. hephaestus-bubble.ts ❌
+21. crewai-bubble.ts ❌
 22. http.ts ✅
 23. insforge-db.ts ❌
 24. notion/ ✅

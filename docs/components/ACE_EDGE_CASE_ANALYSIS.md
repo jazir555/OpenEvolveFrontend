@@ -212,7 +212,7 @@ def validate_model_name(model: str) -> bool:
 ```
 
 #### 8. **[MEDIUM] Race Condition in Checkpoint Directory Creation**
-- **Location:** Line 135 (in ace_hephaestus_bridge.py, similar pattern)
+- **Location:** Line 135 (in ace_crewai_bridge.py, similar pattern)
 - **Issue:** `os.makedirs(checkpoint_dir, exist_ok=True)` has TOCTOU race
 - **Edge Case:** Directory deleted between exists check and creation
 - **Current Behavior:** Can throw FileExistsError in concurrent scenarios
@@ -241,7 +241,7 @@ if context is not None and not isinstance(context, dict):
 
 ---
 
-## File 2: ace_hephaestus_bridge.py
+## File 2: ace_crewai_bridge.py
 
 ### Critical Issues
 

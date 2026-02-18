@@ -10,7 +10,7 @@ ISSUES FIXED
 ===============================================================================
 
 EDGE CASE 1: No None Check on workflow_definition
-  File: bubblelabs_hephaestus_bridge.py (line 407)
+  File: bubblelabs_crewai_bridge.py (line 407)
   Function: sync_workflow_to_ticket()
 
   Problem: Only checked if workflow was falsy, not explicit None
@@ -63,7 +63,7 @@ Result: ALL TESTS PASSED
 FILES MODIFIED
 ===============================================================================
 
-1. C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py
+1. C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_crewai_bridge.py
    - Enhanced sync_workflow_to_ticket() with validation
 
 2. C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_typescript_export.py

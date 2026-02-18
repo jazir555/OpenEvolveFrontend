@@ -2,7 +2,7 @@
 
 **Date:** 2025-12-29
 **Files Analyzed:**
-- `bubblelabs_hephaestus_bridge.py` (755 lines)
+- `bubblelabs_crewai_bridge.py` (755 lines)
 - `bubblelabs_mcp_tools.py` (804 lines)
 - `bubblelabs_analytics.py` (813 lines)
 - `bubblelabs_typescript_export.py` (688 lines)
@@ -26,10 +26,10 @@ This comprehensive edge case analysis identified **127 edge cases** across 5 cri
 
 ---
 
-## 1. bubblelabs_hephaestus_bridge.py
+## 1. bubblelabs_crewai_bridge.py
 
 ### File Overview
-Manages integration between BubbleLabs workflows and Hephaestus project management system with background sync threads.
+Manages integration between BubbleLabs workflows and CrewAI project management system with background sync threads.
 
 ### Edge Cases Analysis
 
@@ -44,7 +44,7 @@ Manages integration between BubbleLabs workflows and Hephaestus project manageme
 | Empty additional_labels | **YES** | Line 154 | Handled: `labels.extend(additional_labels)` only if not None |
 | Empty team_config | **PARTIAL** | Line 225 | Uses `.get()` with defaults but no validation |
 | Empty gauntlet_config | **PARTIAL** | Line 226 | Uses `.get()` with defaults but no validation |
-| None hephaestus_client | **YES** | Line 143 | Returns mock ticket ID |
+| None crewai_client | **YES** | Line 143 | Returns mock ticket ID |
 | Empty ticket_id | **NO** | Line 223 | HIGH: No check before using ticket_id in API call |
 | None workflow_instance_id | **NO** | Line 263 | HIGH: No validation before cache lookup |
 | Empty mappings dict | **YES** | Line 373 | Handled gracefully with dict comprehension |
@@ -83,7 +83,7 @@ Manages integration between BubbleLabs workflows and Hephaestus project manageme
 
 | Edge Case | Handled | Location | Notes |
 |-----------|---------|----------|-------|
-| Hephaestus API down | **YES** | Lines 143-146 | Returns mock ticket ID |
+| CrewAI API down | **YES** | Lines 143-146 | Returns mock ticket ID |
 | Network timeout during update | **NO** | Line 341 | HIGH: No timeout configuration on API calls |
 | Workflow doesn't exist | **PARTIAL** | Lines 324-326 | MEDIUM: Logs error but doesn't propagate to caller |
 | Database connection failure | **N/A** | N/A | No database used in this module |
@@ -177,7 +177,7 @@ Manages integration between BubbleLabs workflows and Hephaestus project manageme
 ## 2. bubblelabs_mcp_tools.py
 
 ### File Overview
-Provides Model Context Protocol (MCP) tools for Hephaestus agents to interact with BubbleLabs workflows.
+Provides Model Context Protocol (MCP) tools for CrewAI agents to interact with BubbleLabs workflows.
 
 ### Edge Cases Analysis
 
@@ -701,7 +701,7 @@ None - all high-priority edge cases handled
 
 | File | Total | Handled | Unhandled | % Handled |
 |------|-------|---------|-----------|-----------|
-| bubblelabs_hephaestus_bridge.py | 67 | 35 | 32 | 52% |
+| bubblelabs_crewai_bridge.py | 67 | 35 | 32 | 52% |
 | bubblelabs_mcp_tools.py | 55 | 28 | 27 | 51% |
 | bubblelabs_analytics.py | 62 | 32 | 30 | 52% |
 | bubblelabs_typescript_export.py | 48 | 27 | 21 | 56% |
@@ -737,7 +737,7 @@ None - all high-priority edge cases handled
 
 ### Critical Areas Requiring Immediate Attention
 
-#### 1. bubblelabs_hephaestus_bridge.py (CRITICAL: 2, HIGH: 12)
+#### 1. bubblelabs_crewai_bridge.py (CRITICAL: 2, HIGH: 12)
 - Most critical file due to background threading and external API integration
 - Missing None checks on core parameters
 - No XSS protection on user content
@@ -766,8 +766,8 @@ None - all high-priority edge cases handled
 
 ### Phase 1: Critical (Fix Immediately)
 
-1. **bubblelabs_hephaestus_bridge.py:128** - Add None check for workflow_definition
-2. **bubblelabs_hephaestus_bridge.py:483** - Add lock for BubbleLabsIntegration calls
+1. **bubblelabs_crewai_bridge.py:128** - Add None check for workflow_definition
+2. **bubblelabs_crewai_bridge.py:483** - Add lock for BubbleLabsIntegration calls
 3. **bubblelabs_mcp_tools.py:157** - Validate problem_statement is not empty
 4. **bubblelabs_mcp_tools.py:509** - Serialize control actions with lock
 5. **bubblelabs_analytics.py:482** - Add None check for workflow_id

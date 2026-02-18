@@ -74,7 +74,7 @@
 │  │  • Create Lean-friendly sub-problems                      │  │
 │  │  • Add mathematical metadata                              │  │
 │  │  • Generate evolutionary config                           │  │
-│  │  • Create Hephaestus tickets                              │  │
+│  │  • Create CrewAI tickets                              │  │
 │  └──────────────────────────────────────────────────────────┘  │
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
@@ -89,7 +89,7 @@
 │    • mathematical_metadata: MathematicalProblemMetadata        │
 │    • lean_code_stub: str (optional)                            │
 │    • evolutionary_config: Dict (optional)                      │
-│    • verification_ticket: str (Hephaestus)                     │
+│    • verification_ticket: str (CrewAI)                     │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
@@ -125,7 +125,7 @@
 │                    INTEGRATION LAYER                              │
 │                                                                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │    ROMA      │  │  Hephaestus  │  │   Workflow   │          │
+│  │    ROMA      │  │  CrewAI  │  │   Workflow   │          │
 │  │              │  │              │  │              │          │
 │  │ Recursive    │  │ Ticket       │  │ Sub-problem  │          │
 │  │ Decomp.      │  │ Tracking     │  │ Execution    │          │
@@ -221,7 +221,7 @@ Base SubProblem
 │     ├─ max_generations: 60                                    │
 │     └─ mutation_rate: 0.1                                     │
 │                                                               │
-│  4. Create Hephaestus Ticket                                  │
+│  4. Create CrewAI Ticket                                  │
 │     └─ "HEPH-001"                                             │
 │                                                               │
 │  5. Add ROMA Integration Hooks                                │
@@ -329,7 +329,7 @@ decomposition_config_lean.yaml
 │   ├─ max_recursion_depth: 3
 │   └─ min_complexity_for_recursion: 7
 │
-├─ hephaestus_integration/
+├─ crewai_integration/
 │   ├─ enabled: true
 │   └─ tickets/
 │       ├─ ticket_type: "lean_formalization"
@@ -418,7 +418,7 @@ decomposition_config_lean.yaml
 │  │   • Create LeanEnhancedSubProblem for each component│   │
 │  │   • Add mathematical metadata                        │   │
 │  │   • Generate evolutionary config                     │   │
-│  │   • Create Hephaestus tickets                        │   │
+│  │   • Create CrewAI tickets                        │   │
 │  │ Output: List[LeanEnhancedSubProblem]                 │   │
 │  │   • base_subproblem: SubProblem                      │   │
 │  │   • mathematical_metadata                             │   │
@@ -453,7 +453,7 @@ decomposition_config_lean.yaml
 ┌─────────────────────────────────────────────────────────────┐
 │  Step 6: Integration                                        │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │    ROMA     │  │ Hephaestus  │  │     Workflow        │  │
+│  │    ROMA     │  │ CrewAI  │  │     Workflow        │  │
 │  │             │  │             │  │                     │  │
 │  │ Recursive   │  │ Create      │  │ Convert to          │  │
 │  │ decomp. for │  │ tickets for │  │ SubProblem for      │  │

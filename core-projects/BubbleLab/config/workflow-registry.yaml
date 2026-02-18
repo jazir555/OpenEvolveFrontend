@@ -677,7 +677,7 @@ workflows:
       - name: decomposition_engine
         version: "1.8.1"  # Pinned from >=1.8.0 for security
         type: service
-      - name: hephaestus_mcp
+      - name: crewai_mcp
         version: "1.0.2"  # Pinned from >=1.0.0 for security
         type: service
       - name: knowledge_engine
@@ -804,8 +804,8 @@ workflows:
         default: true
         required: false
 
-      # Hephaestus Integration Parameters (10 params)
-      - name: hephaestus_enabled
+      # CrewAI Integration Parameters (10 params)
+      - name: crewai_enabled
         type: boolean
         default: true
         required: false

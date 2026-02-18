@@ -66,7 +66,7 @@ Use a module-level singleton instance instead of creating new instances.
 
 ### Bug #3: Duplicate `__init__` Method ✅ FIXED
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Lines:** 39-44 (original)
 **Severity:** LOW
 **Status:** ✅ Already fixed
@@ -79,7 +79,7 @@ Use a module-level singleton instance instead of creating new instances.
 
 ### 1. Thread Safety Analysis
 
-**bubblelabs_hephaestus_bridge.py:**
+**bubblelabs_crewai_bridge.py:**
 - ✅ Lock properly declared (line 127)
 - ✅ Lock used in all critical sections (lines 223, 296, 326, 337)
 - ✅ Background thread properly daemonized (line 347)
@@ -113,7 +113,7 @@ SELECT * FROM workflows WHERE workflow_id = ? ✅
 ### 3. Resource Leak Analysis
 
 **Files checked:**
-- `bubblelabs_hephaestus_bridge.py` - No file operations
+- `bubblelabs_crewai_bridge.py` - No file operations
 - `bubblelabs_mcp_tools.py` - No file operations
 - `bubblelabs_analytics.py` - All file ops use context managers ✅
 - `bubblelabs_typescript_export.py` - All file ops use context managers ✅
@@ -175,7 +175,7 @@ definitions = api.list_workflow_definitions()
 
 **Missing workflow:**
 ```python
-# line 291-294 in bubblelabs_hephaestus_bridge.py
+# line 291-294 in bubblelabs_crewai_bridge.py
 workflow = self.bubblelabs.get_workflow_definition(workflow_definition_id)
 if not workflow:  # Proper check ✅
     logger.error(...)
@@ -190,10 +190,10 @@ if not workflow:  # Proper check ✅
 
 **Import chains checked:**
 ```
-bubblelabs_hephaestus_bridge.py
+bubblelabs_crewai_bridge.py
   → bubblelabs_integration.py ✅
   → openevolve_bubblelabs_api.py ✅
-  → hephaestus_integration.py (optional) ✅
+  → crewai_integration.py (optional) ✅
 
 bubblelabs_mcp_tools.py
   → bubblelabs_integration.py ✅
@@ -231,7 +231,7 @@ bubblelabs_typescript_export.py
 
 ### 10. API Contract Analysis
 
-**BubbleLabsHephaestusBridge:**
+**BubbleLabsCrewAIBridge:**
 - ✅ All methods return declared types
 - ✅ None returned on failure
 - ✅ Errors logged
@@ -256,7 +256,7 @@ bubblelabs_typescript_export.py
 
 ### 1. Background Thread Lifecycle ✅
 
-**bubblelabs_hephaestus_bridge.py:**
+**bubblelabs_crewai_bridge.py:**
 - ✅ Thread marked as daemon (won't prevent exit)
 - ✅ `running` flag checked in loop
 - ✅ Proper timeout on join (5 seconds)
@@ -305,7 +305,7 @@ bubblelabs_typescript_export.py
 - Basic workflow creation: ✅ Works
 - Workflow listing: ❌ BUG - Doesn't work due to Bug #1
 - Analytics tracking: ✅ Works (after fix)
-- Hephaestus bridge: ✅ Works (mock mode)
+- CrewAI bridge: ✅ Works (mock mode)
 
 ---
 

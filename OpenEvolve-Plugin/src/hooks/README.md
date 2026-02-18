@@ -351,15 +351,15 @@ function LeanAIDEComponent() {
 
 ---
 
-### 6. useHephaestus
-**Location**: `useHephaestus.ts`
+### 6. useCrewAI
+**Location**: `useCrewAI.ts`
 **Purpose**: Manages code generation, review, and optimization
 
 #### Usage
 ```typescript
-import { useHephaestus } from '@/hooks';
+import { useCrewAI } from '@/hooks';
 
-function HephaestusComponent() {
+function CrewAIComponent() {
   const {
     data,
     loading,
@@ -377,7 +377,7 @@ function HephaestusComponent() {
     getTemplates,
     applyFix,
     getCodeMetrics
-  } = useHephaestus();
+  } = useCrewAI();
 
   const handleGenerate = async () => {
     const result = await execute({
@@ -514,7 +514,7 @@ Each hook communicates with specific backend endpoints:
 | useDecomposition | `/api/v1/decomposition` |
 | useKnowledgeEngine | `/api/v1/knowledge` |
 | useLeanAIDE | `/api/v1/leanaide` |
-| useHephaestus | `/api/v1/hephaestus` |
+| useCrewAI | `/api/v1/crewai` |
 
 ## TypeScript Support
 
@@ -547,7 +547,7 @@ WebSocket connections are automatically managed:
 4. **Reset state** when components unmount or when switching contexts
 5. **Leverage progress tracking** for better UX
 6. **Store important results** in parent component state if needed
-7. **Use appropriate hooks** for each use case (don't use `useHephaestus` for knowledge queries)
+7. **Use appropriate hooks** for each use case (don't use `useCrewAI` for knowledge queries)
 
 ## Testing
 

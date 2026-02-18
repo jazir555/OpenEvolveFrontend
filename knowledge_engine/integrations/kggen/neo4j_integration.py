@@ -412,37 +412,177 @@ class Neo4jGraphUploader:
         """
         try:
             async with self.driver.session() as session:
-                if format.lower() == 'json':
+                format_lower = format.lower()
+
+                if format_lower == 'json':
                     # Export nodes and relationships as JSON
                     nodes_query = "MATCH (n) RETURN n"
                     rels_query = "MATCH ()-[r]->() RETURN r"
-                    
+
                     nodes_result = await session.run(nodes_query)
                     rels_result = await session.run(rels_query)
-                    
+
                     nodes = []
                     async for record in nodes_result:
                         node = dict(record["n"])
                         nodes.append(node)
-                    
+
                     rels = []
                     async for record in rels_result:
                         rel = dict(record["r"])
                         rels.append(rel)
-                    
+
                     export_data = {
                         "nodes": nodes,
                         "relationships": rels,
                         "export_format": "json",
                         "timestamp": datetime.now(timezone.utc).isoformat()
                     }
-                    
+
                     import json
                     return json.dumps(export_data, indent=2, default=str)
-                
+
+                elif format_lower == 'csv':
+                    # Export as CSV (separate files for nodes and relationships)
+                    nodes_query = "MATCH (n) RETURN n"
+                    rels_query = "MATCH ()-[r]->() RETURN r"
+
+                    nodes_result = await session.run(nodes_query)
+                    rels_result = await session.run(rels_query)
+
+                    # Build CSV for nodes
+                    import csv
+                    import io
+
+                    nodes_csv = io.StringIO()
+                    nodes_writer = csv.writer(nodes_csv)
+
+                    # Write header
+                    nodes_writer.writerow(["id", "labels", "properties"])
+
+                    async for record in nodes_result:
+                        node = record["n"]
+                        nodes_writer.writerow([
+                            node.element_id,
+                            ",".join(node.labels),
+                            str(dict(node))
+                        ])
+
+                    # Build CSV for relationships
+                    rels_csv = io.StringIO()
+                    rels_writer = csv.writer(rels_csv)
+
+                    rels_writer.writerow(["id", "type", "source", "target", "properties"])
+
+                    async for record in rels_result:
+                        rel = record["r"]
+                        rels_writer.writerow([
+                            rel.element_id,
+                            rel.type,
+                            rel.start_node.element_id,
+                            rel.end_node.element_id,
+                            str(dict(rel))
+                        ])
+
+                    return (
+                        "# NODES\n" + nodes_csv.getvalue() +
+                        "\n# RELATIONSHIPS\n" + rels_csv.getvalue()
+                    )
+
+                elif format_lower == 'cypher':
+                    # Export as Cypher script (CREATE statements)
+                    nodes_query = "MATCH (n) RETURN n"
+                    rels_query = "MATCH ()-[r]->() RETURN r"
+
+                    nodes_result = await session.run(nodes_query)
+                    rels_result = await session.run(rels_query)
+
+                    cypher_script = []
+                    cypher_script.append("// Graph Export as Cypher")
+                    cypher_script.append(f"// Generated: {datetime.now(timezone.utc).isoformat()}")
+
+                    # Create nodes
+                    async for record in nodes_result:
+                        node = record["n"]
+                        labels = ":".join(node.labels)
+                        props = dict(node)
+
+                        if props:
+                            prop_str = ", ".join([f"{k}: {repr(v)}" for k, v in props.items()])
+                            cypher_script.append(f"CREATE (:{labels} {{{prop_str}}})")
+                        else:
+                            cypher_script.append(f"CREATE (:{labels})")
+
+                    # Create relationships
+                    async for record in rels_result:
+                        rel = record["r"]
+                        rel_type = rel.type
+                        props = dict(rel)
+
+                        if props:
+                            prop_str = ", ".join([f"{k}: {repr(v)}" for k, v in props.items()])
+                            cypher_script.append(f"CREATE ()-[:{rel_type} {{{prop_str}}}]->()")
+                        else:
+                            cypher_script.append(f"CREATE ()-[:{rel_type}]->()")
+
+                    return "\n".join(cypher_script)
+
+                elif format_lower == 'graphml':
+                    # Export as GraphML format
+                    nodes_query = "MATCH (n) RETURN n"
+                    rels_query = "MATCH ()-[r]->() RETURN r"
+
+                    nodes_result = await session.run(nodes_query)
+                    rels_result = await session.run(rels_query)
+
+                    graphml = []
+                    graphml.append('<?xml version="1.0" encoding="UTF-8"?>')
+                    graphml.append('<graphml xmlns="http://graphml.graphdrawing.org/xmlns"')
+                    graphml.append('    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
+                    graphml.append('    xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns')
+                    graphml.append('     http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">')
+                    graphml.append('  <graph id="G" edgedefault="directed">')
+
+                    # Export nodes
+                    node_map = {}
+                    node_idx = 0
+                    async for record in nodes_result:
+                        node = record["n"]
+                        node_id = f"n{node_idx}"
+                        node_map[node.element_id] = node_id
+                        labels = ",".join(node.labels)
+                        graphml.append(f'    <node id="{node_id}">')
+                        graphml.append(f'      <data key="labels">{labels}</data>')
+                        for key, value in dict(node).items():
+                            graphml.append(f'      <data key="{key}">{value}</data>')
+                        graphml.append(f'    </node>')
+                        node_idx += 1
+
+                    # Export relationships
+                    rel_idx = 0
+                    async for record in rels_result:
+                        rel = record["r"]
+                        source_id = node_map.get(rel.start_node.element_id, "unknown")
+                        target_id = node_map.get(rel.end_node.element_id, "unknown")
+                        graphml.append(f'    <edge id="e{rel_idx}" source="{source_id}" target="{target_id}">')
+                        graphml.append(f'      <data key="type">{rel.type}</data>')
+                        for key, value in dict(rel).items():
+                            graphml.append(f'      <data key="{key}">{value}</data>')
+                        graphml.append(f'    </edge>')
+                        rel_idx += 1
+
+                    graphml.append('  </graph>')
+                    graphml.append('</graphml>')
+
+                    return "\n".join(graphml)
+
                 else:
-                    # For other formats, we'd need APOC procedures or other tools
-                    raise NotImplementedError(f"Export format {format} not implemented")
+                    # Unsupported format
+                    supported_formats = ["json", "csv", "cypher", "graphml"]
+                    raise ValueError(
+                        f"Export format '{format}' not implemented. "
+                        f"Supported formats: {', '.join(supported_formats)}"
+                    )
                     
         except Exception as e:
             logger.error({

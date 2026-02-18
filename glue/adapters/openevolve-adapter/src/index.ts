@@ -1,18 +1,14 @@
 /**
  * OpenEvolve Adapter Public API
- *
- * This file exports all public components of the OpenEvolve main orchestration adapter.
  */
 
-// Main adapter
 export {
   OpenEvolveAdapter,
   createOpenEvolveAdapter,
-  OpenEvolveAdapterConfig,
 } from './adapter';
 
-// Type exports from adapter
 export type {
+  OpenEvolveAdapterConfig,
   ModelConfig,
   Team,
   Gauntlet,
@@ -28,7 +24,6 @@ export type {
   LogContext,
 } from './adapter';
 
-// Integration coordinator
 export {
   IntegrationCoordinator,
   createIntegrationCoordinator,
@@ -41,7 +36,6 @@ export type {
   CoordinationPlan,
 } from './integration-coordinator';
 
-// Workflow orchestrator
 export {
   WorkflowOrchestrator,
   createWorkflowOrchestrator,
@@ -55,7 +49,6 @@ export type {
   StageDefinition,
 } from './workflow-orchestrator';
 
-// Knowledge aggregator
 export {
   KnowledgeAggregator,
   createKnowledgeAggregator,
@@ -70,5 +63,4 @@ export type {
   KnowledgeGraphNode,
 } from './knowledge-aggregator';
 
-// Utility exports
 export { StructuredLogger } from './adapter';

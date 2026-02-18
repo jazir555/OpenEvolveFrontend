@@ -41,6 +41,23 @@ import json
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Import data structures
+from invention_planner_structures import (
+    InventionGoal,
+    ValidatedMath,
+    ErrorSource,
+    PhysicsValidationReport
+)
+
+# Import data structures
+from invention_planner_structures import (
+    InventionGoal,
+    ValidatedMath,
+    ErrorSource,
+    PhysicsValidationReport,
+    InventionPlan
+)
+
 # Import existing systems
 from sop_generator import (
     SOPGenerator,
@@ -79,6 +96,25 @@ try:
 except ImportError:
     LEANAIDE_AVAILABLE = False
     logger.warning("LeanAide not available - math formalization will be simulated")
+
+# Try to import Z3-Lean integration (CRITICAL: Enables hybrid Z3+Lean verification)
+try:
+    from z3_to_lean_invention_integration import (
+        Z3LeanInventionIntegration,
+        formalize_invention_plan,
+        InventionFormalizationResult,
+        Z3LeanFormalization,
+        FormalizationLevel,
+        ENHANCED_INTEGRATION_AVAILABLE,
+        BASE_INTEGRATION_AVAILABLE,
+        Z3_AVAILABLE
+    )
+    Z3_LEAN_INTEGRATION_AVAILABLE = ENHANCED_INTEGRATION_AVAILABLE or BASE_INTEGRATION_AVAILABLE
+except ImportError as e:
+    Z3_LEAN_INTEGRATION_AVAILABLE = False
+    FormalizationLevel = None
+    InventionFormalizationResult = None
+    logger.warning(f"Z3-Lean integration not available: {e}")
 
 # Try to import decomposition
 try:
@@ -189,43 +225,8 @@ class PipelineStage(Enum):
 
 
 # ============================================================================
-# Data Models
+# Core Pipeline Class
 # ============================================================================
-
-@dataclass
-class InventionGoal:
-    """Parsed invention goal from prompt"""
-    goal_type: str  # "technology", "material", "device", "process", etc.
-    target: str  # What is being invented
-    domain: str  # "physics", "chemistry", "biology", "engineering", etc.
-    key_requirements: List[str]
-    constraints: List[str]
-    success_definition: str
-    complexity_score: float  # 0-1
-
-
-@dataclass
-class ValidatedMath:
-    """Mathematical relationship formalized in Lean"""
-    description: str
-    lean_theorem: str
-    lean_proof: str
-    variables: Dict[str, str]  # Variable definitions
-    assumptions: List[str]
-    verification_method: str
-    confidence: float
-
-
-@dataclass
-class ErrorSource:
-    """Potential source of error"""
-    error_type: str
-    description: str
-    probability: float  # Estimated probability
-    impact: str  # "critical", "high", "medium", "low"
-    mitigation_strategy: str
-    verification_method: str
-    acceptance_criteria: str
 
 
 @dataclass
@@ -1193,20 +1194,77 @@ Output structured JSON with steps array containing all required fields.
         knowledge: List[str]
     ) -> List[ValidatedMath]:
         """
-        Formalize all mathematics in Lean using LeanAide.
+        Formalize mathematics using Z3 + Lean hybrid verification.
 
-        Task 1.3 Implementation: Actual math formalization with LeanAide
-        - Uses leanaide_client.py for REAL Lean 4 formalization
-        - Extracts actual mathematical relationships
-        - Converts to Lean 4 syntax properly
-        - Generates ACTUAL proofs (not just "by sorry")
-        - Uses leanaide_evolutionary_workflow.py for proof optimization
-        - Verifies proofs in actual Lean 4 environment
+        Task 1.3 Enhanced: Uses Z3 solver + Lean 4 prover
+        - Z3 constraint extraction and verification
+        - Lean 4 theorem generation
+        - Hybrid verification with consensus
+        - Proof certificate generation
+        - Falls back to LeanAide if Z3+Lean unavailable
+        - Final fallback to MAKER (LLM)
         """
         formalized = []
         logger.info(f"Formalizing math for: {goal.target}")
 
-        # Try to use LeanAide client
+        # CRITICAL: Try Z3+Lean hybrid verification FIRST
+        if Z3_LEAN_INTEGRATION_AVAILABLE:
+            try:
+                logger.info("Using Z3+Lean hybrid verification for math formalization")
+
+                # Extract mathematical relationships from decomposition and knowledge
+                equations = self._extract_equations(decomposition, knowledge)
+                logger.info(f"Extracted {len(equations)} equations for Z3+Lean formalization")
+
+                # Use Z3-Lean invention integration
+                result = await formalize_invention_plan(
+                    goal=goal,
+                    decomposition=decomposition,
+                    knowledge=knowledge
+                )
+
+                if result and result.formalized_count > 0:
+                    logger.info(f"Z3+Lean formalized {result.formalized_count} equations")
+
+                    # Convert Z3LeanFormalization objects to ValidatedMath
+                    for form in result.formalizations:
+                        try:
+                            # Create ValidatedMath directly (avoid circular import)
+                            validated = ValidatedMath(
+                                description=form.description or form.equation,
+                                lean_theorem=form.lean_theorem or "-- No formalization available",
+                                lean_proof="\n".join(form.lean_tactics) if form.lean_tactics else "-- No proof",
+                                variables={},  # Would parse from theorem
+                                assumptions=[],  # Would extract from formalization
+                                verification_method=f"Z3+Lean {form.formalization_level.value}",
+                                confidence=form.confidence
+                            )
+                            formalized.append(validated)
+                            logger.info(f"  - {form.equation[:50]}: {form.formalization_level.value} (confidence: {form.confidence:.2f})")
+                        except Exception as e:
+                            logger.warning(f"Failed to convert formalization: {e}")
+                            continue
+
+                    # Log statistics
+                    logger.info(f"Z3+Lean Statistics:")
+                    logger.info(f"  Total relationships: {result.total_relationships}")
+                    logger.info(f"  Formalized: {result.formalized_count}")
+                    logger.info(f"  Verified: {result.verified_count}")
+                    logger.info(f"  Certified: {result.certified_count}")
+                    logger.info(f"  Execution time: {result.execution_time:.2f}s")
+
+                    if formalized:
+                        logger.info(f"Z3+Lean formalization successful: {len(formalized)} equations")
+                        return formalized
+                else:
+                    logger.warning("Z3+Lean formalization returned no results")
+
+            except Exception as e:
+                logger.warning(f"Z3+Lean formalization failed: {e}", exc_info=True)
+        else:
+            logger.info("Z3+Lean integration not available, using fallback")
+
+        # Fallback 1: Try to use LeanAide client
         if LEANAIDE_AVAILABLE and self.leanaide:
             try:
                 # Check health

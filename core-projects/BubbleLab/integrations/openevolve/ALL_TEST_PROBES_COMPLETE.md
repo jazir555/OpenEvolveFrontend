@@ -166,7 +166,7 @@ Each probe script includes 7 comprehensive test suites:
 3. ✅ `redis-service.test.ts` - Redis cache/store
 4. ✅ `postgresql-service.test.ts` - PostgreSQL database
 5. ✅ `ai-agent-service.test.ts` - AI agent integration
-6. ✅ `hephaestus-service.test.ts` - Hephaestus orchestration
+6. ✅ `crewai-service.test.ts` - CrewAI orchestration
 7. ✅ `ace-tools-service.test.ts` - ACE tools integration
 8. ✅ `workflow-orchestrator-service.test.ts` - Workflow orchestration
 9. ✅ `slack-service.test.ts` - Slack integration
@@ -228,7 +228,7 @@ All probe scripts follow naming convention: `{bubble-name}.probe.sh`
 - ✅ `redis.probe.sh`
 - ✅ `postgresql.probe.sh`
 - ✅ `ai-agent.probe.sh`
-- ✅ `hephaestus.probe.sh`
+- ✅ `crewai.probe.sh`
 - ✅ `ace-tools.probe.sh`
 - ✅ `workflow-orchestrator.probe.sh`
 - ✅ `slack.probe.sh`

@@ -17,7 +17,7 @@ import time
 from datetime import datetime, timezone
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../src'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Set environment variables
 os.environ.setdefault("ADAPTIVE_MDAP_TIMEOUT_MS", "5000")
@@ -37,13 +37,13 @@ def time_function(func, *args, **kwargs):
 
 async def time_async_function(func, *args, **kwargs):
     """Time an async function execution."""
-    start = asyncio.get_event_loop().time()
+    start = time.time()
     result = await func(*args, **kwargs)
-    duration = (asyncio.get_event_loop().time() - start) * 1000  # Convert to ms
+    duration = (time.time() - start) * 1000  # Convert to ms
     return result, duration
 
 
-def main():
+async def main():
     """Demonstrate caching and performance optimizations."""
     print("=" * 70)
     print("  EXAMPLE: Caching and Performance Optimization")
@@ -73,12 +73,10 @@ def main():
 
     start = time.time()
     for sp in test_problems:
-        result, duration = asyncio.run(
-            time_async_function(
-                adapter.analyze_complexity_async,
-                sp,
-                use_cache=False
-            )
+        result, duration = await time_async_function(
+            adapter.analyze_complexity_async,
+            sp,
+            use_cache=False
         )
         monitor.record("baseline_analysis", duration)
         print(f"  {sp.id}: {duration:.0f}ms")
@@ -109,12 +107,10 @@ def main():
 
     start = time.time()
     for sp in cache_problems:
-        result, duration = asyncio.run(
-            time_async_function(
-                adapter.analyze_complexity_async,
-                sp,
-                use_cache=True
-            )
+        result, duration = await time_async_function(
+            adapter.analyze_complexity_async,
+            sp,
+            use_cache=True
         )
         monitor.record("cached_analysis_first", duration)
         print(f"  {sp.id}: {duration:.0f}ms")
@@ -132,12 +128,10 @@ def main():
 
     start = time.time()
     for sp in cache_problems:
-        result, duration = asyncio.run(
-            time_async_function(
-                adapter.analyze_complexity_async,
-                sp,
-                use_cache=True
-            )
+        result, duration = await time_async_function(
+            adapter.analyze_complexity_async,
+            sp,
+            use_cache=True
         )
         monitor.record("cached_analysis_hit", duration)
         print(f"  {sp.id}: {duration:.0f}ms")
@@ -149,8 +143,8 @@ def main():
     hit_stats = monitor.get_stats("cached_analysis_hit")
 
     # Calculate cache speedup
-    speedup = baseline_total / second_cached_total
-    cache_savings = ((baseline_total - second_cached_total) / baseline_total) * 100
+    speedup = baseline_total / second_cached_total if second_cached_total > 0 else 0
+    cache_savings = ((baseline_total - second_cached_total) / baseline_total * 100) if baseline_total > 0 else 0
 
     print(f"\nCache Speedup: {speedup:.1f}x faster")
     print(f"Cache Savings: {cache_savings:.1f}% reduction in time")
@@ -162,10 +156,10 @@ def main():
 
     cache_stats = adapter.get_cache_stats()
 
-    print(f"\nCache Size: {cache_stats['size']}/{cache_stats['max_size']}")
-    print(f"Hit Rate: {cache_stats['hit_rate']:.1%}")
-    print(f"Total Hits: {cache_stats['total_hits']}")
-    print(f"Total Misses: {cache_stats['total_misses']}")
+    print(f"\nCache Size: {cache_stats.get('size', 0)}/{cache_stats.get('max_size', 1000)}")
+    print(f"Hit Rate: {cache_stats.get('hit_rate', 0):.1%}")
+    print(f"Total Hits: {cache_stats.get('total_hits', 0)}")
+    print(f"Total Misses: {cache_stats.get('total_misses', 0)}")
 
     # Phase 5: Concurrent processing comparison
     print("\n" + "=" * 70)
@@ -188,12 +182,10 @@ def main():
     print("\nSequential processing...")
     start = time.time()
     for sp in concurrent_problems[:3]:  # Only 3 for sequential
-        result, _ = asyncio.run(
-            time_async_function(
-                adapter.analyze_complexity_async,
-                sp,
-                use_cache=False
-            )
+        result, _ = await time_async_function(
+            adapter.analyze_complexity_async,
+            sp,
+            use_cache=False
         )
     sequential_time = (time.time() - start) * 1000
 
@@ -202,18 +194,16 @@ def main():
     # Concurrent
     print("\nConcurrent processing (max_concurrency=5)...")
     start = time.time()
-    results = asyncio.run(
-        adapter.batch_analyze_complexity(
-            concurrent_problems,
-            max_concurrency=5
-        )
+    results = await adapter.batch_analyze_complexity(
+        concurrent_problems,
+        max_concurrency=5
     )
     concurrent_time = (time.time() - start) * 1000
 
     print(f"Concurrent Time: {concurrent_time:.0f}ms")
     print(f"Operations: {len(results)}")
 
-    concurrent_speedup = (sequential_time / 3) / (concurrent_time / len(concurrent_problems))
+    concurrent_speedup = (sequential_time / 3) / (concurrent_time / len(concurrent_problems)) if concurrent_time > 0 else 0
     print(f"\nConcurrent Speedup: {concurrent_speedup:.1f}x faster")
 
     # Phase 6: Overall performance summary
@@ -221,18 +211,21 @@ def main():
     print("Phase 6: Performance Summary")
     print("=" * 70)
 
-    all_stats = monitor.get_all_stats()
+    # Note: get_all_stats may not exist, use get_stats for each operation instead
+    operations = ["baseline_analysis", "cached_analysis_first", "cached_analysis_hit"]
 
     print("\nOperation Statistics:")
-    for operation, stats in all_stats.items():
-        print(f"\n{operation}:")
-        print(f"  Count: {stats['count']}")
-        print(f"  Average: {stats['avg_ms']:.0f}ms")
-        print(f"  Min: {stats['min_ms']:.0f}ms")
-        print(f"  Max: {stats['max_ms']:.0f}ms")
-        print(f"  P50: {stats['p50_ms']:.0f}ms")
-        print(f"  P95: {stats['p95_ms']:.0f}ms")
-        print(f"  P99: {stats['p99_ms']:.0f}ms")
+    for operation in operations:
+        stats = monitor.get_stats(operation)
+        if stats['count'] > 0:
+            print(f"\n{operation}:")
+            print(f"  Count: {stats['count']}")
+            print(f"  Average: {stats['avg_ms']:.0f}ms")
+            print(f"  Min: {stats['min_ms']:.0f}ms")
+            print(f"  Max: {stats['max_ms']:.0f}ms")
+            print(f"  P50: {stats['p50_ms']:.0f}ms")
+            print(f"  P95: {stats['p95_ms']:.0f}ms")
+            print(f"  P99: {stats['p99_ms']:.0f}ms")
 
     print("\n" + "=" * 70)
     print("  KEY TAKEAWAYS")
@@ -241,7 +234,7 @@ def main():
     print(f"\n1. Caching Speedup: {speedup:.1f}x faster (on cache hits)")
     print(f"2. Cache Savings: {cache_savings:.1f}% reduction in response time")
     print(f"3. Concurrent Speedup: {concurrent_speedup:.1f}x faster")
-    print(f"4. Cache Hit Rate: {cache_stats['hit_rate']:.1%}")
+    print(f"4. Cache Hit Rate: {cache_stats.get('hit_rate', 0):.1%}")
 
     print("\nRecommendations:")
     print("  - Enable caching for repeated analyses")
@@ -257,4 +250,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(asyncio.run(main()))

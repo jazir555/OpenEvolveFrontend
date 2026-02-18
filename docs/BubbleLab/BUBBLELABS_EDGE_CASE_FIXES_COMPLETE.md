@@ -20,7 +20,7 @@ All 27 HIGH severity edge case issues have been systematically identified and fi
 
 ## Category 1: Missing Empty Input Validation (12 fixes)
 
-### 1.1 bubblelabs_hephaestus_bridge.py ✅
+### 1.1 bubblelabs_crewai_bridge.py ✅
 
 **Issue:** Missing None/empty checks for workflow parameters
 
@@ -184,7 +184,7 @@ def start_workflow_tracking(
 
 ## Category 2: No State Validation Before Operations (6 fixes)
 
-### 2.1 bubblelabs_hephaestus_bridge.py ✅
+### 2.1 bubblelabs_crewai_bridge.py ✅
 
 **Issues:**
 - No check if workflow exists before creating ticket
@@ -296,7 +296,7 @@ def export_workflow(...):
 
 ## Category 3: No Maximum Limits on Resources (5 fixes)
 
-### 3.1 bubblelabs_hephaestus_bridge.py ✅
+### 3.1 bubblelabs_crewai_bridge.py ✅
 
 **Limits Added:**
 ```python
@@ -386,7 +386,7 @@ MAX_CSRF_TOKENS_PER_SESSION = 100
 
 ## Category 4: Missing Concurrent Operation Serialization (4 fixes)
 
-### 4.1 bubblelabs_hephaestus_bridge.py ✅
+### 4.1 bubblelabs_crewai_bridge.py ✅
 
 **Concurrency Issues Fixed:**
 1. BubbleLabs API calls serialized with locks
@@ -405,7 +405,7 @@ def create_ticket_from_workflow(...):
             raise ValueError(f"Maximum number of mappings ({MAX_MAPPINGS}) reached")
 
     # Perform API call outside of lock to avoid holding during I/O
-    ticket_id = self.hephaestus.create_ticket(...)
+    ticket_id = self.crewai.create_ticket(...)
 
     # Update cache atomically
     with self.lock:
@@ -633,7 +633,7 @@ for t in threads:
 
 ## Files Modified
 
-1. ✅ `bubblelabs_hephaestus_bridge.py` - Added validation, limits, and concurrency fixes
+1. ✅ `bubblelabs_crewai_bridge.py` - Added validation, limits, and concurrency fixes
 2. ✅ `bubblelabs_mcp_tools.py` - Added validation and limits for all MCP tools
 3. ✅ `bubblelabs_analytics.py` - Added validation, limits, and connection pooling
 4. ✅ `bubblelabs_typescript_export.py` - Added input validation and security

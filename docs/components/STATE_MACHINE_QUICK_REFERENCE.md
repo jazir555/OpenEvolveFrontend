@@ -74,7 +74,7 @@ IN_REVIEW → IN_PROGRESS → IN_REVIEW
 ### Validate a Workflow Transition
 
 ```python
-from bubblelabs_hephaestus_bridge import validate_workflow_transition
+from bubblelabs_crewai_bridge import validate_workflow_transition
 
 # Check if transition is valid
 if validate_workflow_transition("running", "paused"):
@@ -88,7 +88,7 @@ else:
 ### Get Valid Transitions
 
 ```python
-from bubblelabs_hephaestus_bridge import get_valid_workflow_transitions
+from bubblelabs_crewai_bridge import get_valid_workflow_transitions
 
 # Get all valid next states from current state
 valid_states = get_valid_workflow_transitions("running")
@@ -100,7 +100,7 @@ print(f"Valid transitions from running: {valid_states}")
 ### Check if State is Terminal
 
 ```python
-from bubblelabs_hephaestus_bridge import is_terminal_workflow_status
+from bubblelabs_crewai_bridge import is_terminal_workflow_status
 
 # Check if workflow is in a terminal state
 if is_terminal_workflow_status("completed"):
@@ -112,7 +112,7 @@ else:
 ### Validate a Ticket Transition
 
 ```python
-from bubblelabs_hephaestus_bridge import validate_ticket_transition
+from bubblelabs_crewai_bridge import validate_ticket_transition
 
 # Check if transition is valid
 if validate_ticket_transition("IN_PROGRESS", "IN_REVIEW"):
@@ -244,7 +244,7 @@ These states have no valid transitions out. The ticket is final.
 **Solution:**
 1. Check if ticket is in terminal state
 2. Verify ticket status transitions
-3. Check Hephaestus API connectivity
+3. Check CrewAI API connectivity
 4. Review validation error logs
 
 ## Testing

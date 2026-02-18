@@ -24,7 +24,7 @@ FILES MODIFIED
 ================================================================================
 
 1. ace_mcp_tools.py               - 6 fixes applied
-2. ace_hephaestus_bridge.py        - 4 fixes applied
+2. ace_crewai_bridge.py        - 4 fixes applied
 3. ace_analytics.py                - 7 fixes applied
 4. ace_knowledge_artifacts.py      - 4 fixes applied
 5. ace_workflow_knowledge_extractor.py - 7 fixes applied

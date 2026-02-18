@@ -56,7 +56,7 @@ Without Tests: 20 (50.0%)
 | google-drive-bubble | ✅ | BubbleLab\packages\bubble-core\src\bubbles\service-bubble\google-drive-bubble.test.ts | -35.0% | Environment Validation, Input Validation |
 | google-sheets-bubble | ✅ | BubbleLab\packages\bubble-core\src\bubbles\service-bubble\google-sheets-bubble.test.ts | -15.0% | Environment Validation |
 | hello-world | ✅ | BubbleLab\packages\bubble-core\src\bubbles\service-bubble\hello-world.test.ts | -75.0% | Environment Validation, Authentication, Rate Limiting, Input Validation |
-| hephaestus-bubble | ❌ | N/A | N/A | - |
+| crewai-bubble | ❌ | N/A | N/A | - |
 | http | ✅ | BubbleLab\packages\bubble-core\src\bubbles\service-bubble\http.test.ts | -95.0% | Environment Validation, Authentication, Rate Limiting, Input Validation, Error Handling |
 | http-bubble | ✅ | BubbleLab\packages\bubble-core\src\bubbles\service-bubble\http-bubble.test.ts | -55.0% | Environment Validation, Rate Limiting, Input Validation |
 | http-fix-validation | ❌ | N/A | N/A | - |

@@ -923,7 +923,7 @@ async handle(payload: WebhookEvent): Promise<Result> {
    - Missing: Entire bubble
    - Status: 0% complete
 
-5. **HephaestusBubble** - Basic implementation
+5. **CrewAIBubble** - Basic implementation
    - Missing: Advanced delegation patterns, result caching
    - Status: 40% complete
 
@@ -1424,7 +1424,7 @@ async handle(payload: WebhookEvent): Promise<Result> {
 - Medium: 6 issues (type safety)
 - Low: 1 issue (docs)
 
-**25. hephaestus-bubble.ts**
+**25. crewai-bubble.ts**
 - Critical: 1 issue (incomplete impl)
 - High: 4 issues (error handling, caching)
 - Medium: 6 issues (type safety)

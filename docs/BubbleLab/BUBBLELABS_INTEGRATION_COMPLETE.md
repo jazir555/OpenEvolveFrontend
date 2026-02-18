@@ -224,15 +224,15 @@ BubbleLabs serves as the **n8n-style visual workflow interface** for OpenEvolve,
 - ⚠️ Can be run independently via `pnpm run dev`
 - ⚠️ Not required for basic SGDW integration
 
-**Hephaestus Bridge:**
-- ❌ No specific BubbleLabs-Hephaestus bridge exists yet
-- ⚠️ Can use existing Hephaestus integration patterns
-- ⚠️ Would need `bubblelabs_hephaestus_bridge.py`
+**CrewAI Bridge:**
+- ❌ No specific BubbleLabs-CrewAI bridge exists yet
+- ⚠️ Can use existing CrewAI integration patterns
+- ⚠️ Would need `bubblelabs_crewai_bridge.py`
 
 ### ❌ What's Missing
 
 **Missing Components:**
-1. **BubbleLabs-Hephaestus Bridge** - Connect BubbleLabs workflows to Hephaestus tickets
+1. **BubbleLabs-CrewAI Bridge** - Connect BubbleLabs workflows to CrewAI tickets
 2. **MCP Tools** - Model Context Protocol tools for BubbleLabs
 3. **Advanced Analytics** - Token usage, cost tracking in BubbleLabs UI
 4. **Workflow Export to TypeScript** - Export SGDW workflows as deployable code
@@ -578,19 +578,19 @@ The BubbleLabs integration is **FULLY FUNCTIONAL** for basic use. The following 
 
 ### Potential Enhancements
 
-#### 1. Hephaestus Bridge (Priority: LOW)
+#### 1. CrewAI Bridge (Priority: LOW)
 
-**What:** Connect BubbleLabs workflows to Hephaestus ticketing system
+**What:** Connect BubbleLabs workflows to CrewAI ticketing system
 
-**Why:** Track workflow execution as Hephaestus tickets
+**Why:** Track workflow execution as CrewAI tickets
 
 **Implementation:**
 ```python
-# File: bubblelabs_hephaestus_bridge.py
+# File: bubblelabs_crewai_bridge.py
 
-class BubbleLabsHephaestusBridge:
+class BubbleLabsCrewAIBridge:
     def create_ticket_from_workflow(self, definition: BubbleWorkflowDefinition):
-        """Create Hephaestus ticket for workflow execution"""
+        """Create CrewAI ticket for workflow execution"""
 
     def update_ticket_progress(self, instance_id: str, progress: float):
         """Update ticket status as workflow progresses"""
@@ -768,7 +768,7 @@ Verifying OpenEvolve-BubbleLabs Integration...
 ### Future Enhancements (Optional)
 
 If needed, implement:
-1. Hephaestus bridge (2-3 days)
+1. CrewAI bridge (2-3 days)
 2. MCP tools (1-2 days)
 3. Advanced analytics (3-4 days)
 4. TypeScript export (5-7 days)

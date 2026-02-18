@@ -83,7 +83,7 @@ Total Issues: 0
 ### MEDIUM Severity Fixes (34 instances):
 **B113 Missing Timeout (22):**
 - Added `timeout=30` to requests calls
-- Files: advanced_features.py, adversarial_testing.py, api_endpoints.py, blue_team.py, bubblelab-auto-setup.py, evolution.py, external_knowledge_integration.py, fix_manual_security_issues.py, github_config.py, integrations.py, leanaide_hephaestus_bridge.py, leanaide_mdap.py, llm_utils.py, n8n_workflow_integration.py, openevolve_integration.py, openevolve_orchestrator.py, problem_fractal_pipeline.py, problem_recomposition.py, prompt_engineering.py, providercatalogue.py, quality_assessment.py, webhook_manager.py
+- Files: advanced_features.py, adversarial_testing.py, api_endpoints.py, blue_team.py, bubblelab-auto-setup.py, evolution.py, external_knowledge_integration.py, fix_manual_security_issues.py, github_config.py, integrations.py, leanaide_crewai_bridge.py, leanaide_mdap.py, llm_utils.py, n8n_workflow_integration.py, openevolve_integration.py, openevolve_orchestrator.py, problem_fractal_pipeline.py, problem_recomposition.py, prompt_engineering.py, providercatalogue.py, quality_assessment.py, webhook_manager.py
 
 **B104 Bind All Interfaces (8):**
 - Changed host='0.0.0.0' to host='127.0.0.1'

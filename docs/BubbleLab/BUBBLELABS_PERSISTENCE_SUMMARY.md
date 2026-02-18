@@ -3,8 +3,8 @@
 ## Status: ✅ PRODUCTION READY
 
 **Implementation Date:** December 29, 2025
-**Files Modified:** `bubblelabs_hephaestus_bridge.py`
-**Database:** SQLite (`hephaestus_workflow_mappings.db`)
+**Files Modified:** `bubblelabs_crewai_bridge.py`
+**Database:** SQLite (`crewai_workflow_mappings.db`)
 
 ---
 
@@ -40,7 +40,7 @@
 
 ---
 
-## Key Changes to bubblelabs_hephaestus_bridge.py
+## Key Changes to bubblelabs_crewai_bridge.py
 
 ### New Imports
 ```python
@@ -51,7 +51,7 @@ import sqlite3  # Added for database operations
 ```python
 def __init__(self, ..., mappings_db_path: Optional[str] = None):
     # New parameter allows custom database path
-    self._mappings_db_path = mappings_db_path or "hephaestus_workflow_mappings.db"
+    self._mappings_db_path = mappings_db_path or "crewai_workflow_mappings.db"
 ```
 
 ### New Methods
@@ -111,7 +111,7 @@ def __init__(self, ..., mappings_db_path: Optional[str] = None):
 
 ### Database File Created
 ```
-File: hephaestus_workflow_mappings.db
+File: crewai_workflow_mappings.db
 Size: 24,576 bytes
 Location: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ```
@@ -145,10 +145,10 @@ Location: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 
 ### Basic Usage (No Changes Required)
 ```python
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
 # Initialize bridge
-bridge = BubbleLabsHephaestusBridge()
+bridge = BubbleLabsCrewAIBridge()
 
 # Create ticket (automatically persisted)
 ticket_id = bridge.create_ticket_from_workflow(workflow_def)
@@ -159,7 +159,7 @@ ticket_id = bridge.create_ticket_from_workflow(workflow_def)
 ### Custom Database Path
 ```python
 # Use custom database location
-bridge = BubbleLabsHephaestusBridge(
+bridge = BubbleLabsCrewAIBridge(
     mappings_db_path="/path/to/custom/mappings.db"
 )
 ```
@@ -254,7 +254,7 @@ The implementation is fully backward compatible:
 
 **Custom database location:**
 ```python
-bridge = BubbleLabsHephaestusBridge(
+bridge = BubbleLabsCrewAIBridge(
     mappings_db_path=os.getenv("MAPPINGS_DB", "mappings.db")
 )
 ```
@@ -286,7 +286,7 @@ bridge.cleanup_old_mappings(max_age_days=60)
 3. **Backup database:**
    ```bash
    # Simple file backup
-   cp hephaestus_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
+   cp crewai_workflow_mappings.db backups/mappings_$(date +%Y%m%d).db
    ```
 
 ### Monitoring Metrics
@@ -328,7 +328,7 @@ print(f"Exists: {os.path.exists(stats['database_path'])}")
 **Optimize database:**
 ```python
 import sqlite3
-conn = sqlite3.connect("hephaestus_workflow_mappings.db")
+conn = sqlite3.connect("crewai_workflow_mappings.db")
 conn.execute("VACUUM")  # Rebuild and optimize
 conn.close()
 ```
@@ -338,7 +338,7 @@ conn.close()
 ## Files Summary
 
 ### Modified Files
-- **bubblelabs_hephaestus_bridge.py**
+- **bubblelabs_crewai_bridge.py**
   - Added database persistence
   - Added cleanup functionality
   - Added statistics gathering

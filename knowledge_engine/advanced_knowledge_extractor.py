@@ -31,11 +31,11 @@ try:
     import numpy as np
     from sentence_transformers import SentenceTransformer
     from transformers import pipeline
-    from knowledge_extractor import KnowledgeArtifact, KnowledgeExtractor
 except ImportError as e:
     logging.warning(f"Advanced NLP libraries not available: {e}")
-    # Fallback to basic implementation
-    from knowledge_extractor import KnowledgeArtifact, KnowledgeExtractor
+
+# Import from knowledge_engine module
+from knowledge_engine.knowledge_extractor import KnowledgeArtifact, KnowledgeExtractor
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -55,19 +55,23 @@ class AdvancedKnowledgeExtractor(KnowledgeExtractor):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize advanced knowledge extractor with NLP capabilities"""
         super().__init__(config)
-        
+
         # Initialize NLP models
         self.nlp_models = self._initialize_nlp_models()
         self.ml_models = self._initialize_ml_models()
         self.semantic_models = self._initialize_semantic_models()
-        
+
         # Enhanced pattern library
         self.advanced_pattern_library = self._initialize_advanced_pattern_library()
-        
+
         # NLP processing statistics
         self.nlp_processing_stats = defaultdict(int)
         self.ml_analysis_stats = defaultdict(int)
-        
+
+        # Artifact cache for semantic similarity
+        self._artifact_cache = {}  # artifact_id -> (embedding, metadata)
+        self._cache_max_size = config.get('artifact_cache_size', 1000) if config else 1000
+
         logger.info("Advanced knowledge extractor initialized with NLP and ML capabilities")
     
     def _initialize_nlp_models(self) -> Dict[str, Any]:
@@ -247,7 +251,10 @@ class AdvancedKnowledgeExtractor(KnowledgeExtractor):
                 quality_assessed = self._assess_quality_with_ml(semantic_enhanced)
                 
                 enhanced_artifacts.append(quality_assessed)
-                
+
+                # Cache artifact for future similarity comparisons
+                self._cache_artifact(quality_assessed)
+
                 # Update statistics
                 self.nlp_processing_stats['artifacts_enhanced'] += 1
                 
@@ -495,30 +502,116 @@ class AdvancedKnowledgeExtractor(KnowledgeExtractor):
         return topics
     
     def _analyze_semantic_similarity(self, text: str) -> Dict[str, Any]:
-        """Analyze semantic similarity using sentence embeddings"""
-        similarity = {'similar_artifacts': [], 'average_similarity': 0.0}
-        
+        """
+        Analyze semantic similarity using sentence embeddings.
+
+        Compares the input text against cached artifacts to find semantically similar content.
+        Uses cosine similarity to measure relatedness.
+        """
+        similarity = {'similar_artifacts': [], 'average_similarity': 0.0, 'embedding_dimensions': 0}
+
         try:
             if self.ml_models.get('sentence_transformer'):
                 # Generate embedding for current text
                 embedding = self.ml_models['sentence_transformer'].encode(text)
-                
-                # In production, compare with existing artifacts
-                # For now, return placeholder data
-                similarity = {
-                    'similar_artifacts': [
-                        {'artifact_id': 'similar_001', 'similarity': 0.85},
-                        {'artifact_id': 'similar_002', 'similarity': 0.78}
-                    ],
-                    'average_similarity': 0.82,
-                    'embedding_dimensions': len(embedding)
-                }
-                
+                similarity['embedding_dimensions'] = len(embedding)
+
+                # If we have cached artifacts, calculate similarity
+                if self._artifact_cache:
+                    import numpy as np
+
+                    similar_artifacts = []
+                    similarities = []
+
+                    # Calculate cosine similarity with each cached artifact
+                    for artifact_id, (cached_embedding, metadata) in self._artifact_cache.items():
+                        # Cosine similarity: dot product of normalized vectors
+                        norm_a = np.linalg.norm(embedding)
+                        norm_b = np.linalg.norm(cached_embedding)
+
+                        if norm_a > 0 and norm_b > 0:
+                            cos_sim = np.dot(embedding, cached_embedding) / (norm_a * norm_b)
+                        else:
+                            cos_sim = 0.0
+
+                        # Only include artifacts with meaningful similarity
+                        if cos_sim > 0.3:  # Threshold for "similar"
+                            similar_artifacts.append({
+                                'artifact_id': artifact_id,
+                                'similarity': float(cos_sim),
+                                'metadata': metadata
+                            })
+                            similarities.append(cos_sim)
+
+                    # Sort by similarity (descending) and take top 5
+                    similar_artifacts.sort(key=lambda x: x['similarity'], reverse=True)
+                    top_similar = similar_artifacts[:5]
+
+                    similarity['similar_artifacts'] = top_similar
+
+                    # Calculate average similarity
+                    if similarities:
+                        similarity['average_similarity'] = float(np.mean(similarities))
+                    else:
+                        similarity['average_similarity'] = 0.0
+
+                    logger.info({
+                        'msg': 'Semantic similarity analysis completed',
+                        'cached_artifacts': len(self._artifact_cache),
+                        'similar_found': len(top_similar),
+                        'avg_similarity': similarity['average_similarity']
+                    })
+                else:
+                    # No cached artifacts yet
+                    similarity['average_similarity'] = 0.0
+                    logger.info('No cached artifacts for similarity comparison')
+
         except Exception as e:
             logger.error(f"Semantic similarity analysis failed: {str(e)}")
-        
+            similarity['error'] = str(e)
+
         return similarity
-    
+
+    def _cache_artifact(self, artifact: KnowledgeArtifact) -> None:
+        """
+        Cache an artifact's embedding for future similarity comparisons.
+
+        Implements LRU-style cache management to limit memory usage.
+
+        Args:
+            artifact: The knowledge artifact to cache
+        """
+        try:
+            # Generate embedding if we have a sentence transformer
+            if self.ml_models.get('sentence_transformer'):
+                text_content = self._extract_text_content(artifact)
+                if text_content:
+                    embedding = self.ml_models['sentence_transformer'].encode(text_content)
+
+                    # Manage cache size (LRU eviction if needed)
+                    if len(self._artifact_cache) >= self._cache_max_size:
+                        # Remove oldest entry (first key)
+                        oldest_key = next(iter(self._artifact_cache))
+                        del self._artifact_cache[oldest_key]
+                        logger.debug(f"Evicted artifact {oldest_key} from cache (size limit reached)")
+
+                    # Cache the artifact
+                    metadata = {
+                        'id': artifact.id,
+                        'type': artifact.type,
+                        'created_at': artifact.created_at,
+                        'content_length': len(text_content)
+                    }
+                    self._artifact_cache[artifact.id] = (embedding, metadata)
+
+                    logger.debug({
+                        'msg': 'Cached artifact for similarity',
+                        'artifact_id': artifact.id,
+                        'cache_size': len(self._artifact_cache)
+                    })
+        except Exception as e:
+            logger.warning(f"Failed to cache artifact {artifact.id}: {e}")
+
     def _enhance_with_semantic_analysis(self, artifact: KnowledgeArtifact) -> KnowledgeArtifact:
         """Enhance artifact with semantic analysis"""
         enhanced = KnowledgeArtifact(**artifact.to_dict())

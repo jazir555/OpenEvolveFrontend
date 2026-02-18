@@ -30,7 +30,7 @@ All fixes maintain backward compatibility while adding comprehensive security va
 
 ### 1. Hardcoded Credentials (CRITICAL)
 
-**File:** `bubblelabs_hephaestus_bridge.py`
+**File:** `bubblelabs_crewai_bridge.py`
 **Location:** Lines 533-548
 **Issue:** Hardcoded API key "test-key" in example code
 
@@ -38,21 +38,21 @@ All fixes maintain backward compatibility while adding comprehensive security va
 ```python
 # BEFORE (INSECURE):
 bridge = create_bridge(
-    hephaestus_api_base="http://localhost:8000",
-    hephaestus_api_key="test-key",  # ❌ HARDCODED
-    hephaestus_project_id="test-project"
+    crewai_api_base="http://localhost:8000",
+    crewai_api_key="test-key",  # ❌ HARDCODED
+    crewai_project_id="test-project"
 )
 
 # AFTER (SECURE):
 bridge = create_bridge(
-    hephaestus_api_base=os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8000"),
-    hephaestus_api_key=os.getenv("HEPHAESTUS_API_KEY"),  # ✅ From environment
-    hephaestus_project_id=os.getenv("HEPHAESTUS_PROJECT_ID", "test-project")
+    crewai_api_base=os.getenv("CREWAI_API_BASE", "http://localhost:8000"),
+    crewai_api_key=os.getenv("CREWAI_API_KEY"),  # ✅ From environment
+    crewai_project_id=os.getenv("CREWAI_PROJECT_ID", "test-project")
 )
 
 # Security warning if API key not set
-if not os.getenv("HEPHAESTUS_API_KEY"):
-    print("WARNING: HEPHAESTUS_API_KEY environment variable not set. Using mock mode.")
+if not os.getenv("CREWAI_API_KEY"):
+    print("WARNING: CREWAI_API_KEY environment variable not set. Using mock mode.")
 ```
 
 **Security Improvements:**
@@ -661,10 +661,10 @@ These fixes align with:
 
 ### Environment Variables Required
 ```bash
-# Hephaestus Integration
-export HEPHAESTUS_API_BASE="https://api.hephaestus.example.com"
-export HEPHAESTUS_API_KEY="your-api-key-here"
-export HEPHAESTUS_PROJECT_ID="your-project-id"
+# CrewAI Integration
+export CREWAI_API_BASE="https://api.crewai.example.com"
+export CREWAI_API_KEY="your-api-key-here"
+export CREWAI_PROJECT_ID="your-project-id"
 
 # OpenAI API (if using)
 export OPENAI_API_KEY="your-openai-key"

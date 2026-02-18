@@ -39,7 +39,7 @@ Priority bubbles that are commonly used:
 ### Phase 3: AI/ML Service Bubbles (2 hours)
 15. `ai-agent.ts`
 16. `eleven-labs.ts`
-17. `hephaestus.ts`
+17. `crewai.ts`
 
 ### Phase 4: Tool Bubbles (3 hours)
 18. `code-edit-tool.ts`

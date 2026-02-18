@@ -171,8 +171,30 @@ class DecompositionAdapter:
             except Exception:
                 pass
 
+        # ICR integration (7 Modes)
+        icr_module = optional_import("determinism_stack.icr_adapter")
+        if icr_module:
+            try:
+                self._icr = getattr(icr_module, "ICRAdapter", None)()
+            except Exception:
+                self._icr = None
+
     def atomize(self, requirement: str) -> List[str]:
         """Break requirement into atomic subtasks."""
+        # Try ICR Deepthink for strategic decomposition if available
+        if self._icr and self._icr.is_available():
+            try:
+                result = self._icr.deepthink(requirement)
+                if result.get("success"):
+                    # Assuming ICR Deepthink returns subtasks in a certain format
+                    # For now, we extract content and try to find bullet points
+                    content = result.get("result", {}).get("content", "")
+                    lines = [l.strip("- ").strip() for l in content.split("\n") if l.strip().startswith("-")]
+                    if lines:
+                        return lines
+            except Exception:
+                pass
+
         # Try MDAP first for adaptive decomposition
         if self._mdap_integration:
             try:
@@ -611,15 +633,24 @@ class MatryoshkaClient:
 
 
 class KnowledgeAdapter:
-    """Layer 6: Temporal Knowledge Engine integration."""
+    """Layer 6: Temporal Knowledge Engine & Unified Query integration."""
 
     def __init__(self):
         self._ke_module = optional_import("knowledge_engine")
         self._engine = None
         self._initialized = False
+        
+        # Unified Knowledge Query integration
+        self._unified_query = None
+        uq_module = optional_import("determinism_stack.knowledge_query")
+        if uq_module:
+            try:
+                self._unified_query = getattr(uq_module, "UnifiedKnowledgeQuery", None)()
+            except Exception:
+                self._unified_query = None
 
     def is_available(self) -> bool:
-        return self._ke_module is not None
+        return self._ke_module is not None or (self._unified_query and self._unified_query.is_available())
 
     def _run_async(self, coro):
         try:
@@ -637,7 +668,12 @@ class KnowledgeAdapter:
     def _ensure_engine(self):
         if self._engine is not None:
             return
+        
+        # If unified query is available, it might be the primary entry point
+        # but we still want the underlying engine if possible
         if not self._ke_module:
+            if self._unified_query and self._unified_query.is_available():
+                return
             raise RuntimeError("Knowledge engine not available")
         
         # Prefer TemporalKnowledgeEngine for Layer 6
@@ -663,6 +699,8 @@ class KnowledgeAdapter:
                     break
                 
         if self._engine is None:
+            if self._unified_query and self._unified_query.is_available():
+                return
             raise RuntimeError("Knowledge engine entrypoint missing")
             
         if hasattr(self._engine, "initialize"):
@@ -671,8 +709,28 @@ class KnowledgeAdapter:
 
     def search(self, query: str, max_results: int = 5, timestamp: Optional[str] = None) -> Dict[str, Any]:
         """Layer 6: Temporal knowledge search with contradiction resolution."""
+        # Prioritize Unified Knowledge Query (Cross-System)
+        if self._unified_query and self._unified_query.is_available():
+            try:
+                temporal_filter = {"at": timestamp} if timestamp else None
+                result = self._unified_query.query(query, max_results=max_results, temporal_filter=temporal_filter)
+                if result.get("success"):
+                    return {
+                        "method": "unified_query",
+                        "context": result.get("results", []),
+                        "count": len(result.get("results", [])),
+                        "timestamp": timestamp,
+                        "metadata": result.get("metadata", {})
+                    }
+            except Exception as exc:
+                logger.debug(f"Unified query failed, falling back to local engine: {exc}")
+
         self._ensure_engine()
         
+        # If engine is not available but unified query was tried, return empty if engine fails
+        if self._engine is None:
+            return {"method": "knowledge_engine", "context": [], "count": 0}
+
         # Use TemporalKnowledgeEngine's specialized query if available
         if timestamp and hasattr(self._engine, "query_at_time"):
             ts_dt = timestamp
@@ -822,7 +880,7 @@ class SmartContextManager:
 
 
 class FormalVerificationLayer:
-    """Layer 7: Formal verification using Z3 with optional CAV-NLP enhancement."""
+    """Layer 7: Formal verification using Z3/CAV-NLP & Unified Orchestrator."""
 
     def __init__(self, use_cav_nlp: bool = True):
         self._z3 = optional_import("z3")
@@ -840,7 +898,86 @@ class FormalVerificationLayer:
             except Exception:
                 self.use_cav_nlp = False
 
+        # Unified Verification integration
+        self._unified_verification = None
+        uv_module = optional_import("determinism_stack.unified_verification")
+        if uv_module:
+            try:
+                self._unified_verification = getattr(uv_module, "UnifiedVerification", None)()
+            except Exception:
+                self._unified_verification = None
+
+        # Python-native Unified Verification Orchestrator
+        self._uv_orchestrator = None
+        uvo_module = optional_import("knowledge_engine.integrations.unified_verification_orchestrator")
+        if uvo_module:
+            try:
+                self._uv_orchestrator = getattr(uvo_module, "UnifiedVerificationOrchestrator", None)()
+            except Exception:
+                self._uv_orchestrator = None
+
+        # Proof Knowledge Base integration
+        self._proof_kb = None
+        pkb_module = optional_import("determinism_stack.proof_kb")
+        if pkb_module:
+            try:
+                self._proof_kb = getattr(pkb_module, "ProofKnowledgeBase", None)()
+            except Exception:
+                self._proof_kb = None
+
     def verify_logical_correctness(self, llm_output: Dict[str, Any]) -> Dict[str, Any]:
+        # 0. Check Proof KB for similar existing proofs (Reuse)
+        if self._proof_kb and self._proof_kb.is_available():
+            try:
+                problem_stmt = str(llm_output.get("constraints", []))
+                similar = self._proof_kb.search_similar(problem_stmt, limit=1)
+                if similar and similar[0].get("confidence", 0) > 0.95:
+                    logger.info("Found valid existing proof in Proof KB. Reusing.")
+                    return {
+                        "verified": True,
+                        "confidence": similar[0]["confidence"],
+                        "proof": similar[0]["proof"],
+                        "reused": True
+                    }
+            except Exception as exc:
+                logger.debug(f"Proof KB lookup failed: {exc}")
+
+        # 1. Prioritize Python-native Unified Orchestrator (Cross-System)
+        if self._uv_orchestrator:
+            try:
+                # Convert LLM output to problem string
+                problem = json.dumps(llm_output.get("constraints", []))
+                result = self._run_async(self._uv_orchestrator.verify(problem))
+                
+                # Store successful proof in KB if available
+                if result.get("verified") and self._proof_kb and self._proof_kb.is_available():
+                    self._proof_kb.store_proof({
+                        "theorem": problem,
+                        "proof": result.get("proof", ""),
+                        "system": "unified_orchestrator",
+                        "confidence": result.get("confidence", 0.0)
+                    })
+                
+                if result.get("verified"):
+                    return result
+            except Exception as exc:
+                logger.debug(f"Native unified verification failed: {exc}")
+
+        # 2. Try Bridge to TypeScript Orchestrator
+        if self._unified_verification and self._unified_verification.is_available():
+            try:
+                # Prepare problem data for unified orchestrator
+                problem_data = {
+                    "id": llm_output.get("id", str(uuid.uuid4())),
+                    "type": "logical",
+                    "content": json.dumps(llm_output)
+                }
+                result = self._unified_verification.verify(problem_data)
+                if result.get("verified") is not None:
+                    return result
+            except Exception as exc:
+                logger.debug(f"Unified verification failed, falling back to local: {exc}")
+
         # Use CAV-NLP enhanced verification if available
         if self.use_cav_nlp and self._cav_solver is not None:
             try:

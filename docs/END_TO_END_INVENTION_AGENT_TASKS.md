@@ -112,7 +112,7 @@ validated_steps = await decomp_engine.validate_atomicity(atomic_steps)
 ```python
 from leanaide_client import LeanAideClient, LeanAideConfig
 from leanaide_evolutionary_workflow import LeanAideEvolutionaryWorkflow
-from leanaide_hephaestus_bridge import leanaide_formalize_task
+from leanaide_crewai_bridge import leanaide_formalize_task
 
 lean_client = LeanAideClient(LeanAideConfig())
 evolutionary_lean = LeanAideEvolutionaryWorkflow()
@@ -455,12 +455,12 @@ await persistence.save_sop_version(sop, version=1)
 validation_results = await validation.validate_sop(sop)
 ```
 
-#### Task 4.2: Integrate Hephaestus for Task Delegation
+#### Task 4.2: Integrate CrewAI for Task Delegation
 **Missing from current implementation**
 
 **Required**:
-- [ ] Use `hephaestus_client.py` for delegating heavy computations
-- [ ] Use `hephaestus_integration.py` for distributed processing
+- [ ] Use `crewai_client.py` for delegating heavy computations
+- [ ] Use `crewai_integration.py` for distributed processing
 - [ ] Delegate:
   - Math formalization (CPU intensive)
   - Error analysis (large search space)
@@ -472,23 +472,23 @@ validation_results = await validation.validate_sop(sop)
 
 **Integration Points**:
 ```python
-from hephaestus_client import HephaestusClient
-from hephaestus_integration import delegate_to_hephaestus
+from crewai_client import CrewAIClient
+from crewai_integration import delegate_to_crewai
 
-hephaestus = HephaestusClient()
+crewai = CrewAIClient()
 
 # Delegate heavy tasks
-math_formalization = await hephaestus.delegate(
+math_formalization = await crewai.delegate(
     task="formalize_math",
     data={"equations": equations, "domain": goal.domain}
 )
 
-error_analysis = await hephaestus.delegate(
+error_analysis = await crewai.delegate(
     task="analyze_errors",
     data={"steps": atomic_steps, "domain": goal.domain}
 )
 
-red_team = await hephaestus.delegate(
+red_team = await crewai.delegate(
     task="red_team_test",
     data={"sop": sop, "config": "aggressive"}
 )
@@ -544,7 +544,7 @@ validated = await validator.validate_comprehensive(sop)
 **Integration Points**:
 ```python
 from claudiomiro_decomposition import ClaudiomiroDecomposition
-from datapizza_hephaestus_bridge import DataPizzaOptimization
+from datapizza_crewai_bridge import DataPizzaOptimization
 from ragbits_integration import RAGBitsKnowledge
 
 claudiomiro = ClaudiomiroDecomposition()
@@ -565,7 +565,7 @@ best_decomposition = merge_decompositions(decomp_roma, decomp_claudiomiro, decom
 
 **Required**:
 - [ ] Use `steer/` for direction guidance
-- [ ] Use `steer_hephaestus_bridge.py` for delegation
+- [ ] Use `steer_crewai_bridge.py` for delegation
 - [ ] Guide invention planning toward:
   - Feasible solutions
   - Optimal parameters
@@ -574,11 +574,11 @@ best_decomposition = merge_decompositions(decomp_roma, decomp_claudiomiro, decom
 
 **Integration Points**:
 ```python
-from steer_hephaestus_bridge import SteerHephaestusBridge
+from steer_crewai_bridge import SteerCrewAIBridge
 from steering import SteeringGuide
 
 steer = SteeringGuide()
-bridge = SteerHephaestusBridge()
+bridge = SteerCrewAIBridge()
 
 # Guide the planning
 direction = await steer.suggest_direction(goal, current_state)
@@ -790,7 +790,7 @@ def validate_comprehensive(bulletproof_sop) -> ValidationResult:
 10. ✗ `evolution.py` and `evolutionary_optimization.py`
 11. ✗ MCTS (need to create)
 12. ✗ `bubblelabs_analytics.py` and `bubblelabs_persistence.py`
-13. ✗ `hephaestus_client.py` and `hephaestus_integration.py`
+13. ✗ `crewai_client.py` and `crewai_integration.py`
 14. ✗ `sovereign_quality_assessment.py` and `sovereign_validation.py`
 15. ✗ `claudiomiro/`, `datapizza/`, `ragbits/`
 16. ✗ `steer/`

@@ -31,7 +31,7 @@ import json
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-from adaptive_mdap_adapter import get_adapter, CanonicalSubProblem, TaskStatus
+from .adaptive_mdap_adapter import get_adapter, CanonicalSubProblem, TaskStatus
 
 logger = logging.getLogger(__name__)
 

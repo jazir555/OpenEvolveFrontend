@@ -118,7 +118,7 @@
     color: var(--accent-pink);
     border: 1px solid rgba(var(--accent-pink-rgb), 0.12);
     letter-spacing: 0.3px;
-    transition: all 0.2s ease;
+    transition: all var(--transition-speed-fast) ease;
 }
 
 .markdown-content code:hover {
@@ -176,7 +176,7 @@
         0 1px 2px rgba(0, 0, 0, 0.03);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+    transition: all var(--transition-speed) var(--easing-curve);
     position: relative;
 }
 

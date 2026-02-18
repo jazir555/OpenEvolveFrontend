@@ -19,7 +19,10 @@
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "react": ["../bubblelab/node_modules/react"],
+      "react-dom": ["../bubblelab/node_modules/react-dom"],
+      "react/jsx-runtime": ["../bubblelab/node_modules/react/jsx-runtime"]
     }
   },
   "include": ["src/**/*"],

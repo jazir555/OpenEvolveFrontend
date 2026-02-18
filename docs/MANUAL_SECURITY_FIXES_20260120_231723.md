@@ -438,77 +438,77 @@
 **Code:** `return path[len("/tmp/"):]`
 **Fix:** Replace hardcoded /tmp with tempfile module functions
 
-**File:** Hephaestus\scripts\bootstrap_project.py
+**File:** CrewAI\scripts\bootstrap_project.py
 **Line:** 15
-**Code:** `--worktrees "/tmp/hephaestus_worktrees" \`
+**Code:** `--worktrees "/tmp/crewai_worktrees" \`
 **Fix:** Replace hardcoded /tmp with tempfile module functions
 
-**File:** Hephaestus\scripts\create_test_tickets.py
+**File:** CrewAI\scripts\create_test_tickets.py
 **Line:** 31
 **Code:** `phases_folder_path="/tmp/phases",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\scripts\create_test_tickets_sql.py
+**File:** CrewAI\scripts\create_test_tickets_sql.py
 **Line:** 24
 **Code:** `(workflow_id, "E2E Test Workflow", "/tmp/phases", "active", datetime.utcnow().isoformat()),`
 **Fix:** Replace hardcoded /tmp with tempfile module functions
 
-**File:** Hephaestus\src\agents\manager.py
+**File:** CrewAI\src\agents\manager.py
 **Line:** 272
-**Code:** `debug_prompt_path = f"/tmp/hephaestus_debug_prompt_{agent_id}.txt"`
+**Code:** `debug_prompt_path = f"/tmp/crewai_debug_prompt_{agent_id}.txt"`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\src\core\simple_config.py
+**File:** CrewAI\src\core\simple_config.py
 **Line:** 47
-**Code:** `self.worktree_base_path = Path(paths.get('worktree_base', '/tmp/hephaestus_worktrees'))`
+**Code:** `self.worktree_base_path = Path(paths.get('worktree_base', '/tmp/crewai_worktrees'))`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\src\interfaces\cli_interface.py
+**File:** CrewAI\src\interfaces\cli_interface.py
 **Line:** 115
 **Code:** `prompt_file = f"/tmp/hep_prompt_{task_id}.txt"`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\src\interfaces\cli_interface.py
+**File:** CrewAI\src\interfaces\cli_interface.py
 **Line:** 208
 **Code:** `prompt_file = f"/tmp/opencode_prompt_{task_id}.txt"`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\src\interfaces\cli_interface.py
+**File:** CrewAI\src\interfaces\cli_interface.py
 **Line:** 423
 **Code:** `prompt_file = f"/tmp/hep_prompt_{kwargs.get('task_id', 'default')}.txt"`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\src\sdk\config.py
+**File:** CrewAI\src\sdk\config.py
 **Line:** 47
-**Code:** `worktree_base: str = "/tmp/hephaestus_worktrees"`
+**Code:** `worktree_base: str = "/tmp/crewai_worktrees"`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\conftest.py
+**File:** CrewAI\tests\conftest.py
 **Line:** 245
 **Code:** `working_directory="/tmp/test-project",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\test_agent_workflow_context.py
+**File:** CrewAI\tests\test_agent_workflow_context.py
 **Line:** 479
 **Code:** `phases_folder_path="/tmp/test",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\test_diagnostic_agent.py
+**File:** CrewAI\tests\test_diagnostic_agent.py
 **Line:** 102
 **Code:** `phases_folder_path="/tmp/test",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\test_diagnostic_agent.py
+**File:** CrewAI\tests\test_diagnostic_agent.py
 **Line:** 202
 **Code:** `result_file_path="/tmp/result.md",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\test_diagnostic_integration.py
+**File:** CrewAI\tests\test_diagnostic_integration.py
 **Line:** 134
 **Code:** `phases_folder_path="/tmp/test",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')
 
-**File:** Hephaestus\tests\test_multi_workflow.py
+**File:** CrewAI\tests\test_multi_workflow.py
 **Line:** 83
 **Code:** `phases_folder_path="/tmp/test",`
 **Fix:** Replace with tempfile.mkdtemp(prefix='yourprefix_')

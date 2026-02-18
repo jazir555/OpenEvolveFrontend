@@ -61,7 +61,7 @@ C:\Users\mmeadow\Documents\OpenEvolve\Frontend\
 ### 3. ✅ Created Configuration Schemas (10 Services)
 
 evolution, adversarial, maker, mdap, decomposition, knowledge,
-leanaide, hephaestus, roma, invention
+leanaide, crewai, roma, invention
 
 ### 4. ✅ Created Service Icons (10 SVG Files)
 

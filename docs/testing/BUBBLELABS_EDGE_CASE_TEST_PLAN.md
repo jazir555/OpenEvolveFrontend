@@ -26,7 +26,7 @@ This testing plan verifies all 27 HIGH severity edge case fixes across 6 BubbleL
 import pytest
 import threading
 import time
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge, BubbleLabsTicketConfig
+from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge, BubbleLabsTicketConfig
 from bubblelabs_mcp_tools import (
     create_bubblelabs_workflow,
     execute_bubblelabs_workflow,
@@ -39,7 +39,7 @@ from bubblelabs_security import validate_uuid, validate_workflow_type
 @pytest.fixture
 def bridge():
     """Create a test bridge instance."""
-    return BubbleLabsHephaestusBridge(
+    return BubbleLabsCrewAIBridge(
         config=BubbleLabsTicketConfig(
             auto_create_tickets=False,  # Don't actually create tickets in tests
             auto_update_progress=False
@@ -61,10 +61,10 @@ def integration():
 
 ## Category 1: Empty Input Validation Tests (12 tests)
 
-### Test 1.1: bubblelabs_hephaestus_bridge.py - None Validation
+### Test 1.1: bubblelabs_crewai_bridge.py - None Validation
 
 ```python
-# test_hephaestus_bridge_validation.py
+# test_crewai_bridge_validation.py
 
 def test_create_ticket_with_none_workflow(bridge):
     """Test that None workflow_definition raises ValueError."""
@@ -813,10 +813,10 @@ pytest tests/bubblelabs_edge_cases/ -v
 pytest tests/bubblelabs_edge_cases/test_category1_empty_inputs.py -v
 
 # Run with coverage
-pytest tests/bubblelabs_edge_cases/ --cov=bubblelabs_hephaestus_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics -v
+pytest tests/bubblelabs_edge_cases/ --cov=bubblelabs_crewai_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics -v
 
 # Generate coverage report
-pytest tests/bubblelabs_edge_cases/ --cov=bubblelabs_hephaestus_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics --cov-report=html
+pytest tests/bubblelabs_edge_cases/ --cov=bubblelabs_crewai_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics --cov-report=html
 ```
 
 ### Expected Test Results
@@ -891,7 +891,7 @@ jobs:
 
     - name: Run edge case tests
       run: |
-        pytest tests/bubblelabs_edge_cases/ -v --cov=bubblelabs_hephaestus_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics --cov-report=xml
+        pytest tests/bubblelabs_edge_cases/ -v --cov=bubblelabs_crewai_bridge --cov=bubblelabs_mcp_tools --cov=bubblelabs_analytics --cov-report=xml
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3
