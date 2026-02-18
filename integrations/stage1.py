@@ -31,14 +31,63 @@ from pathlib import Path
 
 # Import RESE components
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent / "rese"))
-from core.symbolic_constraint_engine import (
-    SymbolicConstraintEngine, Constraint, ConstraintType
-)
-from phase1.tacit_assumption_miner import (
-    Phi15Engine, AssumptionType, ErrorType, NullResult
-)
-from phase1.cognitive_biases import CognitiveBiasDetector
+from pathlib import Path
+
+# Try to import RESE components, use stubs if not available
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "rese"))
+    from core.symbolic_constraint_engine import (
+        SymbolicConstraintEngine, Constraint, ConstraintType
+    )
+    SCE_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    SCE_AVAILABLE = False
+    # Create stub classes for graceful degradation
+    class ConstraintType:
+        REQUIRED = "required"
+        OPTIONAL = "optional"
+        PREFERRED = "preferred"
+
+    class Constraint:
+        def __init__(self, *args, **kwargs):
+            self.type = kwargs.get('type', 'optional')
+            self.description = kwargs.get('description', '')
+
+    class SymbolicConstraintEngine:
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+try:
+    from phase1.tacit_assumption_miner import (
+        Phi15Engine, AssumptionType, ErrorType, NullResult
+    )
+    PHI15_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    PHI15_AVAILABLE = False
+    # Create stub classes
+    class AssumptionType:
+        IMPLICIT = "implicit"
+        EXPLICIT = "explicit"
+
+    class ErrorType:
+        OMISSION = "omission"
+        COMMISSION = "commission"
+
+    class NullResult:
+        pass
+
+    class Phi15Engine:
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+try:
+    from phase1.cognitive_biases import CognitiveBiasDetector
+    BIAS_DETECTOR_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    BIAS_DETECTOR_AVAILABLE = False
+    class CognitiveBiasDetector:
+        def __init__(self, *args, **kwargs):
+            self.available = False
 
 
 # ============================================================================

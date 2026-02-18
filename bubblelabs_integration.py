@@ -16,6 +16,7 @@ import threading
 import time
 import uuid
 
+import bubblelabs_ragbits_bubbles as rag_bubbles
 from workflow_structures import WorkflowState
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
@@ -119,6 +120,9 @@ def _normalize_workflow_type(workflow_type: Optional[str]) -> str:
         "smart_contract": "web3",
         "smart contract": "web3",
         "smart_contract_audit": "web3",
+        "rag": "rag",
+        "knowledge": "rag",
+        "retrieval": "rag",
     }
     if not isinstance(workflow_type, str):
         return "sovereign_decomposition"
@@ -289,9 +293,23 @@ class BubbleLabsIntegration:
         workflow_id = str(uuid.uuid4())
         normalized_workflow_type = _normalize_workflow_type(workflow_type)
         is_web3 = normalized_workflow_type == "web3"
+        is_rag = normalized_workflow_type == "rag"
         web3_config = web3_config or {}
         
-        if is_web3:
+        if is_rag:
+            # Create nodes for RAG workflow
+            ingest_bubble = rag_bubbles.create_ragbits_ingest_bubble()
+            search_bubble = rag_bubbles.create_ragbits_search_bubble()
+            gen_bubble = rag_bubbles.create_ragbits_generation_bubble()
+            index_bubble = rag_bubbles.create_ragbits_index_bubble()
+            
+            nodes = [ingest_bubble, search_bubble, gen_bubble, index_bubble]
+            edges = [
+                {"id": "edge_1", "source": ingest_bubble["id"], "target": search_bubble["id"]},
+                {"id": "edge_2", "source": search_bubble["id"], "target": gen_bubble["id"]},
+                {"id": "edge_3", "source": ingest_bubble["id"], "target": index_bubble["id"]},
+            ]
+        elif is_web3:
             nodes = [
                 {
                     "id": "web3_input",
@@ -433,18 +451,21 @@ class BubbleLabsIntegration:
                 }
             ]
         
+        # Determine name and description based on type
+        if is_rag:
+            name = f"Ragbits Knowledge Workflow: {problem_statement[:30]}..."
+            description = f"Ragbits-powered RAG workflow for: {problem_statement}"
+        elif is_web3:
+            name = f"OpenEvolve Web3 Audit: {problem_statement[:30]}..."
+            description = f"OpenEvolve Web3 smart-contract audit workflow for: {problem_statement}"
+        else:
+            name = f"OpenEvolve Workflow: {problem_statement[:30]}..."
+            description = f"OpenEvolve sovereign-grade decomposition for: {problem_statement}"
+
         definition = BubbleWorkflowDefinition(
             id=workflow_id,
-            name=(
-                f"OpenEvolve Web3 Audit: {problem_statement[:30]}..."
-                if is_web3
-                else f"OpenEvolve Workflow: {problem_statement[:30]}..."
-            ),
-            description=(
-                f"OpenEvolve Web3 smart-contract audit workflow for: {problem_statement}"
-                if is_web3
-                else f"OpenEvolve sovereign-grade decomposition for: {problem_statement}"
-            ),
+            name=name,
+            description=description,
             nodes=nodes,
             edges=edges,
             metadata={
@@ -453,6 +474,7 @@ class BubbleLabsIntegration:
                 "gauntlet_config": gauntlet_config,
                 "created_at": time.time(),
                 "workflow_type": (
+                    "rag_workflow" if is_rag else
                     "openevolve_web3_audit" if is_web3 else "openevolve_sovereign_decomposition"
                 ),
                 "workflow_type_input": normalized_workflow_type,

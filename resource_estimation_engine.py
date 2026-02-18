@@ -7,6 +7,7 @@ Provides automatic resource estimation for sub-problems based on:
 - Risk-based adjustments
 - Dependency coordination overhead
 - Quality metrics requirements
+- Gauntlet outcome correlations (ICR Integration)
 
 Author: OpenEvolve
 Version: 1.0.0
@@ -15,8 +16,9 @@ Version: 1.0.0
 
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from sovereign_data_models import (
     SubProblem,
@@ -24,6 +26,16 @@ from sovereign_data_models import (
     ResourceEstimate,
     ComplexityBreakdown
 )
+
+# ICR Integration
+try:
+    from icr_integration import get_icr_integration, ICRPatternType, ICRIntegration
+    ICR_AVAILABLE = True
+except ImportError:
+    ICR_AVAILABLE = False
+    get_icr_integration = None
+    ICRPatternType = None
+    ICRIntegration = None
 
 logger = logging.getLogger(__name__)
 

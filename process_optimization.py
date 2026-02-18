@@ -1,25 +1,63 @@
 """
-Process Optimization Module
+Process Optimization Module with ICR Integration
 
 This module analyzes workflow execution and provides optimization recommendations
 to improve efficiency, reduce costs, and enhance quality.
+
+ICR Integration:
+- Stores optimization patterns for learning
+- Predicts optimization success probability
+- Adapts recommendations based on historical outcomes
+- Learns from workflow execution results
 """
 
 
 from typing import Dict, Any, List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 import statistics
 
 from workflow_structures import WorkflowState, SubProblem, DecompositionPlan
 
+# ICR Integration
+try:
+    from icr_integration import (
+        get_icr_integration,
+        ICRPatternType,
+        ICRIntegration
+    )
+    ICR_AVAILABLE = True
+except ImportError:
+    ICR_AVAILABLE = False
+    get_icr_integration = None
+    ICRPatternType = None
+    ICRIntegration = None
+
 
 class ProcessOptimizer:
-    """Analyzes workflows and provides optimization recommendations."""
+    """Analyzes workflows and provides optimization recommendations.
     
-    def __init__(self):
-        """Initialize the process optimizer."""
+    ICR Integration:
+    - Stores optimization patterns for learning
+    - Predicts optimization impact based on historical data
+    - Adapts recommendations using ICR patterns
+    """
+
+    def __init__(self, enable_icr: bool = True):
+        """
+        Initialize the process optimizer.
+        
+        Args:
+            enable_icr: Enable ICR pattern learning and prediction
+        """
         self.workflow_history: List[WorkflowState] = []
         self.optimization_history: List[Dict[str, Any]] = []
+        
+        # ICR Integration
+        self.enable_icr = enable_icr and ICR_AVAILABLE
+        self.icr = get_icr_integration() if self.enable_icr else None
+        
+        if self.enable_icr and self.icr:
+            self.icr.enable()
     
     def analyze_workflow(self, workflow_state: WorkflowState) -> Dict[str, Any]:
         """
@@ -459,6 +497,150 @@ class ProcessOptimizer:
         report.append("="*60)
         
         return "\n".join(report)
+
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+
+    def store_optimization_pattern(
+        self,
+        workflow_state: WorkflowState,
+        analysis: Dict[str, Any]
+    ) -> str:
+        """
+        Store optimization pattern for ICR learning.
+        
+        Args:
+            workflow_state: Workflow state
+            analysis: Optimization analysis results
+            
+        Returns:
+            Pattern ID
+        """
+        if not self.enable_icr or not self.icr:
+            return ""
+        
+        # Determine if optimization was successful (based on recommendations adopted)
+        recommendations_count = len(analysis.get("recommendations", []))
+        bottlenecks_count = len(analysis.get("bottlenecks", []))
+        
+        # Success = few bottlenecks and actionable recommendations
+        passed = bottlenecks_count <= 2 and recommendations_count >= 1
+        
+        # Build context
+        context = {
+            "workflow_id": workflow_state.workflow_id,
+            "content_type": "workflow_optimization",
+            "complexity_score": min(10, len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0),
+            "problem_type": analysis.get("bottlenecks", [{}])[0].get("type") if analysis.get("bottlenecks") else "none",
+            "refinement_loops": workflow_state.refinement_loop_count,
+            "recommendations_count": recommendations_count
+        }
+        
+        # Build metrics
+        metrics = {
+            "bottleneck_count": bottlenecks_count,
+            "recommendation_count": recommendations_count,
+            "estimated_cost": analysis.get("cost_optimization", {}).get("estimated_cost", 0.0)
+        }
+        
+        # Store pattern
+        pattern_id = self.icr.store_pattern(
+            pattern_type=ICRPatternType.OPTIMIZATION,
+            passed=passed,
+            context=context,
+            metrics=metrics
+        )
+        
+        return pattern_id
+
+    def predict_optimization_success(
+        self,
+        workflow_state: WorkflowState
+    ) -> Dict[str, Any]:
+        """
+        Predict optimization success based on ICR patterns.
+        
+        Args:
+            workflow_state: Current workflow state
+            
+        Returns:
+            Prediction results with confidence and recommendations
+        """
+        if not self.enable_icr or not self.icr:
+            return {
+                "predicted": False,
+                "reason": "ICR integration not available"
+            }
+        
+        # Build context for prediction
+        context = {
+            "content_type": "workflow_optimization",
+            "complexity_score": min(10, len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0),
+            "problem_type": "optimization",
+            "refinement_loops": workflow_state.refinement_loop_count
+        }
+        
+        # Get prediction
+        prediction = self.icr.predict(
+            pattern_type=ICRPatternType.OPTIMIZATION,
+            context=context
+        )
+        
+        return {
+            "predicted": True,
+            "predicted_outcome": prediction.predicted_outcome,
+            "probability": prediction.probability,
+            "confidence": prediction.confidence,
+            "reason": prediction.reason,
+            "pattern_count": prediction.pattern_count,
+            "recommended_action": prediction.recommended_action,
+            "adaptive_threshold": self.icr.get_adaptive_threshold("optimization", 0.5)
+        }
+
+    def analyze_with_icr(self, workflow_state: WorkflowState) -> Dict[str, Any]:
+        """
+        Analyze workflow with ICR pattern-based insights.
+        
+        Args:
+            workflow_state: Workflow state
+            
+        Returns:
+            Enhanced analysis with ICR insights
+        """
+        # Perform standard analysis
+        analysis = self.analyze_workflow(workflow_state)
+        
+        # Store pattern for learning
+        if self.enable_icr:
+            self.store_optimization_pattern(workflow_state, analysis)
+        
+        # Get prediction for future optimizations
+        prediction = self.predict_optimization_success(workflow_state)
+        
+        # Add ICR insights to analysis
+        analysis["icr_insights"] = {
+            "enabled": self.enable_icr,
+            "prediction": prediction if prediction.get("predicted") else None,
+            "adaptive_threshold": self.icr.get_adaptive_threshold("optimization", 0.5) if self.enable_icr else None
+        }
+        
+        # Use ICR patterns to enhance recommendations
+        if self.enable_icr and prediction.get("predicted"):
+            if prediction["predicted_outcome"] == "fail" and prediction["confidence"] > 0.7:
+                # High confidence failure prediction - add urgent recommendation
+                analysis["recommendations"].insert(0, {
+                    "priority": "critical",
+                    "title": "High Risk of Optimization Failure",
+                    "description": f"ICR analysis predicts optimization failure with {prediction['probability']:.1%} probability",
+                    "actions": [
+                        "Consider manual review before proceeding",
+                        "Break down into smaller optimization targets",
+                        "Review historical patterns for similar workflows"
+                    ]
+                })
+        
+        return analysis
 
 
 # Global optimizer instance

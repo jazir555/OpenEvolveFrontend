@@ -10,26 +10,48 @@
  * Runs on container startup. If these tests fail, the application should NOT start.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
-import { OpenEvolveClient } from '../../lib/openevolveApi';
+import { describe, it, expect } from 'vitest';
+import { openevolveApi, type ApiConfig } from '../../lib/openevolveApi';
 
 // Configuration
 const API_URL = process.env.OPENEVOLVE_API_URL || 'http://localhost:8000';
 const API_KEY = process.env.OPENEVOLVE_API_KEY;
 const TIMEOUT = 30000; // 30 second timeout for contract tests
+const WORKFLOW_POLL_INTERVAL_MS = 500;
+const WORKFLOW_POLL_TIMEOUT_MS = 20000;
+const TERMINAL_WORKFLOW_STATES = new Set(['completed', 'failed', 'stopped', 'cancelled']);
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getWorkflowApiConfig = (): ApiConfig | null => {
+  if (!API_KEY) {
+    return null;
+  }
+  return {
+    baseUrl: API_URL,
+    apiKey: API_KEY,
+    timeout: TIMEOUT,
+  };
+};
+
+const waitForTerminalWorkflowState = async (instanceId: string, config: ApiConfig) => {
+  const startedAt = Date.now();
+  let latest = await openevolveApi.getWorkflowInstance(instanceId, config);
+
+  while (!TERMINAL_WORKFLOW_STATES.has(latest.status.status)) {
+    if (Date.now() - startedAt > WORKFLOW_POLL_TIMEOUT_MS) {
+      throw new Error(
+        `Timed out waiting for workflow ${instanceId}. Last state: ${latest.status.status}`,
+      );
+    }
+    await sleep(WORKFLOW_POLL_INTERVAL_MS);
+    latest = await openevolveApi.getWorkflowInstance(instanceId, config);
+  }
+
+  return latest;
+};
 
 describe('OpenEvolve API Contract Tests', () => {
-  let client: OpenEvolveClient;
-
-  beforeAll(() => {
-    // Initialize client with production config
-    client = new OpenEvolveClient({
-      baseUrl: API_URL,
-      apiKey: API_KEY,
-      timeout: TIMEOUT,
-    });
-  });
-
   describe('Health Check Endpoint', () => {
     it('should return health status with required fields', async () => {
       const response = await fetch(`${API_URL}/health`, {
@@ -264,6 +286,91 @@ describe('OpenEvolve API Contract Tests', () => {
       // Contract: Should respect limit parameter
       expect(data.evolutions.length).toBeLessThanOrEqual(10);
     });
+  });
+
+  describe('BubbleLabs Workflow Lifecycle', () => {
+    it('should execute an end-to-end BubbleLabs workflow with OpenEvolve controls', async () => {
+      const config = getWorkflowApiConfig();
+      if (!config) {
+        console.warn('OPENEVOLVE_API_KEY not set - skipping BubbleLabs workflow lifecycle contract test');
+        return;
+      }
+
+      const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const definitionName = `contract-workflow-${uniqueSuffix}`;
+      let instanceId: string | null = null;
+
+      try {
+        const createdDefinition = await openevolveApi.createWorkflowDefinition(
+          {
+            name: definitionName,
+            description: 'Contract e2e workflow lifecycle test',
+            workflow_type: 'evolution',
+            parameters: {
+              max_iterations: 1,
+              population_size: 2,
+            },
+          },
+          config,
+        );
+        expect(createdDefinition.definition_id).toBeTruthy();
+
+        const definitionDetails = await openevolveApi.getWorkflowDefinition(
+          createdDefinition.definition_id,
+          config,
+        );
+        expect(definitionDetails.id).toBe(createdDefinition.definition_id);
+        expect(definitionDetails.workflow_type).toBe('evolution');
+
+        const createdInstance = await openevolveApi.createWorkflowInstance(
+          {
+            definition_id: createdDefinition.definition_id,
+            instance_name: `instance-${uniqueSuffix}`,
+            inputs: {
+              problem_statement: 'Contract test: evolve a short deterministic prompt',
+            },
+          },
+          config,
+        );
+        instanceId = createdInstance.instance_id;
+        expect(instanceId).toBeTruthy();
+
+        const synced = await openevolveApi.syncWorkflowInstanceParameters(
+          instanceId,
+          {
+            parameters: {
+              max_iterations: 1,
+              population_size: 2,
+              temperature: 0.1,
+            },
+          },
+          config,
+        );
+        expect(synced).toHaveProperty('updated_count');
+
+        const started = await openevolveApi.startWorkflowInstance(instanceId, config);
+        expect(started).toHaveProperty('instance_id', instanceId);
+
+        const terminalState = await waitForTerminalWorkflowState(instanceId, config);
+        if (terminalState.status.status === 'failed') {
+          throw new Error(
+            `Workflow failed: ${terminalState.status.error_message || 'unknown failure'}`,
+          );
+        }
+
+        if (terminalState.status.status !== 'completed') {
+          const stopped = await openevolveApi.stopWorkflowInstance(instanceId, config);
+          expect(stopped).toHaveProperty('status', 'stopped');
+        }
+
+        const finalizedState = await openevolveApi.getWorkflowInstance(instanceId, config);
+        expect(['completed', 'stopped']).toContain(finalizedState.status.status);
+      } finally {
+        if (instanceId) {
+          await openevolveApi.deleteWorkflowInstance(instanceId, config).catch(() => undefined);
+        }
+      }
+    }, 120000);
   });
 });
 

@@ -31,11 +31,48 @@ import numpy as np
 
 # Import RESE components
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from phase2.imech import (
-    IMechValidator, Domain, FunctionalDependencyGraph,
-    SolutionMapper, SolutionValidator, compare_domains
-)
+from pathlib import Path
+
+# Try to import RESE components, use stubs if not available
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "rese"))
+    from phase2.imech import (
+        IMechValidator, Domain, FunctionalDependencyGraph,
+        SolutionMapper, SolutionValidator, compare_domains
+    )
+    IMECH_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    IMECH_AVAILABLE = False
+    # Create stub classes for graceful degradation
+    import numpy as np
+    from dataclasses import dataclass
+    from typing import List, Dict, Optional, Any
+
+    @dataclass
+    class Domain:
+        name: str
+        entities: List[Any] = None
+        relations: List[Any] = None
+
+    @dataclass
+    class FunctionalDependencyGraph:
+        domain: Domain
+        dependencies: Dict[str, List[str]] = None
+
+    class IMechValidator:
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+    class SolutionMapper:
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+    class SolutionValidator:
+        def __init__(self, *args, **kwargs):
+            self.available = False
+
+    def compare_domains(d1, d2):
+        return {"is_isomorphic": False, "message": "IMECH not available"}
 
 
 # ============================================================================

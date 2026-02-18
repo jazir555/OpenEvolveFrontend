@@ -1003,6 +1003,98 @@ async def search_knowledge_base(
         }
 
 
+@mcp_tool("ingest_to_knowledge_base")
+async def ingest_to_knowledge_base(
+    content: str,
+    source: str = "manual_ingest",
+    metadata: Optional[Dict[str, Any]] = None,
+    api_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Ingest content into the BubbleLabs knowledge base using Ragbits.
+
+    Security: Requires authentication.
+
+    This tool indexes new information into the vector store for later retrieval.
+
+    Args:
+        content: Text content to index
+        source: Label for the source of information
+        metadata: Optional key-value pairs to attach to the document
+        api_key: Optional API key for authentication
+
+    Returns:
+        Dictionary containing:
+        - success: Boolean indicating success
+        - document_id: ID of the indexed document
+        - message: Status message
+
+    Example:
+        >>> result = await ingest_to_knowledge_base("The capital of France is Paris")
+        >>> print(result["document_id"])
+    """
+    # Security: Check authentication
+    if SECURITY_AVAILABLE and api_key:
+        context = auth_manager.validate_api_key(api_key)
+        if not context or not context.authenticated:
+            logger.warning(f"Unauthorized ingestion attempt")
+            return {
+                "success": False,
+                "error": "Authentication required",
+                "message": "Please provide valid API credentials"
+            }
+
+    if not BUBBLELABS_AVAILABLE:
+        return {
+            "success": False,
+            "error": "BubbleLabs integration not available"
+        }
+
+    try:
+        # Get shared BubbleLabs integration
+        integration = get_shared_bubblelabs()
+        
+        # Check if Ragbits is available
+        if not hasattr(integration, 'get_ragbits_integration') or not integration.get_ragbits_integration():
+            return {
+                "success": False,
+                "error": "Ragbits integration not available",
+                "message": "Knowledge base ingestion is currently disabled"
+            }
+
+        # Prepare document data
+        doc_data = {
+            "content": content,
+            "metadata": {
+                "source": source,
+                **(metadata or {})
+            }
+        }
+
+        # Run async indexing
+        doc_id = await integration.index_solution(doc_data)
+
+        if doc_id:
+            return {
+                "success": True,
+                "document_id": doc_id,
+                "message": f"Content successfully indexed from {source}"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to index content"
+            }
+
+    except Exception as e:
+        logger.error(f"Error ingesting into knowledge base: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": f"Failed to ingest knowledge: {str(e)}"
+        }
+
+
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================

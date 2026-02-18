@@ -89,4 +89,55 @@ describe('openevolveApi control plane', () => {
     });
     expect(result).toEqual(response);
   });
+
+  it('creates BubbleLabs workflow definition', async () => {
+    const response = { definition_id: 'def-123' };
+    mockPost.mockResolvedValue(response);
+
+    const payload = {
+      name: 'e2e-workflow',
+      description: 'Workflow for integration test',
+      workflow_type: 'evolution',
+      parameters: { max_iterations: 1 },
+    };
+
+    const result = await openevolveApi.createBubblelabsWorkflowDefinition(payload);
+
+    expect(mockPost).toHaveBeenCalledWith('/bubblelabs/workflow-definitions', payload);
+    expect(result).toEqual(response);
+  });
+
+  it('syncs BubbleLabs workflow instance parameters', async () => {
+    const response = {
+      message: 'Parameters synced successfully (2 updated)',
+      instance_id: 'inst-123',
+      updated_count: 2,
+    };
+    mockPost.mockResolvedValue(response);
+
+    const payload = {
+      parameters: {
+        max_iterations: 1,
+        population_size: 2,
+      },
+    };
+
+    const result = await openevolveApi.syncBubblelabsWorkflowInstanceParameters('inst-123', payload);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      '/bubblelabs/workflow-instances/inst-123/parameters',
+      payload
+    );
+    expect(result).toEqual(response);
+  });
+
+  it('starts BubbleLabs workflow instance', async () => {
+    const response = { message: 'Workflow started', instance_id: 'inst-123', status: 'pending' };
+    mockPost.mockResolvedValue(response);
+
+    const result = await openevolveApi.startBubblelabsWorkflowInstance('inst-123');
+
+    expect(mockPost).toHaveBeenCalledWith('/bubblelabs/workflow-instances/inst-123/start', {});
+    expect(result).toEqual(response);
+  });
 });

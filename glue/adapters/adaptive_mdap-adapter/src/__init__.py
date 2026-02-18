@@ -64,6 +64,15 @@ from .maker_adapter import (
     RedFlagSeverity
 )
 
+from .bubblelab_api_client import (
+    BubbleLabAPIClient,
+    BubbleLabAPIClientConfig,
+    get_bubblelab_client,
+    BubbleLabAPIClientError,
+    BubbleLabAPIConnectionError,
+    BubbleLabAPIResponseError
+)
+
 __all__ = [
     # Adaptive MDAP Adapter
     "AdaptiveMDAPAdapter",
@@ -85,7 +94,14 @@ __all__ = [
     "CanonicalAgentVote",
     "CanonicalMakerResult",
     "VotingMode",
-    "RedFlagSeverity"
+    "RedFlagSeverity",
+    # BubbleLab API Client
+    "BubbleLabAPIClient",
+    "BubbleLabAPIClientConfig",
+    "get_bubblelab_client",
+    "BubbleLabAPIClientError",
+    "BubbleLabAPIConnectionError",
+    "BubbleLabAPIResponseError"
 ]
 
 __version__ = "1.0.0"

@@ -423,6 +423,56 @@ def render_leanaide_component() -> None:
                 st.error(f"Failed: {result.get('error')}")
 
 
+def render_ragbits_component() -> None:
+    """Render Ragbits component controls."""
+    st.header("📚 Ragbits (RAG + Knowledge)")
+    
+    integration = get_extended_integration()
+    
+    # Statistics
+    stats_result = integration.execute_control_action("ragbits", "stats")
+    if stats_result["success"]:
+        stats = stats_result.get("result", {}).get("stats", {})
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Documents", stats.get("ingested_documents", 0))
+        col2.metric("Vector Store", stats.get("vector_store_type", "N/A").upper())
+        col3.metric("Available", "YES" if stats.get("available") else "NO")
+    
+    st.divider()
+    
+    # Search knowledge base
+    with st.form("ragbits_search_form"):
+        st.markdown("### Search Knowledge Base")
+        query = st.text_input("Search Query", placeholder="How to implement...")
+        top_k = st.slider("Results Count", 1, 20, 5)
+        
+        if st.form_submit_button("Search"):
+            result = integration.execute_control_action("ragbits", "search", {"query": query, "top_k": top_k})
+            if result["success"]:
+                search_res = result.get("result", {})
+                st.success(f"Found {search_res.get('count', 0)} results")
+                for i, doc in enumerate(search_res.get("results", [])):
+                    with st.expander(f"Result {i+1} (Score: {doc.get('score', 0.0):.2f})"):
+                        st.markdown(doc.get("content", ""))
+                        if doc.get("metadata"):
+                            st.json(doc.get("metadata"))
+            else:
+                st.error(f"Failed: {result.get('error')}")
+    
+    st.divider()
+    
+    # Ingest document (Simulated for UI)
+    st.markdown("### Quick Ingest")
+    with st.form("ragbits_ingest_form"):
+        content = st.text_area("Content to Index", height=150)
+        source = st.text_input("Source Label", value="manual_ingest")
+        
+        if st.form_submit_button("Index Content"):
+            # In a real scenario, we'd have a specific control action for this
+            # For now, we'll show a message
+            st.info("Indexing requested. This feature is being wired to the backend.")
+
+
 def render_component_tab(tab_name: str) -> None:
     """Render a specific component tab."""
     if tab_name == "ace":
@@ -437,6 +487,8 @@ def render_component_tab(tab_name: str) -> None:
         render_analytics_component()
     elif tab_name == "leanaide":
         render_leanaide_component()
+    elif tab_name == "ragbits":
+        render_ragbits_component()
 
 
 def render_extended_ui() -> None:
@@ -454,7 +506,7 @@ def render_extended_ui() -> None:
     
     page = st.sidebar.radio(
         "Go to",
-        ["Dashboard", "ACE", "Z3", "ROMA", "Knowledge", "Analytics", "LeanAIDE"],
+        ["Dashboard", "ACE", "Z3", "ROMA", "Knowledge", "Analytics", "LeanAIDE", "Ragbits"],
     )
     
     # Sidebar - Status summary
@@ -489,6 +541,8 @@ def render_extended_ui() -> None:
         render_analytics_component()
     elif page == "LeanAIDE":
         render_leanaide_component()
+    elif page == "Ragbits":
+        render_ragbits_component()
 
 
 # =============================================================================

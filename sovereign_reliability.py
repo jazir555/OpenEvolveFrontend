@@ -421,8 +421,15 @@ class RateLimiter:
 
 
 class AdaptiveRetryStrategy(RetryStrategy):
-    """Adaptive retry strategy that learns from failure patterns."""
+    """Adaptive retry strategy that learns from failure patterns.
     
+    ICR Integration:
+    - Stores retry patterns for learning
+    - Predicts success probability based on historical patterns
+    - Adapts retry delays using ICR insights
+    - Learns optimal retry strategies from outcomes
+    """
+
     def __init__(
         self,
         max_attempts: int = 3,
@@ -430,11 +437,12 @@ class AdaptiveRetryStrategy(RetryStrategy):
         max_delay: float = 60.0,
         exponential_base: float = 2.0,
         jitter: bool = True,
-        backoff_multiplier: float = 1.5
+        backoff_multiplier: float = 1.5,
+        enable_icr: bool = True
     ):
         """
         Initialize adaptive retry strategy.
-        
+
         Args:
             max_attempts: Maximum number of retry attempts
             initial_delay: Initial delay in seconds
@@ -442,42 +450,216 @@ class AdaptiveRetryStrategy(RetryStrategy):
             exponential_base: Base for exponential backoff
             jitter: Whether to add random jitter
             backoff_multiplier: Multiplier for adaptive backoff
+            enable_icr: Enable ICR pattern learning
         """
         super().__init__(max_attempts, initial_delay, max_delay, exponential_base, jitter)
         self.backoff_multiplier = backoff_multiplier
         self.failure_history: List[datetime] = []
         self.success_history: List[datetime] = []
-    
-    def get_delay(self, attempt: int) -> float:
-        """Calculate delay with adaptive backoff based on failure patterns."""
-        base_delay = super().get_delay(attempt)
         
+        # ICR Integration
+        self.enable_icr = enable_icr
+        self.icr = None
+        self._icr_pattern_type = "retry_pattern"
+        
+        if self.enable_icr:
+            try:
+                from icr_integration import get_icr_integration, ICRPatternType
+                self.icr = get_icr_integration()
+                self._icr_pattern_type = ICRPatternType.RETRY_PATTERN
+            except ImportError:
+                self.enable_icr = False
+                self.icr = None
+
+    def get_delay(self, attempt: int, operation_context: Optional[Dict[str, Any]] = None) -> float:
+        """
+        Calculate delay with adaptive backoff based on failure patterns and ICR insights.
+        
+        Args:
+            attempt: Current attempt number
+            operation_context: Optional context about the operation being retried
+            
+        Returns:
+            Delay in seconds
+        """
+        base_delay = super().get_delay(attempt)
+
         # Apply adaptive multiplier based on recent failure rate
         recent_failures = self._get_recent_failures()
         if recent_failures > 3:  # If many recent failures, increase delay
             adaptive_multiplier = 1.0 + (min(2.0, recent_failures / 5.0))  # Max 2x delay
             base_delay *= adaptive_multiplier
         
+        # Apply ICR-based adjustment if available
+        if self.enable_icr and self.icr and operation_context:
+            icr_adjustment = self._get_icr_delay_adjustment(operation_context, attempt)
+            base_delay *= icr_adjustment
+
         return base_delay
     
+    def _get_icr_delay_adjustment(
+        self,
+        operation_context: Dict[str, Any],
+        attempt: int
+    ) -> float:
+        """
+        Get delay adjustment factor based on ICR patterns.
+        
+        Args:
+            operation_context: Context about the operation
+            attempt: Current attempt number
+            
+        Returns:
+            Adjustment factor (0.5 = reduce delay, 2.0 = increase delay)
+        """
+        try:
+            # Predict success probability for this retry
+            prediction = self.icr.predict(
+                pattern_type=self._icr_pattern_type,
+                context={
+                    "operation_type": operation_context.get("operation_type", "unknown"),
+                    "attempt": attempt,
+                    "recent_failures": len(self.failure_history[-10:]) if self.failure_history else 0
+                }
+            )
+            
+            # Adjust delay based on prediction
+            if prediction.predicted_outcome == "fail" and prediction.confidence > 0.7:
+                # High confidence of failure - increase delay significantly
+                return 1.5 + (prediction.probability * 0.5)  # 1.5x to 2.0x
+            elif prediction.predicted_outcome == "pass" and prediction.confidence > 0.6:
+                # High confidence of success - reduce delay
+                return 0.7 + (prediction.probability * 0.3)  # 0.7x to 1.0x
+            else:
+                # Low confidence - no adjustment
+                return 1.0
+                
+        except Exception:
+            # ICR prediction failed - no adjustment
+            return 1.0
+
     def _get_recent_failures(self, minutes: int = 5) -> int:
         """Get number of failures in the last N minutes."""
         cutoff = datetime.now() - timedelta(minutes=minutes)
         return len([f for f in self.failure_history if f > cutoff])
-    
-    def record_failure(self) -> None:
-        """Record a failure to inform adaptive behavior."""
+
+    def record_failure(
+        self,
+        operation_context: Optional[Dict[str, Any]] = None,
+        error: Optional[Exception] = None
+    ) -> None:
+        """
+        Record a failure to inform adaptive behavior.
+        
+        Args:
+            operation_context: Optional context about the failed operation
+            error: The exception that was raised
+        """
         self.failure_history.append(datetime.now())
         # Keep at most 100 records
         if len(self.failure_history) > 100:
             self.failure_history = self.failure_history[-100:]
-    
-    def record_success(self) -> None:
-        """Record a success to inform adaptive behavior."""
+        
+        # Store ICR pattern
+        if self.enable_icr and self.icr and operation_context:
+            self.icr.store_pattern(
+                pattern_type=self._icr_pattern_type,
+                passed=False,
+                context={
+                    "operation_type": operation_context.get("operation_type", "unknown"),
+                    "error_type": type(error).__name__ if error else "unknown",
+                    "recent_failures": len(self.failure_history[-10:])
+                },
+                metrics={
+                    "attempt_count": len(self.failure_history)
+                }
+            )
+
+    def record_success(
+        self,
+        operation_context: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Record a success to inform adaptive behavior.
+        
+        Args:
+            operation_context: Optional context about the successful operation
+        """
         self.success_history.append(datetime.now())
         # Keep at most 100 records
         if len(self.success_history) > 100:
             self.success_history = self.success_history[-100:]
+        
+        # Store ICR pattern
+        if self.enable_icr and self.icr and operation_context:
+            self.icr.store_pattern(
+                pattern_type=self._icr_pattern_type,
+                passed=True,
+                context={
+                    "operation_type": operation_context.get("operation_type", "unknown"),
+                    "attempts_before_success": len(self.failure_history) + 1
+                },
+                metrics={
+                    "total_attempts": len(self.failure_history) + 1
+                }
+            )
+    
+    def predict_retry_success(
+        self,
+        operation_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Predict success probability for next retry.
+        
+        Args:
+            operation_context: Optional context about the operation
+            
+        Returns:
+            Prediction results with confidence and recommendations
+        """
+        if not self.enable_icr or not self.icr:
+            return {
+                "predicted": False,
+                "reason": "ICR integration not available"
+            }
+        
+        try:
+            prediction = self.icr.predict(
+                pattern_type=self._icr_pattern_type,
+                context={
+                    "operation_type": operation_context.get("operation_type", "unknown") if operation_context else "unknown",
+                    "recent_failures": len(self.failure_history[-10:]) if self.failure_history else 0,
+                    "recent_successes": len(self.success_history[-10:]) if self.success_history else 0
+                }
+            )
+            
+            return {
+                "predicted": True,
+                "predicted_outcome": prediction.predicted_outcome,
+                "probability": prediction.probability,
+                "confidence": prediction.confidence,
+                "reason": prediction.reason,
+                "pattern_count": prediction.pattern_count,
+                "recommended_action": prediction.recommended_action,
+                "suggested_max_attempts": self._suggest_max_attempts(prediction)
+            }
+        except Exception as e:
+            return {
+                "predicted": False,
+                "reason": f"ICR prediction failed: {str(e)}"
+            }
+    
+    def _suggest_max_attempts(self, prediction) -> int:
+        """Suggest maximum attempts based on prediction."""
+        if prediction.predicted_outcome == "fail" and prediction.confidence > 0.8:
+            # High confidence failure - reduce attempts
+            return max(1, self.max_attempts - 1)
+        elif prediction.predicted_outcome == "pass" and prediction.confidence > 0.7:
+            # High confidence success - can try more
+            return min(10, self.max_attempts + 2)
+        else:
+            # Default
+            return self.max_attempts
 
 
 class ResourcePool:

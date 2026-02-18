@@ -54,6 +54,7 @@ ALLOWED_WORKFLOW_TYPES: Set[str] = {
     "adversarial",
     "sovereign",
     "web3",
+    "rag",
     "default"
 }
 
@@ -1040,6 +1041,41 @@ class OpenEvolveBubbleLabsIntegration:
                         max_refinement_loops=workflow_state.max_refinement_loops,
                     )
                 )
+            elif workflow_state.workflow_type == "rag":
+                # Implementation of RAG workflow execution
+                workflow_state.current_stage = "Knowledge Ingestion"
+                workflow_state.progress = 0.3
+                
+                from knowledge_engine.ragbits_document_processor import RAGBitsDocumentProcessor
+                processor = RAGBitsDocumentProcessor()
+                
+                # Ingest problem statement as initial knowledge
+                async def _run_rag():
+                    await processor.initialize()
+                    await processor.ingest_text(
+                        workflow_state.problem_statement,
+                        source="workflow_input",
+                        metadata={"type": "initial_context"}
+                    )
+                    
+                    workflow_state.current_stage = "Knowledge Retrieval"
+                    workflow_state.progress = 0.6
+                    
+                    # Search for relevant context
+                    search_results = await processor.search(workflow_state.problem_statement)
+                    context_text = "\n".join([r['content'] for r in search_results])
+                    
+                    workflow_state.current_stage = "Response Generation"
+                    workflow_state.progress = 0.9
+                    
+                    # Generate response (using basic evolution loop as generator for now)
+                    from evolution import run_evolution_loop
+                    run_evolution_loop(
+                        current_content=f"Context: {context_text}\n\nQuestion: {workflow_state.problem_statement}",
+                        max_iterations=1 # Short loop for RAG generation
+                    )
+                
+                asyncio.run(_run_rag())
             else:
                 # "default" routes to the standard evolution loop.
                 from evolution import run_evolution_loop

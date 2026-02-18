@@ -554,6 +554,82 @@ class LeanAideIntegrationBridge:
 
 
 @dataclass
+class RagbitsIntegrationBridge:
+    """Bridge for Ragbits (RAG + Knowledge) integration."""
+    status: ComponentStatus = ComponentStatus.UNAVAILABLE
+    version: str = "unknown"
+    capabilities: List[str] = field(default_factory=list)
+    
+    def __post_init__(self):
+        self._initialize()
+    
+    def _initialize(self) -> None:
+        """Initialize Ragbits integration."""
+        try:
+            from knowledge_engine.integrations.ragbits_integration import (
+                RAGBITS_INTEGRATION_AVAILABLE
+            )
+            if RAGBITS_INTEGRATION_AVAILABLE:
+                self.status = ComponentStatus.AVAILABLE
+                self.version = "1.0"
+                self.capabilities = [
+                    "document_ingestion",
+                    "semantic_search",
+                    "knowledge_indexing",
+                    "rag_workflows",
+                    "metadata_filtering",
+                ]
+                logger.info("[OK] Ragbits Integration - Available")
+            else:
+                self.status = ComponentStatus.UNAVAILABLE
+                logger.warning("[WARN] Ragbits Integration - Not available")
+        except ImportError as e:
+            self.status = ComponentStatus.UNAVAILABLE
+            logger.warning(f"[WARN] Ragbits Integration - Not available: {e}")
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Get Ragbits integration status."""
+        return {
+            "component": "Ragbits (RAG + Knowledge)",
+            "status": self.status.value,
+            "version": self.version,
+            "capabilities": self.capabilities,
+        }
+    
+    async def search(self, query: str, top_k: int = 5) -> Dict[str, Any]:
+        """Search the knowledge base."""
+        if self.status != ComponentStatus.AVAILABLE:
+            return {"success": False, "error": "Ragbits not available"}
+            
+        from bubblelabs_integration import get_ragbits_integration
+        integration = get_ragbits_integration()
+        if not integration:
+            return {"success": False, "error": "Ragbits integration not initialized"}
+            
+        results = await integration.search_solutions(query, top_k)
+        return {
+            "success": True,
+            "results": results,
+            "count": len(results)
+        }
+    
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get Ragbits statistics."""
+        if self.status != ComponentStatus.AVAILABLE:
+            return {"success": False, "error": "Ragbits not available"}
+            
+        from bubblelabs_integration import get_ragbits_integration
+        integration = get_ragbits_integration()
+        if not integration or not integration.ragbits_integration:
+            return {"success": False, "error": "Ragbits integration not initialized"}
+            
+        stats = await integration.ragbits_integration.get_statistics()
+        return {
+            "success": True,
+            "stats": stats
+        }
+
+@dataclass
 class SecurityIntegrationBridge:
     """Bridge for Security integration."""
     status: ComponentStatus = ComponentStatus.UNAVAILABLE
@@ -637,6 +713,7 @@ class BubbleLabsExtendedIntegration:
         self._knowledge_bridge: Optional[KnowledgeGraphIntegrationBridge] = None
         self._analytics_bridge: Optional[AnalyticsIntegrationBridge] = None
         self._leanaide_bridge: Optional[LeanAideIntegrationBridge] = None
+        self._ragbits_bridge: Optional[RagbitsIntegrationBridge] = None
         self._security_bridge: Optional[SecurityIntegrationBridge] = None
         self._openevolve_workflow_integration: Optional[Any] = None
         
@@ -663,6 +740,7 @@ class BubbleLabsExtendedIntegration:
             "knowledge": KnowledgeGraphIntegrationBridge,
             "analytics": AnalyticsIntegrationBridge,
             "leanaide": LeanAideIntegrationBridge,
+            "ragbits": RagbitsIntegrationBridge,
             "security": SecurityIntegrationBridge,
         }
         factory = factories.get(name)
@@ -986,6 +1064,7 @@ class BubbleLabsExtendedIntegration:
                 ("knowledge", lambda: KnowledgeGraphIntegrationBridge()),
                 ("analytics", lambda: AnalyticsIntegrationBridge()),
                 ("leanaide", lambda: LeanAideIntegrationBridge()),
+                ("ragbits", lambda: RagbitsIntegrationBridge()),
                 ("security", lambda: SecurityIntegrationBridge()),
             ]
             
@@ -1011,6 +1090,7 @@ class BubbleLabsExtendedIntegration:
             self._knowledge_bridge = KnowledgeGraphIntegrationBridge() if "knowledge" in results and results["knowledge"]["success"] else None
             self._analytics_bridge = AnalyticsIntegrationBridge() if "analytics" in results and results["analytics"]["success"] else None
             self._leanaide_bridge = LeanAideIntegrationBridge() if "leanaide" in results and results["leanaide"]["success"] else None
+            self._ragbits_bridge = RagbitsIntegrationBridge() if "ragbits" in results and results["ragbits"]["success"] else None
             self._security_bridge = SecurityIntegrationBridge() if "security" in results and results["security"]["success"] else None
             self._initialized = True
             
@@ -1057,6 +1137,12 @@ class BubbleLabsExtendedIntegration:
                 components["leanaide"] = self._leanaide_bridge.get_status()
             else:
                 components["leanaide"] = {"component": "LeanAIDE", "status": "unavailable"}
+            
+            # Ragbits
+            if self._ragbits_bridge:
+                components["ragbits"] = self._ragbits_bridge.get_status()
+            else:
+                components["ragbits"] = {"component": "Ragbits", "status": "unavailable"}
             
             # Security
             if self._security_bridge:
@@ -1604,6 +1690,7 @@ class BubbleLabsExtendedIntegration:
             "knowledge": ["store_artifact", "query_patterns"],
             "analytics": ["track_workflow", "get_dashboard"],
             "leanaide": ["prove_theorem"],
+            "ragbits": ["search", "status"],
             "web3": [
                 "status",
                 "get_mcp_tool_inventory",
@@ -1698,6 +1785,11 @@ class BubbleLabsExtendedIntegration:
             },
             "leanaide": {
                 "prove_theorem": lambda p: self.leanaide_prove_theorem(p.get("theorem", "")),
+            },
+            "ragbits": {
+                "search": lambda p: self._run_maybe_async(self._ragbits_bridge.search(p.get("query", ""), int(p.get("top_k", 5)))) if self._ragbits_bridge else {"success": False, "error": "Ragbits not available"},
+                "stats": lambda p: self._run_maybe_async(self._ragbits_bridge.get_stats()) if self._ragbits_bridge else {"success": False, "error": "Ragbits not available"},
+                "status": lambda p: self._ragbits_bridge.get_status() if self._ragbits_bridge else {"success": False, "error": "Ragbits not available"},
             },
             "web3": {
                 "status": lambda p: self.get_web3_status(),

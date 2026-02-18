@@ -184,6 +184,47 @@ export interface BubbleLabsControlExecuteResponse {
   [key: string]: unknown;
 }
 
+export interface BubbleLabsWorkflowDefinitionSummary {
+  id: string;
+  name: string;
+  description: string;
+  workflow_type: string;
+  created_at: number | string;
+}
+
+export interface BubbleLabsWorkflowDefinitionDetail extends BubbleLabsWorkflowDefinitionSummary {
+  parameters: Record<string, unknown>;
+  nodes: Array<Record<string, unknown>>;
+  edges: Array<Record<string, unknown>>;
+}
+
+export interface BubbleLabsWorkflowInstanceSummary {
+  instance_id: string;
+  workflow_type: string;
+  status: string;
+  current_stage: string;
+  problem_statement: string;
+  start_time?: number;
+  end_time?: number;
+  progress?: number;
+}
+
+export interface BubbleLabsWorkflowInstanceStatus {
+  instance_id: string;
+  status: string;
+  current_stage: string;
+  progress: number;
+  start_time?: number;
+  end_time?: number;
+  execution_time?: number;
+  error_message?: string | null;
+}
+
+export interface BubbleLabsWorkflowInstanceDetail {
+  status: BubbleLabsWorkflowInstanceStatus;
+  parameters: Record<string, unknown>;
+}
+
 // ==================== API Client ====================
 
 /**
@@ -538,6 +579,167 @@ export const openevolveApi = {
         action,
         payload,
       }
+    );
+  },
+
+  // ==================== BubbleLabs Workflow Lifecycle ====================
+
+  listBubblelabsWorkflowDefinitions: async (): Promise<{
+    definitions: BubbleLabsWorkflowDefinitionSummary[];
+  }> => {
+    logger.debug({
+      msg: 'Listing BubbleLabs workflow definitions',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get('/bubblelabs/workflow-definitions');
+  },
+
+  getBubblelabsWorkflowDefinition: async (
+    definitionId: string
+  ): Promise<BubbleLabsWorkflowDefinitionDetail> => {
+    logger.debug({
+      msg: 'Getting BubbleLabs workflow definition',
+      component: 'openevolveApi',
+      definition_id: definitionId,
+    });
+
+    return openevolveApiClient.get(
+      `/bubblelabs/workflow-definitions/${encodeURIComponent(definitionId)}`
+    );
+  },
+
+  createBubblelabsWorkflowDefinition: async (payload: {
+    name: string;
+    description: string;
+    workflow_type: string;
+    parameters: Record<string, unknown>;
+  }): Promise<{ definition_id: string }> => {
+    logger.info({
+      msg: 'Creating BubbleLabs workflow definition',
+      component: 'openevolveApi',
+      workflow_type: payload.workflow_type,
+      name: payload.name,
+    });
+
+    return openevolveApiClient.post('/bubblelabs/workflow-definitions', payload);
+  },
+
+  listBubblelabsWorkflowInstances: async (): Promise<{
+    instances: BubbleLabsWorkflowInstanceSummary[];
+  }> => {
+    logger.debug({
+      msg: 'Listing BubbleLabs workflow instances',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get('/bubblelabs/workflow-instances');
+  },
+
+  getBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<BubbleLabsWorkflowInstanceDetail> => {
+    logger.debug({
+      msg: 'Getting BubbleLabs workflow instance',
+      component: 'openevolveApi',
+      instance_id: instanceId,
+    });
+
+    return openevolveApiClient.get(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}`
+    );
+  },
+
+  createBubblelabsWorkflowInstance: async (payload: {
+    definition_id: string;
+    instance_name: string;
+    inputs: Record<string, unknown>;
+  }): Promise<{ instance_id: string }> => {
+    logger.info({
+      msg: 'Creating BubbleLabs workflow instance',
+      component: 'openevolveApi',
+      definition_id: payload.definition_id,
+      instance_name: payload.instance_name,
+    });
+
+    return openevolveApiClient.post('/bubblelabs/workflow-instances', payload);
+  },
+
+  syncBubblelabsWorkflowInstanceParameters: async (
+    instanceId: string,
+    payload: { parameters: Record<string, unknown> }
+  ): Promise<{ message: string; instance_id: string; updated_count: number }> => {
+    logger.info({
+      msg: 'Syncing BubbleLabs workflow instance parameters',
+      component: 'openevolveApi',
+      instance_id: instanceId,
+    });
+
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/parameters`,
+      payload
+    );
+  },
+
+  startBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/start`,
+      {}
+    );
+  },
+
+  pauseBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/pause`,
+      {}
+    );
+  },
+
+  resumeBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/resume`,
+      {}
+    );
+  },
+
+  stopBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/stop`,
+      {}
+    );
+  },
+
+  cancelBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/cancel`,
+      {}
+    );
+  },
+
+  restartBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.post(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/restart`,
+      {}
+    );
+  },
+
+  deleteBubblelabsWorkflowInstance: async (
+    instanceId: string
+  ): Promise<Record<string, unknown>> => {
+    return openevolveApiClient.delete(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}`
     );
   },
 };
