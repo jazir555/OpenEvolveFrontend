@@ -960,10 +960,48 @@ class OpenEvolveBubbleLabsIntegration:
 
             # Execute based on workflow type
             if workflow_state.workflow_type == "evolution":
-                from evolution import run_evolution_loop
+                from evolution import _request_openai_compatible_chat, run_evolution_loop
+
+                api_key = _runtime_param("api_key")
+                api_base = _runtime_param("api_base")
+                model_id = _runtime_param("model_id")
+
+                # If provider credentials are supplied via BubbleLabs controls,
+                # validate connectivity before running the workflow.
+                if api_key and api_base and model_id:
+                    health_check = _request_openai_compatible_chat(
+                        api_key=api_key,
+                        base_url=api_base,
+                        model=model_id,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": "Reply exactly with: BUBBLELABS_PROVIDER_OK",
+                            }
+                        ],
+                        extra_headers=None,
+                        temperature=0.0,
+                        top_p=1.0,
+                        frequency_penalty=0.0,
+                        presence_penalty=0.0,
+                        max_tokens=12,
+                        seed=42,
+                    )
+                    if health_check is None:
+                        raise RuntimeError(
+                            "Provider connectivity check returned an empty response"
+                        )
 
                 run_evolution_loop(
                     current_content=workflow_state.problem_statement,
+                    # Forward provider/runtime overrides from BubbleLabs controls.
+                    evolution_mode=_runtime_param("evolution_mode"),
+                    model_id=model_id,
+                    api_key=api_key,
+                    api_base=api_base,
+                    timeout=_runtime_param("timeout"),
+                    max_retries=_runtime_param("max_retries"),
+                    retry_delay=_runtime_param("retry_delay"),
                     max_iterations=_runtime_param("max_iterations"),
                     population_size=_runtime_param("population_size"),
                     temperature=_runtime_param("temperature"),

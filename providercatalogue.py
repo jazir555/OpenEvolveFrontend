@@ -655,8 +655,8 @@ PROVIDERS = {
     },
     "zhipu": {
         "name": "Zhipu AI",
-        "api_base": "https://open.bigmodel.cn/api/paas/v4",
-        "models_endpoint": "https://open.bigmodel.cn/api/paas/v4/models",
+        "api_base": "https://api.z.ai/api/coding/paas/v4",
+        "models_endpoint": "https://api.z.ai/api/coding/paas/v4/models",
         "loader": _openai_style_loader,
         "default_model": "glm-4",
     },

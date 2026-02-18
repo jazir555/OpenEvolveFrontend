@@ -1249,7 +1249,7 @@ def run_evolution_loop(
     
     # Update config with any provided kwargs for backward compatibility
     for key, value in kwargs.items():
-        if hasattr(config, key):
+        if value is not None and hasattr(config, key):
             setattr(config, key, value)
     
     # Validate configuration

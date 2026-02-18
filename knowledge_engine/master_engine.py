@@ -23,93 +23,102 @@ import threading
 from pathlib import Path
 import copy
 
+# Helper function to handle imports whether running from source or installed package
+def _import_integration(module_path, class_name):
+    """Import integration class with fallback for relative/absolute imports."""
+    try:
+        # Try relative import first (for running from source)
+        from importlib import import_module
+        parts = module_path.split('.')
+        relative_module = '.'.join(['integrations'] + parts[2:])
+        mod = import_module(relative_module, package='knowledge_engine')
+        return getattr(mod, class_name), True
+    except (ImportError, AttributeError):
+        try:
+            # Try absolute import (for installed package)
+            from importlib import import_module
+            mod = import_module(module_path)
+            return getattr(mod, class_name), True
+        except (ImportError, AttributeError):
+            return None, False
+
 # Import all 21+ project integrations
-from knowledge_engine.integrations.graphiti_integration import GraphitiIntegration
-from knowledge_engine.integrations.kggen_integration import KGGenIntegration
-from knowledge_engine.integrations.oneke_integration import OneKEIntegration
-from knowledge_engine.integrations.aikg_integration import AIKGIntegration
-from knowledge_engine.integrations.ragbits_integration import RagbitsIntegration
-from knowledge_engine.integrations.crewai_integration import CrewAIIntegration
-from knowledge_engine.integrations.deepke_integration import DeepKEIntegration
-from knowledge_engine.integrations.research_quest_integration import ResearchQuestIntegration
-from knowledge_engine.integrations.agentic_context_integration import AgenticContextEngine
-from knowledge_engine.integrations.agentjson_integration import AgentJSONIntegration
-from knowledge_engine.integrations.dspy_integration import DSPyIntegration
-from knowledge_engine.integrations.leanaide_integration import LeanAideIntegration
-from knowledge_engine.integrations.openevolve_integration_library import OpenEvolveIntegrationLibrary
-from knowledge_engine.integrations.mcp_gateway_integration import MCPGatewayIntegration
-from knowledge_engine.integrations.pami_integration import PAMIIntegration
-from knowledge_engine.integrations.neuralkg_integration import NeuralKGIntegration
-try:
-    from knowledge_engine.integrations.causal_learn_integration import CausalLearnIntegration
-    CAUSAL_LEARN_AVAILABLE = True
-except ImportError:
-    CausalLearnIntegration = None
-    CAUSAL_LEARN_AVAILABLE = False
-from knowledge_engine.integrations.lagrange_mapper_integration import LagrangeMapperIntegration
-from knowledge_engine.integrations.karateclub_integration import KarateClubIntegration
-from knowledge_engine.integrations.global_chem_integration import GlobalChemIntegration
-from knowledge_engine.integrations.neuromancer_integration import NeuromancerIntegration
-from knowledge_engine.integrations.roma_integration import ROMAIntegration, ROMA_INTEGRATION_AVAILABLE
+GraphitiIntegration, _ = _import_integration('knowledge_engine.integrations.graphiti_integration', 'GraphitiIntegration')
+KGGenIntegration, _ = _import_integration('knowledge_engine.integrations.kggen_integration', 'KGGenIntegration')
+OneKEIntegration, _ = _import_integration('knowledge_engine.integrations.oneke_integration', 'OneKEIntegration')
+AIKGIntegration, _ = _import_integration('knowledge_engine.integrations.aikg_integration', 'AIKGIntegration')
+RagbitsIntegration, _ = _import_integration('knowledge_engine.integrations.ragbits_integration', 'RagbitsIntegration')
+CrewAIIntegration, _ = _import_integration('knowledge_engine.integrations.crewai_integration', 'CrewAIIntegration')
+DeepKEIntegration, _ = _import_integration('knowledge_engine.integrations.deepke_integration', 'DeepKEIntegration')
+ResearchQuestIntegration, _ = _import_integration('knowledge_engine.integrations.research_quest_integration', 'ResearchQuestIntegration')
+AgenticContextEngine, _ = _import_integration('knowledge_engine.integrations.agentic_context_integration', 'AgenticContextEngine')
+AgentJSONIntegration, _ = _import_integration('knowledge_engine.integrations.agentjson_integration', 'AgentJSONIntegration')
+DSPyIntegration, _ = _import_integration('knowledge_engine.integrations.dspy_integration', 'DSPyIntegration')
+LeanAideIntegration, _ = _import_integration('knowledge_engine.integrations.leanaide_integration', 'LeanAideIntegration')
+OpenEvolveIntegrationLibrary, _ = _import_integration('knowledge_engine.integrations.openevolve_integration_library', 'OpenEvolveIntegrationLibrary')
+MCPGatewayIntegration, _ = _import_integration('knowledge_engine.integrations.mcp_gateway_integration', 'MCPGatewayIntegration')
+PAMIIntegration, _ = _import_integration('knowledge_engine.integrations.pami_integration', 'PAMIIntegration')
+NeuralKGIntegration, _ = _import_integration('knowledge_engine.integrations.neuralkg_integration', 'NeuralKGIntegration')
+LagrangeMapperIntegration, _ = _import_integration('knowledge_engine.integrations.lagrange_mapper_integration', 'LagrangeMapperIntegration')
+KarateClubIntegration, _ = _import_integration('knowledge_engine.integrations.karateclub_integration', 'KarateClubIntegration')
+GlobalChemIntegration, _ = _import_integration('knowledge_engine.integrations.global_chem_integration', 'GlobalChemIntegration')
+NeuromancerIntegration, _ = _import_integration('knowledge_engine.integrations.neuromancer_integration', 'NeuromancerIntegration')
+
+# Optional integrations
+CausalLearnIntegration, CAUSAL_LEARN_AVAILABLE = _import_integration('knowledge_engine.integrations.causal_learn_integration', 'CausalLearnIntegration')
+ROMAIntegration, ROMA_INTEGRATION_AVAILABLE = _import_integration('knowledge_engine.integrations.roma_integration', 'ROMAIntegration')
 
 # New Advanced Integrations (2026-02-03)
-try:
-    from knowledge_engine.integrations.outlines.outlines_integration import OutlinesKGIntegration
-    OUTLINES_AVAILABLE = True
-except ImportError:
-    OutlinesKGIntegration = None
-    OUTLINES_AVAILABLE = False
+OutlinesKGIntegration, OUTLINES_AVAILABLE = _import_integration('knowledge_engine.integrations.outlines.outlines_integration', 'OutlinesKGIntegration')
+LMQLKGIntegration, LMQL_AVAILABLE = _import_integration('knowledge_engine.integrations.lmql.lmql_integration', 'LMQLKGIntegration')
 
-try:
-    from knowledge_engine.integrations.lmql.lmql_integration import LMQLKGIntegration
-    LMQL_AVAILABLE = True
-except ImportError:
-    LMQLKGIntegration = None
-    LMQL_AVAILABLE = False
-
-try:
-    from knowledge_engine.integrations.neuromancer.neuromancer_integration import NeuromancerKGIntegration
-    NEUROMANCER_KE_AVAILABLE = True
-except ImportError:
-    NeuromancerKGIntegration = None
-    NEUROMANCER_KE_AVAILABLE = False
-
-try:
-    from knowledge_engine.integrations.cognitive_hydraulics.cognitive_hydraulics_integration import CognitiveHydraulicsKGIntegration
-    COGNITIVE_HYDRAULICS_AVAILABLE = True
-except ImportError:
-    CognitiveHydraulicsKGIntegration = None
-    COGNITIVE_HYDRAULICS_AVAILABLE = False
-
-# Conversation & Safety Integrations (2026-02-03)
-try:
-    from knowledge_engine.integrations.dts.dts_integration import DTSKGIntegration
-    DTS_AVAILABLE = True
-except ImportError:
-    DTSKGIntegration = None
-    DTS_AVAILABLE = False
-
-try:
-    from knowledge_engine.integrations.guardrails.guardrails_integration import GuardrailsKGIntegration
-    GUARDRAILS_AVAILABLE = True
-except ImportError:
-    GuardrailsKGIntegration = None
-    GUARDRAILS_AVAILABLE = False
-
-try:
-    from knowledge_engine.integrations.icr.icr_integration import ICRKGIntegration
-    ICR_AVAILABLE = True
-except ImportError:
-    ICRKGIntegration = None
-    ICR_AVAILABLE = False
+NeuromancerKGIntegration, NEUROMANCER_KE_AVAILABLE = _import_integration('knowledge_engine.integrations.neuromancer.neuromancer_integration', 'NeuromancerKGIntegration')
+CognitiveHydraulicsKGIntegration, COGNITIVE_HYDRAULICS_AVAILABLE = _import_integration('knowledge_engine.integrations.cognitive_hydraulics.cognitive_hydraulics_integration', 'CognitiveHydraulicsKGIntegration')
+DTSKGIntegration, DTS_AVAILABLE = _import_integration('knowledge_engine.integrations.dts.dts_integration', 'DTSKGIntegration')
+GuardrailsKGIntegration, GUARDRAILS_AVAILABLE = _import_integration('knowledge_engine.integrations.guardrails.guardrails_integration', 'GuardrailsKGIntegration')
+ICRKGIntegration, ICR_AVAILABLE = _import_integration('knowledge_engine.integrations.icr.icr_integration', 'ICRKGIntegration')
 
 # Import orchestration components
-from knowledge_engine.orchestration.self_healing_orchestrator import (
-    SelfHealingOrchestrator, HealingStrategy, FailureEvent, FailureType
-)
-from knowledge_engine.orchestration.learning_engine import LearningEngine, LearningExperience
-from knowledge_engine.orchestration.global_learning_engine import GlobalLearningEngine
-from knowledge_engine.orchestration.integrated_orchestrator import IntegratedOrchestrator, ExecutionContext
+try:
+    from knowledge_engine.orchestration.self_healing_orchestrator import (
+        SelfHealingOrchestrator, HealingStrategy, FailureEvent, FailureType
+    )
+except ImportError:
+    try:
+        from orchestration.self_healing_orchestrator import (
+            SelfHealingOrchestrator, HealingStrategy, FailureEvent, FailureType
+        )
+    except ImportError:
+        SelfHealingOrchestrator = None
+        HealingStrategy = None
+        FailureEvent = None
+        FailureType = None
+
+try:
+    from knowledge_engine.orchestration.learning_engine import LearningEngine, LearningExperience
+except ImportError:
+    try:
+        from orchestration.learning_engine import LearningEngine, LearningExperience
+    except ImportError:
+        LearningEngine = None
+        LearningExperience = None
+
+try:
+    from knowledge_engine.orchestration.global_learning_engine import GlobalLearningEngine
+except ImportError:
+    try:
+        from orchestration.global_learning_engine import GlobalLearningEngine
+    except ImportError:
+        GlobalLearningEngine = None
+
+try:
+    from knowledge_engine.orchestration.integrated_orchestrator import IntegratedOrchestrator, ExecutionContext
+except ImportError:
+    try:
+        from orchestration.integrated_orchestrator import IntegratedOrchestrator, ExecutionContext
+    except ImportError:
+        IntegratedOrchestrator = None
+        ExecutionContext = None
 from knowledge_engine.orchestration.component_coordination import ComponentCoordinator
 from knowledge_engine.orchestration.feedback_loop import FeedbackCollector, FeedbackType
 from knowledge_engine.orchestration.circuit_breaker import CircuitBreaker, get_circuit_breaker

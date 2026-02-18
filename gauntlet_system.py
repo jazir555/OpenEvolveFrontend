@@ -9,6 +9,7 @@ Date: 2026-02-06
 """
 
 import logging
+import time
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
@@ -103,7 +104,7 @@ class GauntletSystem:
         
         # Use GauntletManager to create and execute an appropriate gauntlet
         gauntlet_def = self.manager.create_adaptive_gauntlet(
-            name=f"eval_{int(logging.time.time())}",
+            name=f"eval_{int(time.time())}",
             content=content,
             content_type=domain
         )
