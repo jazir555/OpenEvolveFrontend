@@ -328,10 +328,10 @@ Respond with ONLY 'true' if they are duplicates or 'false' if they are distinct 
                 union = len(desc1_words | desc2_words)
                 scores.append(overlap / union if union > 0 else 0)
 
-        # 4. Attribute overlap
-        if entity1.attributes and entity2.attributes:
-            attr_keys1 = set(entity1.attributes.keys())
-            attr_keys2 = set(entity2.attributes.keys())
+        # 4. Properties overlap (was 'attributes')
+        if entity1.properties and entity2.properties:
+            attr_keys1 = set(entity1.properties.keys())
+            attr_keys2 = set(entity2.properties.keys())
             if attr_keys1 and attr_keys2:
                 overlap = len(attr_keys1 & attr_keys2)
                 union = len(attr_keys1 | attr_keys2)
@@ -389,20 +389,20 @@ Respond with ONLY 'true' if they are duplicates or 'false' if they are distinct 
         time_ranges = []
 
         for entity in group:
-            # Try to get time from attributes
+            # Try to get time from properties (was 'attributes')
             start_time = None
             end_time = None
 
-            if entity.attributes:
-                # Common attribute names for timestamps
+            if entity.properties:
+                # Common property names for timestamps
                 for key in ['start_time', 'created_at', 'timestamp', 'date', 'valid_from', 'begin_time']:
-                    if key in entity.attributes:
-                        start_time = entity.attributes[key]
+                    if key in entity.properties:
+                        start_time = entity.properties[key]
                         break
 
                 for key in ['end_time', 'expired_at', 'valid_until', 'end_date', 'finish_time']:
-                    if key in entity.attributes:
-                        end_time = entity.attributes[key]
+                    if key in entity.properties:
+                        end_time = entity.properties[key]
                         break
 
             time_ranges.append((start_time, end_time))

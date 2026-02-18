@@ -73,6 +73,33 @@ from .bubblelab_api_client import (
     BubbleLabAPIResponseError
 )
 
+# Integration components
+from .openevolve_integration import (
+    OpenEvolveWorkflowType,
+    OpenEvolveStage,
+    OpenEvolveIntegrationConfig,
+    WorkflowComplexityAnalysis,
+    MAKERWorkflowDecision,
+    OpenEvolveMDAPIntegration,
+    get_openevolve_integration
+)
+
+from .bubblelab_ui_integration import (
+    UIComponent,
+    UIState,
+    ComplexityAnalysisResult,
+    MAKERVotingDisplay,
+    BubbleLabUIIntegration,
+    get_bubblelab_ui_integration
+)
+
+from .integration_manager import (
+    IntegrationStatus,
+    IntegrationHealth,
+    ComprehensiveIntegrationManager,
+    get_integration_manager
+)
+
 # Monitoring components (optional, import separately)
 # from .monitoring_dashboard import AdapterMonitor, get_monitor
 # from .prometheus_exporter import PrometheusMetricsExporter, get_prometheus_exporter
@@ -105,7 +132,27 @@ __all__ = [
     "get_bubblelab_client",
     "BubbleLabAPIClientError",
     "BubbleLabAPIConnectionError",
-    "BubbleLabAPIResponseError"
+    "BubbleLabAPIResponseError",
+    # OpenEvolve Integration
+    "OpenEvolveWorkflowType",
+    "OpenEvolveStage",
+    "OpenEvolveIntegrationConfig",
+    "WorkflowComplexityAnalysis",
+    "MAKERWorkflowDecision",
+    "OpenEvolveMDAPIntegration",
+    "get_openevolve_integration",
+    # BubbleLab UI Integration
+    "UIComponent",
+    "UIState",
+    "ComplexityAnalysisResult",
+    "MAKERVotingDisplay",
+    "BubbleLabUIIntegration",
+    "get_bubblelab_ui_integration",
+    # Comprehensive Integration Manager
+    "IntegrationStatus",
+    "IntegrationHealth",
+    "ComprehensiveIntegrationManager",
+    "get_integration_manager"
 ]
 
 __version__ = "1.0.0"

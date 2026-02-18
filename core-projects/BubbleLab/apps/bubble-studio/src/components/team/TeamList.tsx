@@ -91,7 +91,8 @@ function TeamCard({ team }: { team: Team }) {
 
       <div className="mt-4 flex gap-2">
         <Link
-          to={`/teams/${team.id}`}
+          to="/oe-teams/$teamId"
+          params={{ teamId: team.id }}
           className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
           Edit

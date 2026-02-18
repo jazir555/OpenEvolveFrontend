@@ -141,7 +141,7 @@ export function ValidatedWorkflowForm() {
 
     // Navigate after delay
     setTimeout(() => {
-      navigate({ to: '/workflows' });
+      navigate({ to: '/oe-workflows' });
     }, 1500);
   };
 
@@ -304,7 +304,7 @@ export function ValidatedWorkflowForm() {
               <div className="flex gap-3">
                 <Button
                   variant="secondary"
-                  onClick={() => navigate({ to: '/workflows' })}
+                  onClick={() => navigate({ to: '/oe-workflows' })}
                 >
                   Cancel
                 </Button>

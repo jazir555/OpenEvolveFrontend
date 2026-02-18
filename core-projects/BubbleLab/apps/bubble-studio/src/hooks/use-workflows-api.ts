@@ -114,7 +114,7 @@ export function useCreateWorkflow() {
 
       // Navigate to workflow detail page
       navigate({
-        to: '/workflows/$workflowId',
+        to: '/oe-workflows/$workflowId',
         params: { workflowId: workflow.id },
       });
     },
@@ -191,7 +191,7 @@ export function useDeleteWorkflow() {
       queryClient.invalidateQueries({ queryKey: workflowKeys.lists() });
 
       // Navigate back to workflows list
-      navigate({ to: '/workflows' });
+      navigate({ to: '/oe-workflows' });
     },
   });
 }

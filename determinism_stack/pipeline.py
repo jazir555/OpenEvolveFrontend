@@ -26,7 +26,7 @@ from .utils import extract_json
 
 @dataclass
 class DeterminismConfig:
-    enable_layers: List[int] = field(default_factory=lambda: list(range(8)))
+    enable_layers: List[int] = field(default_factory=lambda: list(range(9)))
     tier: int = 2
     mode: str = "best-effort"
     verification_runs: int = 3
@@ -94,8 +94,9 @@ class DeterministicPipeline:
         self,
         prompt: str,
         schema: Optional[Dict[str, Any]] = None,
-        constraints: Optional[str] = None,
+        constraints: Optional[Dict[str, Any]] = None,
         context_document: Optional[str] = None,
+        timestamp: Optional[str] = None,
     ) -> DeterminismResult:
         start = time.time()
         errors: List[str] = []
@@ -103,29 +104,34 @@ class DeterministicPipeline:
         constraints = constraints or self.config.constraints
 
         try:
-            # Layer 0: Pre-generation filtering
+            # Layer 0: Pre-generation filtering (Lagrange Mapper)
             if 0 in self.config.enable_layers:
                 prompt = self.filter_layer.filter(prompt, intensity=self.config.filter_intensity)
 
-            # Security filtering
+            # Security filtering (Internal safety)
             prompt = self.security.sanitize_input(prompt)
 
-            # Layer 1: Decomposition
+            # Layer 1: Decomposition (ROMA/MDAP/MAKER)
             subtasks = []
             if 1 in self.config.enable_layers:
                 subtasks = self.decomposer.atomize(prompt)
 
-            # Layer 5: Context management
+            # Layer 5: Context management (Matryoshka/RAG)
             context = None
             if context_document and 5 in self.config.enable_layers and self.config.use_context:
                 context = self.context_manager.get_context(prompt, context_document).get("context")
-            if 5 in self.config.enable_layers and self.config.use_knowledge and self.knowledge.is_available():
+            
+            # Layer 6: Temporal Knowledge Consistency
+            knowledge_context = None
+            if 6 in self.config.enable_layers and self.config.use_knowledge and self.knowledge.is_available():
                 try:
-                    knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results)
-                except Exception:
-                    knowledge_context = None
-            else:
-                knowledge_context = None
+                    # If timestamp is provided, use temporal query
+                    if timestamp:
+                        knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results)
+                    else:
+                        knowledge_context = self.knowledge.search(prompt, max_results=self.config.knowledge_max_results)
+                except Exception as exc:
+                    errors.append(f"Knowledge error: {exc}")
 
             final_prompt = prompt
             if context:
@@ -135,12 +141,12 @@ class DeterministicPipeline:
             if subtasks:
                 final_prompt = f"{final_prompt}\n\nSubtasks:\n- " + "\n- ".join(subtasks)
 
-            # Layer 2: Constrained generation
+            # Layer 2: Constrained generation (LMQL/Outlines)
             output: Any
             if 2 in self.config.enable_layers and schema:
                 output = self.generator.generate_json(final_prompt, schema)
             elif 2 in self.config.enable_layers and constraints:
-                output = self.generator.generate_with_constraints(final_prompt, constraints)
+                output = self.generator.generate_with_constraints(final_prompt, str(constraints))
             else:
                 output = self.llm.generate(final_prompt)
 
@@ -150,7 +156,7 @@ class DeterministicPipeline:
                 if parsed is not None:
                     output = parsed
 
-            # Layer 3: Validation
+            # Layer 3: Content Verification & Correction (Steer/Guardrails)
             validation = {"valid": True, "issues": []}
             if 3 in self.config.enable_layers:
                 result = self.validator.validate_and_fix(
@@ -162,22 +168,23 @@ class DeterministicPipeline:
                 output = result["output"]
                 validation = result["validation"]
 
-            # Layer 4: Learning (no-op by default)
+            # Layer 4: Learning & Optimization (DSPy/ACE)
             if 4 in self.config.enable_layers and self.config.use_learning:
                 output = self.optimizer.execute(output, learn=False)
 
-            # Layer 6: Formal verification
+            # Layer 7: Formal Verification (Z3/Lean)
             formal = {"verified": True}
-            if 6 in self.config.enable_layers and isinstance(output, dict):
+            if 7 in self.config.enable_layers and isinstance(output, dict):
                 formal = self.formal.verify_logical_correctness(output)
 
-            # Layer 7: Reproducibility
+            # Layer 8: Runtime Reproducibility (detLLM)
             reproducibility = None
-            if 7 in self.config.enable_layers:
+            if 8 in self.config.enable_layers:
+                repro_tier = self.config.tier
                 reproducibility = self.reproducibility.check(
                     prompt=final_prompt,
                     llm=self.llm,
-                    tier=self.config.tier,
+                    tier=repro_tier,
                     runs=self.config.verification_runs,
                     backend=self.config.detllm_backend,
                     model=self.config.detllm_model,
@@ -197,6 +204,7 @@ class DeterministicPipeline:
                 "subtasks": subtasks,
                 "formal_verification": formal,
                 "layers_used": self.config.enable_layers,
+                "timestamp": timestamp,
             },
             validation=validation,
             reproducibility=reproducibility,
@@ -206,29 +214,33 @@ class DeterministicPipeline:
 
 
 class FullDeterminismStack:
-    """Compatibility wrapper for full 8-layer stack."""
+    """Compatibility wrapper for full 9-layer stack (0-8)."""
 
     def __init__(self, llm: Optional[LLMInterface] = None, config: Optional[DeterminismConfig] = None):
         self.pipeline = DeterministicPipeline(llm=llm, config=config)
 
     def apply(self, prompt: str, llm: Optional[LLMInterface] = None) -> DeterminismResult:
         if llm is not None:
-            self.pipeline.set_llm(llm)
+            # Create a temporary pipeline to avoid side-effects if llm is changed
+            import copy
+            temp_pipeline = DeterministicPipeline(llm=llm, config=copy.deepcopy(self.pipeline.config))
+            return temp_pipeline.generate_with_all_layers(prompt)
         return self.pipeline.generate_with_all_layers(prompt)
 
     def apply_cloud(self, prompt: str, llm: Optional[LLMInterface] = None) -> DeterminismResult:
         import copy
-        pipeline = self.pipeline
-        if llm is not None:
-            pipeline = DeterministicPipeline(llm=llm, config=copy.deepcopy(self.pipeline.config))
-        pipeline.config = copy.deepcopy(pipeline.config)
-        pipeline.reproducibility.mode = "cloud"
+        config = copy.deepcopy(self.pipeline.config)
+        config.detllm_mode = "cloud"
+        # Always use a fresh pipeline instance for cloud calls to avoid state pollution
+        pipeline = DeterministicPipeline(llm=llm or self.pipeline.llm, config=config)
         return pipeline.generate_with_all_layers(prompt)
 
     def apply_local(self, prompt: str, llm: Optional[LLMInterface] = None) -> DeterminismResult:
-        if llm is not None:
-            self.pipeline.set_llm(llm)
-        return self.pipeline.generate_with_all_layers(prompt)
+        import copy
+        config = copy.deepcopy(self.pipeline.config)
+        config.detllm_mode = "local"
+        pipeline = DeterministicPipeline(llm=llm or self.pipeline.llm, config=config)
+        return pipeline.generate_with_all_layers(prompt)
 
 
 class HybridDeterministicSystem:

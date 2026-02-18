@@ -90,7 +90,8 @@ function GauntletCard({ gauntlet }: { gauntlet: Gauntlet }) {
 
       <div className="mt-4 flex gap-2">
         <Link
-          to={`/gauntlets/${gauntlet.id}`}
+          to="/oe-gauntlets/$gauntletId"
+          params={{ gauntletId: gauntlet.id }}
           className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
         >
           Edit

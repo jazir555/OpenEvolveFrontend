@@ -3,7 +3,7 @@
  * View and edit individual team configuration
  */
 
-import { useParams, useNavigate, Link } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useTeam } from '../hooks/use-teams-api';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -11,8 +11,12 @@ import { Badge } from '../components/common/Badge';
 import { LoadingSpinner } from '../components/common/Spinner';
 import { Alert } from '../components/common/Alert';
 
+export const Route = createFileRoute('/oe-teams/$teamId')({
+  component: TeamDetailPage,
+});
+
 export default function TeamDetailPage() {
-  const { teamId } = useParams({ from: '/teams/$teamId' });
+  const { teamId } = Route.useParams();
   const navigate = useNavigate();
   const { data: team, isLoading, error } = useTeam(teamId);
 
@@ -41,16 +45,14 @@ export default function TeamDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {team.name}
             </h1>
-            <Badge variant={team.is_active ? 'success' : 'secondary'}>
-              {team.is_active ? 'Active' : 'Inactive'}
-            </Badge>
+            <Badge variant="success">Configured</Badge>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {team.description || 'No description'}
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => navigate({ to: '/teams' })}>
+          <Button variant="secondary" onClick={() => navigate({ to: '/oe-teams' })}>
             Back to Teams
           </Button>
           <Button>Edit Team</Button>
@@ -76,9 +78,7 @@ export default function TeamDetailPage() {
               Status
             </dt>
             <dd className="mt-1">
-              <Badge variant={team.is_active ? 'success' : 'secondary'}>
-                {team.is_active ? 'Active' : 'Inactive'}
-              </Badge>
+              <Badge variant="success">Configured</Badge>
             </dd>
           </div>
           <div>

@@ -231,6 +231,9 @@ export function BubbleSidePanel() {
               bubbleDefinition={bubblesData?.bubbles.find(
                 (b) => b.name === selectedBubbleName
               )}
+              userName={
+                user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User'
+              }
             />
           )}
 
@@ -373,6 +376,7 @@ function BubbleListView({
 interface BubblePromptViewProps {
   bubbleName: string;
   bubbleDefinition: BubbleDefinition | undefined;
+  userName: string;
 }
 
 // Available AI models - COMMENTED OUT: Using Grok Code Fast only
@@ -389,7 +393,7 @@ interface BubblePromptViewProps {
 //   { value: 'openrouter/z-ai/glm-4.6', label: 'GLM 4.6' },
 // ] as const;
 
-function BubblePromptView({ bubbleDefinition }: BubblePromptViewProps) {
+function BubblePromptView({ bubbleDefinition, userName }: BubblePromptViewProps) {
   const [prompt, setPrompt] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // Fixed model - users cannot change this currently
@@ -445,7 +449,7 @@ function BubblePromptView({ bubbleDefinition }: BubblePromptViewProps) {
           outputSchema: bubbleDefinition.outputSchema,
         },
         availableCredentials: bubbleDefinition.requiredCredentials,
-        userName: user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User',
+        userName,
         conversationHistory: [],
         model: selectedModel,
       },

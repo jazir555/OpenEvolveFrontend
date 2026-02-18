@@ -63,7 +63,7 @@ export function RecentWorkflows({ workflows, isLoading, error }: RecentWorkflows
         </p>
         <div className="mt-6">
           <Link
-            to="/workflows/create"
+            to="/oe-workflows/create"
             className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
           >
             Create Workflow
@@ -82,7 +82,7 @@ export function RecentWorkflows({ workflows, isLoading, error }: RecentWorkflows
           Recent Workflows
         </h2>
         <Link
-          to="/workflows"
+          to="/oe-workflows"
           className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           View all →
@@ -93,7 +93,8 @@ export function RecentWorkflows({ workflows, isLoading, error }: RecentWorkflows
         {recentWorkflows.map((workflow) => (
           <Link
             key={workflow.id}
-            to={`/workflows/${workflow.id}`}
+            to="/oe-workflows/$workflowId"
+            params={{ workflowId: workflow.id }}
             className="block hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <div className="px-6 py-4">

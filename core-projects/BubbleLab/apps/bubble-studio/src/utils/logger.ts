@@ -24,7 +24,7 @@ export interface LogContext {
   target_service?: string;
   endpoint?: string;
   method?: string;
-  status?: number;
+  status?: number | string;
   error?: string;
   [key: string]: unknown;
 }

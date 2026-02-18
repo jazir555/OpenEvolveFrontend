@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 // Mock environment variables for testing
 const mockEnv = {
   MODE: 'test',

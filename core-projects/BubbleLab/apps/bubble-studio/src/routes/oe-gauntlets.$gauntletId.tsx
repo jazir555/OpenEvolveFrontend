@@ -3,7 +3,7 @@
  * View and edit individual gauntlet configuration
  */
 
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useGauntlet } from '../hooks/use-gauntlets-api';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
@@ -11,8 +11,12 @@ import { Badge } from '../components/common/Badge';
 import { LoadingSpinner } from '../components/common/Spinner';
 import { Alert } from '../components/common/Alert';
 
+export const Route = createFileRoute('/oe-gauntlets/$gauntletId')({
+  component: GauntletDetailPage,
+});
+
 export default function GauntletDetailPage() {
-  const { gauntletId } = useParams({ from: '/gauntlets/$gauntletId' });
+  const { gauntletId } = Route.useParams();
   const navigate = useNavigate();
   const { data: gauntlet, isLoading, error } = useGauntlet(gauntletId);
 
@@ -41,16 +45,14 @@ export default function GauntletDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {gauntlet.name}
             </h1>
-            <Badge variant={gauntlet.is_active ? 'success' : 'secondary'}>
-              {gauntlet.is_active ? 'Active' : 'Inactive'}
-            </Badge>
+            <Badge variant="success">Configured</Badge>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {gauntlet.description || 'No description'}
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => navigate({ to: '/gauntlets' })}>
+          <Button variant="secondary" onClick={() => navigate({ to: '/oe-gauntlets' })}>
             Back to Gauntlets
           </Button>
           <Button>Edit Gauntlet</Button>
@@ -76,9 +78,7 @@ export default function GauntletDetailPage() {
               Status
             </dt>
             <dd className="mt-1">
-              <Badge variant={gauntlet.is_active ? 'success' : 'secondary'}>
-                {gauntlet.is_active ? 'Active' : 'Inactive'}
-              </Badge>
+              <Badge variant="success">Configured</Badge>
             </dd>
           </div>
           <div>
@@ -120,7 +120,7 @@ export default function GauntletDetailPage() {
                     {round.description || 'No description'}
                   </p>
                 </div>
-                <Badge variant="blue">{round.round_type}</Badge>
+                <Badge variant="blue">{round.evaluation_type}</Badge>
               </div>
               <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-3">
                 <div>
@@ -128,7 +128,7 @@ export default function GauntletDetailPage() {
                     Quorum
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {round.quorum}%
+                    {(round.quorum_threshold * 100).toFixed(0)}%
                   </dd>
                 </div>
                 <div>

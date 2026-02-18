@@ -11,11 +11,23 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as OeWorkflowsRouteImport } from './routes/oe-workflows'
+import { Route as OeTeamsRouteImport } from './routes/oe-teams'
+import { Route as OeSettingsRouteImport } from './routes/oe-settings'
+import { Route as OeGauntletsRouteImport } from './routes/oe-gauntlets'
+import { Route as OeAnalyticsRouteImport } from './routes/oe-analytics'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as FlowsRouteImport } from './routes/flows'
+import { Route as EvolutionRouteImport } from './routes/evolution'
 import { Route as CredentialsRouteImport } from './routes/credentials'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OeWorkflowsCreateRouteImport } from './routes/oe-workflows.create'
+import { Route as OeWorkflowsWorkflowIdRouteImport } from './routes/oe-workflows.$workflowId'
+import { Route as OeTeamsTeamIdRouteImport } from './routes/oe-teams.$teamId'
+import { Route as OeGauntletsGauntletIdRouteImport } from './routes/oe-gauntlets.$gauntletId'
 import { Route as FlowFlowIdRouteImport } from './routes/flow.$flowId'
+import { Route as EvolutionInsightsRouteImport } from './routes/evolution.insights'
+import { Route as OeWorkflowsWorkflowIdExecuteRouteImport } from './routes/oe-workflows.$workflowId.execute'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -25,6 +37,31 @@ const SettingsRoute = SettingsRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OeWorkflowsRoute = OeWorkflowsRouteImport.update({
+  id: '/oe-workflows',
+  path: '/oe-workflows',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OeTeamsRoute = OeTeamsRouteImport.update({
+  id: '/oe-teams',
+  path: '/oe-teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OeSettingsRoute = OeSettingsRouteImport.update({
+  id: '/oe-settings',
+  path: '/oe-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OeGauntletsRoute = OeGauntletsRouteImport.update({
+  id: '/oe-gauntlets',
+  path: '/oe-gauntlets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OeAnalyticsRoute = OeAnalyticsRouteImport.update({
+  id: '/oe-analytics',
+  path: '/oe-analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -37,6 +74,11 @@ const FlowsRoute = FlowsRouteImport.update({
   path: '/flows',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvolutionRoute = EvolutionRouteImport.update({
+  id: '/evolution',
+  path: '/evolution',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CredentialsRoute = CredentialsRouteImport.update({
   id: '/credentials',
   path: '/credentials',
@@ -47,75 +89,184 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OeWorkflowsCreateRoute = OeWorkflowsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => OeWorkflowsRoute,
+} as any)
+const OeWorkflowsWorkflowIdRoute = OeWorkflowsWorkflowIdRouteImport.update({
+  id: '/$workflowId',
+  path: '/$workflowId',
+  getParentRoute: () => OeWorkflowsRoute,
+} as any)
+const OeTeamsTeamIdRoute = OeTeamsTeamIdRouteImport.update({
+  id: '/$teamId',
+  path: '/$teamId',
+  getParentRoute: () => OeTeamsRoute,
+} as any)
+const OeGauntletsGauntletIdRoute = OeGauntletsGauntletIdRouteImport.update({
+  id: '/$gauntletId',
+  path: '/$gauntletId',
+  getParentRoute: () => OeGauntletsRoute,
+} as any)
 const FlowFlowIdRoute = FlowFlowIdRouteImport.update({
   id: '/flow/$flowId',
   path: '/flow/$flowId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvolutionInsightsRoute = EvolutionInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => EvolutionRoute,
+} as any)
+const OeWorkflowsWorkflowIdExecuteRoute =
+  OeWorkflowsWorkflowIdExecuteRouteImport.update({
+    id: '/execute',
+    path: '/execute',
+    getParentRoute: () => OeWorkflowsWorkflowIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/credentials': typeof CredentialsRoute
+  '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
   '/home': typeof HomeRoute
+  '/oe-analytics': typeof OeAnalyticsRoute
+  '/oe-gauntlets': typeof OeGauntletsRouteWithChildren
+  '/oe-settings': typeof OeSettingsRoute
+  '/oe-teams': typeof OeTeamsRouteWithChildren
+  '/oe-workflows': typeof OeWorkflowsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/settings': typeof SettingsRoute
+  '/evolution/insights': typeof EvolutionInsightsRoute
   '/flow/$flowId': typeof FlowFlowIdRoute
+  '/oe-gauntlets/$gauntletId': typeof OeGauntletsGauntletIdRoute
+  '/oe-teams/$teamId': typeof OeTeamsTeamIdRoute
+  '/oe-workflows/$workflowId': typeof OeWorkflowsWorkflowIdRouteWithChildren
+  '/oe-workflows/create': typeof OeWorkflowsCreateRoute
+  '/oe-workflows/$workflowId/execute': typeof OeWorkflowsWorkflowIdExecuteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/credentials': typeof CredentialsRoute
+  '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
   '/home': typeof HomeRoute
+  '/oe-analytics': typeof OeAnalyticsRoute
+  '/oe-gauntlets': typeof OeGauntletsRouteWithChildren
+  '/oe-settings': typeof OeSettingsRoute
+  '/oe-teams': typeof OeTeamsRouteWithChildren
+  '/oe-workflows': typeof OeWorkflowsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/settings': typeof SettingsRoute
+  '/evolution/insights': typeof EvolutionInsightsRoute
   '/flow/$flowId': typeof FlowFlowIdRoute
+  '/oe-gauntlets/$gauntletId': typeof OeGauntletsGauntletIdRoute
+  '/oe-teams/$teamId': typeof OeTeamsTeamIdRoute
+  '/oe-workflows/$workflowId': typeof OeWorkflowsWorkflowIdRouteWithChildren
+  '/oe-workflows/create': typeof OeWorkflowsCreateRoute
+  '/oe-workflows/$workflowId/execute': typeof OeWorkflowsWorkflowIdExecuteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/credentials': typeof CredentialsRoute
+  '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
   '/home': typeof HomeRoute
+  '/oe-analytics': typeof OeAnalyticsRoute
+  '/oe-gauntlets': typeof OeGauntletsRouteWithChildren
+  '/oe-settings': typeof OeSettingsRoute
+  '/oe-teams': typeof OeTeamsRouteWithChildren
+  '/oe-workflows': typeof OeWorkflowsRouteWithChildren
   '/pricing': typeof PricingRoute
   '/settings': typeof SettingsRoute
+  '/evolution/insights': typeof EvolutionInsightsRoute
   '/flow/$flowId': typeof FlowFlowIdRoute
+  '/oe-gauntlets/$gauntletId': typeof OeGauntletsGauntletIdRoute
+  '/oe-teams/$teamId': typeof OeTeamsTeamIdRoute
+  '/oe-workflows/$workflowId': typeof OeWorkflowsWorkflowIdRouteWithChildren
+  '/oe-workflows/create': typeof OeWorkflowsCreateRoute
+  '/oe-workflows/$workflowId/execute': typeof OeWorkflowsWorkflowIdExecuteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/credentials'
+    | '/evolution'
     | '/flows'
     | '/home'
+    | '/oe-analytics'
+    | '/oe-gauntlets'
+    | '/oe-settings'
+    | '/oe-teams'
+    | '/oe-workflows'
     | '/pricing'
     | '/settings'
+    | '/evolution/insights'
     | '/flow/$flowId'
+    | '/oe-gauntlets/$gauntletId'
+    | '/oe-teams/$teamId'
+    | '/oe-workflows/$workflowId'
+    | '/oe-workflows/create'
+    | '/oe-workflows/$workflowId/execute'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/credentials'
+    | '/evolution'
     | '/flows'
     | '/home'
+    | '/oe-analytics'
+    | '/oe-gauntlets'
+    | '/oe-settings'
+    | '/oe-teams'
+    | '/oe-workflows'
     | '/pricing'
     | '/settings'
+    | '/evolution/insights'
     | '/flow/$flowId'
+    | '/oe-gauntlets/$gauntletId'
+    | '/oe-teams/$teamId'
+    | '/oe-workflows/$workflowId'
+    | '/oe-workflows/create'
+    | '/oe-workflows/$workflowId/execute'
   id:
     | '__root__'
     | '/'
     | '/credentials'
+    | '/evolution'
     | '/flows'
     | '/home'
+    | '/oe-analytics'
+    | '/oe-gauntlets'
+    | '/oe-settings'
+    | '/oe-teams'
+    | '/oe-workflows'
     | '/pricing'
     | '/settings'
+    | '/evolution/insights'
     | '/flow/$flowId'
+    | '/oe-gauntlets/$gauntletId'
+    | '/oe-teams/$teamId'
+    | '/oe-workflows/$workflowId'
+    | '/oe-workflows/create'
+    | '/oe-workflows/$workflowId/execute'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CredentialsRoute: typeof CredentialsRoute
+  EvolutionRoute: typeof EvolutionRouteWithChildren
   FlowsRoute: typeof FlowsRoute
   HomeRoute: typeof HomeRoute
+  OeAnalyticsRoute: typeof OeAnalyticsRoute
+  OeGauntletsRoute: typeof OeGauntletsRouteWithChildren
+  OeSettingsRoute: typeof OeSettingsRoute
+  OeTeamsRoute: typeof OeTeamsRouteWithChildren
+  OeWorkflowsRoute: typeof OeWorkflowsRouteWithChildren
   PricingRoute: typeof PricingRoute
   SettingsRoute: typeof SettingsRoute
   FlowFlowIdRoute: typeof FlowFlowIdRoute
@@ -137,6 +288,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oe-workflows': {
+      id: '/oe-workflows'
+      path: '/oe-workflows'
+      fullPath: '/oe-workflows'
+      preLoaderRoute: typeof OeWorkflowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oe-teams': {
+      id: '/oe-teams'
+      path: '/oe-teams'
+      fullPath: '/oe-teams'
+      preLoaderRoute: typeof OeTeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oe-settings': {
+      id: '/oe-settings'
+      path: '/oe-settings'
+      fullPath: '/oe-settings'
+      preLoaderRoute: typeof OeSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oe-gauntlets': {
+      id: '/oe-gauntlets'
+      path: '/oe-gauntlets'
+      fullPath: '/oe-gauntlets'
+      preLoaderRoute: typeof OeGauntletsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oe-analytics': {
+      id: '/oe-analytics'
+      path: '/oe-analytics'
+      fullPath: '/oe-analytics'
+      preLoaderRoute: typeof OeAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -149,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/flows'
       fullPath: '/flows'
       preLoaderRoute: typeof FlowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evolution': {
+      id: '/evolution'
+      path: '/evolution'
+      fullPath: '/evolution'
+      preLoaderRoute: typeof EvolutionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/credentials': {
@@ -165,6 +358,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/oe-workflows/create': {
+      id: '/oe-workflows/create'
+      path: '/create'
+      fullPath: '/oe-workflows/create'
+      preLoaderRoute: typeof OeWorkflowsCreateRouteImport
+      parentRoute: typeof OeWorkflowsRoute
+    }
+    '/oe-workflows/$workflowId': {
+      id: '/oe-workflows/$workflowId'
+      path: '/$workflowId'
+      fullPath: '/oe-workflows/$workflowId'
+      preLoaderRoute: typeof OeWorkflowsWorkflowIdRouteImport
+      parentRoute: typeof OeWorkflowsRoute
+    }
+    '/oe-teams/$teamId': {
+      id: '/oe-teams/$teamId'
+      path: '/$teamId'
+      fullPath: '/oe-teams/$teamId'
+      preLoaderRoute: typeof OeTeamsTeamIdRouteImport
+      parentRoute: typeof OeTeamsRoute
+    }
+    '/oe-gauntlets/$gauntletId': {
+      id: '/oe-gauntlets/$gauntletId'
+      path: '/$gauntletId'
+      fullPath: '/oe-gauntlets/$gauntletId'
+      preLoaderRoute: typeof OeGauntletsGauntletIdRouteImport
+      parentRoute: typeof OeGauntletsRoute
+    }
     '/flow/$flowId': {
       id: '/flow/$flowId'
       path: '/flow/$flowId'
@@ -172,14 +393,96 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FlowFlowIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evolution/insights': {
+      id: '/evolution/insights'
+      path: '/insights'
+      fullPath: '/evolution/insights'
+      preLoaderRoute: typeof EvolutionInsightsRouteImport
+      parentRoute: typeof EvolutionRoute
+    }
+    '/oe-workflows/$workflowId/execute': {
+      id: '/oe-workflows/$workflowId/execute'
+      path: '/execute'
+      fullPath: '/oe-workflows/$workflowId/execute'
+      preLoaderRoute: typeof OeWorkflowsWorkflowIdExecuteRouteImport
+      parentRoute: typeof OeWorkflowsWorkflowIdRoute
+    }
   }
 }
+
+interface EvolutionRouteChildren {
+  EvolutionInsightsRoute: typeof EvolutionInsightsRoute
+}
+
+const EvolutionRouteChildren: EvolutionRouteChildren = {
+  EvolutionInsightsRoute: EvolutionInsightsRoute,
+}
+
+const EvolutionRouteWithChildren = EvolutionRoute._addFileChildren(
+  EvolutionRouteChildren,
+)
+
+interface OeGauntletsRouteChildren {
+  OeGauntletsGauntletIdRoute: typeof OeGauntletsGauntletIdRoute
+}
+
+const OeGauntletsRouteChildren: OeGauntletsRouteChildren = {
+  OeGauntletsGauntletIdRoute: OeGauntletsGauntletIdRoute,
+}
+
+const OeGauntletsRouteWithChildren = OeGauntletsRoute._addFileChildren(
+  OeGauntletsRouteChildren,
+)
+
+interface OeTeamsRouteChildren {
+  OeTeamsTeamIdRoute: typeof OeTeamsTeamIdRoute
+}
+
+const OeTeamsRouteChildren: OeTeamsRouteChildren = {
+  OeTeamsTeamIdRoute: OeTeamsTeamIdRoute,
+}
+
+const OeTeamsRouteWithChildren =
+  OeTeamsRoute._addFileChildren(OeTeamsRouteChildren)
+
+interface OeWorkflowsWorkflowIdRouteChildren {
+  OeWorkflowsWorkflowIdExecuteRoute: typeof OeWorkflowsWorkflowIdExecuteRoute
+}
+
+const OeWorkflowsWorkflowIdRouteChildren: OeWorkflowsWorkflowIdRouteChildren = {
+  OeWorkflowsWorkflowIdExecuteRoute: OeWorkflowsWorkflowIdExecuteRoute,
+}
+
+const OeWorkflowsWorkflowIdRouteWithChildren =
+  OeWorkflowsWorkflowIdRoute._addFileChildren(
+    OeWorkflowsWorkflowIdRouteChildren,
+  )
+
+interface OeWorkflowsRouteChildren {
+  OeWorkflowsWorkflowIdRoute: typeof OeWorkflowsWorkflowIdRouteWithChildren
+  OeWorkflowsCreateRoute: typeof OeWorkflowsCreateRoute
+}
+
+const OeWorkflowsRouteChildren: OeWorkflowsRouteChildren = {
+  OeWorkflowsWorkflowIdRoute: OeWorkflowsWorkflowIdRouteWithChildren,
+  OeWorkflowsCreateRoute: OeWorkflowsCreateRoute,
+}
+
+const OeWorkflowsRouteWithChildren = OeWorkflowsRoute._addFileChildren(
+  OeWorkflowsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CredentialsRoute: CredentialsRoute,
+  EvolutionRoute: EvolutionRouteWithChildren,
   FlowsRoute: FlowsRoute,
   HomeRoute: HomeRoute,
+  OeAnalyticsRoute: OeAnalyticsRoute,
+  OeGauntletsRoute: OeGauntletsRouteWithChildren,
+  OeSettingsRoute: OeSettingsRoute,
+  OeTeamsRoute: OeTeamsRouteWithChildren,
+  OeWorkflowsRoute: OeWorkflowsRouteWithChildren,
   PricingRoute: PricingRoute,
   SettingsRoute: SettingsRoute,
   FlowFlowIdRoute: FlowFlowIdRoute,

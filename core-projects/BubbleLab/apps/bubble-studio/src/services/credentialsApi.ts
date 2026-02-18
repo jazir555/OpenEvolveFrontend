@@ -10,6 +10,18 @@ export const credentialsApi = {
     return api.get<CredentialResponse[]>('/credentials');
   },
 
+  getDefaultCredentialValue: async (
+    credentialType: string
+  ): Promise<{ value: string | null }> => {
+    try {
+      return await api.get<{ value: string | null }>(
+        `/credentials/default-value?credentialType=${encodeURIComponent(credentialType)}`
+      );
+    } catch {
+      return { value: null };
+    }
+  },
+
   initiateOAuth: async (
     provider: string,
     credentialType: string,

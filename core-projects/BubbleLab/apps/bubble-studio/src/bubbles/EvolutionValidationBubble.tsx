@@ -126,11 +126,11 @@ const ValidationResultSchema = z.object({
 // ==================== Type Definitions ====================
 
 type EvolvedCode = z.output<typeof EvolvedCodeSchema>;
-type ValidationInput = z.input<typeof ValidationInputSchema>;
-type Z3ValidationResult = z.output<typeof Z3ValidationResultSchema>;
-type LeanAideProofResult = z.output<typeof LeanAideProofResultSchema>;
-type TestResults = z.output<typeof TestResultsSchema>;
-type ValidationResult = z.output<typeof ValidationResultSchema>;
+export type ValidationInput = z.input<typeof ValidationInputSchema>;
+export type Z3ValidationResult = z.output<typeof Z3ValidationResultSchema>;
+export type LeanAideProofResult = z.output<typeof LeanAideProofResultSchema>;
+export type TestResults = z.output<typeof TestResultsSchema>;
+export type ValidationResult = z.output<typeof ValidationResultSchema>;
 
 // ==================== Evolution Validation Bubble ====================
 
@@ -449,7 +449,7 @@ export class EvolutionValidationBubble extends WorkflowBubble<ValidationInput, V
     // For now, we simulate proof generation based on code complexity
 
     const codeLength = code.code.length;
-    const complexity = code.split('\n').length;
+    const complexity = code.code.split('\n').length;
 
     // Simulate: simpler code is more likely to be provable
     return complexity < 100 && codeLength < 5000;
@@ -559,7 +559,9 @@ by
    * Generate comprehensive validation report
    * Combines all validation components into a summary
    */
-  private generateValidationReport(components: ValidationComponents): Omit<ValidationResult, 'success' | 'error' | 'timing'> {
+  private generateValidationReport(
+    components: ValidationComponents
+  ): Omit<ValidationResult, 'error' | 'timing'> {
     let valid = true;
     let confidence = 0.0;
     const recommendations: string[] = [];
@@ -635,6 +637,7 @@ by
       : 'Validation completed';
 
     return {
+      success: true,
       valid,
       confidence,
       z3: components.z3,

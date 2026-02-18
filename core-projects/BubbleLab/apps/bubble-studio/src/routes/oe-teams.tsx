@@ -1,40 +1,36 @@
 /**
- * Gauntlets Management Page
- * Create, edit, and delete gauntlets
+ * Teams Management Page
+ * Create, edit, and delete teams
  */
 
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { useGauntlets, useCreateGauntlet } from '../hooks/use-gauntlets-api';
-import { GauntletList } from '../components/gauntlet/GauntletList';
-import { GauntletEditorModal } from '../components/gauntlet/GauntletEditorModal';
-import { CreateGauntletRequest } from '../types/api';
+import { useTeams, useCreateTeam } from '../hooks/use-teams-api';
+import { TeamList } from '../components/team/TeamList';
+import { TeamEditorModal } from '../components/team/TeamEditorModal';
+import { CreateTeamRequest } from '../types/api';
 
-export const Route = createFileRoute('/oe-gauntlets')({
-  component: GauntletsPage,
+export const Route = createFileRoute('/oe-teams')({
+  component: TeamsPage,
 });
 
-function GauntletsPage() {
-  const { data: gauntlets, isLoading, error } = useGauntlets();
-  const createGauntlet = useCreateGauntlet();
-
+function TeamsPage() {
+  const { data: teams, isLoading, error } = useTeams();
+  const createTeam = useCreateTeam();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSaveGauntlet = async (gauntletData: CreateGauntletRequest) => {
-    await createGauntlet.mutateAsync(gauntletData);
+  const handleSaveTeam = async (teamData: CreateTeamRequest) => {
+    await createTeam.mutateAsync(teamData);
     setIsModalOpen(false);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Gauntlets
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Teams</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Configure validation gauntlets for quality assurance
+            Configure OpenEvolve teams for workflow execution
           </p>
         </div>
         <button
@@ -48,19 +44,17 @@ function GauntletsPage() {
               clipRule="evenodd"
             />
           </svg>
-          Create Gauntlet
+          Create Team
         </button>
       </div>
 
-      {/* Gauntlet List */}
-      <GauntletList gauntlets={gauntlets || []} isLoading={isLoading} error={error} />
+      <TeamList teams={teams || []} isLoading={isLoading} error={error} />
 
-      {/* Create/Edit Modal */}
-      <GauntletEditorModal
+      <TeamEditorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveGauntlet}
-        isSaving={createGauntlet.isPending}
+        onSave={handleSaveTeam}
+        isSaving={createTeam.isPending}
       />
     </div>
   );

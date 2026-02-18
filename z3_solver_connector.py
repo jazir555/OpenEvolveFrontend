@@ -153,47 +153,84 @@ class Z3SolverConnector:
             )
 
         try:
-            # Create solver
-            solver = self.create_solver(request.config)
+            if not Z3_AVAILABLE:
+                return SolverResponse(
+                    request_id=request.id,
+                    status=Z3ResultStatus.ERROR,
+                    error="Z3 not available",
+                    solve_time=time.time() - start_time
+                )
 
-            # Add variables
+            # Use Z3 directly for reliable constraint handling
+            import z3
+            z3_solver = z3.Solver()
+            z3_solver.set("timeout", (request.config.timeout if request.config else self.default_config.timeout))
+
+            # Create Z3 variables
+            z3_vars = {}
             for var_name, var_type in request.variables.items():
-                var = Z3Variable(name=var_name, var_type=var_type)
-                solver.add_variable(var)
+                if var_type == 'int':
+                    z3_vars[var_name] = z3.Int(var_name)
+                elif var_type == 'real':
+                    z3_vars[var_name] = z3.Real(var_name)
+                elif var_type == 'bool':
+                    z3_vars[var_name] = z3.Bool(var_name)
+                else:
+                    z3_vars[var_name] = z3.Int(var_name)  # Default
 
             # Add constraints
             for constraint_str in request.constraints:
-                constraint = Z3Constraint(
-                    expression=constraint_str,
-                    constraint_type=Z3ConstraintType.CONJUNCTION
-                )
-                parsed = solver.parse_constraint_string(constraint_str)
-                if parsed:
-                    constraint.z3_constraint = parsed
-                solver.add_constraint(constraint)
+                try:
+                    # Try to parse as SMT-LIB
+                    if constraint_str.startswith('(') and constraint_str.endswith(')'):
+                        parsed = z3.parse_smt2_string(f"(assert {constraint_str})", decls=z3_vars)
+                        if parsed:
+                            z3_solver.add(parsed)
+                    else:
+                        # Try to evaluate as Python expression with Z3 variables
+                        # Safe evaluation with limited builtins
+                        safe_dict = {**z3_vars, 'And': z3.And, 'Or': z3.Or, 'Not': z3.Not, 'Implies': z3.Implies}
+                        expr = eval(constraint_str, {"__builtins__": {}}, safe_dict)
+                        z3_solver.add(expr)
+                except Exception as parse_err:
+                    logger.debug(f"Failed to parse constraint '{constraint_str}': {parse_err}")
+                    # Continue with other constraints
 
             # Check satisfiability
-            result = solver.check()
+            result = z3_solver.check()
 
-            # Extract model if available
+            # Extract model if SAT
             model_dict = None
-            if result.model and result.model.variables:
-                model_dict = result.model.variables
+            if result == z3.sat:
+                model = z3_solver.model()
+                model_dict = {}
+                for var_name, z3_var in z3_vars.items():
+                    try:
+                        val = model[z3_var]
+                        model_dict[var_name] = str(val)
+                    except:
+                        model_dict[var_name] = None
 
-            # Extract proof if available
-            proof_str = result.proof if hasattr(result, 'proof') else None
+            # Map result to our status
+            if result == z3.sat:
+                status = Z3ResultStatus.SAT
+            elif result == z3.unsat:
+                status = Z3ResultStatus.UNSAT
+            else:
+                status = Z3ResultStatus.UNKNOWN
 
             return SolverResponse(
                 request_id=request.id,
-                status=result.status,
+                status=status,
                 model=model_dict,
-                proof=proof_str,
                 solve_time=time.time() - start_time,
-                solver_info=result.solver_info
+                solver_info={"z3_result": str(result)}
             )
 
         except Exception as e:
             logger.error(f"Solver error for request {request.id}: {e}")
+            import traceback
+            traceback.print_exc()
             return SolverResponse(
                 request_id=request.id,
                 status=Z3ResultStatus.ERROR,

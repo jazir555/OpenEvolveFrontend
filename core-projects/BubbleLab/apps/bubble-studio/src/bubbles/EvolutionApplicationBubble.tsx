@@ -120,14 +120,14 @@ const ApplicationResultSchema = z.object({
 
 // ==================== Type Definitions ====================
 
-type EvolvedCode = z.output<typeof EvolvedCodeSchema>;
-type TargetConfig = z.output<typeof TargetConfigSchema>;
-type DeploymentConfig = z.output<typeof DeploymentConfigSchema>;
-type ApplicationInput = z.input<typeof ApplicationInputSchema>;
+export type EvolvedCode = z.output<typeof EvolvedCodeSchema>;
+export type TargetConfig = z.output<typeof TargetConfigSchema>;
+export type DeploymentConfig = z.output<typeof DeploymentConfigSchema>;
+export type ApplicationInput = z.input<typeof ApplicationInputSchema>;
 type ValidationResult = z.output<typeof ValidationResultSchema>;
 type Application = z.output<typeof ApplicationSchema>;
 type Deployment = z.output<typeof DeploymentSchema>;
-type ApplicationResult = z.output<typeof ApplicationResultSchema>;
+export type ApplicationResult = z.output<typeof ApplicationResultSchema>;
 
 // ==================== Evolution Application Bubble ====================
 
@@ -214,6 +214,13 @@ export class EvolutionApplicationBubble extends WorkflowBubble<ApplicationInput,
 
       // 1. Receive evolved code from OpenEvolve
       const evolvedCode = this.params.evolvedCode;
+      const targetConfig: TargetConfig = {
+        targetSystem: this.params.targetConfig.targetSystem,
+        targetPath: this.params.targetConfig.targetPath,
+        deploymentMethod: this.params.targetConfig.deploymentMethod ?? 'file',
+        environment: this.params.targetConfig.environment ?? 'development',
+        rollbackEnabled: this.params.targetConfig.rollbackEnabled ?? true,
+      };
 
       // 2. Validate code structure
       const validationStart = Date.now();
@@ -232,7 +239,7 @@ export class EvolutionApplicationBubble extends WorkflowBubble<ApplicationInput,
 
       // 3. Apply code to target system
       const applicationStart = Date.now();
-      const application = await this.applyCode(evolvedCode, this.params.targetConfig);
+      const application = await this.applyCode(evolvedCode, targetConfig);
       timing.application = Date.now() - applicationStart;
 
       logger.info({
@@ -252,7 +259,11 @@ export class EvolutionApplicationBubble extends WorkflowBubble<ApplicationInput,
           await this.runTests(evolvedCode);
         }
 
-        deployment = await this.deployCode(application, this.params.deploymentConfig);
+        deployment = await this.deployCode(
+          application,
+          this.params.deploymentConfig,
+          targetConfig
+        );
         timing.deployment = Date.now() - deploymentStart;
 
         logger.info({
@@ -558,22 +569,32 @@ export class EvolutionApplicationBubble extends WorkflowBubble<ApplicationInput,
   /**
    * Deploy code via BubbleLab workflows
    */
-  private async deployCode(application: Application, config: DeploymentConfig = {}): Promise<Deployment> {
+  private async deployCode(
+    application: Application,
+    config?: Partial<DeploymentConfig>,
+    targetConfig?: TargetConfig
+  ): Promise<Deployment> {
     const deploymentId = `deploy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const resolvedConfig: DeploymentConfig = {
+      autoDeploy: config?.autoDeploy ?? false,
+      testBeforeDeploy: config?.testBeforeDeploy ?? true,
+      deployTimeout: config?.deployTimeout ?? 300000,
+      verifyAfterDeploy: config?.verifyAfterDeploy ?? true,
+    };
 
     logger.info({
       msg: 'Deploying code',
       component: 'EvolutionApplicationBubble',
       deployment_id: deploymentId,
       application_id: application.applicationId,
-      auto_deploy: config.autoDeploy,
+      auto_deploy: resolvedConfig.autoDeploy,
     });
 
     const deployedAt = new Date().toISOString();
 
     // In a real implementation, this would trigger BubbleLab deployment workflows
     const url = `https://deploy.example.com/${deploymentId}`;
-    const rollbackUrl = config.rollbackEnabled
+    const rollbackUrl = targetConfig?.rollbackEnabled
       ? `https://deploy.example.com/${deploymentId}/rollback`
       : undefined;
 

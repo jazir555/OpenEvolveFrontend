@@ -40,7 +40,7 @@ export function WorkflowCard({ workflow, onDelete, onDuplicate }: WorkflowCardPr
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <Link
-            to="/workflows/$workflowId"
+            to="/oe-workflows/$workflowId"
             params={{ workflowId: workflow.id }}
             className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
           >
@@ -94,7 +94,7 @@ export function WorkflowCard({ workflow, onDelete, onDuplicate }: WorkflowCardPr
         {/* Actions */}
         <div className="flex items-center gap-2">
           <Link
-            to="/workflows/$workflowId/execute"
+            to="/oe-workflows/$workflowId/execute"
             params={{ workflowId: workflow.id }}
             className="px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >

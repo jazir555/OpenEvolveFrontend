@@ -84,10 +84,10 @@ const EvolutionResultSchema = z.object({
 // ==================== Type Definitions ====================
 
 type ProblemContext = z.output<typeof ProblemContextSchema>;
-type EvolutionInput = z.input<typeof EvolutionInputSchema>;
-type EvolutionRequest = z.output<typeof EvolutionInputSchema>;
+export type EvolutionInput = z.input<typeof EvolutionInputSchema>;
+export type EvolutionRequest = z.output<typeof EvolutionInputSchema>;
 type EvolutionSummary = z.output<typeof EvolutionSummarySchema>;
-type EvolutionResult = z.output<typeof EvolutionResultSchema>;
+export type EvolutionResult = z.output<typeof EvolutionResultSchema>;
 
 // ==================== Evolution Trigger Bubble ====================
 
@@ -165,21 +165,25 @@ export class EvolutionTriggerBubble extends WorkflowBubble<EvolutionInput, Evolu
       logger.info({
         msg: 'Starting evolution workflow',
         component: 'EvolutionTriggerBubble',
-        workflow_type: this.params.workflowType,
-        iterations: this.params.iterations,
-        population_size: this.params.populationSize,
+        workflow_type: this.params.workflowType ?? 'evolution',
+        iterations: this.params.iterations ?? 100,
+        population_size: this.params.populationSize ?? 50,
       });
 
       // 1. Extract problem context
       const problemContext = this.analyzeProblem();
 
       // 2. Create evolution request
+      const workflowType = this.params.workflowType ?? 'evolution';
+      const iterations = this.params.iterations ?? 100;
+      const populationSize = this.params.populationSize ?? 50;
+
       const evolutionRequest: EvolutionRequest = {
         problemStatement: problemContext.description,
         context: problemContext.context,
-        workflowType: this.params.workflowType,
-        iterations: this.params.iterations,
-        populationSize: this.params.populationSize,
+        workflowType,
+        iterations,
+        populationSize,
         teams: this.params.teams,
         gauntlets: this.params.gauntlets,
       };
@@ -188,7 +192,7 @@ export class EvolutionTriggerBubble extends WorkflowBubble<EvolutionInput, Evolu
       const openEvolveResult = await this.triggerEvolution(evolutionRequest);
 
       // 4. Monitor evolution progress
-      const finalResult = await this.monitorProgress(openEvolveResult.executionId);
+      const finalResult = await this.monitorProgress(openEvolveResult.execution_id);
 
       // Record success for circuit breaker
       EvolutionTriggerBubble.recordSuccess();

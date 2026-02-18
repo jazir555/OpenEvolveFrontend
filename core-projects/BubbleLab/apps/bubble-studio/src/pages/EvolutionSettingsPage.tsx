@@ -70,7 +70,7 @@ const PROVIDER_OPTIONS = [
   {
     value: 'deepseek',
     label: 'DeepSeek',
-    credentialType: CredentialType.DEEPSEEK_CRED,
+    credentialType: CredentialType.OPENROUTER_CRED,
   },
 ] as const;
 

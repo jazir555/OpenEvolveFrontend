@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type Query } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { api } from '../lib/api';
 import type {
@@ -36,17 +36,12 @@ export function useBubbleFlow(
     refetchInterval?:
       | number
       | false
-      | ((
-          query: UseQueryResult<
-            BubbleFlowDetailsResponse,
-            Error
-          >
-        ) => number | false);
+      | ((query: Query<BubbleFlowDetailsResponse, Error>) => number | false);
   }
 ): UseBubbleFlowResult {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
+  const query = useQuery<BubbleFlowDetailsResponse, Error>({
     queryKey: ['bubbleFlow', flowId],
     queryFn: async () => {
       if (!flowId) {

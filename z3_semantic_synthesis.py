@@ -207,9 +207,10 @@ class Z3SemanticSynthesizer:
 
         # Add specification constraints
         for constraint_str in sketch.constraints:
+            from z3prover_integration import Z3ConstraintType
             constraint = Z3Constraint(
                 expression=constraint_str,
-                constraint_type=z3.Z3ConstraintType.CONJUNCTION
+                constraint_type=Z3ConstraintType.CONJUNCTION
             )
             solver.add_constraint(constraint)
 
@@ -217,10 +218,11 @@ class Z3SemanticSynthesizer:
         for cex in counterexamples:
             for var, val in cex.items():
                 # Add constraint: var != val
+                from z3prover_integration import Z3ConstraintType
                 constraint_str = f"(not (= {var} {val}))"
                 constraint = Z3Constraint(
                     expression=constraint_str,
-                    constraint_type=z3.Z3ConstraintType.CONJUNCTION
+                    constraint_type=Z3ConstraintType.CONJUNCTION
                 )
                 solver.add_constraint(constraint)
 
@@ -244,9 +246,10 @@ class Z3SemanticSynthesizer:
         # Add candidate as negation
         # For simplicity, we assume candidate is valid if spec is SAT
         for constraint_str in spec:
+            from z3prover_integration import Z3ConstraintType
             constraint = Z3Constraint(
                 expression=constraint_str,
-                constraint_type=z3.Z3ConstraintType.CONJUNCTION
+                constraint_type=Z3ConstraintType.CONJUNCTION
             )
             solver.add_constraint(constraint)
 

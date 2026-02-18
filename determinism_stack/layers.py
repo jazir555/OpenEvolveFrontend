@@ -108,6 +108,10 @@ class DecompositionAdapter:
 
     def __init__(self):
         self._solver = None
+        self._maker = None
+        self._mdap = None
+        
+        # ROMA integration
         roma = optional_import("roma_dspy")
         if roma:
             try:
@@ -120,8 +124,33 @@ class DecompositionAdapter:
                         self._solver = solver_cls()
             except Exception:
                 self._solver = None
+        
+        # MAKER integration
+        maker = optional_import("maker_engine")
+        if maker:
+            try:
+                self._maker = getattr(maker, "MakerEngine", None)
+            except Exception:
+                self._maker = None
+                
+        # MDAP integration
+        mdap = optional_import("adaptive_mdap")
+        if mdap:
+            try:
+                self._mdap = getattr(mdap, "AdaptiveMDAPAllocator", None)
+            except Exception:
+                self._mdap = None
 
     def atomize(self, requirement: str) -> List[str]:
+        # Try MDAP first if available
+        if self._mdap:
+            try:
+                allocator = self._mdap()
+                # Simplified atomization via MDAP
+                return [requirement] # Placeholder for actual MDAP call
+            except Exception:
+                pass
+                
         if self._solver and hasattr(self._solver, "atomize"):
             try:
                 return list(self._solver.atomize(requirement))
