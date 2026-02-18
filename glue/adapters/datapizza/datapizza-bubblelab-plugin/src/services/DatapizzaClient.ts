@@ -11,7 +11,7 @@
  * - Retry Logic: Exponential backoff for transient failures
  */
 
-import { logger, LogContext } from '../../../glue/lib/structuredLogger';
+import { logger, LogContext } from '../../../../../lib/structuredLogger';
 
 export interface DatapizzaClientConfig {
   baseUrl: string;
@@ -543,12 +543,10 @@ export class DatapizzaClient {
 
     try {
       // Add API key header if provided
-      const headers: HeadersInit = {
-        ...options.headers,
-      };
+      const headers = new Headers(options.headers);
 
       if (this.config.apiKey) {
-        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+        headers.set('Authorization', `Bearer ${this.config.apiKey}`);
       }
 
       const response = await fetch(url, {

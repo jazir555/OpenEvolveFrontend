@@ -46,6 +46,66 @@ except ImportError:
         "OPTIMIZATION", "SECURITY_POLICY", "GAUNTLET_OUTCOME"
     ])
 
+    @dataclass
+    class ICRPattern:
+        """Stub ICR Pattern for graceful degradation."""
+        pattern_id: str
+        pattern_type: ICRPatternType
+        context: Dict[str, Any]
+        passed: bool
+        metrics: Dict[str, Any]
+        timestamp: str
+
+    @dataclass
+    class ICRPrediction:
+        """Stub ICR Prediction for graceful degradation."""
+        pattern_type: ICRPatternType
+        predicted_outcome: bool
+        confidence: float
+        recommended_action: str
+        timestamp: str
+
+    class ICRPatternStore:
+        """Stub ICR Pattern Store for graceful degradation."""
+        def __init__(self):
+            self._patterns = {}
+
+        def store_pattern(self, pattern_type, context, passed, metrics):
+            import uuid
+            pattern_id = str(uuid.uuid4())
+            self._patterns[pattern_id] = {
+                "pattern_type": pattern_type,
+                "context": context,
+                "passed": passed,
+                "metrics": metrics
+            }
+            return pattern_id
+
+        def get_patterns(self, pattern_type):
+            return [p for p in self._patterns.values() if p.get("pattern_type") == pattern_type]
+
+    class ICRPredictor:
+        """Stub ICR Predictor for graceful degradation."""
+        def __init__(self, pattern_store):
+            self.pattern_store = pattern_store
+
+        def predict(self, pattern_type, context):
+            return ICRPrediction(
+                pattern_type=pattern_type,
+                predicted_outcome=True,
+                confidence=0.5,
+                recommended_action="DEFAULT",
+                timestamp=datetime.now(timezone.utc).isoformat()
+            )
+
+    def get_icr_integration():
+        """Stub function returning mock integration."""
+        from types import SimpleNamespace
+        return SimpleNamespace(
+            pattern_store=ICRPatternStore(),
+            predictor=ICRPredictor(ICRPatternStore())
+        )
+
 logger = logging.getLogger(__name__)
 
 

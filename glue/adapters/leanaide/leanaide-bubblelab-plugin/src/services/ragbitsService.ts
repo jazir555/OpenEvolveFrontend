@@ -7,7 +7,7 @@ import {
 } from '../lib/ragbitsClient';
 
 const DEFAULT_RAGBITS_CONFIG = {
-  serverUrl: 'http://localhost:3000/ragbits',
+  serverUrl: import.meta.env.VITE_RAGBITS_SERVER_URL || 'http://localhost:3000/ragbits',
 };
 
 let ragbitsClient: RagbitsClient | null = null;

@@ -5,9 +5,9 @@
  * It provides methods for executing tasks, managing executions, and configuring MCP servers and toolkits.
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import {
-  RomaClient,
+  RomaClient as RomaClientInterface,
   RomaClientConfig,
   RomaExecutionResult,
   RomaExecutionOptions,
@@ -15,13 +15,14 @@ import {
   RomaToolkitConfig,
   RomaExecutionStatistics,
   RomaExecutionStatus,
+  RomaPluginConfig,
   RomaPluginError
 } from '../types/plugin-types';
 
 /**
  * ROMA Client Implementation
  */
-export class RomaClient implements RomaClient {
+export class RomaClient implements RomaClientInterface {
   public config: RomaClientConfig;
   private axiosInstance: AxiosInstance;
   private isInitialized: boolean = false;
@@ -32,7 +33,7 @@ export class RomaClient implements RomaClient {
    */
   constructor(config: RomaClientConfig) {
     this.config = {
-      baseUrl: config.baseUrl || 'http://localhost:8000',
+      baseUrl: config.baseUrl || import.meta.env.VITE_ROMA_SERVER_URL || 'http://localhost:8000',
       apiKey: config.apiKey,
       timeout: config.timeout || 30000,
       headers: config.headers || {}

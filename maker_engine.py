@@ -423,6 +423,7 @@ class MakerEngine:
         self,
         run_id: str,
         success: bool,
+        duration: float,
         steps_completed: int
     ):
         """**ACTUAL INTEGRATION**: Track Maker performance in adaptive selector."""
@@ -439,7 +440,7 @@ class MakerEngine:
                 average_quality=1.0 if success else 0.0,
                 last_used=datetime.now(),
                 total_attempts=1,
-                metadata={"steps_completed": steps_completed}
+                metadata={"steps_completed": steps_completed, "duration": duration}
             )
 
             if hasattr(tracker, 'performance_history'):

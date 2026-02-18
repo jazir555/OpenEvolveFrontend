@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { DatapizzaPluginConfig, DatapizzaPluginState, DatapizzaPlugin, 
          DatapizzaPipelineResult, DatapizzaProcessingResult, DatapizzaQueryResult,
-         DEFAULT_DATAPIZZA_CONFIG, DATAPIZZA_PIPELINE_TYPES, DATAPIZZA_DATA_DOMAINS } from '../types/plugin-types';
+         DatapizzaPluginContext, DEFAULT_DATAPIZZA_CONFIG, DATAPIZZA_PIPELINE_TYPES, DATAPIZZA_DATA_DOMAINS } from '../types/plugin-types';
 import { DatapizzaClient } from '../services/DatapizzaClient';
 import { DatapizzaService } from '../services/DatapizzaService';
 
@@ -60,7 +60,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
   const client = new DatapizzaClient({
     baseUrl: config.serverUrl,
     apiKey: config.apiKey,
-    timeout: config.timeout
+    timeout: config.timeout ?? DEFAULT_DATAPIZZA_CONFIG.timeout
   });
 
   const service = new DatapizzaService(client);
@@ -89,7 +89,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         client.configure({
           baseUrl: config.serverUrl,
           apiKey: config.apiKey,
-          timeout: config.timeout
+          timeout: config.timeout ?? DEFAULT_DATAPIZZA_CONFIG.timeout
         });
 
         // Test connection
@@ -114,7 +114,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         client.configure({
           baseUrl: config.serverUrl,
           apiKey: config.apiKey,
-          timeout: config.timeout
+          timeout: config.timeout ?? DEFAULT_DATAPIZZA_CONFIG.timeout
         });
 
         toast.success('Datapizza configuration updated successfully');
@@ -132,7 +132,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
       client.configure({
         baseUrl: config.serverUrl,
         apiKey: config.apiKey,
-        timeout: config.timeout
+        timeout: config.timeout ?? DEFAULT_DATAPIZZA_CONFIG.timeout
       });
 
       toast.success('Datapizza configuration reset to defaults');

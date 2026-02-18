@@ -1205,12 +1205,25 @@ class ROMAIntegration:
 
         # Verify each requirement
         for req_name, req_value in requirements.items():
-            req_result = await self._verify_single_requirement(
-                solution, req_name, req_value
-            )
-            requirements_met[req_name] = req_result['passed']
-            validation_scores.append(req_result['score'])
-            feedback_items.append(f"{req_name}: {req_result['feedback']}")
+            try:
+                req_result = await self._verify_single_requirement(
+                    solution, req_name, req_value
+                )
+                requirements_met[req_name] = req_result['passed']
+                validation_scores.append(req_result['score'])
+                feedback_items.append(f"{req_name}: {req_result['feedback']}")
+            except Exception as e:
+                # Log the error with full traceback
+                import traceback as tb
+                logger.error({
+                    "msg": f"Failed to verify requirement '{req_name}'",
+                    "req_name": req_name,
+                    "req_value": str(req_value),
+                    "error": str(e),
+                    "traceback": tb.format_exc(),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                raise  # Re-raise to fail the verification
 
         # Calculate overall score
         overall_score = sum(validation_scores) / len(validation_scores) if validation_scores else 0.0
@@ -1257,130 +1270,152 @@ class ROMAIntegration:
         """
         req_lower = req_name.lower()
 
-        # Completeness checks
-        if 'completeness' in req_lower:
-            # Check if solution has sufficient content
-            solution_length = len(str(solution.solution))
-
-            if isinstance(req_value, bool):
-                passed = req_value == (solution_length > 50)
-                score = 1.0 if passed else 0.5
-                feedback = f"Solution length {solution_length} chars {'passes' if passed else 'fails'} completeness requirement"
-            elif isinstance(req_value, (int, float)):
-                min_length = req_value * 100  # Convert to characters
-                passed = solution_length >= min_length
-                score = min(solution_length / min_length, 1.0) if min_length > 0 else 1.0
-                feedback = f"Solution length {solution_length} chars vs required {min_length}"
-            else:
-                passed = True
-                score = 0.8
-                feedback = "Completeness check: standard criteria applied"
-
-        # Correctness checks
-        elif 'correctness' in req_lower or 'accuracy' in req_lower:
-            # Check against confidence threshold
-            if isinstance(req_value, (int, float)):
-                threshold = req_value
-                passed = solution.confidence >= threshold
-                score = solution.confidence
-                feedback = f"Confidence {solution.confidence:.3f} vs threshold {threshold:.3f}: {'passes' if passed else 'fails'}"
-            else:
-                passed = solution.confidence >= 0.7
-                score = solution.confidence
-                feedback = f"Confidence {solution.confidence:.3f} checked against default threshold 0.7"
-
-        # Consistency checks
-        elif 'consistency' in req_lower:
-            # Check internal consistency of solution
-            if isinstance(req_value, bool):
-                # Check if reasoning is consistent with solution
-                has_reasoning = bool(solution.reasoning and len(solution.reasoning) > 20)
-                has_solution = bool(solution.solution and len(str(solution.solution)) > 20)
-                passed = has_reasoning and has_solution
-                score = 1.0 if passed else 0.6
-                feedback = f"Consistency check: reasoning {'present' if has_reasoning else 'missing'}, solution {'present' if has_solution else 'missing'}"
-            else:
-                passed = True
-                score = 0.8
-                feedback = "Consistency check: standard validation passed"
-
-        # Quality checks
-        elif 'quality' in req_lower:
-            # Check quality metrics
-            solution_str = str(solution.solution)
-            word_count = len(solution_str.split())
-
-            if isinstance(req_value, (int, float)):
-                threshold = req_value
-                # Quality based on length and reasoning depth
-                length_score = min(word_count / 50.0, 1.0)
-                reasoning_score = 1.0 if solution.reasoning and len(solution.reasoning) > 50 else 0.7
-                combined_score = (length_score + reasoning_score) / 2.0
-                passed = combined_score >= threshold
-                score = combined_score
-                feedback = f"Quality score {combined_score:.3f} (length: {word_count} words, reasoning: {reasoning_score:.3f})"
-            else:
-                passed = word_count >= 10
-                score = min(word_count / 20.0, 1.0)
-                feedback = f"Quality check: {word_count} words in solution"
-
-        # Performance checks
-        elif 'performance' in req_lower or 'speed' in req_lower:
-            # Check processing performance
-            # In real implementation, this would check timing metrics
+        try:
+            # Initialize default values
             passed = True
-            score = 0.9
-            feedback = "Performance check: acceptable response time"
+            score = 0.8
+            feedback = f"Requirement '{req_name}' validated with default criteria"
 
-        # Custom constraint checks
-        elif 'constraint' in req_lower or 'custom' in req_lower:
-            # Apply custom validation logic
-            if isinstance(req_value, dict):
-                # Structured constraint with rules
-                constraint_type = req_value.get('type', 'general')
-                constraint_value = req_value.get('value')
+            # Completeness checks
+            if 'completeness' in req_lower:
+                # Check if solution has sufficient content
+                solution_length = len(str(solution.solution))
 
-                if constraint_type == 'min_confidence':
-                    passed = solution.confidence >= constraint_value
-                    score = solution.confidence
-                    feedback = f"Min confidence constraint: {solution.confidence:.3f} >= {constraint_value:.3f}"
-                elif constraint_type == 'max_length':
-                    solution_length = len(str(solution.solution))
-                    passed = solution_length <= constraint_value
-                    score = 1.0 - max(0, (solution_length - constraint_value) / constraint_value)
-                    feedback = f"Max length constraint: {solution_length} <= {constraint_value}"
-                elif constraint_type == 'contains':
-                    solution_str = str(solution.solution).lower()
-                    required_terms = [str(constraint_value).lower()] if not isinstance(constraint_value, list) else [str(v).lower() for v in constraint_value]
-                    terms_found = sum(1 for term in required_terms if term in solution_str)
-                    passed = terms_found == len(required_terms)
-                    score = terms_found / len(required_terms) if required_terms else 1.0
-                    feedback = f"Contains constraint: {terms_found}/{len(required_terms)} terms found"
+                if isinstance(req_value, bool):
+                    passed = req_value == (solution_length > 50)
+                    score = 1.0 if passed else 0.5
+                    feedback = f"Solution length {solution_length} chars {'passes' if passed else 'fails'} completeness requirement"
+                elif isinstance(req_value, (int, float)):
+                    min_length = req_value * 100  # Convert to characters
+                    passed = solution_length >= min_length
+                    score = min(solution_length / min_length, 1.0) if min_length > 0 else 1.0
+                    feedback = f"Solution length {solution_length} chars vs required {min_length}"
                 else:
                     passed = True
                     score = 0.8
-                    feedback = f"Custom constraint '{constraint_type}' validated"
-            else:
-                passed = True
-                score = 0.8
-                feedback = "Custom requirement validated"
+                    feedback = "Completeness check: standard criteria applied"
 
-        # Default validation
-        else:
-            # Generic requirement check
-            if isinstance(req_value, bool):
-                passed = req_value  # Assume solution meets boolean requirement
-                score = 1.0 if passed else 0.5
-                feedback = f"Boolean requirement '{req_name}': {'met' if passed else 'not met'}"
-            elif isinstance(req_value, (int, float)):
-                # Assume it's a threshold, use solution confidence
-                passed = solution.confidence >= req_value
-                score = solution.confidence
-                feedback = f"Numeric requirement '{req_name}': confidence {solution.confidence:.3f} vs threshold {req_value:.3f}"
-            else:
+            # Correctness checks
+            elif 'correctness' in req_lower or 'accuracy' in req_lower:
+                # Check against confidence threshold
+                if isinstance(req_value, (int, float)):
+                    threshold = req_value
+                    passed = solution.confidence >= threshold
+                    score = solution.confidence
+                    feedback = f"Confidence {solution.confidence:.3f} vs threshold {threshold:.3f}: {'passes' if passed else 'fails'}"
+                else:
+                    passed = solution.confidence >= 0.7
+                    score = solution.confidence
+                    feedback = f"Confidence {solution.confidence:.3f} checked against default threshold 0.7"
+
+            # Consistency checks
+            elif 'consistency' in req_lower:
+                # Check internal consistency of solution
+                if isinstance(req_value, bool):
+                    # Check if reasoning is consistent with solution
+                    has_reasoning = bool(solution.reasoning and len(solution.reasoning) > 20)
+                    has_solution = bool(solution.solution and len(str(solution.solution)) > 20)
+                    passed = has_reasoning and has_solution
+                    score = 1.0 if passed else 0.6
+                    feedback = f"Consistency check: reasoning {'present' if has_reasoning else 'missing'}, solution {'present' if has_solution else 'missing'}"
+                else:
+                    passed = True
+                    score = 0.8
+                    feedback = "Consistency check: standard validation passed"
+
+            # Quality checks
+            elif 'quality' in req_lower:
+                # Check quality metrics
+                solution_str = str(solution.solution)
+                word_count = len(solution_str.split())
+
+                if isinstance(req_value, (int, float)):
+                    threshold = req_value
+                    # Quality based on length and reasoning depth
+                    length_score = min(word_count / 50.0, 1.0)
+                    reasoning_score = 1.0 if solution.reasoning and len(solution.reasoning) > 50 else 0.7
+                    combined_score = (length_score + reasoning_score) / 2.0
+                    passed = combined_score >= threshold
+                    score = combined_score
+                    feedback = f"Quality score {combined_score:.3f} (length: {word_count} words, reasoning: {reasoning_score:.3f})"
+                else:
+                    passed = word_count >= 10
+                    score = min(word_count / 20.0, 1.0)
+                    feedback = f"Quality check: {word_count} words in solution"
+
+            # Performance checks
+            elif 'performance' in req_lower or 'speed' in req_lower:
+                # Check processing performance
+                # In real implementation, this would check timing metrics
                 passed = True
-                score = 0.8
-                feedback = f"Requirement '{req_name}': validated with default criteria"
+                score = 0.9
+                feedback = "Performance check: acceptable response time"
+
+            # Custom constraint checks
+            elif 'constraint' in req_lower or 'custom' in req_lower:
+                # Apply custom validation logic
+                if isinstance(req_value, dict):
+                    # Structured constraint with rules
+                    constraint_type = req_value.get('type', 'general')
+                    constraint_value = req_value.get('value')
+
+                    if constraint_type == 'min_confidence':
+                        passed = solution.confidence >= constraint_value
+                        score = solution.confidence
+                        feedback = f"Min confidence constraint: {solution.confidence:.3f} >= {constraint_value:.3f}"
+                    elif constraint_type == 'max_length':
+                        solution_length = len(str(solution.solution))
+                        passed = solution_length <= constraint_value
+                        score = 1.0 - max(0, (solution_length - constraint_value) / constraint_value)
+                        feedback = f"Max length constraint: {solution_length} <= {constraint_value}"
+                    elif constraint_type == 'contains':
+                        solution_str = str(solution.solution).lower()
+                        required_terms = [str(constraint_value).lower()] if not isinstance(constraint_value, list) else [str(v).lower() for v in constraint_value]
+                        terms_found = sum(1 for term in required_terms if term in solution_str)
+                        passed = terms_found == len(required_terms)
+                        score = terms_found / len(required_terms) if required_terms else 1.0
+                        feedback = f"Contains constraint: {terms_found}/{len(required_terms)} terms found"
+                    else:
+                        passed = True
+                        score = 0.8
+                        feedback = f"Custom constraint '{constraint_type}' validated"
+                else:
+                    passed = True
+                    score = 0.8
+                    feedback = "Custom requirement validated"
+
+            # Default validation
+            else:
+                # Generic requirement check
+                if isinstance(req_value, bool):
+                    passed = req_value  # Assume solution meets boolean requirement
+                    score = 1.0 if passed else 0.5
+                    feedback = f"Boolean requirement '{req_name}': {'met' if passed else 'not met'}"
+                elif isinstance(req_value, (int, float)):
+                    # Assume it's a threshold, use solution confidence
+                    passed = solution.confidence >= req_value
+                    score = solution.confidence
+                    feedback = f"Numeric requirement '{req_name}': confidence {solution.confidence:.3f} vs threshold {req_value:.3f}"
+                else:
+                    passed = True
+                    score = 0.8
+                    feedback = f"Requirement '{req_name}': validated with default criteria"
+        except Exception as e:
+            import traceback as tb
+            logger.error({
+                "msg": f"Exception in _verify_single_requirement for '{req_name}'",
+                "req_name": req_name,
+                "req_value": str(req_value),
+                "req_type": type(req_value).__name__,
+                "error": str(e),
+                "traceback": tb.format_exc(),
+                "locals_passed": 'passed' in locals(),
+                "locals_score": 'score' in locals(),
+                "locals_feedback": 'feedback' in locals(),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            # Re-raise with more context
+            raise
 
         return {
             'passed': passed,

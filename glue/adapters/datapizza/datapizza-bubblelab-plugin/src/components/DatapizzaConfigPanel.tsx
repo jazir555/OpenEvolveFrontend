@@ -3,7 +3,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Save, Settings, Database, Pipeline, Cpu, Network, Shield, Eye, EyeOff } from 'lucide-react';
-import { DatapizzaPluginConfig, DATAPIZZA_PIPELINE_TYPES, DATAPIZZA_DATA_DOMAINS } from '../types/plugin-types';
+import {
+  DatapizzaPluginConfig,
+  DATAPIZZA_PIPELINE_TYPES,
+  DATAPIZZA_DATA_DOMAINS,
+  DEFAULT_DATAPIZZA_CONFIG
+} from '../types/plugin-types';
 
 export interface DatapizzaConfigPanelProps {
   /** Initial configuration */
@@ -25,47 +30,7 @@ export function DatapizzaConfigPanel({
   onCancel,
   showAdvanced = false
 }: DatapizzaConfigPanelProps) {
-  const [config, setConfig] = useState<DatapizzaPluginConfig>({
-    enabled: true,
-    serverUrl: 'http://localhost:3000/datapizza',
-    apiKey: '',
-    timeout: 300,
-    pipelineEnabled: true,
-    autoDetectDataSources: true,
-    defaultPipelineType: 'standard',
-    dataProcessingConfig: {
-      chunkSize: 1000,
-      overlapSize: 200,
-      embeddingModel: 'text-embedding-ada-002',
-      vectorStoreType: 'qdrant',
-      maxParallelProcesses: 4
-    },
-    agentConfigurations: {
-      agent1: {
-        enabled: true,
-        maxTasks: 10,
-        timeout: 60
-      },
-      agent2: {
-        enabled: true,
-        parallelExecution: true,
-        maxWorkers: 4
-      },
-      agent3: {
-        enabled: true,
-        critiqueLevel: 'standard'
-      }
-    },
-    integrateWithWorkflow: true,
-    integrateWithKnowledgeGraph: true,
-    integrateWithExternalSources: true,
-    enableCaching: true,
-    cacheTTLSeconds: 3600,
-    maxProcessingTime: 300,
-    showAdvancedOptions: false,
-    showDebugInfo: false,
-    theme: 'system'
-  });
+  const [config, setConfig] = useState<DatapizzaPluginConfig>(DEFAULT_DATAPIZZA_CONFIG);
 
   const [showApiKey, setShowApiKey] = useState(false);
 

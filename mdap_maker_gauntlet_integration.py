@@ -165,13 +165,19 @@ class MDAPMakerGauntletIntegration:
                 )
 
                 # Create a mock team for MAKER
+                from workflow_structures import ModelConfig
+                default_model = ModelConfig(
+                    model_id="gpt-4o-mini",
+                    temperature=0.0
+                )
+                
                 try:
                     # Try BubbleLab Team model first
                     from core_projects.BubbleLab.services.openevolve_api.models.team_assignment import Team
                     team = Team(
                         team_id="mdap_maker_gauntlet_team",
                         name="MDAP Maker Gauntlet Team",
-                        members=[],
+                        members=[default_model],
                         description="Auto-generated team for MDAP/MAKER-Gauntlet integration"
                     )
                 except ImportError:
@@ -180,7 +186,8 @@ class MDAPMakerGauntletIntegration:
                         from workflow_structures import Team
                         team = Team(
                             team_id="mdap_maker_gauntlet_team",
-                            name="MDAP Maker Gauntlet Team"
+                            name="MDAP Maker Gauntlet Team",
+                            members=[default_model]
                         )
                     except Exception:
                         # Last resort: create minimal stub
@@ -191,7 +198,8 @@ class MDAPMakerGauntletIntegration:
                                 self.members = members or []
                         team = Team(
                             team_id="mdap_maker_gauntlet_team",
-                            name="MDAP Maker Gauntlet Team"
+                            name="MDAP Maker Gauntlet Team",
+                            members=[default_model]
                         )
                 
                 self.maker_engine = MakerEngine(team=team, config=maker_config)
@@ -388,14 +396,16 @@ class MDAPMakerGauntletIntegration:
                 step_index[0] += 1
                 return MakerStep(
                     step_id=f"gauntlet_eval_{step_index[0]}",
-                    prompt_template="""
-Evaluate the solution for gauntlet: {gauntlet_name}
+                    prompt_template=f"""
+Evaluate the following solution for gauntlet: {gauntlet.name}
 
-Solution: {solution}
-Context: {context}
-Previous evaluations: {history}
+Current Evaluation State (JSON):
+{{state}}
 
-Provide your evaluation score (0.0-1.0) and justification.
+Previous History (JSON):
+{{history}}
+
+Provide your evaluation score (0.0-1.0) and justification in JSON format: {{{{"score": 0.9, "justification": "..."}}}}
                     """,
                     task_type="evaluation",
                     priority=1,
@@ -413,9 +423,9 @@ Provide your evaluation score (0.0-1.0) and justification.
 
             # Initial state as dict (MAKER expects this)
             initial_state = {
-                'solution': solution,
+                'solution': str(solution),
                 'context': context,
-                'gauntlet': gauntlet,
+                'gauntlet_name': gauntlet.name,
                 'votes': []
             }
 

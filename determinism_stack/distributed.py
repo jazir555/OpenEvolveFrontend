@@ -129,15 +129,20 @@ class DistributedDeterminismCoordinator:
             # Simulation mode
             results = [f"[consensus-mock] {prompt}" for _ in range(runs)]
             
-        # Perform majority voting
+        # --- Real Business Logic: Quorum-based consensus ---
         counts = Counter(results)
         winner, count = counts.most_common(1)[0]
         agreement = count / runs
         
-        if agreement >= threshold:
+        # Quorum logic: require at least a majority or the specified threshold
+        quorum_size = (runs // 2) + 1
+        
+        if count >= quorum_size or agreement >= threshold:
+            logger.info(f"Distributed Consensus: Quorum reached ({count}/{runs}).")
             return winner
             
-        # If no majority, use similarity-based consensus
+        # Fallback: Similarity-based best effort
+        logger.warning(f"Distributed Consensus: Quorum NOT reached ({count}/{runs}). Using similarity fallback.")
         best_avg_sim = -1.0
         best_result = results[0]
         

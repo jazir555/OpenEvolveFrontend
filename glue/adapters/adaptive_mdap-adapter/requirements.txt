@@ -35,6 +35,19 @@ responses>=0.23.0
 # Date/time utilities
 python-dateutil>=2.8.0
 
-# Optional: Monitoring and observability
-# prometheus-client>=0.17.0  # Uncomment if using Prometheus
-# opentelemetry-api>=1.20.0  # Uncomment if using OpenTelemetry
+# Async operations
+aiohttp>=3.9.0
+asyncio-throttle>=1.0.0
+
+# Data processing and visualization
+numpy>=1.24.0
+pandas>=2.1.0
+matplotlib>=3.8.0
+plotly>=5.18.0
+
+# Monitoring and observability
+prometheus-client>=0.17.0
+
+# Optional: OpenTelemetry (uncomment if using)
+# opentelemetry-api>=1.20.0
+# opentelemetry-sdk>=1.20.0

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Upload, FileText } from 'lucide-react';
 import type { RAGBitsIngestPanelProps } from '../types/plugin-types';
 import { useRAGBitsPlugin } from '../utils/createRAGBitsPlugin';
-import { ragbitsLogger } from '../../../glue/lib/structuredLogger';
+import { ragbitsLogger } from '../../../../../lib/structuredLogger';
 
 export const RAGBitsIngestPanel: React.FC<RAGBitsIngestPanelProps> = ({
   onSuccess,

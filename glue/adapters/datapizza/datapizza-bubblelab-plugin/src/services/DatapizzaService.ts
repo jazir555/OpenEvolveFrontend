@@ -17,7 +17,7 @@ export class DatapizzaService {
 
   async runPipeline(dataSource: string, pipelineType: string): Promise<DatapizzaPipelineResult> {
     try {
-      const result = await this.client.runPipeline(dataSource, pipelineType);
+      const result = await this.client.runPipeline({ dataSource, pipelineType });
       
       return {
         success: true,
@@ -50,7 +50,7 @@ export class DatapizzaService {
         processedData: null,
         confidenceScore: 0,
         pipelineType,
-        dataDomain: null,
+        dataDomain: undefined,
         errors: [error instanceof Error ? error.message : 'Unknown error'],
         warnings: [],
         executionTime: 0,
@@ -64,7 +64,7 @@ export class DatapizzaService {
 
   async processData(data: any, processingType?: string): Promise<DatapizzaProcessingResult> {
     try {
-      const result = await this.client.processData(data, processingType);
+      const result = await this.client.processData({ data, processingType });
       
       return {
         success: true,
@@ -103,7 +103,7 @@ export class DatapizzaService {
 
   async queryData(query: string, dataSource?: string): Promise<DatapizzaQueryResult> {
     try {
-      const result = await this.client.queryData(query, dataSource);
+      const result = await this.client.queryData({ query, dataSource });
       
       return {
         success: true,
@@ -139,11 +139,13 @@ export class DatapizzaService {
   }
 
   async getPipelineRecommendation(dataSource: string, context?: string): Promise<string> {
-    return await this.client.getPipelineRecommendation(dataSource, context);
+    const recommendation = await this.client.getPipelineRecommendation(dataSource, context);
+    return recommendation.recommendedPipeline;
   }
 
   async detectDataDomain(data: any): Promise<string | null> {
-    return await this.client.detectDataDomain(data);
+    const domain = await this.client.detectDataDomain(data);
+    return domain.domain;
   }
 
   async isProcessableData(data: any): Promise<boolean> {

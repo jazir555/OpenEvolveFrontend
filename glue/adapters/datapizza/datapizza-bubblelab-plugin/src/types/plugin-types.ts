@@ -1,6 +1,8 @@
 // Datapizza Plugin Types and Interfaces
 // Defines all types and interfaces for the BubbleLabs Datapizza plugin
 
+import type { ComponentType, ReactNode } from 'react';
+
 export interface DatapizzaPluginConfig {
   /** Enable/disable the plugin */
   enabled: boolean;
@@ -8,7 +10,7 @@ export interface DatapizzaPluginConfig {
   /** Datapizza server configuration */
   serverUrl: string;
   apiKey?: string;
-  timeout?: number;
+  timeout: number;
   
   /** Pipeline settings */
   pipelineEnabled: boolean;
@@ -221,23 +223,23 @@ export interface DatapizzaPlugin extends DatapizzaPluginMethods {
   };
   
   /** React components */
-  components: {
-    ConfigPanel: React.ComponentType<{ onClose: () => void }>;
-    PipelinePanel: React.ComponentType<{ dataSource: string; onResult: (result: any) => void }>;
-    ProcessingPanel: React.ComponentType<{ data: any; onResult: (result: any) => void }>;
-    QueryPanel: React.ComponentType<{ query: string; onResult: (result: any) => void }>;
-    StatusIndicator: React.ComponentType<{}>;
-    PipelineSelector: React.ComponentType<{ onSelect: (pipeline: string) => void }>;
-  };
+  components?: Partial<{
+    ConfigPanel: ComponentType<{ onClose: () => void }>;
+    PipelinePanel: ComponentType<{ dataSource: string; onResult: (result: any) => void }>;
+    ProcessingPanel: ComponentType<{ data: any; onResult: (result: any) => void }>;
+    QueryPanel: ComponentType<{ query: string; onResult: (result: any) => void }>;
+    StatusIndicator: ComponentType<{}>;
+    PipelineSelector: ComponentType<{ onSelect: (pipeline: string) => void }>;
+  }>;
   
   /** React hooks */
-  hooks: {
+  hooks?: Partial<{
     useDatapizzaConfig: () => [DatapizzaPluginConfig, (config: Partial<DatapizzaPluginConfig>) => void];
     useDatapizzaState: () => DatapizzaPluginState;
     useDatapizzaPipeline: () => (dataSource: string) => Promise<DatapizzaPipelineResult>;
     useDatapizzaProcessing: () => (data: any) => Promise<DatapizzaProcessingResult>;
     useDatapizzaQuery: () => (query: string) => Promise<DatapizzaQueryResult>;
-  };
+  }>;
 }
 
 export interface DatapizzaPluginProps {
@@ -257,7 +259,11 @@ export interface DatapizzaPluginProps {
   onStatusChange?: (status: DatapizzaPluginState['status']) => void;
   
   /** Children components */
-  children?: React.ReactNode;
+  children?: ReactNode;
+}
+
+function getDefaultDatapizzaServerUrl(): string {
+  return import.meta.env.VITE_DATAPIZZA_SERVER_URL || 'http://localhost:3000/datapizza';
 }
 
 export interface DatapizzaConfigPanelProps {
@@ -377,9 +383,9 @@ export const DATAPIZZA_DATA_DOMAINS: Array<{
 
 export const DEFAULT_DATAPIZZA_CONFIG: DatapizzaPluginConfig = {
   enabled: true,
-  serverUrl: 'http://localhost:3000/datapizza',
+  serverUrl: getDefaultDatapizzaServerUrl(),
   apiKey: '',
-  timeout: 300,
+  timeout: 30000,
   pipelineEnabled: true,
   autoDetectDataSources: true,
   defaultPipelineType: 'standard',

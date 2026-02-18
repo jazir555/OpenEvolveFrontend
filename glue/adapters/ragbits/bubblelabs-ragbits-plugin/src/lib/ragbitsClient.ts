@@ -2,7 +2,7 @@
 // Handles HTTP communication with the RAGBits server
 // Updated with structured logging, validation, and proper error handling
 
-import { ragbitsLogger, LogContext } from '../../../glue/lib/structuredLogger';
+import { ragbitsLogger, LogContext } from '../../../../../lib/structuredLogger';
 
 export interface RagbitsClientConfig {
   serverUrl: string;

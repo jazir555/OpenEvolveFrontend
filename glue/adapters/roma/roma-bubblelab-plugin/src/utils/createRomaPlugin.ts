@@ -16,6 +16,7 @@ import {
   RomaExecutionOptions,
   RomaMcpServerConfig,
   RomaToolkitConfig,
+  RomaMdapMakerConfig,
   RomaExecutionStatistics,
   RomaPluginMetadata,
   RomaPluginError,
@@ -123,7 +124,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
 
   // State initialization with statistics and operation history
   const store = createRomaPluginStore(config);
-  const state = store.getState();
+  const getState = () => store.getState();
 
   // Client and service instantiation
   const client = new RomaClient({
@@ -163,23 +164,24 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
    */
   const updateExecutionStatistics = (execution: RomaExecutionResult) => {
     const executionTime = execution.statistics?.executionTime || 0;
+    const currentState = getState();
     
     store.getState().updateStatistics({
-      totalExecutions: state.statistics.totalExecutions + 1,
-      totalExecutionTime: state.statistics.totalExecutionTime + executionTime,
+      totalExecutions: currentState.statistics.totalExecutions + 1,
+      totalExecutionTime: currentState.statistics.totalExecutionTime + executionTime,
       averageExecutionTime: (
-        (state.statistics.totalExecutionTime + executionTime) / 
-        (state.statistics.totalExecutions + 1)
+        (currentState.statistics.totalExecutionTime + executionTime) / 
+        (currentState.statistics.totalExecutions + 1)
       )
     });
 
     if (execution.status === 'completed') {
       store.getState().updateStatistics({
-        successfulExecutions: state.statistics.successfulExecutions + 1
+        successfulExecutions: currentState.statistics.successfulExecutions + 1
       });
     } else if (execution.status === 'failed') {
       store.getState().updateStatistics({
-        failedExecutions: state.statistics.failedExecutions + 1
+        failedExecutions: currentState.statistics.failedExecutions + 1
       });
     }
   };
@@ -275,11 +277,13 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     executeTask: async (goal: string, options?: RomaExecutionOptions): Promise<RomaExecutionResult> => {
       try {
-        if (!state.isInitialized) {
+        const currentState = getState();
+
+        if (!currentState.isInitialized) {
           throw new RomaPluginError('Plugin not initialized', 'PLUGIN_NOT_INITIALIZED');
         }
 
-        if (state.status === 'executing') {
+        if (currentState.status === 'executing') {
           throw new RomaPluginError('Execution already in progress', 'EXECUTION_IN_PROGRESS');
         }
 
@@ -295,23 +299,23 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
         console.log(`Starting ROMA execution: ${executionId} - ${goal}`);
 
         // Determine execution method
-        const executionMethod = options?.executionMethod || state.defaultExecutionMethod || 'auto';
+        const executionMethod = options?.executionMethod || currentState.defaultExecutionMethod || 'auto';
         
         // Check if MDAP/MAKER should be used (auto-selection or explicit)
         const shouldUseMdapMaker = executionMethod === 'roma_mdap_maker' || 
-          (executionMethod === 'auto' && state.mdapMaker?.autoSelect && 
-           this.shouldUseMdapMakerForGoal(goal, state.mdapMaker));
+          (executionMethod === 'auto' && currentState.mdapMaker?.autoSelect &&
+           shouldUseMdapMakerForGoal(goal, currentState.mdapMaker));
 
         // Execute task with service (includes retry and cache logic)
         const result = await service.executeTaskWithRetry(goal, {
-          maxDepth: options?.maxDepth || state.maxDepth,
-          timeout: options?.timeout || state.timeout,
-          profile: options?.profile || state.defaultProfile,
+          maxDepth: options?.maxDepth || currentState.maxDepth,
+          timeout: options?.timeout || currentState.timeout,
+          profile: options?.profile || currentState.defaultProfile,
           useCache: options?.useCache !== false, // Default to true
-          debug: options?.debug || state.debugMode,
+          debug: options?.debug || currentState.debugMode,
           executionMethod: shouldUseMdapMaker ? 'roma_mdap_maker' : executionMethod,
           mdapMakerConfig: shouldUseMdapMaker ? {
-            ...state.mdapMaker,
+            ...currentState.mdapMaker,
             ...options?.mdapMakerConfig
           } : undefined
         });
@@ -381,14 +385,15 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      * Get execution history
      */
     getExecutionHistory: (limit?: number): RomaExecutionResult[] => {
-      return limit ? state.executionHistory.slice(0, limit) : state.executionHistory;
+      const currentState = getState();
+      return limit ? currentState.executionHistory.slice(0, limit) : currentState.executionHistory;
     },
 
     /**
      * Get execution by ID
      */
     getExecution: (executionId: string): RomaExecutionResult | undefined => {
-      return state.executionHistory.find(exec => exec.executionId === executionId);
+      return getState().executionHistory.find(exec => exec.executionId === executionId);
     },
 
     /**
@@ -396,13 +401,14 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     cancelExecution: async (): Promise<void> => {
       try {
-        if (state.status !== 'executing' || !state.currentExecution) {
+        const currentState = getState();
+        if (currentState.status !== 'executing' || !currentState.currentExecution) {
           throw new RomaPluginError('No active execution to cancel', 'NO_ACTIVE_EXECUTION');
         }
 
-        await client.cancelExecution(state.currentExecution.executionId);
+        await client.cancelExecution(currentState.currentExecution.executionId);
         
-        store.getState().updateExecution(state.currentExecution.executionId, {
+        store.getState().updateExecution(currentState.currentExecution.executionId, {
           status: 'cancelled'
         });
         
@@ -442,7 +448,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      * Get available MCP servers
      */
     getAvailableMcps: (): RomaMcpServerConfig[] => {
-      return state.mcpServers || [];
+      return getState().mcpServers || [];
     },
 
     /**
@@ -450,7 +456,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     addMcpServer: async (mcpConfig: RomaMcpServerConfig): Promise<void> => {
       try {
-        const existingServers = state.mcpServers || [];
+        const existingServers = getState().mcpServers || [];
         const existingServerIndex = existingServers.findIndex(s => s.server_name === mcpConfig.server_name);
 
         if (existingServerIndex >= 0) {
@@ -478,7 +484,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     removeMcpServer: async (serverName: string): Promise<void> => {
       try {
-        const existingServers = state.mcpServers || [];
+        const existingServers = getState().mcpServers || [];
         const updatedServers = existingServers.filter(s => s.server_name !== serverName);
         
         store.getState().updateConfig({ mcpServers: updatedServers });
@@ -496,8 +502,9 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
     getAvailableToolkits: (): RomaToolkitConfig[] => {
       // Get toolkits from all agents
       const allToolkits: RomaToolkitConfig[] = [];
+      const currentState = getState();
       
-      Object.values(state.agents || {}).forEach(agent => {
+      Object.values(currentState.agents || {}).forEach(agent => {
         if (agent?.toolkits) {
           allToolkits.push(...agent.toolkits);
         }
@@ -511,8 +518,9 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     addToolkit: async (toolkitConfig: RomaToolkitConfig): Promise<void> => {
       try {
+        const currentState = getState();
         // Add toolkit to executor agent (primary agent for tool usage)
-        const currentAgent = state.agents?.executor || {};
+        const currentAgent = currentState.agents?.executor || {};
         const currentToolkits = currentAgent.toolkits || [];
         
         const existingToolkitIndex = currentToolkits.findIndex(t => t.class_name === toolkitConfig.class_name);
@@ -523,7 +531,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
           updatedToolkits[existingToolkitIndex] = { ...updatedToolkits[existingToolkitIndex], ...toolkitConfig };
           store.getState().updateConfig({ 
             agents: {
-              ...state.agents,
+              ...currentState.agents,
               executor: {
                 ...currentAgent,
                 toolkits: updatedToolkits
@@ -534,7 +542,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
           // Add new toolkit
           store.getState().updateConfig({ 
             agents: {
-              ...state.agents,
+              ...currentState.agents,
               executor: {
                 ...currentAgent,
                 toolkits: [...currentToolkits, toolkitConfig]
@@ -556,14 +564,15 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      */
     removeToolkit: async (toolkitName: string): Promise<void> => {
       try {
+        const currentState = getState();
         // Remove toolkit from executor agent
-        const currentAgent = state.agents?.executor || {};
+        const currentAgent = currentState.agents?.executor || {};
         const currentToolkits = currentAgent.toolkits || [];
         const updatedToolkits = currentToolkits.filter(t => t.class_name !== toolkitName);
         
         store.getState().updateConfig({ 
           agents: {
-            ...state.agents,
+            ...currentState.agents,
             executor: {
               ...currentAgent,
               toolkits: updatedToolkits
@@ -583,7 +592,7 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      * Get plugin statistics
      */
     getStatistics: (): RomaExecutionStatistics => {
-      return state.statistics;
+      return getState().statistics;
     },
 
     /**
@@ -623,7 +632,10 @@ export function createRomaPlugin(initialConfig?: Partial<RomaPluginConfig>): Rom
      * Check if plugin is ready
      */
     isReady: (): boolean => {
-      return state.isInitialized && state.status !== 'failed' && state.status !== 'initializing';
+      const currentState = getState();
+      return currentState.isInitialized &&
+        currentState.status !== 'failed' &&
+        currentState.status !== 'initializing';
     },
 
     /**

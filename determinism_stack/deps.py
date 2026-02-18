@@ -23,6 +23,8 @@ LOCAL_DEP_PATHS: Dict[str, List[Path]] = {
     "detllm": [Path("detllm")],
     "knowledge_engine": [Path("knowledge_engine")],
     "agentic-context-engine": [Path("agentic-context-engine")],
+    "adaptive_mdap": [Path("adaptive_mdap")],
+    "mdap_maker": [Path("mdap_maker")],
 }
 
 

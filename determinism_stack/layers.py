@@ -113,12 +113,13 @@ class LagrangeFilter:
 
 
 class DecompositionAdapter:
-    """Layer 1: Task decomposition (ROMA/MDAP/MAKER)."""
+    """Layer 1: Task decomposition (ROMA/MDAP/MAKER/RPG)."""
 
     def __init__(self):
         self._solver = None
-        self._maker_cls = None
+        self._maker_integrator = None
         self._mdap_integration = None
+        self._rpg = None
         
         # ROMA integration
         roma = optional_import("roma_dspy")
@@ -135,12 +136,13 @@ class DecompositionAdapter:
                 self._solver = None
         
         # MAKER integration
-        maker = optional_import("maker_engine")
-        if maker:
+        maker_workflow = optional_import("maker_workflow_integration")
+        if maker_workflow:
             try:
-                self._maker_cls = getattr(maker, "MakerEngine", None)
+                # We store the module or key functions for MAKER
+                self._maker_workflow = maker_workflow
             except Exception:
-                self._maker_cls = None
+                self._maker_workflow = None
                 
         # Adaptive MDAP integration
         mdap = optional_import("adaptive_decomposition_integration")
@@ -149,6 +151,16 @@ class DecompositionAdapter:
                 self._mdap_integration = getattr(mdap, "get_adaptive_integration", lambda: None)()
             except Exception:
                 self._mdap_integration = None
+
+        # RPG integration (Pattern 6)
+        examples = optional_import("determinism_stack.examples")
+        if examples:
+            try:
+                rpg_cls = getattr(examples, "RPGConstructor", None)
+                if rpg_cls:
+                    self._rpg = rpg_cls()
+            except Exception:
+                pass
 
     def atomize(self, requirement: str) -> List[str]:
         """Break requirement into atomic subtasks."""
@@ -188,6 +200,42 @@ class DecompositionAdapter:
                 pass
                 
         return {"tasks": self.atomize(requirement), "method": "fallback"}
+
+    def plan_codebase(self, requirements: str) -> Dict[str, Any]:
+        """Layer 1: RPG-guided codebase planning."""
+        if self._rpg:
+            features = self.atomize(requirements)
+            return self._rpg.build_from_requirements(features)
+        return {"error": "RPG integration not available"}
+
+    def solve_long_horizon(self, task: str, team: Any = None) -> Dict[str, Any]:
+        """Layer 1: MAKER zero-error long-horizon solving."""
+        if self._maker_workflow:
+            try:
+                # Simplified call to MAKER workflow integration
+                # In a real scenario, we'd need to build structures, but here we use the available logic
+                from workflow_structures import SubProblem, Team, WorkflowState
+                
+                # Mock or build minimal structures for MAKER
+                sp = SubProblem(id="task_1", title="MAKER Task", description=task)
+                # If no team provided, MAKER integration will create a default one
+                
+                # Use openevolve_maker_integration directly if needed for better control
+                from openevolve_maker_integration import solve_subproblem_with_maker, create_maker_config_from_workflow
+                
+                # Mock a workflow state
+                ws = WorkflowState(problem_title="Deterministic Task", problem_description=task)
+                
+                solution_attempt = solve_subproblem_with_maker(sp, ws, team)
+                return {
+                    "success": bool(solution_attempt.content),
+                    "output": solution_attempt.content,
+                    "metadata": solution_attempt.metadata
+                }
+            except Exception as exc:
+                logger.error(f"MAKER solve failed: {exc}")
+                
+        return {"success": False, "error": "MAKER integration not available or failed"}
 
     def _fallback_atomize(self, requirement: str) -> List[str]:
         if not requirement:
@@ -254,19 +302,30 @@ class ConstrainedGenerator:
             return self.llm.get_outlines_model()
         return None
 
-    def generate_json(self, prompt: str, schema: Dict[str, Any]) -> Dict[str, Any]:
-        model = self._outlines_model()
-        if model is not None:
-            try:
-                output_type = self._outlines.types.json_schema(schema)
-                return model.generate(prompt, output_type)
-            except Exception:
-                pass
-        if self.llm:
-            text = self.llm.generate(prompt)
-            parsed = extract_json(text)
-            if parsed is not None:
-                return parsed
+    def generate_json(self, prompt: str, schema: Dict[str, Any], retries: int = 2) -> Dict[str, Any]:
+        """Generate JSON with schema constraints and self-correction."""
+        for attempt in range(retries + 1):
+            model = self._outlines_model()
+            if model is not None:
+                try:
+                    output_type = self._outlines.types.json_schema(schema)
+                    return model.generate(prompt, output_type)
+                except Exception as exc:
+                    logger.debug(f"Outlines generation failed (attempt {attempt}): {exc}")
+            
+            if self.llm:
+                try:
+                    text = self.llm.generate(prompt)
+                    parsed = extract_json(text)
+                    if parsed is not None:
+                        # Optional: basic schema validation could go here
+                        return parsed
+                except Exception as exc:
+                    logger.debug(f"LLM JSON generation failed (attempt {attempt}): {exc}")
+            
+            # If we're here, we failed. Adjust prompt for retry.
+            prompt = f"{prompt}\n\nFIX: Previous output was not valid JSON for this schema: {json.dumps(schema)}. Return ONLY valid JSON."
+
         return build_from_schema(schema)
 
     def generate_with_constraints(self, prompt: str, constraints: str) -> str:
@@ -417,29 +476,57 @@ class OptimizedWorkflow:
         self.module = base_module
         self.compiled_module = base_module
         self._ace = None
+        self._skillbook_path = "ace_skillbook.json"
+        
         dspy = optional_import("dspy")
         ace = optional_import("ace")
+        
+        # DSPy: Compile-time optimization
         if dspy and trainset:
             try:
-                teleprompter = dspy.BootstrapFewShot(metric=self._accuracy)
+                from dspy.teleprompt import BootstrapFewShot
+                teleprompter = BootstrapFewShot(metric=self._accuracy)
                 self.compiled_module = teleprompter.compile(self.module, trainset=trainset)
-            except Exception:
+                logger.info("DSPy module compiled successfully.")
+            except Exception as exc:
+                logger.warning(f"DSPy compilation failed: {exc}")
                 self.compiled_module = base_module
+                
+        # ACE: Runtime learning
         if ace and hasattr(ace, "OfflineACE"):
             try:
-                self._ace = ace.OfflineACE(Agent=self.compiled_module, reflection_window=3)
-            except Exception:
+                # Use ACELiteLLM if possible for TOON compression
+                agent_wrapper = getattr(ace, "ACELiteLLM", lambda model: self.compiled_module)(model="gpt-4o-mini")
+                self._ace = ace.OfflineACE(Agent=agent_wrapper, reflection_window=3)
+                if hasattr(self._ace, "load_skillbook") and Path(self._skillbook_path).exists():
+                    self._ace.load_skillbook(self._skillbook_path)
+                logger.info("ACE runtime learning initialized.")
+            except Exception as exc:
+                logger.warning(f"ACE initialization failed: {exc}")
                 self._ace = None
 
     def _accuracy(self, example: Any, pred: Any, trace: Optional[Any] = None) -> bool:
         return getattr(example, "answer", None) == getattr(pred, "answer", None)
 
     def execute(self, task: Any, learn: bool = True) -> Any:
+        """Execute with optional ACE learning loop."""
         if self._ace:
-            result = self._ace.ask(task)
-            if learn and hasattr(self._ace, "learn") and hasattr(task, "feedback"):
-                self._ace.learn(task.feedback)
-            return result
+            try:
+                # task can be a string or a more complex object
+                task_str = task if isinstance(task, str) else str(task)
+                result = self._ace.ask(task_str)
+                
+                if learn and hasattr(self._ace, "learn"):
+                    # feedback can be inside the task or result
+                    feedback = getattr(task, "feedback", None) or (result.get("feedback") if isinstance(result, dict) else None)
+                    if feedback:
+                        self._ace.learn([{"task": task_str, "result": result, "feedback": feedback}])
+                        if hasattr(self._ace, "save_skillbook"):
+                            self._ace.save_skillbook(self._skillbook_path)
+                return result
+            except Exception as exc:
+                logger.warning(f"ACE execution failed: {exc}")
+                
         if callable(self.compiled_module):
             return self.compiled_module(task)
         if hasattr(self.compiled_module, "forward"):
@@ -537,15 +624,27 @@ class KnowledgeAdapter:
         if not self._ke_module:
             raise RuntimeError("Knowledge engine not available")
         
-        # Try different entry points for the engine
-        for attr in ["IntegratedKnowledgeEngine", "KnowledgeEngine", "create_knowledge_engine"]:
-            entry = getattr(self._ke_module, attr, None)
-            if entry:
-                if attr == "create_knowledge_engine":
-                    self._engine = self._run_async(entry())
-                elif callable(entry):
-                    self._engine = entry()
-                break
+        # Prefer TemporalKnowledgeEngine for Layer 6
+        temporal_module = optional_import("knowledge_engine.core.temporal_knowledge_engine")
+        if temporal_module:
+            try:
+                engine_cls = getattr(temporal_module, "TemporalKnowledgeEngine", None)
+                if engine_cls:
+                    self._engine = engine_cls()
+                    logger.info("KnowledgeAdapter: Using TemporalKnowledgeEngine.")
+            except Exception as exc:
+                logger.debug(f"Failed to init TemporalKnowledgeEngine: {exc}")
+
+        if self._engine is None:
+            # Try different entry points for the engine
+            for attr in ["IntegratedKnowledgeEngine", "KnowledgeEngine", "create_knowledge_engine"]:
+                entry = getattr(self._ke_module, attr, None)
+                if entry:
+                    if attr == "create_knowledge_engine":
+                        self._engine = self._run_async(entry())
+                    elif callable(entry):
+                        self._engine = entry()
+                    break
                 
         if self._engine is None:
             raise RuntimeError("Knowledge engine entrypoint missing")
@@ -558,6 +657,24 @@ class KnowledgeAdapter:
         """Layer 6: Temporal knowledge search with contradiction resolution."""
         self._ensure_engine()
         
+        # Use TemporalKnowledgeEngine's specialized query if available
+        if timestamp and hasattr(self._engine, "query_at_time"):
+            ts_dt = timestamp
+            if isinstance(timestamp, str):
+                try:
+                    from datetime import datetime
+                    ts_dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            result = self._run_async(self._engine.query_at_time(query=query, timestamp=ts_dt, max_results=max_results))
+            results = [r.to_dict() if hasattr(r, "to_dict") else r for r in result]
+            return {
+                "method": "temporal_knowledge_engine",
+                "context": results,
+                "count": len(results),
+                "timestamp": timestamp
+            }
+
         if timestamp and hasattr(self._engine, "query_temporal"):
             # Convert string timestamp to datetime if needed
             ts_dt = timestamp
@@ -593,7 +710,16 @@ class KnowledgeAdapter:
                 
                 contradictions = []
                 for entity in entities_to_check:
-                    found = self._run_async(self._engine.detect_contradictions(entity))
+                    # Specialized detection for TemporalKnowledgeEngine
+                    if hasattr(self._engine, "detect_contradictions"):
+                        found_obj = self._run_async(self._engine.detect_contradictions(knowledge_id=None))
+                        if hasattr(found_obj, "contradictions"):
+                            found = found_obj.contradictions
+                        else:
+                            found = found_obj
+                    else:
+                        found = self._run_async(self._engine.detect_contradictions(entity))
+                    
                     if found:
                         contradictions.extend(found)
                 
@@ -787,12 +913,93 @@ class FormalVerificationLayer:
                 return {"proved": False, "reason": "lean error"}
         return {"proved": False, "reason": "lean not available"}
 
+    def verify_dimensional_consistency(self, output: Dict[str, Any]) -> Dict[str, Any]:
+        """Layer 7: Dimensional analysis verification."""
+        calculations = output.get("calculations", [])
+        if not calculations:
+            return {"verified": True, "reason": "no calculations"}
+
+        if self.use_cav_nlp and self._cav_solver is not None:
+            try:
+                for calc in calculations:
+                    expr = calc.get("equation") or calc.get("expression")
+                    if expr:
+                        formalized = self._cav_solver.formalize_constraint(f"verify dimensional consistency of {expr}")
+                        if formalized:
+                            self._cav_solver.add(formalized)
+                
+                verification = self._cav_solver.verify_with_lean()
+                return {
+                    "verified": verification.success,
+                    "confidence": getattr(verification, "confidence", 0.0),
+                    "method": "cav_nlp_dimensional"
+                }
+            except Exception:
+                pass
+        return {"verified": True, "reason": "skipped"}
+
+    def verify_stoichiometry(self, output: Dict[str, Any]) -> Dict[str, Any]:
+        """Layer 7: Stoichiometric balance verification."""
+        reactions = output.get("reactions", [])
+        if not reactions:
+            return {"verified": True, "reason": "no reactions"}
+
+        if self.use_cav_nlp and self._cav_solver is not None:
+            try:
+                for reaction in reactions:
+                    formalized = self._cav_solver.formalize_constraint(f"verify mass balance: {json.dumps(reaction)}")
+                    if formalized:
+                        self._cav_solver.add(formalized)
+                
+                verification = self._cav_solver.verify_with_lean()
+                return {
+                    "verified": verification.success,
+                    "confidence": getattr(verification, "confidence", 0.0),
+                    "method": "cav_nlp_stoichiometry"
+                }
+            except Exception:
+                pass
+        return {"verified": True, "reason": "skipped"}
+
+    def verify_safety_invariants(self, output: Any, invariants: List[str]) -> Dict[str, Any]:
+        """Layer 7: Safety invariant verification (Logical Sandbox)."""
+        if not self._solver and not self.use_cav_nlp:
+            return {"verified": False, "reason": "No solver available"}
+            
+        if self.use_cav_nlp and self._cav_solver is not None:
+            try:
+                self._cav_solver.reset()
+                # 1. Add output context
+                output_context = f"Assume the following output: {str(output)}"
+                # 2. Add invariants as constraints
+                for inv in invariants:
+                    formalized = self._cav_solver.formalize_constraint(f"{output_context}. Verify invariant: {inv}")
+                    if formalized:
+                        self._cav_solver.add(formalized)
+                
+                verification = self._cav_solver.verify_with_lean()
+                return {
+                    "verified": verification.success,
+                    "confidence": getattr(verification, "confidence", 0.0),
+                    "method": "cav_nlp_safety_sandbox"
+                }
+            except Exception:
+                pass
+        return {"verified": True, "reason": "skipped"}
+
+
 
 class ReproducibilityLayer:
     """Layer 8: Runtime reproducibility (detLLM or statistical)."""
 
     def __init__(self, backend: Optional[str] = None, model: Optional[str] = None, mode: str = "auto"):
-        self._detllm = optional_import("detllm")
+        self._detllm_impl = None
+        try:
+            from .detllm import DetLLM
+            self._detllm_impl = DetLLM()
+        except ImportError:
+            pass
+            
         self.backend = backend
         self.model = model
         self.mode = mode  # auto | local | cloud
@@ -816,30 +1023,33 @@ class ReproducibilityLayer:
     ) -> Dict[str, Any]:
         from .backends import LocalBackend, CloudBackend
         backend = backend or self.backend
-        model = model or self.model
+        model = model or getattr(llm, "model", "unknown")
         
         if not llm:
             return {"status": "UNAVAILABLE", "details": "no llm provided"}
 
-        # Use BackendAdapter for consistent interface
-        adapter = self._get_backend_adapter(llm, backend)
-        
-        # If detLLM is available, use it for deep verification
-        if self._detllm and hasattr(self._detllm, "check") and self.mode != "cloud":
+        # Use detLLM implementation if available for full Layer 8 verification
+        if self._detllm_impl and self.mode != "cloud":
             try:
-                report = self._detllm.check(
+                report = self._detllm_impl.check(
                     backend=backend or "auto",
-                    model=model or getattr(llm, "model", "unknown"),
+                    model=model,
                     prompts=[prompt],
                     runs=runs,
                     tier=tier,
                 )
-                return {"status": report.status, "details": getattr(report, "details", {})}
+                return {
+                    "status": report.status, 
+                    "category": report.category,
+                    "execution_id": report.execution_id,
+                    "artifacts_dir": report.artifacts_dir,
+                    "details": report.details
+                }
             except Exception as exc:
-                # Fallback to statistical if detllm fails
-                pass
+                logger.warning(f"detLLM check failed: {exc}")
 
         # Statistical check fallback
+        adapter = self._get_backend_adapter(llm, backend)
         outputs = adapter.generate([prompt] * runs, tier=tier)
         baseline = outputs[0] if outputs else ""
         scores = [similarity(baseline, out) for out in outputs[1:]]

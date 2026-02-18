@@ -13,8 +13,6 @@ All components return data structures compatible with common charting libraries
 (Chart.js, Plotly, ECharts) and can be rendered in Streamlit, React, or vanilla HTML/JS.
 """
 
-import os
-import sys
 import logging
 import time
 import json
@@ -24,16 +22,20 @@ from datetime import datetime, timezone
 from enum import Enum
 from collections import defaultdict
 
-# Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
-from bubblelab_ui_integration import (
-    get_bubblelab_ui_integration,
-    ComplexityAnalysisResult,
-    MAKERVotingDisplay
-)
-
-from openevolve_advanced import get_advanced_openevolve_integration
+try:
+    from .bubblelab_ui_integration import (
+        get_bubblelab_ui_integration,
+        ComplexityAnalysisResult,
+        MAKERVotingDisplay
+    )
+    from .openevolve_advanced import get_advanced_openevolve_integration
+except ImportError:  # pragma: no cover - fallback for direct script execution
+    from bubblelab_ui_integration import (
+        get_bubblelab_ui_integration,
+        ComplexityAnalysisResult,
+        MAKERVotingDisplay
+    )
+    from openevolve_advanced import get_advanced_openevolve_integration
 
 logger = logging.getLogger(__name__)
 

@@ -34,6 +34,12 @@ from .layers import (
 from .llm import LLMConfig, BaseLLM, OpenAIChatLLM, AnthropicLLM, GoogleLLM, HFLocalLLM, build_llm
 from .monitoring import CloudLLMMonitor, cloud_consensus, detect_divergence
 from .multimodal import MultiModalDeterministicGenerator, MultiModalGenerator
+from .refinement import (
+    DeterministicRefinementLoop,
+    RefinementRedTeam,
+    RefinementBlueTeam,
+    RefinementEvaluatorTeam,
+)
 from .pipeline import (
     DeterminismConfig,
     DeterminismResult,
@@ -82,6 +88,10 @@ __all__ = [
     "CloudLLMMonitor",
     "cloud_consensus",
     "detect_divergence",
+    "DeterministicRefinementLoop",
+    "RefinementRedTeam",
+    "RefinementBlueTeam",
+    "RefinementEvaluatorTeam",
     "MultiModalDeterministicGenerator",
     "MultiModalGenerator",
     "DeterminismConfig",

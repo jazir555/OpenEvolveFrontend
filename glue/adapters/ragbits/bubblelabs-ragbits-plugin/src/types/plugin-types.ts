@@ -384,12 +384,12 @@ export const RAGBITS_DOCUMENT_TYPES: Array<{
 /**
  * Get RAGBits server URL from environment variable
  * Per CLAUDE.md Law of Configuration Explicitness:
- * - Must use process.env.RAGBITS_SERVER_URL
+ * - Must use import.meta.env.VITE_RAGBITS_SERVER_URL
  * - Crashes immediately if missing (no magic defaults)
  * - Validates URL format at startup
  */
 function getRAGBitsServerUrl(): string {
-  const url = process.env.RAGBITS_SERVER_URL;
+  const url = import.meta.env.VITE_RAGBITS_SERVER_URL;
 
   if (!url) {
     throw new Error(
@@ -421,7 +421,7 @@ export const DEFAULT_RAGBITS_CONFIG: RAGBitsPluginConfig = {
       // Fallback for development only (production will crash)
       console.warn(
         'WARNING: Using fallback RAGBits URL. ' +
-        'Set RAGBITS_SERVER_URL environment variable for production use.'
+        'Set VITE_RAGBITS_SERVER_URL environment variable for production use.'
       );
       return 'http://localhost:3000/ragbits';
     }

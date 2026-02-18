@@ -1,0 +1,63 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+// Datapizza Pipeline Panel Component
+// React component for running data pipelines
+//
+// INTEGRATION STATUS: Production Implementation
+// - Uses useDatapizzaPipeline hook for all pipeline operations
+// - Follows Federation Constitution laws
+import React, { useState, useEffect } from 'react';
+import { X, Play, Pause, Stop, Check, AlertTriangle, Info, Database, Pipeline, Clock, BarChart2 } from 'lucide-react';
+import { DATAPIZZA_PIPELINE_TYPES } from '../types/plugin-types';
+import { useDatapizzaPipeline } from '../hooks/useDatapizzaPipeline';
+export function DatapizzaPipelinePanel({ dataSource, initialPipelineType, onResult, onClose, showDebug = false, client }) {
+    const [pipelineType, setPipelineType] = useState(initialPipelineType || 'standard');
+    const [localResult, setLocalResult] = useState(null);
+    const [logs, setLogs] = useState([]);
+    const [endTime, setEndTime] = useState(null);
+    // Use the pipeline hook
+    const { runPipeline, isRunning, progress, currentStep, error: hookError } = useDatapizzaPipeline(client);
+    useEffect(() => {
+        if (initialPipelineType) {
+            setPipelineType(initialPipelineType);
+        }
+    }, [initialPipelineType]);
+    const addLog = (message) => {
+        setLogs(prev => [...prev, `${new Date().toISOString()} - ${message}`]);
+    };
+    const handleRunPipeline = async () => {
+        try {
+            setLocalResult(null);
+            setLogs([]);
+            setEndTime(null);
+            addLog(`Starting pipeline: ${pipelineType}`);
+            addLog(`Data source: ${dataSource.substring(0, 100)}...`);
+            const result = await runPipeline(dataSource, {
+                pipelineType: pipelineType,
+            });
+            setLocalResult(result);
+            setEndTime(new Date());
+            if (result.success) {
+                addLog('Pipeline completed successfully');
+                addLog(`Pipeline ID: ${result.pipelineId}`);
+                addLog(`Confidence Score: ${(result.confidenceScore * 100).toFixed(1)}%`);
+            }
+            else {
+                addLog(`Pipeline failed: ${result.errors.join(', ')}`);
+            }
+            // Call the onResult callback
+            onResult(result);
+        }
+        catch (err) {
+            addLog(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            setEndTime(new Date());
+        }
+    };
+    const handlePausePipeline = () => {
+        addLog('Pipeline pause not supported in this version');
+    };
+    const handleStopPipeline = () => {
+        addLog('Pipeline stop not supported in this version');
+    };
+    return (_jsx("div", { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4", children: _jsxs("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col", children: [_jsxs("div", { className: "flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700", children: [_jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Pipeline, { className: "h-5 w-5 text-blue-500" }), _jsx("h3", { className: "font-semibold text-lg", children: "Datapizza Pipeline" }), isRunning && (_jsxs("span", { className: "flex items-center gap-1 text-sm text-blue-600", children: [_jsx(Clock, { className: "h-3 w-3" }), _jsx("span", { children: currentStep })] }))] }), _jsx("button", { onClick: onClose, className: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200", "aria-label": "Close pipeline panel", children: _jsx(X, { className: "h-5 w-5" }) })] }), _jsx("div", { className: "flex-1 overflow-hidden p-4", children: _jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-3 gap-4 h-full", children: [_jsxs("div", { className: "lg:col-span-1 space-y-4", children: [_jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(Database, { className: "h-4 w-4" }), "Data Source"] }), _jsx("div", { className: "text-sm text-gray-600 dark:text-gray-300 break-words", children: dataSource })] }), _jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(Pipeline, { className: "h-4 w-4" }), "Pipeline Configuration"] }), _jsxs("div", { className: "space-y-3", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1", children: "Pipeline Type" }), _jsx("select", { value: pipelineType, onChange: (e) => setPipelineType(e.target.value), disabled: isRunning, className: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white disabled:opacity-50", children: DATAPIZZA_PIPELINE_TYPES.map(type => (_jsx("option", { value: type.value, children: type.label }, type.value))) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1", children: "Description" }), _jsx("div", { className: "text-sm text-gray-600 dark:text-gray-300", children: DATAPIZZA_PIPELINE_TYPES.find(t => t.value === pipelineType)?.description })] })] })] }), _jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(Play, { className: "h-4 w-4" }), "Pipeline Controls"] }), _jsxs("div", { className: "flex gap-2", children: [_jsxs("button", { onClick: handleRunPipeline, disabled: isRunning, className: "flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:bg-blue-400", children: [_jsx(Play, { className: "h-4 w-4" }), "Run Pipeline"] }), _jsx("button", { onClick: handlePausePipeline, disabled: !isRunning, className: "flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50", children: _jsx(Pause, { className: "h-4 w-4" }) }), _jsx("button", { onClick: handleStopPipeline, disabled: !isRunning && !localResult, className: "flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50", children: _jsx(Stop, { className: "h-4 w-4" }) })] })] })] }), _jsxs("div", { className: "lg:col-span-1 space-y-4", children: [_jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(Info, { className: "h-4 w-4" }), "Pipeline Status"] }), _jsxs("div", { className: "flex items-center gap-2", children: [!isRunning && !localResult && !hookError && (_jsxs("div", { className: "flex items-center gap-2 text-gray-600 dark:text-gray-300", children: [_jsx(Clock, { className: "h-4 w-4" }), _jsx("span", { children: "Ready to start" })] })), isRunning && (_jsxs("div", { className: "flex items-center gap-2 text-blue-600", children: [_jsx(Clock, { className: "h-4 w-4 animate-spin" }), _jsx("span", { children: "Running..." })] })), localResult?.success && (_jsxs("div", { className: "flex items-center gap-2 text-green-600", children: [_jsx(Check, { className: "h-4 w-4" }), _jsx("span", { children: "Completed successfully" })] })), hookError && (_jsxs("div", { className: "flex items-center gap-2 text-red-600", children: [_jsx(AlertTriangle, { className: "h-4 w-4" }), _jsx("span", { children: "Error occurred" })] }))] })] }), _jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(BarChart2, { className: "h-4 w-4" }), "Progress"] }), _jsxs("div", { className: "space-y-2", children: [_jsxs("div", { className: "text-sm text-gray-600 dark:text-gray-300", children: [progress, "% complete"] }), _jsx("div", { className: "w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5", children: _jsx("div", { className: `bg-blue-600 h-2.5 rounded-full transition-all duration-300 ${hookError ? 'bg-red-600' : ''} ${localResult?.success ? 'bg-green-600' : ''}`, style: { width: `${progress}%` } }) })] })] }), localResult && (_jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-3", children: [_jsx(BarChart2, { className: "h-4 w-4" }), "Pipeline Statistics"] }), _jsxs("div", { className: "grid grid-cols-2 gap-2 text-sm", children: [_jsxs("div", { className: "flex justify-between", children: [_jsx("span", { className: "text-gray-600 dark:text-gray-300", children: "Confidence:" }), _jsxs("span", { className: "font-medium", children: [(localResult.confidenceScore * 100).toFixed(1), "%"] })] }), _jsxs("div", { className: "flex justify-between", children: [_jsx("span", { className: "text-gray-600 dark:text-gray-300", children: "Execution Time:" }), _jsxs("span", { className: "font-medium", children: [localResult.executionTime, "ms"] })] }), _jsxs("div", { className: "flex justify-between", children: [_jsx("span", { className: "text-gray-600 dark:text-gray-300", children: "Records Processed:" }), _jsx("span", { className: "font-medium", children: localResult.processedData?.recordsProcessed || 'N/A' })] }), _jsxs("div", { className: "flex justify-between", children: [_jsx("span", { className: "text-gray-600 dark:text-gray-300", children: "Chunks Created:" }), _jsx("span", { className: "font-medium", children: localResult.processedData?.chunksCreated || 'N/A' })] })] })] }))] }), _jsx("div", { className: "lg:col-span-1 space-y-4", children: _jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-4 h-full flex flex-col", children: [_jsxs("div", { className: "flex items-center justify-between mb-3", children: [_jsxs("h4", { className: "font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2", children: [_jsx(Info, { className: "h-4 w-4" }), "Pipeline Logs"] }), _jsx("button", { onClick: () => setLogs([]), disabled: logs.length === 0, className: "text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50", children: "Clear Logs" })] }), _jsx("div", { className: "flex-1 overflow-y-auto text-xs font-mono text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600", children: logs.length === 0 ? (_jsx("div", { className: "text-gray-400 dark:text-gray-500", children: "No logs yet. Start the pipeline to see activity." })) : (logs.map((log, index) => (_jsx("div", { className: "mb-1 break-words", children: log }, index)))) })] }) })] }) }), hookError && (_jsx("div", { className: "p-4 border-t border-gray-200 dark:border-gray-700", children: _jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 rounded-lg p-3 flex items-start gap-3", children: [_jsx(AlertTriangle, { className: "h-5 w-5 text-red-600 flex-shrink-0" }), _jsxs("div", { children: [_jsx("h5", { className: "font-medium text-red-800 dark:text-red-400 mb-1", children: "Pipeline Error" }), _jsx("p", { className: "text-sm text-red-600 dark:text-red-300 break-words", children: hookError })] })] }) })), showDebug && localResult && (_jsx("div", { className: "p-4 border-t border-gray-200 dark:border-gray-700", children: _jsxs("div", { className: "bg-gray-50 dark:bg-gray-700 rounded-lg p-3", children: [_jsx("h5", { className: "font-medium text-gray-900 dark:text-gray-100 mb-2", children: "Debug Information" }), _jsx("pre", { className: "text-xs overflow-x-auto bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600", children: JSON.stringify(localResult, null, 2) })] }) }))] }) }));
+}
+//# sourceMappingURL=DatapizzaPipelinePanel.js.map

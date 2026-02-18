@@ -35,6 +35,7 @@ class DeterminismConfig:
     use_learning: bool = True
     use_context: bool = True
     use_knowledge: bool = True
+    use_refinement: bool = False # New: Iterative refinement
     knowledge_max_results: int = 5
     lagrange_model: str = "default"
     lagrange_config_dir: Optional[str] = None
@@ -82,6 +83,7 @@ class DeterministicPipeline:
         )
         self.security = SecurityLayer()
         self._sync_llm()
+        self.refinement_loop = None
 
     def _sync_llm(self) -> None:
         self.generator.llm = self.llm
@@ -179,10 +181,32 @@ class DeterministicPipeline:
                     except Exception as exc:
                         logger.debug(f"ACE learning error: {exc}")
 
+            # --- Real Business Logic: Iterative Refinement (3-team gauntlet) ---
+            if self.config.use_refinement:
+                if self.refinement_loop is None:
+                    from .refinement import DeterministicRefinementLoop
+                    self.refinement_loop = DeterministicRefinementLoop(self)
+                
+                output = self.refinement_loop.refine(output, {"prompt": final_prompt})
+
             # Layer 7: Formal Verification (Z3/Lean)
             formal = {"verified": True}
             if 7 in self.config.enable_layers and isinstance(output, dict):
+                # 1. Basic logical correctness
                 formal = self.formal.verify_logical_correctness(output)
+                
+                # 2. Domain-specific verification (Real Business Logic)
+                if "calculations" in output:
+                    dim_check = self.formal.verify_dimensional_consistency(output)
+                    formal["dimensional_consistency"] = dim_check
+                    if not dim_check["verified"]:
+                        formal["verified"] = False
+                        
+                if "reactions" in output:
+                    stoich_check = self.formal.verify_stoichiometry(output)
+                    formal["stoichiometry"] = stoich_check
+                    if not stoich_check["verified"]:
+                        formal["verified"] = False
 
             # Layer 8: Runtime Reproducibility (detLLM)
             reproducibility = None

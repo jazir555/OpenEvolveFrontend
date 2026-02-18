@@ -4,12 +4,12 @@
 // INTEGRATION STATUS: Production Implementation
 // - Uses DatapizzaClient for all API calls
 // - Follows Federation Constitution laws
-// - Configurable mock fallback for development (set DATAPIZZA_USE_MOCK=true)
+// - Configurable mock fallback for development (set VITE_DATAPIZZA_USE_MOCK=true)
 //
 // SETUP INSTRUCTIONS:
 // 1. Configure DATAPIZZA_BASE_URL in environment
 // 2. Configure DATAPIZZA_TIMEOUT_MS in environment
-// 3. Set DATAPIZZA_USE_MOCK=true for development without API
+// 3. Set VITE_DATAPIZZA_USE_MOCK=true for development without API
 
 import { useCallback, useState } from 'react';
 import { DatapizzaPipelineResult } from '../types/plugin-types';
@@ -46,7 +46,7 @@ export function useDatapizzaPipeline(client?: DatapizzaClient) {
 
       try {
         // Check if mock mode is enabled (for development)
-        const useMock = process.env.DATAPIZZA_USE_MOCK === 'true';
+        const useMock = import.meta.env.VITE_DATAPIZZA_USE_MOCK === 'true';
 
         // Simulate pipeline progress
         const steps = [
@@ -69,7 +69,7 @@ export function useDatapizzaPipeline(client?: DatapizzaClient) {
         }, useMock ? 1000 : 2000);
 
         if (useMock) {
-          console.warn('Datapizza mock mode enabled - set DATAPIZZA_USE_MOCK=false to use real API');
+          console.warn('Datapizza mock mode enabled - set VITE_DATAPIZZA_USE_MOCK=false to use real API');
 
           // Simulate pipeline execution time
           await new Promise(resolve => setTimeout(resolve, 5000));
@@ -97,7 +97,7 @@ export function useDatapizzaPipeline(client?: DatapizzaClient) {
             errors: [],
             warnings: [
               'Using mock pipeline execution - Datapizza API not configured',
-              'Set DATAPIZZA_USE_MOCK=false and configure DATAPIZZA_BASE_URL',
+              'Set VITE_DATAPIZZA_USE_MOCK=false and configure DATAPIZZA_BASE_URL',
             ],
             executionTime: Date.now() - startTime,
             metadata: {
@@ -113,7 +113,7 @@ export function useDatapizzaPipeline(client?: DatapizzaClient) {
         // Use real DatapizzaClient
         if (!client) {
           throw new Error(
-            'DatapizzaClient not provided. Either pass a client to the hook or set DATAPIZZA_USE_MOCK=true for development.'
+            'DatapizzaClient not provided. Either pass a client to the hook or set VITE_DATAPIZZA_USE_MOCK=true for development.'
           );
         }
 

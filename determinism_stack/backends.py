@@ -173,4 +173,13 @@ class LocalBackend(BackendAdapter):
         return self._capabilities
 
     def generate(self, prompts: List[str], tier: int, **kwargs: Any) -> List[str]:
-        return [self.llm.generate(prompt, **kwargs) for prompt in prompts]
+        from .reproducibility import ReproducibilityContext
+        
+        seed = kwargs.get("seed", 42)
+        ctx = ReproducibilityContext(seed=seed, tier=tier)
+        
+        results = []
+        with ctx.enforce():
+            for prompt in prompts:
+                results.append(self.llm.generate(prompt, **kwargs))
+        return results

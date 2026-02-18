@@ -46,6 +46,7 @@ export { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
 export { useDatapizzaPlugin } from './utils/createDatapizzaPlugin';
 
 // Export the main plugin factory
+import type { DatapizzaPlugin as DatapizzaPluginInstance, DatapizzaPluginConfig } from './types/plugin-types';
 import { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
 
 /**
@@ -53,13 +54,13 @@ import { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
  * @param config Optional initial configuration
  * @returns DatapizzaPlugin instance
  */
-export function createPlugin(config?: Partial<DatapizzaPluginConfig>): DatapizzaPlugin {
+export function createPlugin(config?: Partial<DatapizzaPluginConfig>): DatapizzaPluginInstance {
   return createDatapizzaPlugin(config);
 }
 
 /**
  * Default plugin instance
  */
-export const DatapizzaPlugin = createDatapizzaPlugin();
+export const datapizzaPlugin = createDatapizzaPlugin();
 
-export default DatapizzaPlugin;
+export default datapizzaPlugin;

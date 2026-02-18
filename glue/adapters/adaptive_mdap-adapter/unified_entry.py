@@ -87,7 +87,7 @@ class UnifiedAdapterInterface:
             print(f"Warning: System monitor not available: {e}")
             self.system_monitor = None
 
-        print("✓ Initialization complete\n")
+        print("[OK] Initialization complete\n")
 
     def analyze(self, problem: str, domain: str = "general") -> Dict[str, Any]:
         """

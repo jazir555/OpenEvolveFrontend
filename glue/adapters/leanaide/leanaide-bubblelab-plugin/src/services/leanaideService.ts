@@ -2,7 +2,7 @@ import { LeanAideClient, LeanAideTaskResponse } from '../lib/leanaideClient';
 
 // Default configuration for LeanAIDE service
 const DEFAULT_LEANAIDE_CONFIG = {
-  serverUrl: 'http://localhost:3000/leanaide',
+  serverUrl: import.meta.env.VITE_LEANAIDE_SERVER_URL || 'http://localhost:3000/leanaide',
   // apiKey will be set from environment or user configuration
 };
 

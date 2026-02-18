@@ -25,8 +25,6 @@ Usage:
     ui_data = manager.get_ui_data()
 """
 
-import os
-import sys
 import logging
 import time
 import threading
@@ -35,22 +33,32 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 
-# Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
-
-from openevolve_integration import (
-    get_openevolve_integration,
-    OpenEvolveMDAPIntegration,
-    WorkflowComplexityAnalysis,
-    MAKERWorkflowDecision,
-    OpenEvolveIntegrationConfig
-)
-
-from bubblelab_ui_integration import (
-    get_bubblelab_ui_integration,
-    BubbleLabUIIntegration,
-    ComplexityAnalysisResult
-)
+try:
+    from .openevolve_integration import (
+        get_openevolve_integration,
+        OpenEvolveMDAPIntegration,
+        WorkflowComplexityAnalysis,
+        MAKERWorkflowDecision,
+        OpenEvolveIntegrationConfig
+    )
+    from .bubblelab_ui_integration import (
+        get_bubblelab_ui_integration,
+        BubbleLabUIIntegration,
+        ComplexityAnalysisResult
+    )
+except ImportError:  # pragma: no cover - fallback for direct script execution
+    from openevolve_integration import (
+        get_openevolve_integration,
+        OpenEvolveMDAPIntegration,
+        WorkflowComplexityAnalysis,
+        MAKERWorkflowDecision,
+        OpenEvolveIntegrationConfig
+    )
+    from bubblelab_ui_integration import (
+        get_bubblelab_ui_integration,
+        BubbleLabUIIntegration,
+        ComplexityAnalysisResult
+    )
 
 logger = logging.getLogger(__name__)
 

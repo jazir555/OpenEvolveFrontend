@@ -337,7 +337,7 @@ export function DatapizzaPipelinePanel({
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
               <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Debug Information</h5>
               <pre className="text-xs overflow-x-auto bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
-                {JSON.stringify(result, null, 2)}
+                {JSON.stringify(localResult, null, 2)}
               </pre>
             </div>
           </div>

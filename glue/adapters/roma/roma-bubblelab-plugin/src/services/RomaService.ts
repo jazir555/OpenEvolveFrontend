@@ -5,13 +5,18 @@
  * It includes caching, retry logic, validation, and performance analysis.
  */
 
-import { RomaService, RomaClient, RomaExecutionResult, RomaExecutionOptions } from '../types/plugin-types';
+import {
+  RomaService as RomaServiceInterface,
+  RomaClient as RomaClientInterface,
+  RomaExecutionResult,
+  RomaExecutionOptions
+} from '../types/plugin-types';
 
 /**
  * ROMA Service Implementation
  */
-export class RomaService implements RomaService {
-  public client: RomaClient;
+export class RomaService implements RomaServiceInterface {
+  public client: RomaClientInterface;
   private executionCache: Map<string, RomaExecutionResult>;
   private cacheTTL: number;
 
@@ -19,7 +24,7 @@ export class RomaService implements RomaService {
    * Create ROMA Service
    * @param client ROMA client instance
    */
-  constructor(client: RomaClient) {
+  constructor(client: RomaClientInterface) {
     this.client = client;
     this.executionCache = new Map();
     this.cacheTTL = 3600000; // 1 hour default
