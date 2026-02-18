@@ -18,7 +18,7 @@ export * from './utils/createOpenEvolvePlugin';
 export { openevolvePlugin } from './utils/createOpenEvolvePlugin';
 
 // Export React components
-export { default as OpenEvolveConfigPanel } from './components/OpenEvolveConfigPanel';
+export { OpenEvolveConfigPanel } from './components/OpenEvolveConfigPanel';
 // export * from './components/OpenEvolveExecutionPanel';
 
 // Export React hooks (will be implemented)

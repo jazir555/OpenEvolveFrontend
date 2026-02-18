@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import type { RAGBitsSearchPanelProps } from '../types/plugin-types';
 import { useRAGBitsPlugin } from '../utils/createRAGBitsPlugin';
-import { ragbitsLogger } from '../../../../../lib/structuredLogger';
+import { ragbitsLogger } from '../lib/structuredLogger';
 
 export const RAGBitsSearchPanel: React.FC<RAGBitsSearchPanelProps> = ({
   initialQuery = '',

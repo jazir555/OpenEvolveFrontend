@@ -238,6 +238,15 @@ class DeterministicRefinementLoop:
             except Exception:
                 pass
 
+        # Observability integration
+        self.observability = None
+        obs_module = optional_import("monitoring_system")
+        if obs_module:
+            try:
+                self.observability = obs_module.get_observability_manager()
+            except Exception:
+                pass
+
     def refine(self, initial_output: Any, context: Dict[str, Any]) -> Any:
         """Refine the output iteratively until convergence or max iterations."""
         current_output = initial_output
@@ -295,6 +304,16 @@ class DeterministicRefinementLoop:
                         self.state_mgr.save_state_with_versioning(workflow_id, state)
                 except Exception as exc:
                     logger.debug(f"Failed to update refinement state: {exc}")
+
+            # Record metrics
+            if self.observability:
+                try:
+                    from monitoring_system import MetricType
+                    self.observability.add_custom_metric("refinement_findings_count", len(findings), MetricType.GAUGE, {"iteration": str(i)})
+                    self.observability.add_custom_metric("refinement_quality_score", assessment.score, MetricType.GAUGE, {"iteration": str(i)})
+                    self.observability.add_custom_metric("refinement_improvement", assessment.improvement, MetricType.GAUGE, {"iteration": str(i)})
+                except Exception:
+                    pass
 
             history.append({
                 "iteration": i,

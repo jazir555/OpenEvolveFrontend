@@ -2,7 +2,7 @@
 // Handles HTTP communication with the RAGBits server
 // Updated with structured logging, validation, and proper error handling
 
-import { ragbitsLogger, LogContext } from '../../../../../lib/structuredLogger';
+import { ragbitsLogger, LogContext } from './structuredLogger';
 
 export interface RagbitsClientConfig {
   serverUrl: string;
@@ -209,12 +209,10 @@ export class RagbitsClient {
 
     try {
       // Add API key header if provided
-      const headers: HeadersInit = {
-        ...options.headers,
-      };
+      const headers = new Headers(options.headers);
 
       if (this.config.apiKey) {
-        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+        headers.set('Authorization', `Bearer ${this.config.apiKey}`);
       }
 
       const response = await fetch(url, {

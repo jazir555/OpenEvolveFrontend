@@ -276,9 +276,9 @@ class Z3LeanInventionIntegration:
                 logger.error(f"Failed to initialize enhanced integration: {e}")
                 self.enable_hybrid = False
 
-        # Initialize base integration if available
+        # Initialize base integration if available (always, as fallback)
         self.base_integration: Optional[Z3ToLeanIntegration] = None
-        if BASE_INTEGRATION_AVAILABLE and not self.enable_hybrid:
+        if BASE_INTEGRATION_AVAILABLE:
             try:
                 self.base_integration = Z3ToLeanIntegration()
                 logger.info("Base Z3-to-Lean integration initialized")
@@ -470,14 +470,18 @@ class Z3LeanInventionIntegration:
 
             # Generate proof certificate if cross-validated
             proof_certificate = None
-            if hybrid_result.cross_validation_passed and generate_proof_certificate:
-                certificate = generate_proof_certificate(
-                    hybrid_result.z3_result,
-                    hybrid_result.lean_result,
-                    cross_validated=True
-                )
-                proof_certificate = certificate.to_dict()
-                self.stats["proof_certificates_generated"] += 1
+            if hybrid_result.cross_validation_passed and generate_proof_certificate is not None:
+                try:
+                    certificate = generate_proof_certificate(
+                        hybrid_result.z3_result,
+                        hybrid_result.lean_result,
+                        cross_validated=True
+                    )
+                    if certificate:
+                        proof_certificate = certificate.to_dict()
+                        self.stats["proof_certificates_generated"] += 1
+                except Exception as e:
+                    logger.warning(f"Failed to generate proof certificate: {e}")
 
             # Determine formalization level
             if proof_certificate:
@@ -655,23 +659,30 @@ class Z3LeanInventionIntegration:
     async def _verify_with_z3(self, formalization: Z3LeanFormalization) -> Dict[str, Any]:
         """Verify formalization with Z3"""
         try:
+            # Create fresh solver for this verification (to avoid state pollution)
+            solver = z3.Solver()
+            solver.set("timeout", 10000)  # 10 second timeout
+
             # Parse and add constraint
             constraint = z3.parse_smt2_string(f"(assert {formalization.z3_constraint})")
-            self.z3_solver.add(constraint)
+            if constraint:
+                solver.add(constraint)
 
             # Check satisfiability
-            result = self.z3_solver.check()
+            result = solver.check()
 
             if result == z3.sat:
-                model = self.z3_solver.model()
+                model = solver.model()
+                self.stats["z3_verifications"] += 1
                 return {
                     "type": "z3_sat",
                     "description": formalization.description,
                     "verified": True,
                     "result": "sat",
-                    "model": str(model)
+                    "model": str(model) if model else "No model"
                 }
             elif result == z3.unsat:
+                self.stats["z3_verifications"] += 1
                 return {
                     "type": "z3_unsat",
                     "description": formalization.description,
@@ -684,10 +695,12 @@ class Z3LeanInventionIntegration:
                     "type": "z3_unknown",
                     "description": formalization.description,
                     "verified": False,
-                    "result": "unknown"
+                    "result": "unknown",
+                    "interpretation": "Z3 could not determine (timeout or too complex)"
                 }
 
         except Exception as e:
+            logger.warning(f"Z3 verification failed for '{formalization.description[:30]}': {e}")
             return {
                 "type": "z3_error",
                 "description": formalization.description,

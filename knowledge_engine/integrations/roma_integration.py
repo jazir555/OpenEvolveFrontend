@@ -1271,12 +1271,15 @@ class ROMAIntegration:
         Returns:
             Dict with 'passed' (bool), 'score' (float), 'feedback' (str)
         """
+        import sys
         req_lower = req_name.lower()
 
         # Initialize default values (outside try block to ensure they're always defined)
         passed = True
         score = 0.8
         feedback = "Requirement validated with default criteria"
+
+        logger.info({"msg": f"Starting verification for {req_name}", "req_name": req_name, "defined": "passed" in locals()})
 
         try:
             # Completeness checks
@@ -1419,6 +1422,8 @@ class ROMAIntegration:
             })
             # Re-raise with more context
             raise
+
+        logger.info({"msg": f"Returning verification result for {req_name}", "req_name": req_name, "passed": passed, "score": score})
 
         return {
             'passed': passed,

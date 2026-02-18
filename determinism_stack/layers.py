@@ -113,13 +113,14 @@ class LagrangeFilter:
 
 
 class DecompositionAdapter:
-    """Layer 1: Task decomposition (ROMA/MDAP/MAKER/RPG)."""
+    """Layer 1: Task decomposition (ROMA/MDAP/MAKER/RPG/PES)."""
 
     def __init__(self):
         self._solver = None
         self._maker_integrator = None
         self._mdap_integration = None
         self._rpg = None
+        self._pes = None
         
         # ROMA integration
         roma = optional_import("roma_dspy")
@@ -159,6 +160,14 @@ class DecompositionAdapter:
                 rpg_cls = getattr(examples, "RPGConstructor", None)
                 if rpg_cls:
                     self._rpg = rpg_cls()
+            except Exception:
+                pass
+
+        # PES integration (LoongFlow)
+        pes_module = optional_import("loongflow.framework.pes")
+        if pes_module:
+            try:
+                self._pes = getattr(pes_module, "PESAgent", None)
             except Exception:
                 pass
 
@@ -207,6 +216,13 @@ class DecompositionAdapter:
             features = self.atomize(requirements)
             return self._rpg.build_from_requirements(features)
         return {"error": "RPG integration not available"}
+
+    async def directed_solve(self, task: str, constraints: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Layer 1: PES-enhanced directed solving (LoongFlow)."""
+        if self._pes:
+            agent = self._pes(config=constraints)
+            return await agent.run({"problem_statement": task, "constraints": constraints})
+        return {"error": "PES integration not available"}
 
     def solve_long_horizon(self, task: str, team: Any = None) -> Dict[str, Any]:
         """Layer 1: MAKER zero-error long-horizon solving."""

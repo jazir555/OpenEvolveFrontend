@@ -1,6 +1,9 @@
 // BubbleLabs RAGBits Plugin - Main Export
 // Standalone plugin for semantic document search and knowledge retrieval
 
+import { createRAGBitsPlugin } from './utils/createRAGBitsPlugin';
+import type { RAGBitsPlugin, RAGBitsPluginConfig } from './types/plugin-types';
+
 // Export types
 export type {
   RAGBitsPluginConfig,
@@ -50,9 +53,6 @@ export { RagbitsService } from './services/ragbitsService';
 // Export utilities
 export { createRAGBitsPlugin, getRAGBitsPlugin, useRAGBitsPlugin } from './utils/createRAGBitsPlugin';
 
-// Export the main plugin factory
-import { createRAGBitsPlugin } from './utils/createRAGBitsPlugin';
-
 /**
  * Create a new RAGBits plugin instance
  * @param config Optional initial configuration
@@ -65,6 +65,6 @@ export function createPlugin(config?: Partial<RAGBitsPluginConfig>): RAGBitsPlug
 /**
  * Default plugin instance
  */
-export const RAGBitsPlugin = createRAGBitsPlugin();
+export const ragbitsPlugin = createRAGBitsPlugin();
 
-export default RAGBitsPlugin;
+export default ragbitsPlugin;

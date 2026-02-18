@@ -13,7 +13,8 @@ import {
   EvolutionConfig,
   AdversarialConfig,
   DecompositionConfig,
-  OPENEVOLVE_PLUGIN_CONSTANTS 
+  OPENEVOLVE_PLUGIN_CONSTANTS,
+  DEFAULT_OPENEVOLVE_CONFIG,
 } from './plugin-types';
 
 // Import necessary types from React and other libraries
@@ -26,7 +27,7 @@ type SetStateAction = any;
  * Extended Evolution Configuration
  * Adds all additional evolution parameters from parameter_definitions.py
  */
-export interface ExtendedEvolutionConfig extends EvolutionConfig {
+export interface ExtendedEvolutionConfig extends Partial<EvolutionConfig> {
   // Core Evolution Parameters (already in base)
   // Model Configuration (already in base)
   // Quality Diversity (already in base)
@@ -40,7 +41,7 @@ export interface ExtendedEvolutionConfig extends EvolutionConfig {
   api_retry_delay?: number;
   content_type?: string;
   system_message?: string;
-  early_stopping?: boolean;
+  early_stopping_enabled?: boolean;
   convergence_threshold?: number;
   fitness_function?: string;
   elitism?: boolean;
@@ -385,7 +386,7 @@ export interface ExtendedDecompositionConfig extends DecompositionConfig {
  * Extended OpenEvolve Plugin State
  * Includes all extended configuration categories
  */
-export interface ExtendedOpenEvolvePluginState extends OpenEvolvePluginState {
+export interface ExtendedOpenEvolvePluginState extends Partial<OpenEvolvePluginState> {
   // Core configurations (already in base)
   evolutionConfig: ExtendedEvolutionConfig;
   adversarialConfig: ExtendedAdversarialConfig;
@@ -1021,15 +1022,3 @@ export const DEFAULT_EXTENDED_OPENEVOLVE_CONFIG: ExtendedOpenEvolvePluginState =
   experimentalConfig: EXTENDED_OPENEVOLVE_PLUGIN_CONSTANTS.EXPERIMENTAL_DEFAULTS,
 };
 
-// Export all extended types for easy import
-export type {
-  ExtendedEvolutionConfig,
-  ExtendedAdversarialConfig,
-  ExtendedDecompositionConfig,
-  ExtendedOpenEvolvePluginState,
-};
-
-export {
-  EXTENDED_OPENEVOLVE_PLUGIN_CONSTANTS,
-  DEFAULT_EXTENDED_OPENEVOLVE_CONFIG,
-};

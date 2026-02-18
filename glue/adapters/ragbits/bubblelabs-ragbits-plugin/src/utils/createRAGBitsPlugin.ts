@@ -17,6 +17,15 @@ import {
 } from '../types/plugin-types';
 import { RagbitsClient } from '../lib/ragbitsClient';
 import { RagbitsService } from '../services/ragbitsService';
+import { RAGBitsConfigPanel } from '../components/RAGBitsConfigPanel';
+import { RAGBitsIngestPanel } from '../components/RAGBitsIngestPanel';
+import { RAGBitsSearchPanel } from '../components/RAGBitsSearchPanel';
+import { RAGBitsSearchResults } from '../components/RAGBitsSearchResults';
+import { RAGBitsStatusIndicator } from '../components/RAGBitsStatusIndicator';
+import { useRAGBitsConfig } from '../hooks/useRAGBitsConfig';
+import { useRAGBitsIngest } from '../hooks/useRAGBitsIngest';
+import { useRAGBitsSearch } from '../hooks/useRAGBitsSearch';
+import { useRAGBitsState } from '../hooks/useRAGBitsState';
 
 // Global plugin state management
 let globalPluginState: RAGBitsPluginState = {
@@ -370,19 +379,19 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
 
     // React components (will be imported dynamically)
     components: {
-      ConfigPanel: () => import('../components/RAGBitsConfigPanel').then(m => m.RAGBitsConfigPanel),
-      SearchPanel: () => import('../components/RAGBitsSearchPanel').then(m => m.RAGBitsSearchPanel),
-      IngestPanel: () => import('../components/RAGBitsIngestPanel').then(m => m.RAGBitsIngestPanel),
-      StatusIndicator: () => import('../components/RAGBitsStatusIndicator').then(m => m.RAGBitsStatusIndicator),
-      SearchResults: () => import('../components/RAGBitsSearchResults').then(m => m.RAGBitsSearchResults)
+      ConfigPanel: RAGBitsConfigPanel,
+      SearchPanel: RAGBitsSearchPanel,
+      IngestPanel: RAGBitsIngestPanel,
+      StatusIndicator: RAGBitsStatusIndicator,
+      SearchResults: RAGBitsSearchResults
     },
 
-    // React hooks (will be imported dynamically)
+    // React hooks
     hooks: {
-      useRAGBitsConfig: () => import('../hooks/useRAGBitsConfig').then(m => m.useRAGBitsConfig),
-      useRAGBitsState: () => import('../hooks/useRAGBitsState').then(m => m.useRAGBitsState),
-      useRAGBitsSearch: () => import('../hooks/useRAGBitsSearch').then(m => m.useRAGBitsSearch),
-      useRAGBitsIngest: () => import('../hooks/useRAGBitsIngest').then(m => m.useRAGBitsIngest)
+      useRAGBitsConfig,
+      useRAGBitsState,
+      useRAGBitsSearch,
+      useRAGBitsIngest
     }
   };
 

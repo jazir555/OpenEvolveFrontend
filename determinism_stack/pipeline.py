@@ -229,12 +229,15 @@ class DeterministicPipeline:
             # Layer 4: Learning & Optimization (DSPy/ACE)
             if 4 in self.config.enable_layers and self.config.use_learning:
                 if span: span.add_event("layer_4_start")
+                # Execute with learn=False first to get result, then learn if feedback exists
                 output = self.optimizer.execute(output, learn=False)
+                
                 # --- Real Business Logic: Trigger ACE Learning if feedback present ---
                 # Check if output contains feedback for self-correction/learning
                 if isinstance(output, dict) and "feedback" in output:
                     try:
                         self.optimizer.execute(output, learn=True)
+                        if span: span.add_event("ace_learning_triggered")
                     except Exception as exc:
                         logger.debug(f"ACE learning error: {exc}")
 

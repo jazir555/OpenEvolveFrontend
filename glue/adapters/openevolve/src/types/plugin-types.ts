@@ -682,20 +682,3 @@ export const DEFAULT_OPENEVOLVE_CONFIG: OpenEvolvePluginState = {
   },
 };
 
-// Export all types for easy import
-export type {
-  OpenEvolvePluginMetadata,
-  OpenEvolveExecutionStatus,
-  OpenEvolveModuleType,
-  EvolutionStrategy,
-  AdversarialStrategy,
-  DecompositionStrategy,
-  EvolutionConfig,
-  AdversarialConfig,
-  DecompositionConfig,
-  OpenEvolveExecutionStatistics,
-  OpenEvolveExecutionResult,
-  OpenEvolvePluginState,
-  OpenEvolveExecutionOptions,
-  OpenEvolvePlugin,
-};

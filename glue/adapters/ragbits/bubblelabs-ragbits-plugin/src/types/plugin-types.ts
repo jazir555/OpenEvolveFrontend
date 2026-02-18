@@ -1,6 +1,8 @@
 // RAGBits Plugin Types and Interfaces
 // Defines all types and interfaces for the BubbleLabs RAGBits plugin
 
+import type { ComponentType, ReactNode } from 'react';
+
 export interface RAGBitsPluginConfig {
   /** Enable/disable the plugin */
   enabled: boolean;
@@ -236,11 +238,11 @@ export interface RAGBitsPlugin extends RAGBitsPluginMethods {
 
   /** React components */
   components: {
-    ConfigPanel: React.ComponentType<{ onClose: () => void }>;
-    SearchPanel: React.ComponentType<{ onResult: (result: any) => void }>;
-    IngestPanel: React.ComponentType<{ onSuccess: (response: any) => void }>;
-    StatusIndicator: React.ComponentType<{}>;
-    SearchResults: React.ComponentType<{ results: RAGBitsSearchResult[] }>;
+    ConfigPanel: ComponentType<{ onClose: () => void }>;
+    SearchPanel: ComponentType<{ onResult: (result: any) => void }>;
+    IngestPanel: ComponentType<{ onSuccess: (response: any) => void }>;
+    StatusIndicator: ComponentType<{}>;
+    SearchResults: ComponentType<{ results: RAGBitsSearchResult[] }>;
   };
 
   /** React hooks */
@@ -269,7 +271,7 @@ export interface RAGBitsPluginProps {
   onStatusChange?: (status: RAGBitsPluginState['status']) => void;
 
   /** Children components */
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export interface RAGBitsConfigPanelProps {
