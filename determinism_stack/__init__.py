@@ -5,6 +5,7 @@ from .deps import ensure_local_dependencies
 ensure_local_dependencies()
 
 from .backends import BackendAdapter, BackendCapabilities, CallableLLM, CloudBackend, LocalBackend
+from .consensus import ConsensusEngine
 from .distributed import DistributedDeterminismCoordinator
 from .examples import (
     CustomerSupportAgent,
@@ -56,6 +57,7 @@ __all__ = [
     "CallableLLM",
     "CloudBackend",
     "LocalBackend",
+    "ConsensusEngine",
     "DistributedDeterminismCoordinator",
     "CustomerSupportAgent",
     "DeterministicCodeGenerator",

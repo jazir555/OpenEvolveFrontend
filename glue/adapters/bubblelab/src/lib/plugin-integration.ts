@@ -32,6 +32,27 @@ import {
   OpenEvolveApiAdapter
 } from './plugin-adapters';
 
+const resolveRuntimeEnv = (...keys: string[]): string | undefined => {
+  if (typeof process !== 'undefined' && process.env) {
+    for (const key of keys) {
+      const value = process.env[key];
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  const runtime = globalThis as unknown as Record<string, unknown>;
+  for (const key of keys) {
+    const value = runtime[key];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
+};
+
 export interface BubbleLabIntegrationConfig {
   ragbits?: {
     serverUrl: string;
@@ -41,6 +62,11 @@ export interface BubbleLabIntegrationConfig {
   datapizza?: {
     serverUrl: string;
     apiKey?: string;
+    enabled?: boolean;
+  };
+  openevolve?: {
+    apiKey?: string;
+    baseUrl?: string;
     enabled?: boolean;
   };
   autoStart?: boolean;
@@ -131,22 +157,26 @@ class BubbleLabIntegration {
     apiLogger.info('Registering plugins', this.correlationContext);
 
     // Register OpenEvolve API adapter (always available)
-    try {
-      const openevolveAdapter = new OpenEvolveApiAdapter(openevolveApi, {
-        apiKey: process.env.OPENEVOLVE_API_KEY || '',
-        baseUrl: process.env.OPENEVOLVE_API_BASE
-      });
-      await registry.registerPlugin(openevolveAdapter);
-      apiLogger.info('OpenEvolve API adapter registered', this.correlationContext);
-    } catch (error) {
-      apiLogger.error('Failed to register OpenEvolve adapter', error as Error, this.correlationContext);
+    if (this.config.openevolve?.enabled !== false) {
+      try {
+        const openevolveAdapter = new OpenEvolveApiAdapter(openevolveApi, {
+          apiKey: this.resolveOpenEvolveApiKey(),
+          baseUrl: this.resolveOpenEvolveBaseUrl(),
+        });
+        await registry.registerPlugin(openevolveAdapter);
+        apiLogger.info('OpenEvolve API adapter registered', this.correlationContext);
+      } catch (error) {
+        apiLogger.error('Failed to register OpenEvolve adapter', error as Error, this.correlationContext);
+      }
     }
 
     // Register RAGBits plugin
     if (this.config.ragbits?.enabled !== false) {
       try {
-        // Dynamically import RAGBits plugin
-        const { createPlugin: createRAGBitsPlugin } = await import('@bubblelabs-ragbits-plugin');
+        const createRAGBitsPlugin = await this.resolvePluginFactory([
+          '@bubblelabs-ragbits-plugin',
+          'bubblelabs-ragbits-plugin',
+        ]);
         const ragbitsPlugin = createRAGBitsPlugin(this.config.ragbits);
         const ragbitsAdapter = new RAGBitsPluginAdapter(ragbitsPlugin, {
           ...this.config.ragbits,
@@ -169,8 +199,10 @@ class BubbleLabIntegration {
     // Register Datapizza plugin
     if (this.config.datapizza?.enabled !== false) {
       try {
-        // Dynamically import Datapizza plugin
-        const { createPlugin: createDatapizzaPlugin } = await import('@datapizza-bubblelab-plugin');
+        const createDatapizzaPlugin = await this.resolvePluginFactory([
+          '@datapizza-bubblelab-plugin',
+          'datapizza-bubblelab-plugin',
+        ]);
         const datapizzaPlugin = createDatapizzaPlugin(this.config.datapizza);
         const datapizzaAdapter = new DatapizzaPluginAdapter(datapizzaPlugin, {
           ...this.config.datapizza,
@@ -191,6 +223,42 @@ class BubbleLabIntegration {
     }
 
     apiLogger.info('All plugins registered', this.correlationContext);
+  }
+
+  private resolveOpenEvolveApiKey(): string | undefined {
+    return this.config.openevolve?.apiKey || resolveRuntimeEnv('OPENEVOLVE_API_KEY');
+  }
+
+  private resolveOpenEvolveBaseUrl(): string | undefined {
+    return this.config.openevolve?.baseUrl
+      || resolveRuntimeEnv(
+        'OPENEVOLVE_API_BASE',
+        'OPENEVOLVE_API_BASE_URL',
+        'OPENEVOLVE_API_URL',
+        'NEXT_PUBLIC_OPENEVOLVE_API_BASE',
+        'NEXT_PUBLIC_OPENEVOLVE_API_URL',
+      );
+  }
+
+  private async resolvePluginFactory(
+    moduleNames: string[]
+  ): Promise<(config?: Record<string, unknown>) => unknown> {
+    const loadErrors: string[] = [];
+
+    for (const moduleName of moduleNames) {
+      try {
+        const loaded = await import(moduleName);
+        const createPlugin = (loaded as { createPlugin?: (config?: Record<string, unknown>) => unknown }).createPlugin;
+        if (typeof createPlugin === 'function') {
+          return createPlugin;
+        }
+        loadErrors.push(`${moduleName}: missing createPlugin export`);
+      } catch (error) {
+        loadErrors.push(`${moduleName}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    throw new Error(`No compatible plugin module found (${loadErrors.join(' | ')})`);
   }
 
   /**

@@ -100,6 +100,72 @@ from .integration_manager import (
     get_integration_manager
 )
 
+# Advanced Integration Components
+from .openevolve_advanced import (
+    WorkflowStage,
+    TeamRole,
+    SubProblemDecomposition,
+    TeamSelectionResult,
+    ResourceOptimization,
+    WorkflowCheckpoint,
+    AdvancedOpenEvolveIntegration,
+    get_advanced_openevolve_integration
+)
+
+from .bubblelab_ui_advanced import (
+    ChartType,
+    AlertSeverity,
+    ChartData,
+    Alert,
+    TimelineEvent,
+    AdvancedBubbleLabUI,
+    get_advanced_bubblelab_ui
+)
+
+from .gauntlet_advanced import (
+    GauntletType,
+    GauntletSeverity,
+    GauntletConfig,
+    GauntletExecution,
+    GauntletPipeline,
+    AggregatedGauntletResult,
+    AdvancedGauntletIntegration,
+    get_advanced_gauntlet_integration
+)
+
+from .icr_advanced import (
+    PatternCluster,
+    PatternSimilarityResult,
+    AdaptiveThresholdResult,
+    AdvancedICRIntegration,
+    get_advanced_icr_integration
+)
+
+from .performance_optimization import (
+    CachePolicy,
+    CacheEntry,
+    ResponseCache,
+    ConnectionPool,
+    AsyncMDAPAdapter,
+    cached,
+    batch_processor,
+    PerformanceMonitor,
+    get_async_adapter,
+    get_performance_monitor
+)
+
+from .additional_systems_integration import (
+    SystemStatus,
+    SystemHealth,
+    CrewAIIntegration,
+    MCPToolsIntegration,
+    KnowledgeEngineIntegration,
+    LeanAideIntegration,
+    Z3ProverIntegration,
+    UnifiedSystemMonitor,
+    get_unified_system_monitor
+)
+
 # Monitoring components (optional, import separately)
 # from .monitoring_dashboard import AdapterMonitor, get_monitor
 # from .prometheus_exporter import PrometheusMetricsExporter, get_prometheus_exporter
@@ -152,9 +218,62 @@ __all__ = [
     "IntegrationStatus",
     "IntegrationHealth",
     "ComprehensiveIntegrationManager",
-    "get_integration_manager"
+    "get_integration_manager",
+    # Advanced OpenEvolve Integration
+    "WorkflowStage",
+    "TeamRole",
+    "SubProblemDecomposition",
+    "TeamSelectionResult",
+    "ResourceOptimization",
+    "WorkflowCheckpoint",
+    "AdvancedOpenEvolveIntegration",
+    "get_advanced_openevolve_integration",
+    # Advanced BubbleLab UI
+    "ChartType",
+    "AlertSeverity",
+    "ChartData",
+    "Alert",
+    "TimelineEvent",
+    "AdvancedBubbleLabUI",
+    "get_advanced_bubblelab_ui",
+    # Advanced Gauntlet Integration
+    "GauntletType",
+    "GauntletSeverity",
+    "GauntletConfig",
+    "GauntletExecution",
+    "GauntletPipeline",
+    "AggregatedGauntletResult",
+    "AdvancedGauntletIntegration",
+    "get_advanced_gauntlet_integration",
+    # Advanced ICR Integration
+    "PatternCluster",
+    "PatternSimilarityResult",
+    "AdaptiveThresholdResult",
+    "AdvancedICRIntegration",
+    "get_advanced_icr_integration",
+    # Performance Optimization
+    "CachePolicy",
+    "CacheEntry",
+    "ResponseCache",
+    "ConnectionPool",
+    "AsyncMDAPAdapter",
+    "cached",
+    "batch_processor",
+    "PerformanceMonitor",
+    "get_async_adapter",
+    "get_performance_monitor",
+    # Additional Systems Integration
+    "SystemStatus",
+    "SystemHealth",
+    "CrewAIIntegration",
+    "MCPToolsIntegration",
+    "KnowledgeEngineIntegration",
+    "LeanAideIntegration",
+    "Z3ProverIntegration",
+    "UnifiedSystemMonitor",
+    "get_unified_system_monitor"
 ]
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "OpenEvolve Team"
 __description__ = "Adaptive MDAP/MAKER Adapter - Anti-Corruption Layer"

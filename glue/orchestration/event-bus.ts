@@ -12,7 +12,6 @@ import { Event, EventHandler, EventSubscription, validateEvent } from './event-t
 import { DeadLetterQueue } from './dead-letter-queue';
 import { Logger } from '../lib/logger';
 import { CircuitBreaker } from '../lib/circuit-breaker';
-import { retryWithBackoff } from '../lib/retry';
 
 export enum EventBusType {
   MEMORY = 'memory',

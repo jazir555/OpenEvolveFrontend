@@ -255,11 +255,22 @@ export class DatapizzaPluginAdapter implements PluginInterface {
  */
 export class OpenEvolveApiAdapter implements PluginInterface {
   private api: any; // openevolveApi
-  private config: { apiKey: string; baseUrl?: string };
+  private config: { apiKey?: string; baseUrl?: string };
 
-  constructor(api: any, config: { apiKey: string; baseUrl?: string }) {
+  constructor(api: any, config: { apiKey?: string; baseUrl?: string }) {
     this.api = api;
     this.config = config;
+  }
+
+  private getApiConfig(): { apiKey?: string; baseUrl?: string } {
+    const apiConfig: { apiKey?: string; baseUrl?: string } = {};
+    if (this.config.apiKey) {
+      apiConfig.apiKey = this.config.apiKey;
+    }
+    if (this.config.baseUrl) {
+      apiConfig.baseUrl = this.config.baseUrl;
+    }
+    return apiConfig;
   }
 
   get metadata(): PluginMetadata {
@@ -296,7 +307,7 @@ export class OpenEvolveApiAdapter implements PluginInterface {
 
   async healthCheck(): Promise<boolean> {
     try {
-      await this.api.getHealth({ apiKey: this.config.apiKey });
+      await this.api.getHealth(this.getApiConfig());
       return true;
     } catch {
       return false;
@@ -320,30 +331,34 @@ export class OpenEvolveApiAdapter implements PluginInterface {
 
   // BubbleLabs integration methods
   async bubblelabsZ3Prove(payload: any): Promise<any> {
-    return await this.api.bubblelabsZ3Prove(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsZ3Prove(payload, this.getApiConfig());
+  }
+
+  async bubblelabsZ3Solve(payload: any): Promise<any> {
+    return await this.api.bubblelabsZ3Solve(payload, this.getApiConfig());
   }
 
   async bubblelabsLeanAideProve(payload: any): Promise<any> {
-    return await this.api.bubblelabsLeanAideProve(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsLeanAideProve(payload, this.getApiConfig());
   }
 
   async bubblelabsRomaAnalyze(payload: any): Promise<any> {
-    return await this.api.bubblelabsRomaAnalyze(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsRomaAnalyze(payload, this.getApiConfig());
   }
 
   async bubblelabsKnowledgeStore(payload: any): Promise<any> {
-    return await this.api.bubblelabsKnowledgeStore(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsKnowledgeStore(payload, this.getApiConfig());
   }
 
   async bubblelabsKnowledgeExtract(payload: any): Promise<any> {
-    return await this.api.bubblelabsKnowledgeExtract(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsKnowledgeExtract(payload, this.getApiConfig());
   }
 
   async bubblelabsAnalyticsTrack(payload: any): Promise<any> {
-    return await this.api.bubblelabsAnalyticsTrack(payload, { apiKey: this.config.apiKey });
+    return await this.api.bubblelabsAnalyticsTrack(payload, this.getApiConfig());
   }
 
   async bubblelabsAnalyticsDashboard(): Promise<any> {
-    return await this.api.bubblelabsAnalyticsDashboard({ apiKey: this.config.apiKey });
+    return await this.api.bubblelabsAnalyticsDashboard(this.getApiConfig());
   }
 }

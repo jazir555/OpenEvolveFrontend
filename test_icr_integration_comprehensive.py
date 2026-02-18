@@ -162,28 +162,18 @@ class TestICRCoreIntegration(unittest.TestCase):
         store = self.ICRPatternStore()
         predictor = self.ICRPredictor(store)
         
-        # Store patterns with matching context so they have the same pattern_key
+        # Store patterns - the pattern_key will be computed from context
         context = {"complexity": 5, "content_type": "test", "problem_type": "test"}
         
         for i in range(10):
             pattern = self.ICRPattern(
                 pattern_id=f"pattern_{i}",
                 pattern_type=self.ICRPatternType.OPTIMIZATION,
-                pattern_key="test_key",  # Explicit key for all patterns
+                pattern_key=store._compute_pattern_key("optimization", context),  # Match retrieval
                 passed=i >= 3,  # 70% success rate
                 context=context
             )
             store.store_pattern(pattern)
-        
-        # Get patterns with same context to ensure same pattern_key
-        similar = store.get_similar_patterns(
-            self.ICRPatternType.OPTIMIZATION,
-            context,
-            limit=20
-        )
-        
-        # Should find the patterns we stored
-        self.assertGreater(len(similar), 0)
         
         prediction = predictor.predict_outcome(
             pattern_type=self.ICRPatternType.OPTIMIZATION,

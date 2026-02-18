@@ -14,13 +14,12 @@
  * - Environment variable validation
  */
 
-import { CircuitBreaker, CircuitState } from '../../lib/circuit-breaker';
-import { logger, Logger } from '../../lib/logger';
-import { retryWithBackoff } from '../../lib/retry';
+import { CircuitBreaker, CircuitState } from '../../../lib/circuit-breaker';
+import { logger, Logger } from '../../../lib/logger';
+import { eventBus as defaultEventBus, type EventBus } from '../../../orchestration/event-bus';
+import type { Event } from '../../../orchestration/event-types';
 import {
   BubbleLabClient,
-  createBubbleLabClient,
-  BubbleLabClientConfig,
 } from './bubble-client';
 import {
   CanonicalBubbleFlow,
@@ -38,7 +37,7 @@ import {
 } from './bubblelab-canonical';
 
 // =============================================================================
-# Configuration
+// Configuration
 // =============================================================================
 
 export interface BubbleLabAdapterConfig {
@@ -50,6 +49,7 @@ export interface BubbleLabAdapterConfig {
   retry_max_retries?: number;
   retry_base_delay_ms?: number;
   retry_max_delay_ms?: number;
+  eventBus?: EventBus;
 }
 
 // =============================================================================
@@ -74,6 +74,7 @@ export class BubbleLabAdapter {
   private readonly circuitBreaker: CircuitBreaker;
   private readonly logger: Logger;
   private readonly metrics: AdapterMetrics;
+  private readonly eventBus: EventBus;
 
   constructor(config: BubbleLabAdapterConfig) {
     // Create child logger with context
@@ -81,6 +82,7 @@ export class BubbleLabAdapter {
       source_service: 'bubblelab-adapter',
       target_service: 'bubblelab-api',
     });
+    this.eventBus = config.eventBus || defaultEventBus;
 
     // Initialize BubbleLab client
     this.client = new BubbleLabClient({
@@ -115,6 +117,7 @@ export class BubbleLabAdapter {
       api_url: config.api_url,
       timeout_ms: config.timeout_ms,
       circuit_breaker_threshold: config.circuit_breaker_threshold || 5,
+      event_bus_connected: true,
     });
   }
 
@@ -338,7 +341,7 @@ export class BubbleLabAdapter {
     // If flow has an ID, try to get it first
     if (canonicalFlow.id) {
       try {
-        const existing = await this.getBubbleFlow(canonicalFlow.id, ctx_id);
+        await this.getBubbleFlow(canonicalFlow.id, ctx_id);
         // Flow exists, update it
         return await this.updateBubbleFlow(canonicalFlow.id, canonicalFlow, ctx_id);
       } catch {
@@ -650,20 +653,42 @@ export class BubbleLabAdapter {
 
   /**
    * Emit canonical event to orchestration layer
-   * TODO: Connect to actual event bus when implemented
    */
   private async emitEvent(event: CanonicalBubbleLabEvent): Promise<void> {
-    // For now, just log the event
-    // In production, this would publish to the event bus
-    this.logger.info('Emitting canonical event', {
-      event_type: event.event_type,
-      flow_id: event.flow_id,
-      execution_id: event.execution_id,
-      correlation_id: event.correlation_id,
-    });
+    const correlationId = event.correlation_id || generateCorrelationId();
+    const eventData = event.data && typeof event.data === 'object'
+      ? event.data
+      : { value: event.data };
 
-    // TODO: Publish to event bus
-    // await eventBus.publish('bubblelab.events', event);
+    const orchestrationEvent: Event = {
+      id: event.event_id,
+      type: event.event_type,
+      timestamp: event.timestamp,
+      correlation_id: correlationId,
+      source_service: 'bubblelab-adapter',
+      data: eventData,
+      metadata: {
+        flow_id: event.flow_id,
+        execution_id: event.execution_id,
+      },
+    } as Event;
+
+    try {
+      await this.eventBus.publish(orchestrationEvent);
+      this.logger.info('Canonical event published to event bus', {
+        event_type: event.event_type,
+        flow_id: event.flow_id,
+        execution_id: event.execution_id,
+        correlation_id: correlationId,
+      });
+    } catch (error) {
+      this.logger.error('Failed to publish canonical event', error instanceof Error ? error : undefined, {
+        event_type: event.event_type,
+        flow_id: event.flow_id,
+        execution_id: event.execution_id,
+        correlation_id: correlationId,
+      });
+    }
   }
 
   /**

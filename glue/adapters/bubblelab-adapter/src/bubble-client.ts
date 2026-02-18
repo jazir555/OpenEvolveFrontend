@@ -11,8 +11,8 @@
  * - Idempotent operations where possible
  */
 
-import { logger } from '../../lib/logger';
-import { retryWithBackoff } from '../../lib/retry';
+import { logger } from '../../../lib/logger';
+import { retryWithBackoff } from '../../../lib/retry';
 
 // =============================================================================
 // Configuration
