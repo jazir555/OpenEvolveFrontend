@@ -306,7 +306,7 @@ When components are unavailable:
 
 ## Monitoring
 
-### Metrics
+### Built-in Metrics
 
 The adapter tracks:
 - `requests_total`: Total requests processed
@@ -322,14 +322,51 @@ Structured JSON logs include:
 - `source_service`: Adapter name
 - `execution_time_ms`: Operation duration
 
+### Monitoring Dashboard
+
+A text-based monitoring dashboard is available:
+
+```bash
+python src/monitoring_dashboard.py
+```
+
+Features:
+- Real-time metrics display
+- Circuit breaker status
+- Request rate calculation
+- Health monitoring
+
+### Prometheus Metrics Export
+
+Export metrics to Prometheus format:
+
+```bash
+# Text format (for scraping)
+python src/prometheus_exporter.py --text
+
+# Run metrics server (port 9090)
+python src/prometheus_exporter.py --loop --port 9090
+```
+
+Metrics exposed:
+- `adaptive_mdap_requests_total`: Total requests
+- `adaptive_mdap_requests_success`: Successful requests
+- `adaptive_mdap_requests_failed`: Failed requests
+- `adaptive_mdap_request_duration_seconds`: Request latency histogram
+- `adaptive_mdap_circuit_breaker_state`: Circuit breaker state (0=closed, 1=open, 2=half_open)
+- `maker_runs_total`: Total MAKER runs
+- `maker_votes_cast_total`: Total votes cast
+- `maker_red_flags_total`: Total red flags detected
+- `adaptive_mdap_up`: MDAP adapter health (1=up, 0=down)
+- `maker_up`: MAKER adapter health (1=up, 0=down)
+
 ## Examples
 
 See the `examples/` directory for complete examples:
 
 - `basic_complexity_analysis.py`: Basic complexity analysis
 - `resource_allocation.py`: Resource allocation based on complexity
-- `maker_voting.py`: MAKER voting execution
-- `integration.py`: Full MDAP/MAKER integration
+- `full_workflow.py`: Complete workflow with MDAP/MAKER/BubbleLab
 
 ## Troubleshooting
 

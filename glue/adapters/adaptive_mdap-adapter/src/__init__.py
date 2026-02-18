@@ -73,6 +73,10 @@ from .bubblelab_api_client import (
     BubbleLabAPIResponseError
 )
 
+# Monitoring components (optional, import separately)
+# from .monitoring_dashboard import AdapterMonitor, get_monitor
+# from .prometheus_exporter import PrometheusMetricsExporter, get_prometheus_exporter
+
 __all__ = [
     # Adaptive MDAP Adapter
     "AdaptiveMDAPAdapter",

@@ -3,6 +3,12 @@ Sovereign-Grade Decomposition (SGD) Workflow Orchestrator for CREWAI
 
 This module implements the full Sovereign-Grade Decomposition workflow within CREWAI,
 integrating with OpenEvolve for team and gauntlet management.
+
+ICR Integration:
+- Stores workflow patterns for learning
+- Recommends optimal team/gauntlet configuration
+- Predicts workflow success probability
+- Learns from workflow outcomes
 """
 
 import asyncio
@@ -12,7 +18,7 @@ import time
 import json
 import requests
 from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 from openevolve_structures import (
@@ -23,6 +29,16 @@ from openevolve_structures import (
     CritiqueReport,
     VerificationReport
 )
+
+# ICR Integration
+try:
+    from icr_integration import get_icr_integration, ICRPatternType, ICRIntegration
+    ICR_AVAILABLE = True
+except ImportError:
+    ICR_AVAILABLE = False
+    get_icr_integration = None
+    ICRPatternType = None
+    ICRIntegration = None
 
 # **ACTUAL INTEGRATION**: Alerting and knowledge for SGD workflow orchestration
 try:
@@ -96,40 +112,44 @@ class SGDWorkflowStatus(Enum):
 class SGDWorkflowOrchestrator:
     """
     Orchestrates the complete Sovereign-Grade Decomposition Workflow within CREWAI
-    
+
     ICR Integration:
     - Stores workflow patterns for learning
     - Recommends optimal team/gauntlet configuration
     - Predicts workflow success probability
     - Learns from workflow outcomes
+    - Adapts configuration based on problem characteristics
     """
-    
+
     def __init__(
-        self, 
-        CREWAI_api_base: str = "http://localhost:8002", 
+        self,
+        CREWAI_api_base: str = "http://localhost:8002",
         openevolve_api_base: str = "http://localhost:8000",
         enable_icr: bool = True
     ):
         self.CREWAI_api_base = CREWAI_api_base
         self.openevolve_api_base = openevolve_api_base
         self.active_workflows: Dict[str, WorkflowState] = {}
-        self.completed_workflows: List[Dict] = []  # For ICR learning
+        self.completed_workflows: List[Dict] = []
         self.running = True
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
-        
-        # ICR Integration: Pattern storage
-        self.enable_icr = enable_icr
-        self.icr_patterns: Dict[str, Any] = {
-            'problem_type_patterns': {},  # problem_type -> success patterns
-            'complexity_patterns': {},  # complexity_range -> patterns
-            'team_config_patterns': {},  # team_config_hash -> success_rate
-            'gauntlet_config_patterns': {},  # gauntlet_config -> pass_rate
-            'stage_duration_patterns': {},  # stage_name -> avg_duration
-        }
-        
-        # ICR: Workflow outcome predictions
+
+        # ICR Integration
+        self.enable_icr = enable_icr and ICR_AVAILABLE
+        self.icr = None
+        self.icr_patterns: Dict[str, Any] = {}
         self._prediction_cache: Dict[str, Dict] = {}
+        
+        if self.enable_icr:
+            try:
+                self.icr = get_icr_integration()
+                if self.icr:
+                    self.icr.enable()
+            except Exception as e:
+                logger.warning(f"Failed to initialize ICR integration: {e}")
+                self.enable_icr = False
+                self.icr = None
 
     def create_workflow(self, problem_statement: str, 
                        content_analyzer_team: str,
@@ -1273,6 +1293,200 @@ Reassembled from {len(workflow_state.sub_problem_solutions)} sub-problem solutio
 
         except Exception as e:
             logger.error(f"Failed to track SGD performance: {e}")
+
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+
+    def store_workflow_pattern(
+        self,
+        workflow_id: str,
+        problem_statement: str,
+        success: bool,
+        duration_seconds: float,
+        num_sub_problems: int,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str]
+    ) -> str:
+        """
+        Store workflow pattern for ICR learning.
+        
+        Args:
+            workflow_id: ID of the workflow
+            problem_statement: Original problem statement
+            success: Whether workflow completed successfully
+            duration_seconds: Total workflow duration
+            num_sub_problems: Number of sub-problems decomposed
+            team_config: Team configuration used
+            gauntlet_config: Gauntlet configuration used
+            
+        Returns:
+            Pattern ID if stored, empty string if ICR not available
+        """
+        if not self.enable_icr or not self.icr:
+            return ""
+        
+        # Estimate complexity from problem statement length and sub-problem count
+        complexity_score = min(10, 2 + (len(problem_statement) / 100) + (num_sub_problems / 2))
+        
+        # Store ICR pattern
+        pattern_id = self.icr.store_pattern(
+            pattern_type=ICRPatternType.WORKFLOW_EXECUTION,
+            passed=success,
+            context={
+                "content_type": "workflow_execution",
+                "complexity_score": int(complexity_score),
+                "problem_type": "decomposition",
+                "team_config_hash": hash(json.dumps(team_config, sort_keys=True)),
+                "gauntlet_config_hash": hash(json.dumps(gauntlet_config, sort_keys=True))
+            },
+            metrics={
+                "duration_seconds": duration_seconds,
+                "num_sub_problems": num_sub_problems,
+                "success_rate": 1.0 if success else 0.0
+            }
+        )
+        
+        # Store in local patterns cache
+        self.completed_workflows.append({
+            "workflow_id": workflow_id,
+            "success": success,
+            "duration": duration_seconds,
+            "team_config": team_config,
+            "gauntlet_config": gauntlet_config,
+            "pattern_id": pattern_id
+        })
+        
+        return pattern_id
+
+    def predict_workflow_success(
+        self,
+        problem_statement: str,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str]
+    ) -> Dict[str, Any]:
+        """
+        Predict workflow success probability based on ICR patterns.
+        
+        Args:
+            problem_statement: Problem to solve
+            team_config: Proposed team configuration
+            gauntlet_config: Proposed gauntlet configuration
+            
+        Returns:
+            Prediction results with confidence and recommendations
+        """
+        if not self.enable_icr or not self.icr:
+            return {
+                "predicted": False,
+                "reason": "ICR integration not available"
+            }
+        
+        # Estimate complexity
+        complexity_score = min(10, 2 + (len(problem_statement) / 100))
+        
+        # Get prediction
+        prediction = self.icr.predict(
+            pattern_type=ICRPatternType.WORKFLOW_EXECUTION,
+            context={
+                "content_type": "workflow_execution",
+                "complexity_score": int(complexity_score),
+                "problem_type": "decomposition",
+                "team_config_hash": hash(json.dumps(team_config, sort_keys=True)),
+                "gauntlet_config_hash": hash(json.dumps(gauntlet_config, sort_keys=True))
+            }
+        )
+        
+        return {
+            "predicted": True,
+            "predicted_outcome": prediction.predicted_outcome,
+            "probability": prediction.probability,
+            "confidence": prediction.confidence,
+            "reason": prediction.reason,
+            "pattern_count": prediction.pattern_count,
+            "recommended_action": prediction.recommended_action
+        }
+
+    def recommend_configuration(
+        self,
+        problem_statement: str,
+        available_teams: List[str],
+        available_gauntlets: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Recommend optimal team and gauntlet configuration based on ICR patterns.
+        
+        Args:
+            problem_statement: Problem to solve
+            available_teams: List of available team names
+            available_gauntlets: List of available gauntlet names
+            
+        Returns:
+            Recommended configuration with reasoning
+        """
+        if not self.enable_icr or not self.icr:
+            return {
+                "recommended": False,
+                "reason": "ICR integration not available"
+            }
+        
+        # Estimate complexity
+        complexity_score = min(10, 2 + (len(problem_statement) / 100))
+        
+        # Simple recommendation logic based on complexity
+        if complexity_score > 7:
+            # High complexity - recommend robust configuration
+            recommended_team = max(available_teams) if available_teams else "default"
+            recommended_gauntlet = "gold" if "gold" in available_gauntlets else available_gauntlets[0] if available_gauntlets else "default"
+            reasoning = "High complexity problem - recommending robust team and gold gauntlet"
+        elif complexity_score > 4:
+            # Medium complexity - recommend balanced configuration
+            recommended_team = available_teams[len(available_teams)//2] if available_teams else "default"
+            recommended_gauntlet = "red" if "red" in available_gauntlets else available_gauntlets[0] if available_gauntlets else "default"
+            reasoning = "Medium complexity problem - recommending balanced configuration"
+        else:
+            # Low complexity - recommend lightweight configuration
+            recommended_team = min(available_teams) if available_teams else "default"
+            recommended_gauntlet = available_gauntlets[0] if available_gauntlets else "default"
+            reasoning = "Low complexity problem - recommending lightweight configuration"
+        
+        return {
+            "recommended": True,
+            "recommended_team": recommended_team,
+            "recommended_gauntlet": recommended_gauntlet,
+            "complexity_score": complexity_score,
+            "reasoning": reasoning,
+            "confidence": 0.7  # Base confidence
+        }
+
+    def get_workflow_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about workflow execution patterns.
+        
+        Returns:
+            Dictionary with workflow statistics
+        """
+        if not self.completed_workflows:
+            return {
+                "total_workflows": 0,
+                "message": "No completed workflows yet"
+            }
+        
+        total = len(self.completed_workflows)
+        successful = sum(1 for w in self.completed_workflows if w["success"])
+        
+        # Calculate average duration
+        durations = [w["duration"] for w in self.completed_workflows if "duration" in w]
+        avg_duration = sum(durations) / len(durations) if durations else 0.0
+        
+        return {
+            "total_workflows": total,
+            "successful_workflows": successful,
+            "failed_workflows": total - successful,
+            "success_rate": successful / total if total > 0 else 0.0,
+            "average_duration_seconds": avg_duration,
+            "icr_enabled": self.enable_icr
+        }
 
 
 # Example usage function

@@ -403,6 +403,158 @@ class ResourceEstimationEngine:
         # Cap maximum quality buffer at 50%
         return min(buffer, 0.50)
 
+    # =========================================================================
+    # ICR / GAUNTLET INTEGRATION METHODS
+    # =========================================================================
+
+    def record_gauntlet_outcome(
+        self,
+        sub_problem_id: str,
+        estimate: ResourceEstimate,
+        actual_usage: Dict[str, Any],
+        gauntlet_passed: bool
+    ) -> str:
+        """
+        Record gauntlet outcome for correlation learning.
+        
+        Args:
+            sub_problem_id: ID of the sub-problem
+            estimate: Original resource estimate
+            actual_usage: Actual resource usage
+            gauntlet_passed: Whether gauntlet validation passed
+            
+        Returns:
+            Pattern ID if stored, empty string if ICR not available
+        """
+        if not self.enable_icr or not self.icr:
+            return ""
+        
+        # Calculate estimation accuracy
+        time_accuracy = actual_usage.get("time_hours", estimate.time_hours) / max(estimate.time_hours, 0.1)
+        token_accuracy = actual_usage.get("api_tokens", estimate.api_tokens) / max(estimate.api_tokens, 1)
+        
+        # Store in gauntlet correlations
+        correlation_key = f"{sub_problem_id}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        self.gauntlet_correlations[correlation_key] = {
+            "estimate": {
+                "time_hours": estimate.time_hours,
+                "api_tokens": estimate.api_tokens,
+                "computational_units": estimate.computational_units
+            },
+            "actual": actual_usage,
+            "accuracy": {
+                "time_ratio": time_accuracy,
+                "token_ratio": token_accuracy
+            },
+            "gauntlet_passed": gauntlet_passed,
+            "metadata": estimate.metadata
+        }
+        
+        # Store ICR pattern
+        pattern_id = self.icr.store_pattern(
+            pattern_type=ICRPatternType.RESOURCE_USAGE,
+            passed=gauntlet_passed and 0.8 <= time_accuracy <= 1.2,  # Within 20% accuracy
+            context={
+                "complexity_score": estimate.metadata.get("complexity_score", 5.0),
+                "domain": estimate.metadata.get("domain", "unknown"),
+                "risk_level": "high" if estimate.metadata.get("risk_buffer", 0) > 0.15 else "medium" if estimate.metadata.get("risk_buffer", 0) > 0.05 else "low"
+            },
+            metrics={
+                "time_accuracy": time_accuracy,
+                "token_accuracy": token_accuracy,
+                "estimation_error": abs(time_accuracy - 1.0)
+            }
+        )
+        
+        # Update adaptive multipliers based on outcome
+        domain = estimate.metadata.get("domain", "unknown")
+        if domain not in self.adaptive_multipliers:
+            self.adaptive_multipliers[domain] = 1.0
+        
+        # Adjust multiplier based on accuracy
+        if time_accuracy > 1.2:  # Underestimated
+            self.adaptive_multipliers[domain] = min(2.0, self.adaptive_multipliers[domain] * 1.05)
+        elif time_accuracy < 0.8:  # Overestimated
+            self.adaptive_multipliers[domain] = max(0.5, self.adaptive_multipliers[domain] * 0.95)
+        
+        return pattern_id
+
+    def estimate_with_gauntlet_history(
+        self,
+        sub_problem: SubProblem,
+        domain: Optional[str] = None,
+        base_complexity: Optional[float] = None
+    ) -> ResourceEstimate:
+        """
+        Estimate resources using gauntlet history for improved accuracy.
+        
+        Args:
+            sub_problem: The SubProblem to estimate resources for
+            domain: Optional domain string
+            base_complexity: Optional complexity score
+            
+        Returns:
+            ResourceEstimate with gauntlet-adjusted values
+        """
+        # Get base estimate
+        estimate = self.estimate_resources(sub_problem, domain, base_complexity)
+        
+        # Apply ICR-based adjustment if available
+        if self.enable_icr and self.icr and domain:
+            # Get prediction for this domain
+            prediction = self.icr.predict(
+                pattern_type=ICRPatternType.RESOURCE_USAGE,
+                context={
+                    "complexity_score": base_complexity or sub_problem.complexity_score.overall_complexity if sub_problem.complexity_score else 5.0,
+                    "domain": domain
+                }
+            )
+            
+            # Apply adaptive multiplier from gauntlet history
+            if domain in self.adaptive_multipliers:
+                multiplier = self.adaptive_multipliers[domain]
+                estimate.time_hours = round(estimate.time_hours * multiplier, 2)
+                estimate.computational_units = round(estimate.computational_units * multiplier, 2)
+                
+                # Update metadata
+                estimate.metadata["gauntlet_adjusted"] = True
+                estimate.metadata["adaptive_multiplier"] = multiplier
+                estimate.metadata["prediction_confidence"] = prediction.confidence if hasattr(prediction, 'confidence') else 0.0
+        
+        return estimate
+
+    def get_gauntlet_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about gauntlet outcomes and estimation accuracy.
+        
+        Returns:
+            Dictionary with gauntlet statistics
+        """
+        if not self.gauntlet_correlations:
+            return {
+                "total_records": 0,
+                "message": "No gauntlet outcomes recorded yet"
+            }
+        
+        total_records = len(self.gauntlet_correlations)
+        passed_count = sum(1 for c in self.gauntlet_correlations.values() if c["gauntlet_passed"])
+        
+        # Calculate average accuracy
+        time_ratios = [c["accuracy"]["time_ratio"] for c in self.gauntlet_correlations.values()]
+        token_ratios = [c["accuracy"]["token_ratio"] for c in self.gauntlet_correlations.values()]
+        
+        avg_time_accuracy = sum(time_ratios) / len(time_ratios) if time_ratios else 1.0
+        avg_token_accuracy = sum(token_ratios) / len(token_ratios) if token_ratios else 1.0
+        
+        return {
+            "total_records": total_records,
+            "gauntlet_pass_rate": passed_count / total_records if total_records > 0 else 0.0,
+            "avg_time_accuracy": avg_time_accuracy,
+            "avg_token_accuracy": avg_token_accuracy,
+            "adaptive_multipliers": self.adaptive_multipliers.copy(),
+            "icr_enabled": self.enable_icr
+        }
+
 
 def estimate_resources_simple(
     complexity_score: float,

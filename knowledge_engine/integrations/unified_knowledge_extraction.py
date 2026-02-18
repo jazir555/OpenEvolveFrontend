@@ -158,11 +158,8 @@ class UnifiedKnowledgeExtractor:
             ExtractionResult with extracted knowledge
         """
         config = config or {}
-        
+
         try:
-            # Placeholder for text extraction
-            # In a full implementation, this would integrate with NLP tools
-            
             result_data = {
                 'text': text,
                 'extraction_type': extraction_type,
@@ -170,31 +167,293 @@ class UnifiedKnowledgeExtractor:
                 'relations': [],
                 'triples': []
             }
-            
-            # Simple entity extraction (placeholder)
-            # In production, use proper NER
-            words = text.split()
-            result_data['entities'] = [
-                {'text': word, 'type': 'unknown', 'position': i}
-                for i, word in enumerate(words)
-                if word[0].isupper()  # Simple heuristic
-            ]
-            
+
+            # Try to use proper NLP tools
+            if self._try_spacy_extraction(text, result_data, config):
+                pass  # Spacy extraction succeeded
+            elif self._try_transformers_extraction(text, result_data, config):
+                pass  # Transformers extraction succeeded
+            else:
+                # Fallback to advanced rule-based extraction
+                self._rule_based_extraction(text, result_data, config)
+
+            # Extract relations and triples
+            self._extract_relations(result_data, config)
+            self._generate_triples(result_data, config)
+
             return ExtractionResult(
                 status='success',
                 data=result_data,
                 metadata={
                     'timestamp': datetime.now().isoformat(),
-                    'method': 'unified_extractor'
+                    'method': result_data.get('extraction_method', 'rule_based'),
+                    'entity_count': len(result_data['entities']),
+                    'relation_count': len(result_data['relations']),
+                    'triple_count': len(result_data['triples'])
                 }
             )
-            
+
         except Exception as e:
             return ExtractionResult(
                 status='error',
                 errors=[f'Extraction failed: {str(e)}'],
                 metadata={'timestamp': datetime.now().isoformat()}
             )
+
+    def _try_spacy_extraction(
+        self,
+        text: str,
+        result_data: Dict[str, Any],
+        config: Dict[str, Any]
+    ) -> bool:
+        """Try to extract using spaCy NLP library."""
+        try:
+            import spacy
+
+            # Load spaCy model
+            model_name = config.get('spacy_model', 'en_core_web_sm')
+            try:
+                nlp = spacy.load(model_name)
+            except OSError:
+                # Model not installed, try to download
+                import subprocess
+                subprocess.run(['python', '-m', 'spacy', 'download', model_name],
+                             capture_output=True, check=False)
+                nlp = spacy.load(model_name)
+
+            # Process text
+            doc = nlp(text)
+
+            # Extract entities
+            for ent in doc.ents:
+                result_data['entities'].append({
+                    'text': ent.text,
+                    'type': ent.label_,
+                    'position': ent.start_char,
+                    'confidence': 0.9,  # spaCy NER is generally reliable
+                    'spacy_label': ent.label_
+                })
+
+            result_data['extraction_method'] = 'spacy'
+            return True
+
+        except Exception as e:
+            logger.debug(f"spaCy extraction failed: {e}")
+            return False
+
+    def _try_transformers_extraction(
+        self,
+        text: str,
+        result_data: Dict[str, Any],
+        config: Dict[str, Any]
+    ) -> bool:
+        """Try to extract using transformers library."""
+        try:
+            from transformers import pipeline
+
+            # Use NER pipeline
+            model_name = config.get('transformers_model', 'dbmdz/bert-large-cased-finetuned-conll03-english')
+            ner_pipeline = pipeline('ner', model=model_name, aggregation_strategy='simple')
+
+            # Extract entities
+            entities = ner_pipeline(text)
+
+            for ent in entities:
+                result_data['entities'].append({
+                    'text': ent['word'],
+                    'type': ent['entity_group'],
+                    'position': ent.get('start', 0),
+                    'confidence': ent['score'],
+                    'transformers_label': ent['entity_group']
+                })
+
+            result_data['extraction_method'] = 'transformers'
+            return True
+
+        except Exception as e:
+            logger.debug(f"Transformers extraction failed: {e}")
+            return False
+
+    def _rule_based_extraction(
+        self,
+        text: str,
+        result_data: Dict[str, Any],
+        config: Dict[str, Any]
+    ) -> bool:
+        """Advanced rule-based extraction with pattern matching."""
+        import re
+
+        # Define entity patterns
+        patterns = {
+            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            'url': r'\bhttps?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+[/\w .-]*/?\b',
+            'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+            'date': r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b',
+            'number': r'\b\d+(?:\.\d+)?\b',
+            'currency': r'\$\d+(?:\.\d{2})?\b',
+            'percentage': r'\d+(?:\.\d+)?%',
+            'ip_address': r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b',
+        }
+
+        # Extract using patterns
+        for entity_type, pattern in patterns.items():
+            for match in re.finditer(pattern, text):
+                result_data['entities'].append({
+                    'text': match.group(),
+                    'type': entity_type,
+                    'position': match.start(),
+                    'confidence': 0.85,
+                    'extraction_method': 'pattern_match'
+                })
+
+        # Extract capitalized words (potential named entities)
+        words = text.split()
+        for i, word in enumerate(words):
+            # Clean punctuation
+            clean_word = word.strip('.,!?;:()"\'')
+            if clean_word and clean_word[0].isupper() and len(clean_word) > 1:
+                # Skip if already extracted as a pattern
+                if not any(e['text'] == clean_word for e in result_data['entities']):
+                    result_data['entities'].append({
+                        'text': clean_word,
+                        'type': 'PROPER_NOUN',
+                        'position': text.find(clean_word),
+                        'confidence': 0.6,
+                        'extraction_method': 'capitalization'
+                    })
+
+        # Extract noun phrases (simple version)
+        sentences = re.split(r'[.!?]+', text)
+        for sentence in sentences:
+            words = sentence.strip().split()
+            if len(words) >= 2 and len(words) <= 5:
+                # Look for consecutive capitalized words (likely a named entity)
+                consecutive_caps = []
+                for word in words:
+                    if word and word[0].isupper():
+                        consecutive_caps.append(word)
+                    else:
+                        if len(consecutive_caps) >= 2:
+                            phrase = ' '.join(consecutive_caps)
+                            position = text.find(phrase)
+                            if position >= 0:
+                                result_data['entities'].append({
+                                    'text': phrase,
+                                    'type': 'NOUN_PHRASE',
+                                    'position': position,
+                                    'confidence': 0.75,
+                                    'extraction_method': 'noun_phrase'
+                                })
+                        consecutive_caps = []
+
+                # Check last sequence
+                if len(consecutive_caps) >= 2:
+                    phrase = ' '.join(consecutive_caps)
+                    position = text.find(phrase)
+                    if position >= 0:
+                        result_data['entities'].append({
+                            'text': phrase,
+                            'type': 'NOUN_PHRASE',
+                            'position': position,
+                            'confidence': 0.75,
+                            'extraction_method': 'noun_phrase'
+                        })
+
+        result_data['extraction_method'] = 'rule_based'
+        return True
+
+    def _extract_relations(self, result_data: Dict[str, Any], config: Dict[str, Any]):
+        """Extract relationships between entities."""
+        entities = result_data['entities']
+        text = result_data['text']
+
+        # Simple relation extraction based on proximity and patterns
+        relation_patterns = {
+            ('PROPER_NOUN', 'PROPER_NOUN'): [
+                (r'(\w+(?:\s+\w+)*)\s+(?:is|was|are|were)\s+(?:a|an|the)?\s*(?:part of|member of|works at|employed by)\s+(\w+(?:\s+\w+)*)', 'EMPLOYED_BY'),
+                (r'(\w+(?:\s+\w+)*)\s+(?:is|was)\s+(?:born in|from)\s+(\w+(?:\s+\w+)*)', 'FROM'),
+                (r'(\w+(?:\s+\w+)*)\s+(?:founded|created|established)\s+(\w+(?:\s+\w+)*)', 'FOUNDER_OF'),
+                (r'(\w+(?:\s+\w+)*)\s+(?:owns|possesses)\s+(\w+(?:\s+\w+)*)', 'OWNS'),
+            ],
+            ('PROPER_NOUN', 'ORGANIZATION'): [
+                (r'(\w+(?:\s+\w+)*)\s+(?:is|was)\s+(?:CEO|CTO|CFO|president|director)\s+(?:of|at)\s+(\w+(?:\s+\w+)*)', 'EXECUTIVE_OF'),
+            ],
+        }
+
+        import re
+
+        for entity1 in entities:
+            for entity2 in entities:
+                if entity1['text'] == entity2['text']:
+                    continue
+
+                # Check if entities are close in text (within 50 characters)
+                pos1 = entity1.get('position', 0)
+                pos2 = entity2.get('position', 0)
+                if abs(pos1 - pos2) > 100:
+                    continue
+
+                # Try to match relation patterns
+                entity1_type = entity1.get('type', 'PROPER_NOUN')
+                entity2_type = entity2.get('type', 'PROPER_NOUN')
+
+                # Normalize types for pattern matching
+                type_map = {
+                    'PERSON': 'PROPER_NOUN',
+                    'ORG': 'PROPER_NOUN',
+                    'GPE': 'PROPER_NOUN',
+                    'LOC': 'PROPER_NOUN',
+                }
+                entity1_type = type_map.get(entity1_type, entity1_type)
+                entity2_type = type_map.get(entity2_type, entity2_type)
+
+                key = (entity1_type, entity2_type)
+                if key in relation_patterns:
+                    for pattern, relation_type in relation_patterns[key]:
+                        match = re.search(pattern, text[pos1:pos1+200])
+                        if match:
+                            result_data['relations'].append({
+                                'subject': entity1['text'],
+                                'object': entity2['text'],
+                                'relation': relation_type,
+                                'confidence': 0.7,
+                                'evidence': match.group(0)
+                            })
+
+    def _generate_triples(self, result_data: Dict[str, Any], config: Dict[str, Any]):
+        """Generate knowledge graph triples."""
+        entities = result_data['entities']
+        relations = result_data['relations']
+
+        # Create triples from relations
+        for relation in relations:
+            result_data['triples'].append({
+                'subject': relation['subject'],
+                'predicate': relation['relation'],
+                'object': relation['object'],
+                'confidence': relation['confidence'],
+                'source': 'extraction'
+            })
+
+        # Create self-describing triples for entities
+        for entity in entities:
+            result_data['triples'].append({
+                'subject': entity['text'],
+                'predicate': 'rdf:type',
+                'object': entity['type'],
+                'confidence': entity.get('confidence', 0.8),
+                'source': 'entity_type'
+            })
+
+            # Add position triple
+            if 'position' in entity:
+                result_data['triples'].append({
+                    'subject': entity['text'],
+                    'predicate': 'schema:position',
+                    'object': str(entity['position']),
+                    'confidence': 1.0,
+                    'source': 'position'
+                })
     
     # ==================== Graph Analysis ====================
     

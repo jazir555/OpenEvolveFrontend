@@ -96,7 +96,7 @@ export class NanobananaImagePipeline extends BubbleFlow<'webhook/http'> {
     value: string
   ) {
     const columnLetter = this.columnIndexToLetter(columnIndex);
-    const range = `\${sheetName}!\${columnLetter}\${rowIndex}`;
+    const range = \`\${sheetName}!\${columnLetter}\${rowIndex}\`;
     const update = new GoogleSheetsBubble({
       operation: 'updateCell',
       spreadsheetId,
@@ -187,10 +187,10 @@ export class NanobananaImagePipeline extends BubbleFlow<'webhook/http'> {
     let driveIndex = headers.indexOf(driveLinkColumn);
 
     if (imageIndex === -1) {
-      throw new Error(`Missing column: \${imageUrlColumn}`);
+      throw new Error(\`Missing column: \${imageUrlColumn}\`);
     }
     if (promptIndex === -1) {
-      throw new Error(`Missing column: \${promptColumn}`);
+      throw new Error(\`Missing column: \${promptColumn}\`);
     }
 
     if (driveIndex === -1) {
@@ -200,7 +200,7 @@ export class NanobananaImagePipeline extends BubbleFlow<'webhook/http'> {
       const headerUpdate = new GoogleSheetsBubble({
         operation: 'setValues',
         spreadsheetId,
-        range: `\${sheetName}!A1`,
+        range: \`\${sheetName}!A1\`,
         values: [headers],
       });
 
@@ -229,7 +229,7 @@ export class NanobananaImagePipeline extends BubbleFlow<'webhook/http'> {
 
       const rawResponse = await this.generateImage(imageUrl, prompt);
       const base64Image = this.extractBase64Image(rawResponse);
-      const fileName = `nanobanana-\${rowIndex + 1}-\${Date.now()}.png`;
+      const fileName = \`nanobanana-\${rowIndex + 1}-\${Date.now()}.png\`;
       const driveFile = await this.uploadToDrive(
         base64Image,
         fileName,

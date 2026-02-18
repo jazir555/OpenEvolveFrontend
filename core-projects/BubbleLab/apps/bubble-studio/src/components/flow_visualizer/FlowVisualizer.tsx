@@ -114,18 +114,17 @@ function FlowVisualizerInner({
   // Poll every 10 seconds when flow is in pending/generating state (code is empty and no error)
   const { data: currentFlow, loading, refetch, setOptimisticData } =
     useBubbleFlow(flowId, {
-    refetchInterval: (query) => {
-      // Check if flow is in pending/generating state
-      const data = query.state.data;
-      const isPending =
-        data &&
-        (!data.code || data.code.trim() === '') &&
-        !data.generationError;
-      // Poll every 10 seconds (10000ms) when pending, otherwise no polling
-      return isPending ? 10000 : false;
-    },
-    },
-  });
+      refetchInterval: (query) => {
+        // Check if flow is in pending/generating state
+        const data = query.state.data;
+        const isPending =
+          data &&
+          (!data.code || data.code.trim() === '') &&
+          !data.generationError;
+        // Poll every 10 seconds (10000ms) when pending, otherwise no polling
+        return isPending ? 10000 : false;
+      },
+    });
   const { unsavedCode, setExecutionHighlight } = useEditor(flowId);
   // Select only needed execution store actions/state to avoid re-renders from events
   // Note: Individual nodes subscribe to their own state - FlowVisualizer only needs minimal state

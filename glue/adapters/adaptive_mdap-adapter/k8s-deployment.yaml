@@ -1,0 +1,268 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: adaptive-mdap-adapter-config
+  namespace: openevolve
+data:
+  # Required configuration
+  ADAPTIVE_MDAP_TIMEOUT_MS: "5000"
+
+  # Optional configuration with defaults
+  ADAPTIVE_MDAP_MAX_RETRIES: "3"
+  ADAPTIVE_MDAP_RETRY_DELAY_MS: "100"
+  ADAPTIVE_MDAP_CIRCUIT_BREAKER_THRESHOLD: "5"
+  ADAPTIVE_MDAP_CIRCUIT_BREAKER_TIMEOUT_MS: "60000"
+  ADAPTIVE_MDAP_LOG_LEVEL: "INFO"
+
+  # BubbleLab API (optional)
+  # BUBBLELAB_API_URL: "http://bubblelab-api:8000"
+  # BUBBLELAB_API_KEY: ""
+
+  # Monitoring
+  PROMETHEUS_PORT: "9090"
+  HEALTH_CHECK_PORT: "8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adaptive-mdap-adapter
+  namespace: openevolve
+  labels:
+    app: adaptive-mdap-adapter
+    component: glue-layer
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: adaptive-mdap-adapter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adaptive-mdap-adapter
+  namespace: openevolve
+  labels:
+    app: adaptive-mdap-adapter
+    component: glue-layer
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: adaptive-mdap-adapter
+  template:
+    metadata:
+      labels:
+        app: adaptive-mdap-adapter
+        component: glue-layer
+        version: v1.0.0
+    spec:
+      serviceAccountName: adaptive-mdap-adapter
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        readOnlyRootFilesystem: false
+      containers:
+      - name: adapter
+        image: adaptive-mdap-adapter:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: ADAPTIVE_MDAP_TIMEOUT_MS
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_TIMEOUT_MS
+        - name: ADAPTIVE_MDAP_MAX_RETRIES
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_MAX_RETRIES
+        - name: ADAPTIVE_MDAP_RETRY_DELAY_MS
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_RETRY_DELAY_MS
+        - name: ADAPTIVE_MDAP_CIRCUIT_BREAKER_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_CIRCUIT_BREAKER_THRESHOLD
+        - name: ADAPTIVE_MDAP_CIRCUIT_BREAKER_TIMEOUT_MS
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_CIRCUIT_BREAKER_TIMEOUT_MS
+        - name: ADAPTIVE_MDAP_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: ADAPTIVE_MDAP_LOG_LEVEL
+        - name: BUBBLELAB_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: adaptive-mdap-adapter-config
+              key: BUBBLELAB_API_URL
+          optional: true
+        - name: BUBBLELAB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bubblelab-api-secret
+              key: api-key
+          optional: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: adaptive-mdap-adapter-pdb
+  namespace: openevolve
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: adaptive-mdap-adapter
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: adaptive-mdap-adapter
+  namespace: openevolve
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: adaptive-mdap-adapter-hpa
+  namespace: openevolve
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: adaptive-mdap-adapter
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: adaptive-mdap-adapter-contract-test
+  namespace: openevolve
+spec:
+  template:
+    metadata:
+      labels:
+        app: adaptive-mdap-adapter
+        job: contract-test
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: test
+        image: adaptive-mdap-adapter:1.0.0
+        command:
+        - python
+        - -m
+        - pytest
+        - /app/tests/contract.test.py
+        - -v
+        env:
+        - name: ADAPTIVE_MDAP_TIMEOUT_MS
+          value: "10000"
+        - name: ADAPTIVE_MDAP_LOG_LEVEL
+          value: "DEBUG"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: adaptive-mdap-adapter
+  namespace: openevolve
+spec:
+  parentRefs:
+  - name: openevolve-gateway
+    namespace: openevolve
+    kind: Gateway
+  hostnames:
+  - "api.openevolve.example.com"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/adapter
+    backendRefs:
+    - name: adaptive-mdap-adapter
+      port: 8080

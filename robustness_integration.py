@@ -9,6 +9,12 @@ Integrates all 5 robustness components into the OpenEvolve system:
 5. Chronicle Memory - Temporal episodic memory
 
 This creates a comprehensive safety and intelligence layer for the system.
+
+ICR Integration:
+- Stores robustness patterns for learning
+- Predicts operation success/failure probability
+- Adapts thresholds based on historical outcomes
+- Learns from execution and verification results
 """
 
 import os
@@ -17,7 +23,17 @@ import asyncio
 import logging
 from typing import Dict, Any, Optional, List, Callable, Tuple
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
+
+# ICR Integration
+try:
+    from icr_integration import get_icr_integration, ICRPatternType, ICRIntegration
+    ICR_AVAILABLE = True
+except ImportError:
+    ICR_AVAILABLE = False
+    get_icr_integration = None
+    ICRPatternType = None
+    ICRIntegration = None
 
 # Import the robustness components
 from execution_sandbox import (
@@ -81,48 +97,49 @@ class RobustnessConfig:
 class RobustnessCoordinator:
     """
     Main coordinator for all robustness components.
-    
+
     Provides a unified interface for:
     - Secure code execution
     - Visual verification
     - Web research
     - Intelligent routing
     - Memory management
-    
+
     ICR Integration:
     - Stores robustness patterns for learning
     - Predicts operation success/failure probability
     - Adapts thresholds based on historical outcomes
     - Learns from execution and verification results
     """
-    
+
     def __init__(self, config: RobustnessConfig = None):
         self.config = config or RobustnessConfig()
-        
+
         # Initialize components
         self.sandbox: Optional[ExecutionSandbox] = None
         self.vlm: Optional[VisionLanguageMonitor] = None
         self.web_research: Optional[ResearchAgent] = None
         self.router: Optional[System1Router] = None
         self.chronicle: Optional[ChronicleMemory] = None
-        
+
         self._initialized = False
-        
-        # ICR Integration: Pattern storage and learning
-        self.enable_icr = self.config.enable_icr
-        self.icr_pattern_store = {
-            'execution_patterns': {},  # operation_type -> pattern list
-            'verification_patterns': {},  # verification_type -> pattern list
-            'routing_patterns': {},  # complexity_level -> pattern list
-            'research_patterns': {},  # error_type -> pattern list
-            'operation_history': [],  # Complete operation outcomes
-        }
-        
-        # ICR: Adaptive threshold adjustments
+
+        # ICR Integration
+        self.enable_icr = self.config.enable_icr and ICR_AVAILABLE
+        self.icr = None
+        self.icr_pattern_store = {}
         self._adaptive_thresholds: Dict[str, float] = {}
-        
-        # ICR: Prediction cache
         self._prediction_cache: Dict[str, Dict] = {}
+        
+        if self.enable_icr:
+            try:
+                self.icr = get_icr_integration()
+                if self.icr:
+                    self.icr.enable()
+            except Exception as e:
+                logger.warning(f"Failed to initialize ICR integration: {e}")
+                self.enable_icr = False
+                self.icr = None
     
     async def initialize(self):
         """Initialize all enabled components"""
@@ -1131,6 +1148,163 @@ class RobustnessCoordinator:
         # ICR: Include ICR statistics
         if self.enable_icr:
             stats["icr"] = self.get_icr_statistics()
+        
+        return stats
+
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+
+    def record_operation_outcome(
+        self,
+        operation_type: str,
+        success: bool,
+        duration_seconds: float,
+        context: Dict[str, Any] = None
+    ) -> str:
+        """
+        Record operation outcome for ICR learning.
+        
+        Args:
+            operation_type: Type of operation (execute, verify, research, route)
+            success: Whether operation succeeded
+            duration_seconds: Operation duration
+            context: Additional context information
+            
+        Returns:
+            Pattern ID if stored, empty string if ICR not available
+        """
+        if not self.enable_icr or not self.icr:
+            return ""
+        
+        # Store ICR pattern
+        pattern_id = self.icr.store_pattern(
+            pattern_type=ICRPatternType.SECURITY_POLICY,
+            passed=success,
+            context={
+                "content_type": "robustness_operation",
+                "operation_type": operation_type,
+                "complexity_score": min(10, int(duration_seconds / 5))  # Longer = more complex
+            },
+            metrics={
+                "duration_seconds": duration_seconds,
+                "success_rate": 1.0 if success else 0.0
+            }
+        )
+        
+        # Store in local pattern cache
+        if operation_type not in self.icr_pattern_store:
+            self.icr_pattern_store[operation_type] = []
+        self.icr_pattern_store[operation_type].append({
+            "success": success,
+            "duration": duration_seconds,
+            "context": context or {},
+            "pattern_id": pattern_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Update adaptive threshold
+        self._update_adaptive_threshold(operation_type, success)
+        
+        return pattern_id
+
+    def predict_operation_success(
+        self,
+        operation_type: str,
+        context: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Predict operation success probability based on ICR patterns.
+        
+        Args:
+            operation_type: Type of operation
+            context: Additional context
+            
+        Returns:
+            Prediction results with confidence
+        """
+        if not self.enable_icr or not self.icr:
+            return {
+                "predicted": False,
+                "reason": "ICR integration not available"
+            }
+        
+        prediction = self.icr.predict(
+            pattern_type=ICRPatternType.SECURITY_POLICY,
+            context={
+                "content_type": "robustness_operation",
+                "operation_type": operation_type
+            }
+        )
+        
+        return {
+            "predicted": True,
+            "predicted_outcome": prediction.predicted_outcome,
+            "probability": prediction.probability,
+            "confidence": prediction.confidence,
+            "reason": prediction.reason,
+            "pattern_count": prediction.pattern_count,
+            "recommended_action": prediction.recommended_action
+        }
+
+    def _update_adaptive_threshold(self, operation_type: str, success: bool) -> None:
+        """
+        Update adaptive threshold based on operation outcome.
+        
+        Args:
+            operation_type: Type of operation
+            success: Whether operation succeeded
+        """
+        current = self._adaptive_thresholds.get(operation_type, 0.5)
+        
+        if success:
+            # Success - slightly lower threshold (things working well)
+            new_threshold = max(0.3, current - 0.02)
+        else:
+            # Failure - raise threshold (need more scrutiny)
+            new_threshold = min(0.9, current + 0.05)
+        
+        self._adaptive_thresholds[operation_type] = new_threshold
+
+    def get_adaptive_threshold(self, operation_type: str, default: float = 0.5) -> float:
+        """
+        Get current adaptive threshold for operation type.
+        
+        Args:
+            operation_type: Type of operation
+            default: Default threshold if not set
+            
+        Returns:
+            Current adaptive threshold
+        """
+        return self._adaptive_thresholds.get(operation_type, default)
+
+    def get_robustness_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about robustness operations and ICR patterns.
+        
+        Returns:
+            Dictionary with robustness statistics
+        """
+        stats = {
+            "icr_enabled": self.enable_icr,
+            "operation_types": list(self.icr_pattern_store.keys()),
+            "adaptive_thresholds": self._adaptive_thresholds.copy()
+        }
+        
+        # Calculate statistics per operation type
+        for op_type, patterns in self.icr_pattern_store.items():
+            if patterns:
+                total = len(patterns)
+                successful = sum(1 for p in patterns if p.get("success", False))
+                durations = [p.get("duration", 0) for p in patterns if "duration" in p]
+                
+                stats[op_type] = {
+                    "total_operations": total,
+                    "successful_operations": successful,
+                    "success_rate": successful / total if total > 0 else 0.0,
+                    "avg_duration_seconds": sum(durations) / len(durations) if durations else 0.0
+                }
         
         return stats
 

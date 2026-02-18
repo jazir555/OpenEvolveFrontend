@@ -1004,23 +1004,133 @@ class DSPyScenario:
     
     def make_prompt(self, row: Dict[str, Any]) -> str:
         """Format a data row into a prompt."""
-        raise NotImplementedError
-    
+        # Default implementation - formats as key-value pairs
+        parts = []
+        for key, value in row.items():
+            if value is not None:
+                parts.append(f"{key}: {value}")
+
+        return "\n".join(parts) if parts else str(row)
+
     def metric(self, example, pred, trace=None) -> float:
         """Evaluate prediction against example. Returns score 0.0-1.0."""
-        raise NotImplementedError
-    
+        # Default implementation - exact match for simple cases
+        if hasattr(example, 'labels') and hasattr(pred, 'prediction'):
+            # Classification metric
+            return 1.0 if example.labels == pred.prediction else 0.0
+
+        elif hasattr(example, 'answer') and hasattr(pred, 'answer'):
+            # QA metric - exact match
+            return 1.0 if str(example.answer).lower() == str(pred.answer).lower() else 0.0
+
+        # For structured outputs, compare fields
+        score = 0.0
+        total = 0
+
+        example_dict = example if isinstance(example, dict) else vars(example) if hasattr(example, '__dict__') else {}
+        pred_dict = pred if isinstance(pred, dict) else vars(pred) if hasattr(pred, '__dict__') else {}
+
+        for key in set(list(example_dict.keys()) + list(pred_dict.keys())):
+            total += 1
+            if key in example_dict and key in pred_dict:
+                if example_dict[key] == pred_dict[key]:
+                    score += 1
+                elif isinstance(example_dict[key], (int, float)) and isinstance(pred_dict[key], (int, float)):
+                    # For numeric values, use relative error
+                    if example_dict[key] != 0:
+                        error = abs(example_dict[key] - pred_dict[key]) / abs(example_dict[key])
+                        score += max(0, 1 - error)
+                    else:
+                        score += 1.0 if pred_dict[key] == 0 else 0.0
+
+        return score / total if total > 0 else 0.0
+
     def metric_with_feedback(self, example, pred, trace=None) -> Any:
         """
         Evaluate with feedback for optimizers that need it (e.g., GEPA).
         Returns dspy.Prediction with score and feedback attributes.
         """
         score = self.metric(example, pred, trace)
-        return dspy.Prediction(score=score, feedback="")
-    
+
+        # Generate detailed feedback
+        feedback_parts = []
+
+        if hasattr(example, 'labels') and hasattr(pred, 'prediction'):
+            if example.labels != pred.prediction:
+                feedback_parts.append(f"Expected {example.labels}, got {pred.prediction}")
+
+        # Add reasoning feedback if trace is available
+        if trace and isinstance(trace, dict):
+            feedback_parts.append("Trace analysis available")
+
+        feedback = "; ".join(feedback_parts) if feedback_parts else "Correct"
+
+        try:
+            import dspy
+            return dspy.Prediction(score=score, feedback=feedback)
+        except ImportError:
+            # Return simple dict if dspy not available
+            return {'score': score, 'feedback': feedback}
+
     def load_data(self) -> Tuple[List, List]:
         """Load and return (trainset, valset) as lists of dspy.Example."""
-        raise NotImplementedError
+        # Default implementation - returns empty datasets
+        # Subclasses should override with actual data loading
+
+        try:
+            import dspy
+            return [], []
+        except ImportError:
+            # If dspy not available, return plain lists
+            return [], []
+
+    def load_data_from_list(
+        self,
+        data: List[Dict[str, Any]],
+        input_fields: List[str],
+        label_field: str
+    ) -> Tuple[List, List]:
+        """
+        Helper method to load data from a list of dictionaries.
+
+        Args:
+            data: List of data dictionaries
+            input_fields: Fields to use as inputs
+            label_field: Field to use as label
+
+        Returns:
+            (trainset, valset) split by self.test_size
+        """
+        try:
+            import dspy
+            from sklearn.model_selection import train_test_split
+        except ImportError:
+            # Fallback without sklearn
+            split_idx = int(len(data) * (1 - self.test_size))
+            return data[:split_idx], data[split_idx:]
+
+        # Split data
+        train_data, val_data = train_test_split(
+            data,
+            test_size=self.test_size,
+            random_state=self.seed
+        )
+
+        # Convert to DSPy examples
+        trainset = []
+        for row in train_data:
+            inputs = {k: row[k] for k in input_fields if k in row}
+            labels = row.get(label_field)
+            trainset.append(dspy.Example(**inputs).with_inputs(*input_fields))
+
+        valset = []
+        for row in val_data:
+            inputs = {k: row[k] for k in input_fields if k in row}
+            labels = row.get(label_field)
+            example = dspy.Example(**inputs, labels=labels).with_inputs(*input_fields)
+            valset.append(example)
+
+        return trainset, valset
     
     def to_dspy_example(self, x: Dict[str, Any]) -> Any:
         """Convert dictionary to dspy.Example with inputs."""

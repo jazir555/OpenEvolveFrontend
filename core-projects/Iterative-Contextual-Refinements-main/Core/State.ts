@@ -1,0 +1,37 @@
+
+import { ApplicationMode, PipelineState, DeepthinkPipelineState } from './Types';
+import { defaultCustomPromptsWebsite } from '../Refine/RefinePrompts';
+import { createDefaultCustomPromptsDeepthink } from '../Deepthink/DeepthinkPrompts';
+import { createDefaultCustomPromptsAdaptiveDeepthink } from '../AdaptiveDeepthink/AdaptiveDeepthinkPrompt';
+import { createDefaultCustomPromptsContextual } from '../Contextual/ContextualPrompts';
+import { AGENTIC_SYSTEM_PROMPT } from '../Agentic/AgenticModePrompt';
+
+export const NUM_INITIAL_STRATEGIES_DEEPTHINK = 3;
+export const NUM_SUB_STRATEGIES_PER_MAIN_DEEPTHINK = 3;
+
+class GlobalStateManager {
+    currentMode: ApplicationMode = 'deepthink';
+    currentEvolutionMode: 'off' | 'novelty' | 'quality' = 'novelty';
+    pipelinesState: PipelineState[] = [];
+    activeDeepthinkPipeline: DeepthinkPipelineState | null = null;
+    activePipelineId: number | null = null;
+    isGenerating: boolean = false;
+    currentProblemImages: Array<{ base64: string, mimeType: string }> = [];
+    isCustomPromptsOpen: boolean = false;
+
+    // Mode running states
+    isAgenticRunning: boolean = false;
+    isContextualRunning: boolean = false;
+    isAdaptiveDeepthinkRunning: boolean = false;
+
+    // Gemini Code Execution (only for Contextual mode with Gemini provider)
+    geminiCodeExecutionEnabled: boolean = false;
+
+    customPromptsWebsiteState = defaultCustomPromptsWebsite;
+    customPromptsDeepthinkState = createDefaultCustomPromptsDeepthink(NUM_INITIAL_STRATEGIES_DEEPTHINK, NUM_SUB_STRATEGIES_PER_MAIN_DEEPTHINK);
+    customPromptsAgenticState = { systemPrompt: AGENTIC_SYSTEM_PROMPT };
+    customPromptsAdaptiveDeepthinkState = createDefaultCustomPromptsAdaptiveDeepthink();
+    customPromptsContextualState = createDefaultCustomPromptsContextual();
+}
+
+export const globalState = new GlobalStateManager();

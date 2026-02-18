@@ -203,11 +203,174 @@ class EntityStandardizationStrategy(DeduplicationStrategy):
         self,
         groups: List[List[Entity]]
     ) -> List[List[Entity]]:
-        """Use LLM to resolve ambiguous duplicates."""
-        # In a full implementation, this would call an LLM
-        # For now, just return the groups as-is
-        logger.info("LLM-assisted resolution not implemented, returning original groups")
-        return groups
+        """
+        Use LLM to resolve ambiguous duplicates.
+
+        Makes intelligent decisions about whether entities in a group
+        represent the same real-world entity or different entities.
+        """
+        resolved_groups = []
+
+        for group in groups:
+            if len(group) < 2:
+                resolved_groups.append(group)
+                continue
+
+            # Try LLM-based resolution
+            should_merge = await self._llm_merge_decision(group)
+
+            if should_merge:
+                # Entities are duplicates, keep them together
+                resolved_groups.append(group)
+            else:
+                # Entities are distinct, separate them
+                for entity in group:
+                    resolved_groups.append([entity])
+
+        return resolved_groups
+
+    async def _llm_merge_decision(self, group: List[Entity]) -> bool:
+        """
+        Ask LLM whether entities should be merged.
+
+        Returns True if entities represent the same real-world entity.
+        """
+        # Check if LLM is configured
+        openai_key = self.config.get('openai_api_key')
+        if not openai_key:
+            # No LLM available, use heuristic
+            return self._heuristic_merge_decision(group)
+
+        try:
+            # Build comparison prompt
+            entity_descriptions = []
+            for i, entity in enumerate(group):
+                desc = {
+                    'name': entity.name,
+                    'type': entity.entity_type,
+                    'description': entity.description or '',
+                    'attributes': entity.attributes or {}
+                }
+                entity_descriptions.append(f"Entity {i+1}: {json.dumps(desc, indent=2)}")
+
+            prompt = f"""You are an expert in knowledge graph deduplication. Analyze these entities and determine if they represent the SAME real-world entity.
+
+{chr(10).join(entity_descriptions)}
+
+Consider these factors in your decision:
+1. Name similarity (including variations, aliases, abbreviations)
+2. Type compatibility (Person vs Individual, Organization vs Company)
+3. Attribute overlap (locations, dates, identifiers)
+4. Description semantics
+5. Temporal consistency (do they exist at the same time?)
+
+Important: These entities MIGHT be duplicates that were extracted from different sources or at different times.
+
+Respond with ONLY 'true' if they should be merged as duplicates, or 'false' if they are distinct entities."""
+
+            # Call OpenAI API
+            import openai
+            client = openai.AsyncClient(api_key=openai_key)
+
+            response = await client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+                max_tokens=10
+            )
+
+            result = response.choices[0].message.content.strip().lower()
+            return 'true' in result or 'yes' in result
+
+        except Exception as e:
+            logger.warning(f"LLM merge decision failed: {e}, falling back to heuristics")
+            return self._heuristic_merge_decision(group)
+
+    def _heuristic_merge_decision(self, group: List[Entity]) -> bool:
+        """
+        Heuristic-based merge decision when LLM unavailable.
+
+        Multi-factor scoring approach.
+        """
+        if len(group) < 2:
+            return False
+
+        # Calculate pairwise similarities
+        similarities = []
+        for i in range(len(group)):
+            for j in range(i + 1, len(group)):
+                sim = self._calculate_pairwise_similarity(group[i], group[j])
+                similarities.append(sim)
+
+        # Average similarity
+        if similarities:
+            avg_similarity = sum(similarities) / len(similarities)
+
+            # Decision threshold
+            # Higher threshold for standardization (stricter)
+            return avg_similarity >= self.merge_threshold
+
+        return False
+
+    def _calculate_pairwise_similarity(self, entity1: Entity, entity2: Entity) -> float:
+        """Calculate similarity between two entities (multi-factor)."""
+        scores = []
+        weights = []
+
+        # 1. Name similarity (weight: 0.4)
+        name1_norm = self._normalize_entity_name(entity1.name)
+        name2_norm = self._normalize_entity_name(entity2.name)
+
+        if name1_norm and name2_norm:
+            if name1_norm == name2_norm:
+                name_sim = 1.0
+            else:
+                # Jaccard similarity
+                words1 = set(name1_norm.split())
+                words2 = set(name2_norm.split())
+                if words1 and words2:
+                    overlap = len(words1 & words2)
+                    union = len(words1 | words2)
+                    name_sim = overlap / union if union > 0 else 0
+                else:
+                    name_sim = 0.0
+            scores.append(name_sim)
+            weights.append(0.4)
+
+        # 2. Type compatibility (weight: 0.3)
+        if entity1.entity_type == entity2.entity_type:
+            type_sim = 1.0
+        else:
+            # Check compatible types
+            compatible = {
+                ('person', 'individual'),
+                ('organization', 'company'),
+                ('location', 'place'),
+            }
+            type_sim = 1.0 if (entity1.entity_type.lower(), entity2.entity_type.lower()) in compatible else 0.0
+
+        scores.append(type_sim)
+        weights.append(0.3)
+
+        # 3. Attribute overlap (weight: 0.3)
+        if entity1.attributes and entity2.attributes:
+            keys1 = set(entity1.attributes.keys())
+            keys2 = set(entity2.attributes.keys())
+
+            if keys1 and keys2:
+                overlap = len(keys1 & keys2)
+                union = len(keys1 | keys2)
+                attr_sim = overlap / union if union > 0 else 0
+                scores.append(attr_sim)
+                weights.append(0.3)
+
+        # Weighted average
+        if scores and weights:
+            total_weight = sum(weights)
+            if total_weight > 0:
+                return sum(s * w for s, w in zip(scores, weights)) / total_weight
+
+        return 0.0
 
     def _normalize_entity_name(self, name: str) -> str:
         """

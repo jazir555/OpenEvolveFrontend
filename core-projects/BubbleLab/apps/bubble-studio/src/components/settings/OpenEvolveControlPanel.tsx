@@ -3,6 +3,10 @@ import {
   openevolveApi,
   type BubbleLabsControlCatalogResponse,
 } from '@/services/openevolveApi';
+import {
+  isTerminalBubblelabsWorkflowStatus,
+  useBubblelabsWorkflowPolling,
+} from '@/hooks/useBubblelabsWorkflowPolling';
 
 type PayloadTemplateMap = Record<string, Record<string, Record<string, unknown>>>;
 
@@ -57,6 +61,17 @@ const PAYLOAD_TEMPLATES: PayloadTemplateMap = {
   },
 };
 
+const BUBBLELABS_WORKFLOW_TYPES = [
+  'evolution',
+  'adversarial',
+  'sovereign',
+  'web3',
+  'rag',
+  'default',
+] as const;
+
+const OPENEVOLVE_API_KEY_STORAGE = 'openevolve_api_key';
+
 function getPayloadTemplate(component: string, action: string): Record<string, unknown> {
   return PAYLOAD_TEMPLATES[component]?.[action] ?? {};
 }
@@ -69,7 +84,18 @@ function prettyJson(value: unknown): string {
   }
 }
 
-const OPENEVOLVE_API_KEY_STORAGE = 'openevolve_api_key';
+function parseJsonObject(text: string, errorMessage: string): Record<string, unknown> {
+  if (!text.trim()) {
+    return {};
+  }
+
+  const parsed = JSON.parse(text);
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+    throw new Error(errorMessage);
+  }
+
+  return parsed as Record<string, unknown>;
+}
 
 const readStoredApiKey = (): string => {
   try {
@@ -91,6 +117,29 @@ export function OpenEvolveControlPanel() {
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
 
+  const [isWorkflowDataLoading, setIsWorkflowDataLoading] = useState(false);
+  const [isWorkflowActionLoading, setIsWorkflowActionLoading] = useState(false);
+  const [workflowDefinitions, setWorkflowDefinitions] = useState<
+    Array<{ id: string; name: string; workflow_type: string }>
+  >([]);
+  const [workflowInstances, setWorkflowInstances] = useState<
+    Array<{ instance_id: string; status: string; workflow_type: string; progress?: number }>
+  >([]);
+  const [selectedDefinitionId, setSelectedDefinitionId] = useState('');
+  const [selectedInstanceId, setSelectedInstanceId] = useState('');
+  const [newDefinitionName, setNewDefinitionName] = useState('OpenEvolve Workflow');
+  const [newDefinitionDescription, setNewDefinitionDescription] = useState(
+    'Managed from Bubble Studio'
+  );
+  const [newDefinitionType, setNewDefinitionType] = useState<string>('evolution');
+  const [newDefinitionParametersText, setNewDefinitionParametersText] = useState('{}');
+  const [newInstanceName, setNewInstanceName] = useState('bubble-control-instance');
+  const [newInstanceProblemStatement, setNewInstanceProblemStatement] = useState(
+    'Generate and evaluate an initial OpenEvolve population.'
+  );
+  const [newInstanceParametersText, setNewInstanceParametersText] = useState('{}');
+  const [syncParametersText, setSyncParametersText] = useState('{\n  "max_iterations": 1\n}');
+
   const componentOptions = useMemo(
     () => Object.keys(catalog?.components ?? {}).sort(),
     [catalog]
@@ -102,6 +151,28 @@ export function OpenEvolveControlPanel() {
     }
     return [...catalog.components[selectedComponent]].sort();
   }, [catalog, selectedComponent]);
+
+  const selectedInstanceSummary = useMemo(
+    () =>
+      workflowInstances.find(
+        (instance) => instance.instance_id === selectedInstanceId
+      ) ?? null,
+    [selectedInstanceId, workflowInstances]
+  );
+
+  const {
+    detail: polledInstanceDetail,
+    status: polledInstanceStatus,
+    isLoading: isPollingStatus,
+    isPolling,
+    errorMessage: pollingErrorMessage,
+    refresh: refreshInstanceStatus,
+  } = useBubblelabsWorkflowPolling({
+    instanceId: selectedInstanceId || null,
+    enabled: Boolean(selectedInstanceId),
+    intervalMs: 2000,
+    stopOnTerminal: true,
+  });
 
   const loadCatalog = async () => {
     setIsCatalogLoading(true);
@@ -119,9 +190,52 @@ export function OpenEvolveControlPanel() {
     }
   };
 
+  const loadWorkflowLifecycleData = async () => {
+    setIsWorkflowDataLoading(true);
+    setErrorMessage(null);
+    try {
+      const [definitionsResponse, instancesResponse] = await Promise.all([
+        openevolveApi.listBubblelabsWorkflowDefinitions(),
+        openevolveApi.listBubblelabsWorkflowInstances(),
+      ]);
+
+      const definitions = definitionsResponse.definitions ?? [];
+      const instances = instancesResponse.instances ?? [];
+      setWorkflowDefinitions(definitions);
+      setWorkflowInstances(instances);
+
+      setSelectedDefinitionId((current) => {
+        if (current && definitions.some((definition) => definition.id === current)) {
+          return current;
+        }
+        return definitions[0]?.id ?? '';
+      });
+
+      setSelectedInstanceId((current) => {
+        if (current && instances.some((instance) => instance.instance_id === current)) {
+          return current;
+        }
+        return instances[0]?.instance_id ?? '';
+      });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to load workflow lifecycle data'
+      );
+    } finally {
+      setIsWorkflowDataLoading(false);
+    }
+  };
+
   useEffect(() => {
     void loadCatalog();
+    void loadWorkflowLifecycleData();
   }, []);
+
+  useEffect(() => {
+    if (pollingErrorMessage) {
+      setErrorMessage(pollingErrorMessage);
+    }
+  }, [pollingErrorMessage]);
 
   useEffect(() => {
     try {
@@ -163,6 +277,149 @@ export function OpenEvolveControlPanel() {
     setPayloadText(prettyJson(getPayloadTemplate(selectedComponent, selectedAction)));
   }, [selectedComponent, selectedAction]);
 
+  const executeWorkflowLifecycleAction = async (
+    action: 'start' | 'pause' | 'resume' | 'stop' | 'cancel' | 'restart' | 'delete'
+  ) => {
+    if (!selectedInstanceId) {
+      setErrorMessage('Select a workflow instance first');
+      return;
+    }
+
+    setIsWorkflowActionLoading(true);
+    setErrorMessage(null);
+    try {
+      let response: Record<string, unknown>;
+      switch (action) {
+        case 'start':
+          response = await openevolveApi.startBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'pause':
+          response = await openevolveApi.pauseBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'resume':
+          response = await openevolveApi.resumeBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'stop':
+          response = await openevolveApi.stopBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'cancel':
+          response = await openevolveApi.cancelBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'restart':
+          response = await openevolveApi.restartBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+        case 'delete':
+          response = await openevolveApi.deleteBubblelabsWorkflowInstance(selectedInstanceId);
+          break;
+      }
+
+      setResultText(prettyJson(response));
+      await loadWorkflowLifecycleData();
+      if (action !== 'delete' && selectedInstanceId) {
+        await refreshInstanceStatus();
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to execute workflow lifecycle action'
+      );
+    } finally {
+      setIsWorkflowActionLoading(false);
+    }
+  };
+
+  const handleCreateDefinition = async () => {
+    setIsWorkflowActionLoading(true);
+    setErrorMessage(null);
+    try {
+      const parameters = parseJsonObject(
+        newDefinitionParametersText,
+        'Definition parameters must be a JSON object'
+      );
+
+      const response = await openevolveApi.createBubblelabsWorkflowDefinition({
+        name: newDefinitionName.trim() || 'OpenEvolve Workflow',
+        description: newDefinitionDescription.trim() || 'Managed from Bubble Studio',
+        workflow_type: newDefinitionType,
+        parameters,
+      });
+
+      setResultText(prettyJson(response));
+      await loadWorkflowLifecycleData();
+      if (response.definition_id) {
+        setSelectedDefinitionId(response.definition_id);
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to create workflow definition'
+      );
+    } finally {
+      setIsWorkflowActionLoading(false);
+    }
+  };
+
+  const handleCreateInstance = async () => {
+    if (!selectedDefinitionId) {
+      setErrorMessage('Select a workflow definition first');
+      return;
+    }
+
+    setIsWorkflowActionLoading(true);
+    setErrorMessage(null);
+    try {
+      const parameters = parseJsonObject(
+        newInstanceParametersText,
+        'Instance parameters must be a JSON object'
+      );
+
+      const response = await openevolveApi.createBubblelabsWorkflowInstance({
+        definition_id: selectedDefinitionId,
+        instance_name: newInstanceName.trim() || 'bubble-control-instance',
+        inputs: {
+          problem_statement: newInstanceProblemStatement,
+        },
+        parameters,
+      });
+
+      setResultText(prettyJson(response));
+      await loadWorkflowLifecycleData();
+      if (response.instance_id) {
+        setSelectedInstanceId(response.instance_id);
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to create workflow instance');
+    } finally {
+      setIsWorkflowActionLoading(false);
+    }
+  };
+
+  const handleSyncParameters = async () => {
+    if (!selectedInstanceId) {
+      setErrorMessage('Select a workflow instance first');
+      return;
+    }
+
+    setIsWorkflowActionLoading(true);
+    setErrorMessage(null);
+    try {
+      const parameters = parseJsonObject(
+        syncParametersText,
+        'Sync parameters payload must be a JSON object'
+      );
+
+      const response = await openevolveApi.syncBubblelabsWorkflowInstanceParameters(
+        selectedInstanceId,
+        { parameters }
+      );
+      setResultText(prettyJson(response));
+      await refreshInstanceStatus();
+      await loadWorkflowLifecycleData();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to sync workflow parameters');
+    } finally {
+      setIsWorkflowActionLoading(false);
+    }
+  };
+
   const handleDiscover = async () => {
     setIsDiscovering(true);
     setErrorMessage(null);
@@ -186,15 +443,7 @@ export function OpenEvolveControlPanel() {
     setIsExecuting(true);
     setErrorMessage(null);
     try {
-      let payload: Record<string, unknown> = {};
-      if (payloadText.trim().length > 0) {
-        const parsed = JSON.parse(payloadText);
-        if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
-          throw new Error('Payload must be a JSON object');
-        }
-        payload = parsed as Record<string, unknown>;
-      }
-
+      const payload = parseJsonObject(payloadText, 'Payload must be a JSON object');
       const response = await openevolveApi.executeControlAction(
         selectedComponent,
         selectedAction,
@@ -213,6 +462,8 @@ export function OpenEvolveControlPanel() {
       setIsExecuting(false);
     }
   };
+
+  const currentStatus = polledInstanceStatus ?? selectedInstanceSummary?.status ?? null;
 
   return (
     <section className="rounded-xl border border-[#2a2a2a] bg-[#111111] p-6">
@@ -264,6 +515,249 @@ export function OpenEvolveControlPanel() {
         </div>
       )}
 
+      <section className="mt-5 rounded-lg border border-[#2d2d2d] bg-[#0d0d0d] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-base font-medium text-white">BubbleLabs Workflow Lifecycle</h3>
+          <button
+            type="button"
+            onClick={() => void loadWorkflowLifecycleData()}
+            disabled={isWorkflowDataLoading}
+            className="rounded border border-[#3a3a3a] px-3 py-1.5 text-xs text-gray-200 hover:bg-[#1b1b1b] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isWorkflowDataLoading ? 'Refreshing...' : 'Refresh Definitions + Instances'}
+          </button>
+        </div>
+
+        <div className="mt-3 grid gap-4 md:grid-cols-2">
+          <div className="space-y-3 rounded border border-[#2b2b2b] bg-[#111] p-3">
+            <div className="text-sm font-medium text-gray-100">Create Definition</div>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Name</span>
+              <input
+                value={newDefinitionName}
+                onChange={(event) => setNewDefinitionName(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Description</span>
+              <input
+                value={newDefinitionDescription}
+                onChange={(event) => setNewDefinitionDescription(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Workflow Type</span>
+              <select
+                value={newDefinitionType}
+                onChange={(event) => setNewDefinitionType(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              >
+                {BUBBLELABS_WORKFLOW_TYPES.map((workflowType) => (
+                  <option key={workflowType} value={workflowType}>
+                    {workflowType}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Parameters (JSON)</span>
+              <textarea
+                value={newDefinitionParametersText}
+                onChange={(event) => setNewDefinitionParametersText(event.target.value)}
+                rows={5}
+                spellCheck={false}
+                className="w-full rounded-md border border-[#303030] bg-[#0b0b0b] px-3 py-2 font-mono text-xs text-gray-100"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void handleCreateDefinition()}
+              disabled={isWorkflowActionLoading}
+              className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Create Definition
+            </button>
+          </div>
+
+          <div className="space-y-3 rounded border border-[#2b2b2b] bg-[#111] p-3">
+            <div className="text-sm font-medium text-gray-100">Create Instance</div>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Definition</span>
+              <select
+                value={selectedDefinitionId}
+                onChange={(event) => setSelectedDefinitionId(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              >
+                {workflowDefinitions.length === 0 && (
+                  <option value="">No definitions available</option>
+                )}
+                {workflowDefinitions.map((definition) => (
+                  <option key={definition.id} value={definition.id}>
+                    {definition.name} ({definition.workflow_type})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Instance Name</span>
+              <input
+                value={newInstanceName}
+                onChange={(event) => setNewInstanceName(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Problem Statement</span>
+              <textarea
+                value={newInstanceProblemStatement}
+                onChange={(event) => setNewInstanceProblemStatement(event.target.value)}
+                rows={3}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Initial Parameters (JSON)</span>
+              <textarea
+                value={newInstanceParametersText}
+                onChange={(event) => setNewInstanceParametersText(event.target.value)}
+                rows={4}
+                spellCheck={false}
+                className="w-full rounded-md border border-[#303030] bg-[#0b0b0b] px-3 py-2 font-mono text-xs text-gray-100"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void handleCreateInstance()}
+              disabled={!selectedDefinitionId || isWorkflowActionLoading}
+              className="rounded-md bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Create Instance
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded border border-[#2b2b2b] bg-[#111] p-3">
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Instance</span>
+              <select
+                value={selectedInstanceId}
+                onChange={(event) => setSelectedInstanceId(event.target.value)}
+                className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
+              >
+                {workflowInstances.length === 0 && <option value="">No instances available</option>}
+                {workflowInstances.map((instance) => (
+                  <option key={instance.instance_id} value={instance.instance_id}>
+                    {instance.instance_id} ({instance.workflow_type})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="rounded border border-[#2e2e2e] bg-[#0d0d0d] px-3 py-2 text-xs text-gray-300">
+              <div>Status: {currentStatus ?? 'n/a'}</div>
+              <div>
+                Progress:{' '}
+                {polledInstanceDetail?.status?.progress ??
+                  selectedInstanceSummary?.progress ??
+                  0}
+                %
+              </div>
+              <div>
+                Polling:{' '}
+                {isPolling
+                  ? 'active'
+                  : currentStatus && isTerminalBubblelabsWorkflowStatus(currentStatus)
+                    ? 'stopped (terminal)'
+                    : 'idle'}
+                {isPollingStatus ? ' (updating...)' : ''}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <label className="block">
+              <span className="mb-1 block text-xs text-gray-400">Sync Parameters (JSON)</span>
+              <textarea
+                value={syncParametersText}
+                onChange={(event) => setSyncParametersText(event.target.value)}
+                rows={4}
+                spellCheck={false}
+                className="w-full rounded-md border border-[#303030] bg-[#0b0b0b] px-3 py-2 font-mono text-xs text-gray-100"
+              />
+            </label>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void handleSyncParameters()}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded border border-[#3a3a3a] px-2.5 py-1.5 text-xs text-gray-100 hover:bg-[#1a1a1a] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Sync Parameters
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('start')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-emerald-700 px-2.5 py-1.5 text-xs text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Start
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('pause')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-amber-700 px-2.5 py-1.5 text-xs text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Pause
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('resume')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-sky-700 px-2.5 py-1.5 text-xs text-white hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Resume
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('stop')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-rose-700 px-2.5 py-1.5 text-xs text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Stop
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('cancel')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-fuchsia-700 px-2.5 py-1.5 text-xs text-white hover:bg-fuchsia-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('restart')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-violet-700 px-2.5 py-1.5 text-xs text-white hover:bg-violet-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Restart
+            </button>
+            <button
+              type="button"
+              onClick={() => void executeWorkflowLifecycleAction('delete')}
+              disabled={!selectedInstanceId || isWorkflowActionLoading}
+              className="rounded bg-red-800 px-2.5 py-1.5 text-xs text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </section>
+
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="block">
           <span className="mb-2 block text-sm text-gray-300">Component</span>
@@ -272,9 +766,7 @@ export function OpenEvolveControlPanel() {
             onChange={(event) => setSelectedComponent(event.target.value)}
             className="w-full rounded-md border border-[#303030] bg-[#0f0f0f] px-3 py-2 text-sm text-gray-100"
           >
-            {componentOptions.length === 0 && (
-              <option value="">No components available</option>
-            )}
+            {componentOptions.length === 0 && <option value="">No components available</option>}
             {componentOptions.map((component) => (
               <option key={component} value={component}>
                 {component}

@@ -140,4 +140,94 @@ describe('openevolveApi control plane', () => {
     expect(mockPost).toHaveBeenCalledWith('/bubblelabs/workflow-instances/inst-123/start', {});
     expect(result).toEqual(response);
   });
+
+  it('runs full BubbleLabs lifecycle from definition to terminal status', async () => {
+    mockPost
+      .mockResolvedValueOnce({ definition_id: 'def-100' })
+      .mockResolvedValueOnce({ instance_id: 'inst-200' })
+      .mockResolvedValueOnce({
+        message: 'Parameters synced successfully (1 updated)',
+        instance_id: 'inst-200',
+        updated_count: 1,
+      })
+      .mockResolvedValueOnce({
+        message: 'Workflow started',
+        instance_id: 'inst-200',
+        status: 'running',
+      });
+
+    mockGet
+      .mockResolvedValueOnce({
+        status: {
+          instance_id: 'inst-200',
+          status: 'running',
+          current_stage: 'evolving',
+          progress: 30,
+        },
+        parameters: {},
+      })
+      .mockResolvedValueOnce({
+        status: {
+          instance_id: 'inst-200',
+          status: 'completed',
+          current_stage: 'done',
+          progress: 100,
+        },
+        parameters: {},
+      });
+
+    const definition = await openevolveApi.createBubblelabsWorkflowDefinition({
+      name: 'workflow-e2e',
+      description: 'integration flow',
+      workflow_type: 'evolution',
+      parameters: { max_iterations: 1 },
+    });
+    expect(definition.definition_id).toBe('def-100');
+
+    const instance = await openevolveApi.createBubblelabsWorkflowInstance({
+      definition_id: definition.definition_id,
+      instance_name: 'instance-e2e',
+      inputs: { problem_statement: 'Improve candidate solution quality.' },
+      parameters: {},
+    });
+    expect(instance.instance_id).toBe('inst-200');
+
+    const syncResult = await openevolveApi.syncBubblelabsWorkflowInstanceParameters(
+      instance.instance_id,
+      { parameters: { max_iterations: 1 } }
+    );
+    expect(syncResult.updated_count).toBe(1);
+
+    await openevolveApi.startBubblelabsWorkflowInstance(instance.instance_id);
+
+    const terminalStatuses = new Set(['completed', 'failed', 'cancelled', 'stopped']);
+    let terminalStatus: string | undefined;
+    let attempts = 0;
+
+    while (!terminalStatus && attempts < 5) {
+      const detail = await openevolveApi.getBubblelabsWorkflowInstance(instance.instance_id);
+      const status = detail.status.status.toLowerCase();
+      if (terminalStatuses.has(status)) {
+        terminalStatus = status;
+      }
+      attempts += 1;
+    }
+
+    expect(terminalStatus).toBe('completed');
+    expect(attempts).toBe(2);
+    expect(mockPost).toHaveBeenNthCalledWith(1, '/bubblelabs/workflow-definitions', {
+      name: 'workflow-e2e',
+      description: 'integration flow',
+      workflow_type: 'evolution',
+      parameters: { max_iterations: 1 },
+    });
+    expect(mockPost).toHaveBeenNthCalledWith(2, '/bubblelabs/workflow-instances', {
+      definition_id: 'def-100',
+      instance_name: 'instance-e2e',
+      inputs: { problem_statement: 'Improve candidate solution quality.' },
+      parameters: {},
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/bubblelabs/workflow-instances/inst-200');
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/bubblelabs/workflow-instances/inst-200');
+  });
 });

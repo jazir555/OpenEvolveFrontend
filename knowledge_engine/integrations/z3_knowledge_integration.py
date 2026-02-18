@@ -9,24 +9,45 @@ Date: 2026-02-17
 """
 
 # Re-export everything from the complete implementation
-from z3_knowledge_complete import (
-    # Main classes
-    Z3KnowledgeManager,
-    Z3KnowledgePersistence,
-    Z3KnowledgeExtractor,
-    FeatureExtractionPipeline,
-    ConflictDetector,
-    ExtractedFeatures,
+try:
+    from .z3_knowledge_complete import (
+        # Main classes
+        Z3KnowledgeManager,
+        Z3KnowledgePersistence,
+        Z3KnowledgeExtractor,
+        FeatureExtractionPipeline,
+        ConflictDetector,
+        ExtractedFeatures,
 
-    # Helper function
-    get_z3_knowledge_manager,
+        # Helper function
+        get_z3_knowledge_manager,
 
-    # Data structures from z3_knowledge_extraction
-    ProofPattern,
-    ConstraintPattern,
-    SolutionStrategy,
-    MathematicalInsight
-)
+        # Data structures from z3_knowledge_extraction
+        ProofPattern,
+        ConstraintPattern,
+        SolutionStrategy,
+        MathematicalInsight
+    )
+except ImportError:
+    # Fallback for direct execution
+    from z3_knowledge_complete import (
+        # Main classes
+        Z3KnowledgeManager,
+        Z3KnowledgePersistence,
+        Z3KnowledgeExtractor,
+        FeatureExtractionPipeline,
+        ConflictDetector,
+        ExtractedFeatures,
+
+        # Helper function
+        get_z3_knowledge_manager,
+
+        # Data structures from z3_knowledge_extraction
+        ProofPattern,
+        ConstraintPattern,
+        SolutionStrategy,
+        MathematicalInsight
+    )
 
 # Aliases for backward compatibility
 Z3KnowledgeIntegration = Z3KnowledgeManager

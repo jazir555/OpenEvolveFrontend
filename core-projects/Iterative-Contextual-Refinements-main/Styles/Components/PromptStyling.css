@@ -1,0 +1,269 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/* --- Base Variables (Easy Theming) --- */
+:root {
+    /* Dark Mode Defaults */
+    --ps-bg: transparent;
+    --ps-text: inherit;
+    --ps-caret: auto;
+
+    --ps-scroll-track: rgba(255, 255, 255, 0.05);
+    --ps-scroll-thumb: rgba(255, 255, 255, 0.2);
+
+    --ps-code-bg: rgba(var(--card-bg-base-rgb), 0.25);
+    --ps-code-border: var(--border-color);
+    --ps-marker: #5c5966;
+    --ps-heading: #e0dfe7;
+    --ps-heading-border: #2a2731;
+    --ps-crit: #ffc269;
+    --ps-crit-shadow: rgba(255, 194, 105, 0.3);
+
+    --ps-t-code: #ff8080;
+    --ps-t-code-bg: rgba(255, 128, 128, 0.1);
+
+    --ps-t-list: #8a7ff8;
+    --ps-t-var: #aea5ff;
+    --ps-t-var-bg: #2a254f;
+    --ps-t-var-bd: #4d4398;
+
+    --ps-t-tag: #ff8562;
+    --ps-t-tag-bg: rgba(255, 133, 98, 0.1);
+
+    --ps-t-inst: #ff69b4;
+    --ps-t-inst-bg: rgba(255, 105, 180, 0.1);
+
+    --ps-t-str: #8a7ff8;
+    --ps-t-pos: #55d49a;
+    --ps-t-neg: #ff6969;
+
+    /* HLJS Defaults */
+    --hljs-base: #abb2bf;
+    --hljs-comment: #5c6370;
+    --hljs-key: #c678dd;
+    --hljs-str: #98c379;
+    --hljs-func: #61aeee;
+}
+
+/* Light Mode Overrides */
+body.light-mode {
+    --ps-text: var(--text-color);
+    --ps-scroll-track: rgba(0, 0, 0, 0.03);
+    --ps-scroll-thumb: rgba(0, 0, 0, 0.15);
+
+    --ps-code-bg: rgba(0, 0, 0, 0.03);
+    --ps-code-border: rgba(0, 0, 0, 0.06);
+    --ps-marker: #9CA3AF;
+    --ps-heading: var(--text-color);
+    --ps-heading-border: rgba(0, 0, 0, 0.1);
+    --ps-crit: #D97706;
+    --ps-crit-shadow: transparent;
+
+    --ps-t-code: #DC2626;
+    --ps-t-code-bg: rgba(220, 38, 38, 0.08);
+
+    --ps-t-list: #7C3AED;
+    --ps-t-var: #4F46E5;
+    --ps-t-var-bg: rgba(79, 70, 229, 0.08);
+    --ps-t-var-bd: rgba(79, 70, 229, 0.15);
+
+    --ps-t-tag: #EA580C;
+    --ps-t-tag-bg: rgba(234, 88, 12, 0.08);
+
+    --ps-t-inst: #DB2777;
+    --ps-t-inst-bg: rgba(219, 39, 119, 0.08);
+
+    --ps-t-str: #7C3AED;
+    --ps-t-pos: #059669;
+    --ps-t-neg: #DC2626;
+
+    --hljs-base: #374151;
+    --hljs-comment: #6B7280;
+    --hljs-key: #9333EA;
+    --hljs-str: #16A34A;
+    --hljs-func: #2563EB;
+}
+
+/* --- Container & Editor --- */
+
+.prompt-styling-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* Optimization: Limits browser layout recalculations to this box */
+    contain: size layout;
+}
+
+.prompt-styling-editor {
+    flex: 1 1 auto;
+    min-height: 120px;
+    height: 100%;
+    padding: var(--card-padding-xs) var(--card-padding-xs) var(--card-padding-md);
+
+    font-family: 'SF Pro Rounded', system-ui, sans-serif;
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: var(--ps-text);
+    background: var(--ps-bg);
+
+    border: none;
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-y: auto;
+    overflow-x: hidden;
+    resize: vertical;
+}
+
+/* Scrollbars */
+.prompt-styling-editor::-webkit-scrollbar,
+.prompt-styling-editor pre::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.prompt-styling-editor::-webkit-scrollbar-track,
+.prompt-styling-editor pre::-webkit-scrollbar-track {
+    background: var(--ps-scroll-track);
+    border-radius: 4px;
+}
+
+.prompt-styling-editor::-webkit-scrollbar-thumb,
+.prompt-styling-editor pre::-webkit-scrollbar-thumb {
+    background: var(--ps-scroll-thumb);
+    border-radius: 4px;
+}
+
+/* --- Block Elements --- */
+
+.prompt-styling-editor pre {
+    background: var(--ps-code-bg);
+    border: 1px solid var(--ps-code-border);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+    white-space: pre;
+    /* Performance: don't render off-screen code blocks */
+    content-visibility: auto;
+}
+
+.prompt-styling-editor code.hljs {
+    background: transparent;
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+    padding: 0;
+}
+
+.token-code-marker {
+    color: var(--ps-marker);
+    font-family: var(--font-family-mono);
+    font-size: 0.8em;
+    opacity: 0.7;
+    user-select: none;
+}
+
+/* --- Inline Tokens --- */
+
+.token-heading {
+    display: inline-block;
+    width: 100%;
+    font-weight: 700;
+    color: var(--ps-heading);
+    margin: 8px 0;
+}
+
+.token-heading1 {
+    font-size: 1.4em;
+    border-bottom: 1px solid var(--ps-heading-border);
+    padding-bottom: 4px;
+}
+
+.token-heading2 {
+    font-size: 1.2em;
+}
+
+.token-critical {
+    color: var(--ps-crit);
+    font-weight: 700;
+    text-shadow: 0 0 8px var(--ps-crit-shadow);
+}
+
+.token-code-inline {
+    color: var(--ps-t-code);
+    background: var(--ps-t-code-bg);
+    border-radius: 6px;
+    padding: 2px 5px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.token-list-marker {
+    color: var(--ps-t-list);
+    font-weight: 700;
+}
+
+.token-variable {
+    color: var(--ps-t-var);
+    background: var(--ps-t-var-bg);
+    border: 1px solid var(--ps-t-var-bd);
+    border-radius: 16px;
+    padding: 1px 6px;
+    font-size: 0.9em;
+}
+
+.token-tag {
+    color: var(--ps-t-tag);
+    background: var(--ps-t-tag-bg);
+    border-radius: 6px;
+    padding: 1px 4px;
+}
+
+.token-instruction {
+    color: var(--ps-t-inst);
+    background: var(--ps-t-inst-bg);
+    border-radius: 6px;
+    padding: 1px 4px;
+}
+
+.token-string {
+    color: var(--ps-t-str);
+}
+
+.token-keyword-positive {
+    color: var(--ps-t-pos);
+    font-weight: 700;
+    border-bottom: 2px solid rgba(85, 212, 154, 0.3);
+}
+
+.token-keyword-negative {
+    color: var(--ps-t-neg);
+    font-weight: 700;
+}
+
+/* --- HLJS Syntax Colors --- */
+.prompt-styling-editor .hljs {
+    color: var(--hljs-base);
+}
+
+.prompt-styling-editor .hljs-comment {
+    color: var(--hljs-comment);
+    font-style: italic;
+}
+
+.prompt-styling-editor .hljs-keyword {
+    color: var(--hljs-key);
+}
+
+.prompt-styling-editor .hljs-string {
+    color: var(--hljs-str);
+}
+
+.prompt-styling-editor .hljs-title,
+.prompt-styling-editor .hljs-function {
+    color: var(--hljs-func);
+}

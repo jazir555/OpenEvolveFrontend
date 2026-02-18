@@ -65,7 +65,7 @@ export class WebsiteLeadGeneration extends BubbleFlow<'webhook/http'> {
 
     const markdown = result.data.result.markdown || '';
     const links = result.data.result.links || [];
-    return `\${markdown}\n\nLinks:\n\${links.join('\n')}`;
+    return \`\${markdown}\n\nLinks:\n\${links.join('\n')}\`;
   }
 
   private async generateLeads(
@@ -73,16 +73,16 @@ export class WebsiteLeadGeneration extends BubbleFlow<'webhook/http'> {
     directoryContent: string,
     maxLeads: number
   ): Promise<Lead[]> {
-    const systemPrompt = `
+    const systemPrompt = \`
 You are a lead researcher. Given a positioning document and a YC directory page scrape,
 identify founders who match the ideal customer profile. Return JSON only.
 Each lead must include: company, founder, role (optional), url (optional), reason, outreachHook.
 Limit to \${maxLeads} leads.
-`;
+\`;
 
-    const message = `
+    const message = \`
 Positioning Document:\n\${positioningDocument}\n\nDirectory Content:\n\${directoryContent}
-`;
+\`;
 
     const agent = new AIAgentBubble({
       message,
@@ -119,7 +119,7 @@ Positioning Document:\n\${positioningDocument}\n\nDirectory Content:\n\${directo
 
     const drive = new GoogleDriveBubble({
       operation: 'uploadFile',
-      fileName: `lead-report-\${Date.now()}.json`,
+      fileName: \`lead-report-\${Date.now()}.json\`,
       content: reportContent,
       mimeType: 'application/json',
       parents: folderId ? [folderId] : undefined,

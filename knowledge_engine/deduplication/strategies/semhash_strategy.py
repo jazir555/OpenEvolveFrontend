@@ -131,9 +131,145 @@ class SemHashStrategy(DeduplicationStrategy):
         )
 
     async def preprocess_entities(self, entities: List[Entity]) -> List[Entity]:
-        """Normalize entity text for comparison."""
-        # In a full implementation, this would singularize with inflect
-        return entities
+        """
+        Normalize entity text for comparison.
+
+        Performs advanced text normalization:
+        1. Singularization (with inflect if available)
+        2. Unicode normalization
+        3. Stopword removal
+        4. Abbreviation expansion
+        5. Whitespace normalization
+        """
+        processed = []
+
+        # Try to load inflect for singularization
+        inflect = None
+        try:
+            import inflect
+            inflect_engine = inflect.engine()
+        except ImportError:
+            inflect_engine = None
+
+        # Load abbreviation mapping
+        abbreviations = self._get_abbreviation_map()
+
+        for entity in entities:
+            # Create a copy with normalized name
+            normalized_entity = Entity(
+                id=entity.id,
+                name=self._normalize_entity_text(entity.name, inflect_engine, abbreviations),
+                entity_type=entity.entity_type,
+                description=entity.description,
+                attributes=entity.attributes,
+                confidence=entity.confidence
+            )
+            processed.append(normalized_entity)
+
+        return processed
+
+    def _normalize_entity_text(
+        self,
+        text: str,
+        inflect_engine=None,
+        abbreviations: Dict[str, str] = None
+    ) -> str:
+        """
+        Fully normalize entity text.
+
+        Args:
+            text: Original text
+            inflect_engine: Optional inflect engine for singularization
+            abbreviations: Optional abbreviation expansion map
+
+        Returns:
+            Normalized text
+        """
+        if not text:
+            return text
+
+        # 1. Expand abbreviations
+        if abbreviations:
+            words = text.split()
+            expanded = []
+            for word in words:
+                lower_word = word.lower()
+                if lower_word in abbreviations:
+                    expanded.append(abbreviations[lower_word])
+                else:
+                    expanded.append(word)
+            text = ' '.join(expanded)
+
+        # 2. Singularize with inflect if available
+        if inflect_engine:
+            try:
+                words = text.split()
+                singularized = []
+                for word in words:
+                    # Check if it's a plural noun
+                    if inflect_engine.singular_noun(word):
+                        singularized.append(inflect_engine.singular_noun(word))
+                    else:
+                        singularized.append(word)
+                text = ' '.join(singularized)
+            except Exception:
+                pass  # Fall back to original if singularization fails
+
+        # 3. Apply base normalization
+        text = self._normalize_text(text)
+
+        return text
+
+    def _get_abbreviation_map(self) -> Dict[str, str]:
+        """Get common abbreviation expansion map."""
+        return {
+            # Business/organizations
+            'corp': 'corporation',
+            'inc': 'incorporated',
+            'llc': 'limited liability company',
+            'ltd': 'limited',
+            'co': 'company',
+            'dept': 'department',
+            'div': 'division',
+            'assn': 'association',
+            'inst': 'institute',
+
+            # Technology
+            'tech': 'technology',
+            'sys': 'system',
+            'app': 'application',
+            'prog': 'program',
+            'dev': 'development',
+            'eng': 'engineering',
+            'mgr': 'manager',
+            'rep': 'representative',
+
+            # Common terms
+            'info': 'information',
+            'doc': 'document',
+            'msg': 'message',
+            'req': 'request',
+            'resp': 'response',
+            'config': 'configuration',
+            'param': 'parameter',
+            'arg': 'argument',
+
+            # Locations
+            'ave': 'avenue',
+            'st': 'street',
+            'blvd': 'boulevard',
+            'rd': 'road',
+            'mt': 'mount',
+            'ft': 'fort',
+            'univ': 'university',
+            'dept': 'department',
+
+            # Time periods
+            'qtr': 'quarter',
+            'fy': 'fiscal year',
+            'yoy': 'year over year',
+            'mom': 'month over month',
+        }
 
     def _normalize_text(self, text: str) -> str:
         """

@@ -654,6 +654,7 @@ export const openevolveApi = {
     definition_id: string;
     instance_name: string;
     inputs: Record<string, unknown>;
+    parameters?: Record<string, unknown>;
   }): Promise<{ instance_id: string }> => {
     logger.info({
       msg: 'Creating BubbleLabs workflow instance',
