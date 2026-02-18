@@ -14,8 +14,10 @@
  */
 
 import { toast } from 'react-toastify';
-import { v4 as uuidv4 } from 'uuid';
 import {
+  AdversarialStrategy,
+  DecompositionStrategy,
+  EvolutionStrategy,
   OpenEvolvePlugin,
   OpenEvolvePluginState,
   OpenEvolveExecutionOptions,
@@ -24,6 +26,9 @@ import {
   DEFAULT_OPENEVOLVE_CONFIG,
   OPENEVOLVE_PLUGIN_CONSTANTS,
 } from '../types/plugin-types';
+
+const createExecutionId = (): string =>
+  `openevolve-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 // Mock Zustand store implementation (in real implementation, use actual Zustand)
 let globalState: OpenEvolvePluginState = { ...DEFAULT_OPENEVOLVE_CONFIG };
@@ -57,10 +62,10 @@ class OpenEvolveService {
           setTimeout(() => reject(new Error('Operation timed out')), timeout)
         );
 
-        const result = await Promise.race([
+        const result = (await Promise.race([
           operation(),
           timeoutPromise
-        ]);
+        ])) as OpenEvolveExecutionResult;
 
         return result;
       } catch (error) {
@@ -80,7 +85,7 @@ class OpenEvolveService {
     config: any,
     options: OpenEvolveExecutionOptions = {}
   ): Promise<OpenEvolveExecutionResult> {
-    const executionId = uuidv4();
+    const executionId = createExecutionId();
     const startTime = new Date().toISOString();
 
     // In a real implementation, this would call the actual OpenEvolve evolution API
@@ -115,7 +120,7 @@ class OpenEvolveService {
     config: any,
     options: OpenEvolveExecutionOptions = {}
   ): Promise<OpenEvolveExecutionResult> {
-    const executionId = uuidv4();
+    const executionId = createExecutionId();
     const startTime = new Date().toISOString();
 
     // Simulate adversarial execution
@@ -167,7 +172,7 @@ class OpenEvolveService {
     config: any,
     options: OpenEvolveExecutionOptions = {}
   ): Promise<OpenEvolveExecutionResult> {
-    const executionId = uuidv4();
+    const executionId = createExecutionId();
     const startTime = new Date().toISOString();
 
     // Simulate decomposition execution
@@ -676,9 +681,9 @@ export function createOpenEvolvePlugin(
 
     getAvailableStrategies() {
       return {
-        evolution: OPENEVOLVE_PLUGIN_CONSTANTS.EVOLUTION_STRATEGIES,
-        adversarial: OPENEVOLVE_PLUGIN_CONSTANTS.ADVERSARIAL_STRATEGIES,
-        decomposition: OPENEVOLVE_PLUGIN_CONSTANTS.DECOMPOSITION_STRATEGIES,
+        evolution: OPENEVOLVE_PLUGIN_CONSTANTS.EVOLUTION_STRATEGIES as EvolutionStrategy[],
+        adversarial: OPENEVOLVE_PLUGIN_CONSTANTS.ADVERSARIAL_STRATEGIES as AdversarialStrategy[],
+        decomposition: OPENEVOLVE_PLUGIN_CONSTANTS.DECOMPOSITION_STRATEGIES as DecompositionStrategy[],
       };
     },
   };

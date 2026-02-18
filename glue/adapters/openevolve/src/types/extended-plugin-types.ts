@@ -386,7 +386,7 @@ export interface ExtendedDecompositionConfig extends DecompositionConfig {
  * Extended OpenEvolve Plugin State
  * Includes all extended configuration categories
  */
-export interface ExtendedOpenEvolvePluginState extends Partial<OpenEvolvePluginState> {
+export interface ExtendedOpenEvolvePluginState {
   // Core configurations (already in base)
   evolutionConfig: ExtendedEvolutionConfig;
   adversarialConfig: ExtendedAdversarialConfig;
