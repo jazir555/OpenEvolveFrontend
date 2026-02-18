@@ -1637,30 +1637,69 @@ class UnifiedEvolutionKnowledgeExtractor:
             await self._store_outcome_in_qdrant(outcome)
 
     async def _store_outcome_in_neo4j(self, outcome) -> None:
-        """Store outcome in Neo4j"""
-        pass  # Implementation depends on Neo4j driver
+        """Store outcome in Neo4j with file-based fallback"""
+        if self.neo4j and hasattr(self.neo4j, "store"):
+            try:
+                await self.neo4j.store(outcome)
+                return
+            except Exception as e:
+                logger.warning(f"Neo4j store failed: {e}. Falling back to file.")
+        
+        # File-based fallback
+        storage_path = Path("artifacts/evolution/outcomes")
+        storage_path.mkdir(parents=True, exist_ok=True)
+        filename = f"outcome_{int(time.time())}_{uuid.uuid4().hex[:8]}.json"
+        with open(storage_path / filename, "w") as f:
+            json.dump(outcome, f, indent=2, default=str)
 
     async def _store_outcome_in_qdrant(self, outcome) -> None:
-        """Store outcome in Qdrant"""
-        pass  # Implementation depends on Qdrant client
+        """Store outcome in Qdrant with file-based fallback"""
+        if self.qdrant and hasattr(self.qdrant, "upsert"):
+            try:
+                # Assuming outcome can be converted to vector
+                await self.qdrant.upsert(outcome)
+                return
+            except Exception as e:
+                logger.warning(f"Qdrant store failed: {e}. Falling back to file.")
+        
+        # File-based fallback (shared with neo4j for simplicity)
+        await self._store_outcome_in_neo4j(outcome)
 
     async def _store_causal_model(self, model) -> None:
         """Store causal model in knowledge engine"""
         if self.neo4j:
             await self._store_causal_in_neo4j(model)
+        else:
+            # File fallback
+            storage_path = Path("artifacts/evolution/causal_models")
+            storage_path.mkdir(parents=True, exist_ok=True)
+            filename = f"causal_{int(time.time())}.json"
+            with open(storage_path / filename, "w") as f:
+                json.dump(model, f, indent=2, default=str)
 
     async def _store_causal_in_neo4j(self, model) -> None:
         """Store causal model in Neo4j"""
-        pass  # Implementation depends on Neo4j driver
-
-    async def _store_meta_patterns(self, patterns: List) -> None:
-        """Store meta-patterns in knowledge engine"""
-        if self.qdrant:
-            await self._store_patterns_in_qdrant(patterns)
+        if self.neo4j and hasattr(self.neo4j, "store_causal"):
+            try:
+                await self.neo4j.store_causal(model)
+            except Exception as e:
+                logger.warning(f"Neo4j causal store failed: {e}")
 
     async def _store_patterns_in_qdrant(self, patterns: List) -> None:
-        """Store patterns in Qdrant"""
-        pass  # Implementation depends on Qdrant client
+        """Store patterns in Qdrant with file-based fallback"""
+        if self.qdrant and hasattr(self.qdrant, "upsert_batch"):
+            try:
+                await self.qdrant.upsert_batch(patterns)
+                return
+            except Exception as e:
+                logger.warning(f"Qdrant pattern store failed: {e}")
+        
+        # File fallback
+        storage_path = Path("artifacts/evolution/meta_patterns")
+        storage_path.mkdir(parents=True, exist_ok=True)
+        filename = f"patterns_{int(time.time())}.json"
+        with open(storage_path / filename, "w") as f:
+            json.dump(patterns, f, indent=2, default=str)
 
     # Additional methods for test compatibility
 

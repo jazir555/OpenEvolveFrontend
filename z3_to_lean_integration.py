@@ -17,6 +17,8 @@ Author: OpenEvolve Team
 Date: 2026-02-17
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging

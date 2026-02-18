@@ -87,36 +87,91 @@ class EvolvedCodeCapturer:
         storage_status = "not_available"
         if self._engine:
             try:
-                # Mock storage call - in reality would use engine.store_artifact
+                # Real storage call - using engine.store_artifact
                 if hasattr(self._engine, "store_artifact"):
-                    # We assume store_artifact handles the underlying VectorDB/Graphiti
-                    # following the ADR for the integrated engine.
-                    pass
-                storage_status = "success"
+                    # Create KnowledgeArtifact
+                    try:
+                        from knowledge_engine import KnowledgeArtifact
+                        art = KnowledgeArtifact(
+                            artifact_id=capture_id,
+                            artifact_type="evolved_code",
+                            source_system="determinism_stack",
+                            content=json.dumps(artifact),
+                            confidence=1.0,
+                            metadata=metadata or {}
+                        )
+                        # Store it
+                        self._engine.store_artifact(art)
+                        storage_status = "success"
+                    except ImportError:
+                        # Fallback if KnowledgeArtifact class not directly importable
+                        self._engine.store_artifact(artifact)
+                        storage_status = "success"
+                else:
+                    # File-based backup if engine doesn't support store_artifact
+                    storage_status = self._store_to_file(artifact)
             except Exception as exc:
                 logger.error(f"Failed to store evolved code: {exc}")
                 storage_status = "failed"
+        else:
+            # Automatic file-based backup if engine is missing
+            storage_status = self._store_to_file(artifact)
         
         logger.info(f"Captured evolved code: {capture_id} (Status: {storage_status})")
         
         return {
-            "success": storage_status == "success" or storage_status == "not_available",
+            "success": storage_status == "success",
             "capture_id": capture_id,
             "timestamp": timestamp,
             "storage": storage_status
         }
 
+    def _store_to_file(self, artifact: Dict[str, Any]) -> str:
+        """Backup storage method when knowledge engine is unavailable."""
+        try:
+            path = Path("artifacts/evolved_code")
+            path.mkdir(parents=True, exist_ok=True)
+            filename = f"code_{artifact['id'][:8]}_{int(time.time())}.json"
+            with open(path / filename, "w") as f:
+                json.dump(artifact, f, indent=2)
+            return "success"
+        except Exception as exc:
+            logger.error(f"File storage failed: {exc}")
+            return "failed"
+
     def search_similar(self, problem: str, limit: int = 5) -> List[Dict[str, Any]]:
         """Search for similar previously evolved solutions."""
         self._ensure_engine()
-        if not self._engine:
-            return []
-            
+        
+        # 1. Try Knowledge Engine first
+        if self._engine and hasattr(self._engine, "query"):
+            try:
+                # Use engine's semantic search
+                results = self._engine.query(problem, types=["evolved_code"], limit=limit)
+                if results:
+                    return results
+            except Exception as exc:
+                logger.debug(f"Knowledge Engine query failed: {exc}")
+        
+        # 2. Heuristic fallback: Search local artifacts
         try:
-            # Mock search call
-            if hasattr(self._engine, "query"):
-                # result = self._engine.query(problem, types=["evolved_code"], limit=limit)
+            path = Path("artifacts/evolved_code")
+            if not path.exists():
                 return []
+                
+            from .utils import similarity
+            candidates = []
+            for file in path.glob("*.json"):
+                with open(file, "r") as f:
+                    data = json.load(f)
+                    score = similarity(problem, data.get("problem", ""))
+                    if score > 0.5:
+                        candidates.append((score, data))
+            
+            # Sort by similarity and return top N
+            candidates.sort(key=lambda x: x[0], reverse=True)
+            return [c[1] for c in candidates[:limit]]
         except Exception:
             pass
+            
         return []
