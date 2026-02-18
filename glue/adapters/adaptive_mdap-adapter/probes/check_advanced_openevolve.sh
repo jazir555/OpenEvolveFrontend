@@ -43,7 +43,7 @@ echo ""
 ###############################################################################
 echo "Test 1: Advanced OpenEvolve integration import"
 
-if python -c "import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_advanced_openevolve_integration; get_advanced_openevolve_integration()" 2>&1 | grep -q ""; then
+if python -c "import os; import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_advanced_openevolve_integration; get_advanced_openevolve_integration()" 2>&1 | grep -q ""; then
     pass "Advanced OpenEvolve integration imports"
 else
     fail "Advanced OpenEvolve integration import failed"
@@ -162,8 +162,8 @@ advanced.save_checkpoint(
     metrics={'complexity': 0.7}
 )
 
-# List checkpoints
-checkpoints = advanced.list_checkpoints('test')
+# Get checkpoints from the checkpoints dictionary
+checkpoints = advanced.checkpoints.get('test', [])
 print(f'Checkpoints: {len(checkpoints)}')
 print('OK')
 " 2>&1 || echo "ERROR")

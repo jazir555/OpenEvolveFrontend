@@ -145,6 +145,13 @@ class GauntletType(Enum):
     TEMPORAL = "temporal"
     CROSS_VALIDATION = "cross_validation"
 
+# Registration logic
+try:
+    from z3_to_lean_integration import Z3LeanFormalVerificationGauntlet
+    # Registration will happen in the factory or initialization
+except ImportError:
+    pass
+
 
 @dataclass
 class GauntletResult:

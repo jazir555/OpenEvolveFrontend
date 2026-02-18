@@ -481,9 +481,6 @@ export class BubbleFactory {
     const { WebhookBubble } = (await this.safeImport(
       './bubbles/service-bubble/webhook-bubble.js'
     )) ?? {};
-    const { CrewAIBubble } = (await this.safeImport(
-      './bubbles/service-bubble/crewai-bubble.js'
-    )) ?? {};
     const { AirtableWrapperBubble } = (await this.safeImport(
       './bubbles/service-bubble/airtable-wrapper.js'
     )) ?? {};
@@ -567,21 +564,21 @@ export class BubbleFactory {
     )) ?? {};
     // Import RAGBits bubbles
     const { RAGBitsIngestBubble } = (await this.safeImport(
-      '../ragbits-bubblelab-integration/bubbles/ingest/RAGBitsIngestBubble.js'
+      '../../ragbits-bubblelab-integration/bubbles/ingest/RAGBitsIngestBubble.ts'
     )) ?? {};
     const { RAGBitsSearchBubble } = (await this.safeImport(
-      '../ragbits-bubblelab-integration/bubbles/search/RAGBitsSearchBubble.js'
+      '../../ragbits-bubblelab-integration/bubbles/search/RAGBitsSearchBubble.ts'
     )) ?? {};
     const { RAGBitsIndexBubble } = (await this.safeImport(
-      '../ragbits-bubblelab-integration/bubbles/index/RAGBitsIndexBubble.js'
+      '../../ragbits-bubblelab-integration/bubbles/index/RAGBitsIndexBubble.ts'
     )) ?? {};
     const { RAGBitsGenerationBubble } = (await this.safeImport(
-      '../ragbits-bubblelab-integration/bubbles/generation/RAGBitsGenerationBubble.js'
+      '../../ragbits-bubblelab-integration/bubbles/generation/RAGBitsGenerationBubble.ts'
     )) ?? {};
 
     // Import CrewAI bubbles
     const { CrewAIOrchestrationBubble, CrewAIResearchBubble } = (await this.safeImport(
-      '../ragbits-bubblelab-integration/bubbles/crewai/CrewAIOrchestrationBubble.js'
+      '../../ragbits-bubblelab-integration/bubbles/crewai/CrewAIOrchestrationBubble.ts'
     )) ?? {};
 
     const wrapBubbleName = <T extends BubbleClassWithMetadata<any>>(
@@ -595,6 +592,10 @@ export class BubbleFactory {
         static readonly bubbleName = bubbleName;
       } as unknown as T;
     };
+    const CrewAIBubbleAlias = wrapBubbleName(
+      OpenEvolveCrewAIBubble as BubbleClassWithMetadata,
+      'crewai' as BubbleName
+    );
 
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
@@ -733,7 +734,7 @@ export class BubbleFactory {
     this.register('webhook' as BubbleName, WebhookBubble as BubbleClassWithMetadata);
     this.register(
       'crewai' as BubbleName,
-      CrewAIBubble as BubbleClassWithMetadata
+      CrewAIBubbleAlias as BubbleClassWithMetadata
     );
     this.register(
       'airtable-wrapper' as BubbleName,

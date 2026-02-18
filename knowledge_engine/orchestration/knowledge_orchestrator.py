@@ -799,8 +799,23 @@ class KnowledgeOrchestrator:
         handler = handlers.get(stage.component)
         if handler:
             return await handler(component, input_data, context, stage.config)
-        
-        raise NotImplementedError(f"No handler for component {stage.component.value}")
+
+        # Component handler not found - this is a configuration error
+        # Log the error and provide helpful diagnostic information
+        error_msg = (
+            f"No handler implemented for component {stage.component.value}. "
+            f"Available handlers: {list(handlers.keys())}. "
+            f"This indicates a mismatch between ComponentType enum and handler implementations."
+        )
+        logger.error({
+            "msg": "Component handler not found",
+            "component": stage.component.value,
+            "stage": stage.name,
+            "available_handlers": list(handlers.keys()),
+            "severity": "CRITICAL"
+        })
+
+        raise NotImplementedError(error_msg)
     
     def _execute_stage(self, stage: PipelineStage, context: Dict[str, Any]) -> Any:
         """Synchronous wrapper for _execute_stage_with_timeout_and_retry"""

@@ -1998,6 +1998,43 @@ class DITOOptimizer:
 
     def check_contradiction_targeted(
         self,
+        target_nodes: List[str],
+        correlation_id: str
+    ) -> Optional[ContradictionPair]:
+        """
+        Targeted ATP contradiction detection.
+        
+        Per specification §3.3: 
+        "DITO uses the identified contradiction as a target for a machine-verified
+        Proof-of-Contradiction using Automated Theorem Proving (ATP)."
+        """
+        if not self.enable_lean4 or not self.lean4_bridge:
+            return None
+            
+        # 1. Isolate minimal subgraph for targets
+        nodes = [self.graph[nid] for nid in target_nodes if nid in self.graph]
+        constraints = [n.constraint for n in nodes]
+        
+        # 2. Run targeted Lean 4 ATP
+        try:
+            proof_result = self.lean4_bridge.prove_contradiction(
+                constraints=constraints,
+                correlation_id=correlation_id
+            )
+            
+            if proof_result.is_proven:
+                self.logger.info(f"Targeted ATP proven contradiction in subgraph: {target_nodes}")
+                # Create contradiction pair from proof result
+                return ContradictionPair(
+                    constraint1_id=target_nodes[0],
+                    constraint2_id=target_nodes[1] if len(target_nodes) > 1 else target_nodes[0],
+                    type=LogicalFallacy.CONTRADICTION,
+                    metadata={'proven_by_atp': True, 'proof': proof_result.proof_code}
+                )
+        except Exception as e:
+            self.logger.error(f"Targeted ATP failed: {e}")
+            
+        return None
         node_id: str,
         correlation_id: str
     ) -> Optional[ContradictionPair]:

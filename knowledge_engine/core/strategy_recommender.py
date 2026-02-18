@@ -1812,10 +1812,15 @@ class EnsembleStrategySelector(StrategyRecommender):
         features.append(cost_map.get(run.evaluation_cost, 1))
         features.append(complexity_map.get(run.problem_complexity, 1))
 
-        # Boolean features from problem chars (use defaults for historical)
-        features.append(1.0)  # has_multiple_objectives (placeholder)
-        features.append(0.0)  # requires_diversity (placeholder)
-        features.append(0.0)  # requires_robustness (placeholder)
+        # Boolean features from problem chars
+        # For historical runs without problem chars, infer from run metadata
+        has_multiple_objectives = 1.0 if run.num_objectives and run.num_objectives > 1 else 0.0
+        requires_diversity = 1.0 if run.solution_count and run.solution_count > 5 else 0.0
+        requires_robustness = 1.0 if run.has_constraints or run.is_constrained else 0.0
+
+        features.append(has_multiple_objectives)
+        features.append(requires_diversity)
+        features.append(requires_robustness)
 
         return features
 

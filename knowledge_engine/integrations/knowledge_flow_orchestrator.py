@@ -64,5 +64,29 @@ class KnowledgeFlowOrchestrator:
     async def sync_all(self):
         """Run full synchronization across all systems."""
         logger.info("Starting full knowledge synchronization")
-        # Implementation of sync logic (similar to KnowledgeEngine.sync_ragbits_graphiti)
-        pass
+        
+        try:
+            # 1. Sync RAGBits chunks to Graphiti episodes
+            logger.info("Syncing RAGBits -> Graphiti")
+            await self.ragbits.sync_to_graphiti(self.graphiti)
+            
+            # 2. Sync Graphiti entities to RAGBits documents
+            logger.info("Syncing Graphiti -> RAGBits")
+            await self.graphiti.sync_to_ragbits(self.ragbits)
+            
+            # 3. Update flow history
+            self.flow_history.append({
+                "type": "sync",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "success"
+            })
+            
+            logger.info("Knowledge synchronization complete")
+        except Exception as exc:
+            logger.error(f"Sync failed: {exc}")
+            self.flow_history.append({
+                "type": "sync",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "failed",
+                "error": str(exc)
+            })

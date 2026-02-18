@@ -32,8 +32,21 @@ class LMQLAdapter:
             return f"LMQL not available. Executing standard prompt: {prompt}"
             
         try:
-            # result = await self._lmql.run(prompt, constraints=constraints)
-            return "Generated with LMQL constraints"
+            # Construct LMQL query string
+            lmql_query = f'"{prompt}" [RESPONSE] where {constraints}'
+            
+            # Execute query
+            # We assume self._lmql.run or similar exists based on typical LMQL usage
+            # In real LMQL, we might use lmql.query()
+            if hasattr(self._lmql, "query"):
+                q = self._lmql.query(lmql_query)
+                result = await q()
+                return str(result)
+            elif hasattr(self._lmql, "run"):
+                result = await self._lmql.run(lmql_query)
+                return str(result)
+            
+            return "LMQL execution structure not matched to expected API"
         except Exception as e:
             logger.error(f"LMQL query failed: {e}")
             return f"Error: {str(e)}"

@@ -43,7 +43,7 @@ echo ""
 ###############################################################################
 echo "Test 1: Unified system monitor import"
 
-if python -c "import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_unified_system_monitor; get_unified_system_monitor()" 2>&1 | grep -q ""; then
+if python -c "import os; import sys; sys.path.insert(0, os.path.abspath('..')); from src import get_unified_system_monitor; get_unified_system_monitor()" 2>&1 | grep -q ""; then
     pass "Unified system monitor imports"
 else
     fail "Unified system monitor import failed"
@@ -89,19 +89,10 @@ sys.path.insert(0, os.path.abspath('..'))
 from src import get_unified_system_monitor
 
 monitor = get_unified_system_monitor()
-systems = [
-    'crewai',
-    'mcp_tools',
-    'knowledge_engine',
-    'leanaide',
-    'z3_prover'
-]
-
-for system in systems:
-    if system in monitor.integrations:
-        integration = monitor.integrations[system]
-        available = integration.check_available()
-        print(f'{system}: {available}')
+# Use correct attribute name 'systems' and correct system names
+for system_name, system in monitor.systems.items():
+    available = system.available
+    print(f'{system_name}: {available}')
 print('OK')
 " 2>&1 || echo "ERROR")
 
@@ -132,12 +123,13 @@ results = monitor.execute_workflow(
         'max_results': 3
     }
 )
-print(f'Success: {results[\"success\"]}')
+# Workflow results don't have top-level 'success' - check execution completed
+print(f'Workflow type: {results[\"workflow_type\"]}')
 print(f'Steps: {len(results[\"steps\"])}')
 print('OK')
 " 2>&1 || echo "ERROR")
 
-if echo "$TEST_OUTPUT" | grep -q "Success:"; then
+if echo "$TEST_OUTPUT" | grep -q "Workflow type:"; then
     pass "Knowledge engine workflow executes"
 else
     fail "Knowledge engine workflow failed"
@@ -164,12 +156,12 @@ results = monitor.execute_workflow(
         'constraints': ['x > 0']
     }
 )
-print(f'Success: {results[\"success\"]}')
+print(f'Workflow type: {results[\"workflow_type\"]}')
 print(f'Steps: {len(results[\"steps\"])}')
 print('OK')
 " 2>&1 || echo "ERROR")
 
-if echo "$TEST_OUTPUT" | grep -q "Success:"; then
+if echo "$TEST_OUTPUT" | grep -q "Workflow type:"; then
     pass "Formal verification workflow executes"
 else
     fail "Formal verification workflow failed"
@@ -199,12 +191,12 @@ results = monitor.execute_workflow(
         ]
     }
 )
-print(f'Success: {results[\"success\"]}')
+print(f'Workflow type: {results[\"workflow_type\"]}')
 print(f'Steps: {len(results[\"steps\"])}')
 print('OK')
 " 2>&1 || echo "ERROR")
 
-if echo "$TEST_OUTPUT" | grep -q "Success:"; then
+if echo "$TEST_OUTPUT" | grep -q "Workflow type:"; then
     pass "Agent collaboration workflow executes"
 else
     fail "Agent collaboration workflow failed"

@@ -18,7 +18,7 @@ CrewAI Architecture:
 - VoteCollector -> CrewAI Agent with red-flagging
 - RecursiveMAKERSolver -> Nested CrewAI Crews
 
-License: MIT (replaces AGPL crewai)
+License: MIT
 """
 
 import json

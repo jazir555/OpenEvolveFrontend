@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ServiceBubble } from '@bubblelab/bubble-core/src/types/service-bubble-class.js';
-import type { BubbleContext } from '@bubblelab/bubble-core/src/types/bubble.js';
+import { ServiceBubble } from '../../../bubble-core/dist/types/service-bubble-class.js';
+import type { BubbleContext } from '../../../bubble-core/dist/types/bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
 
 // Define the parameters schema for the RAGBits ingest bubble

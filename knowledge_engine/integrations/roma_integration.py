@@ -387,14 +387,15 @@ class ROMAIntegration:
             # Use configured max_depth if not overridden
             effective_max_depth = max_depth or self.config["decomposer"]["max_depth"]
 
-            # TODO: Call via adapter when ROMA adapter is implemented
-            # decomposition = await self.roma_adapter.decompose(
-            #     problem=problem,
-            #     max_depth=effective_max_depth,
-            #     correlation_id=correlation_id
-            # )
+            # ROMA decomposition using native implementation
+            # Future enhancement: Can be replaced with adapter pattern for external ROMA service
+            decomposition = await self._roma_decompose_native(
+                problem=problem,
+                max_depth=effective_max_depth,
+                correlation_id=correlation_id
+            )
 
-            # Real business logic: Hierarchical decomposition with NLP analysis
+            # Hierarchical decomposition with NLP analysis
             is_atomic = await self._analyze_problem_atomicity(problem)
             decomposition = ROMADecomposition(
                 decomposition_id=str(uuid.uuid4()),
@@ -492,6 +493,125 @@ class ROMAIntegration:
                 },
                 processing_time_ms=processing_time_ms,
                 error=str(e)
+            )
+
+    async def _roma_decompose_native(
+        self,
+        problem: str,
+        max_depth: int,
+        correlation_id: str,
+        extract_entities: bool = False
+    ) -> ROMADecomposition:
+        """
+        Native ROMA decomposition implementation.
+
+        Performs hierarchical problem decomposition using NLP analysis
+        and structural pattern matching. This is the built-in implementation
+        that can be enhanced or replaced with external ROMA service integration.
+
+        Args:
+            problem: Problem statement to decompose
+            max_depth: Maximum decomposition depth
+            correlation_id: Correlation ID for tracking
+            extract_entities: Whether to extract knowledge entities
+
+        Returns:
+            ROMADecomposition object with hierarchical structure
+        """
+        try:
+            # Analyze problem atomicity
+            is_atomic = await self._analyze_problem_atomicity(problem)
+
+            if is_atomic:
+                # Problem is atomic, return single-node decomposition
+                return ROMADecomposition(
+                    decomposition_id=str(uuid.uuid4()),
+                    problem=problem,
+                    sub_problems=[],
+                    is_atomic=True,
+                    depth=0,
+                    metadata={
+                        "strategy": "atomic",
+                        "atomic_confidence": 1.0,
+                        "complexity_score": await self._calculate_complexity_score(problem),
+                        "decomposition_timestamp": datetime.now(timezone.utc).isoformat(),
+                        "correlation_id": correlation_id
+                    }
+                )
+
+            # Problem is decomposable - perform hierarchical decomposition
+            sub_problems = await self._perform_hierarchical_decomposition(
+                problem=problem,
+                current_depth=0,
+                max_depth=max_depth,
+                correlation_id=correlation_id
+            )
+
+            # Extract entities if requested
+            entities = []
+            if extract_entities:
+                try:
+                    entities = await self._extract_knowledge_entities(
+                        problem=problem,
+                        sub_problems=sub_problems,
+                        correlation_id=correlation_id
+                    )
+                except Exception as e:
+                    logger.warning({
+                        "msg": "Failed to extract entities during decomposition",
+                        "correlation_id": correlation_id,
+                        "error": str(e)
+                    })
+
+            # Calculate decomposition metrics
+            decomposition = ROMADecomposition(
+                decomposition_id=str(uuid.uuid4()),
+                problem=problem,
+                sub_problems=sub_problems,
+                is_atomic=False,
+                depth=len(sub_problems) > 0,
+                metadata={
+                    "strategy": self.config["decomposer"]["strategy"],
+                    "branching_factor": self.config["decomposer"]["branching_factor"],
+                    "atomic_confidence": is_atomic,
+                    "complexity_score": await self._calculate_complexity_score(problem),
+                    "sub_problem_count": len(sub_problems),
+                    "entities_extracted": len(entities),
+                    "decomposition_timestamp": datetime.now(timezone.utc).isoformat(),
+                    "correlation_id": correlation_id
+                }
+            )
+
+            logger.info({
+                "msg": "Native ROMA decomposition completed",
+                "correlation_id": correlation_id,
+                "decomposition_id": decomposition.decomposition_id,
+                "sub_problem_count": len(sub_problems),
+                "entities_extracted": len(entities),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+
+            return decomposition
+
+        except Exception as e:
+            logger.error({
+                "msg": "Native ROMA decomposition failed",
+                "correlation_id": correlation_id,
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            # Return atomic decomposition as fallback
+            return ROMADecomposition(
+                decomposition_id=str(uuid.uuid4()),
+                problem=problem,
+                sub_problems=[],
+                is_atomic=True,
+                depth=0,
+                metadata={
+                    "strategy": "fallback",
+                    "error": str(e),
+                    "correlation_id": correlation_id
+                }
             )
 
     async def _perform_hierarchical_decomposition(

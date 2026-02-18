@@ -18,7 +18,7 @@ Architecture:
 - MDAP task execution -> CrewAI Crew
 - Voting coordination -> CrewAI Process
 
-License: MIT (replaces AGPL crewai)
+License: MIT
 """
 
 import json

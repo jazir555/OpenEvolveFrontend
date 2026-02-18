@@ -123,31 +123,44 @@ class DistributedDeterminismCoordinator:
         nodes = self.cluster_config.get("nodes", ["node-1", "node-2", "node-3"])
         runs = len(nodes)
         
+        results = []
         if llm:
-            results = [llm.generate(prompt) for _ in range(runs)]
+            # Parallel execution if possible, otherwise sequential
+            for i in range(runs):
+                try:
+                    # In a real distributed system, we would dispatch to different nodes
+                    # Here we simulate by calling the LLM multiple times
+                    results.append(llm.generate(prompt))
+                except Exception as exc:
+                    logger.warning(f"Node {i} generation failed: {exc}")
         else:
-            # Simulation mode
-            results = [f"[consensus-mock] {prompt}" for _ in range(runs)]
+            # Simulation mode with realistic variance
+            # We generate slightly different strings to test quorum
+            results = [f"Result from {node} for: {prompt}" for node in nodes]
+            
+        if not results:
+            return f"[error] All consensus nodes failed for: {prompt}"
             
         # --- Real Business Logic: Quorum-based consensus ---
         counts = Counter(results)
         winner, count = counts.most_common(1)[0]
-        agreement = count / runs
+        agreement = count / len(results)
         
         # Quorum logic: require at least a majority or the specified threshold
-        quorum_size = (runs // 2) + 1
+        quorum_size = (len(results) // 2) + 1
         
         if count >= quorum_size or agreement >= threshold:
-            logger.info(f"Distributed Consensus: Quorum reached ({count}/{runs}).")
+            logger.info(f"Distributed Consensus: Quorum reached ({count}/{len(results)}).")
             return winner
             
         # Fallback: Similarity-based best effort
-        logger.warning(f"Distributed Consensus: Quorum NOT reached ({count}/{runs}). Using similarity fallback.")
+        logger.warning(f"Distributed Consensus: Quorum NOT reached ({count}/{len(results)}). Using similarity fallback.")
         best_avg_sim = -1.0
         best_result = results[0]
         
         for i, r1 in enumerate(results):
             sims = [similarity(r1, r2) for j, r2 in enumerate(results) if i != j]
+            if not sims: continue
             avg_sim = sum(sims) / len(sims)
             if avg_sim > best_avg_sim:
                 best_avg_sim = avg_sim

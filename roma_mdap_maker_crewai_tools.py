@@ -2,13 +2,13 @@
 ROMA-MDAP-MAKER CrewAI Tools
 
 This module provides Model Context Protocol (MCP) tools for the ROMA-MDAP-MAKER
-integration system using CrewAI instead of crewai. These tools allow CrewAI agents
+integration system using CrewAI for local orchestration. These tools allow CrewAI agents
 and the Decomposition Workflow to leverage ROMA's hierarchical decomposition with
 MAKER's zero-error voting mechanisms.
 
 CrewAI Integration:
     - Uses roma_mdap_maker_crewai_bridge for execution
-    - Replaces crewai bridge with local CrewAI workflow
+    - Replaces the legacy bridge with local CrewAI workflow
     - Maintains same MCP tool API for backward compatibility
 
 MCP Tools:
@@ -25,7 +25,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import asdict
 
-# Import CrewAI bridge (replaces crewai)
+# Import CrewAI bridge (replaces legacy bridge)
 from roma_mdap_maker_crewai_bridge import (
     get_roma_mdap_maker_status,
     execute_phase_1_setup as roma_mdap_phase1,
@@ -90,7 +90,7 @@ def solve_with_roma_mdap_maker(
     - MAKER's first-to-ahead-by-k voting
     - Red-flagging for error detection
     - Confidence-weighted aggregation
-    - CrewAI local execution (no crewai)
+    - CrewAI local execution
 
     Args:
         task: Task description to solve

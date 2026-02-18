@@ -7,6 +7,7 @@ This is a compatibility layer for the DITO optimizer.
 Author: OpenEvolve
 """
 
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
@@ -123,14 +124,22 @@ class SymbolicConstraintEngine:
     """
     Symbolic Constraint Engine for RESE.
     
-    This is a stub implementation for compatibility with DITO optimizer.
+    Enhanced with DITO optimizer for O(n log n) contradiction detection.
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.nodes: Dict[str, ConstraintNode] = {}
-        self.constraints: List[str] = []
+        self.constraints: List[Constraint] = []
         self._initialized = True
+        
+        # Initialize DITO optimizer
+        from .dito_optimizer import DITOOptimizer, ActivationStrategy
+        self.optimizer = DITOOptimizer(
+            activation_strategy=ActivationStrategy.SELECTIVE_BFS,
+            enable_lean4=True,
+            enable_leanaide=True
+        )
     
     def add_constraint(self, node_id: str, expression: str, 
                        constraint_type: ConstraintType = ConstraintType.EQUALITY) -> bool:
@@ -141,14 +150,45 @@ class SymbolicConstraintEngine:
             expression=expression
         )
         self.nodes[node_id] = node
-        self.constraints.append(expression)
+        
+        # Create full Constraint object for DITO
+        constraint = Constraint(
+            constraint_id=node_id,
+            constraint_type=constraint_type,
+            expression=expression,
+            category=ConstraintCategory.GENERAL
+        )
+        self.constraints.append(constraint)
+        
+        # Update optimizer graph
+        self.optimizer.build_inference_graph(self.constraints)
         return True
     
-    def check_contradiction(self, target_nodes: Optional[List[str]] = None) -> ContradictionReport:
-        """Check for contradictions in the constraint set."""
-        # Stub implementation - returns no contradictions
+    async def check_contradiction(self, target_nodes: Optional[List[str]] = None) -> ContradictionReport:
+        """Check for contradictions using DITO tiered verification."""
+        correlation_id = f"sce_{uuid.uuid4().hex[:8]}"
+        
+        # If target nodes provided, activate them first
+        if target_nodes:
+            for node_id in target_nodes:
+                await self.optimizer.activate_subgraph_intelligently(node_id, correlation_id)
+        
+        # Run tiered contradiction detection
+        contradiction, tier = await self.optimizer.check_contradiction_tiered(
+            self.constraints, 
+            correlation_id
+        )
+        
+        if contradiction:
+            return ContradictionReport(
+                contradiction_id=f"contra_{uuid.uuid4().hex[:8]}",
+                violated_nodes=[contradiction.constraint1_id, contradiction.constraint2_id],
+                root_cause=f"Contradiction detected at tier {tier.value}",
+                severity="high"
+            )
+            
         return ContradictionReport(
-            contradiction_id="stub_check",
+            contradiction_id="no_contradiction",
             violated_nodes=[],
             root_cause=None,
             severity="none"

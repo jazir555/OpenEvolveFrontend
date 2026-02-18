@@ -16,7 +16,6 @@ export * from './components/PAMIViz';
 export * from './components/ACEViz';
 export * from './components/ROMAViz';
 export * from './components/DataPizzaViz';
-export * from './components/crewaiViz';
 export * from './components/ClaudiomiroViz';
 export * from './components/SteerViz';
 export * from './components/ResearchQuestViz';

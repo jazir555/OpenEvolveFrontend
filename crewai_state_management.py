@@ -2,7 +2,7 @@
 CrewAI State Management
 
 This module provides Pydantic-based state management for CrewAI workflows,
-replacing the crewai database-backed state system.
+replacing the legacy database-backed state system.
 
 Key Features:
 - Pydantic models for type safety
@@ -206,7 +206,7 @@ class WorkflowState(BaseModel):
     """
     Complete workflow state for CrewAI flows
 
-    This model replaces the crewai ticket-based state system with a
+    This model replaces the legacy ticket-based state system with a
     local Pydantic-based state model.
     """
     # Core identification
@@ -262,7 +262,7 @@ class StateManager:
     """
     Manages persistence and recovery of workflow states.
 
-    Replaces crewai database-backed state with local JSON file storage.
+    Replaces legacy database-backed state with local JSON file storage.
     Provides state versioning, rollback, snapshot, and transaction support.
     Includes Lean 4 verification for state invariants.
     """

@@ -11,6 +11,6 @@ export { useKnowledgeEngine, useKnowledgeAnalytics, } from './useKnowledgeEngine
 export { useKnowledge, } from './useKnowledge';
 export { useAnalytics, } from './useAnalytics';
 export { useLeanAIDE, useLeanTactics, useLeanDocs, } from './useLeanAIDE';
-export { usecrewai, usecrewaiTemplates, usecrewaiHistory, } from './usecrewai';
+export { useCrewAI, useCrewAITemplates, useCrewAIHistory, } from './useCrewAI';
 export { useROMA, } from './useROMA';
 export { useInvention, } from './useInvention';
