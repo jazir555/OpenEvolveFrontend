@@ -311,6 +311,35 @@ export {
   RESEExamples,
 } from './rese-canonical';
 
+// Export ROMA schemas
+export {
+  RomaExecutionRequest,
+  RomaExecutionResponse,
+  RomaExecutionStatistics,
+  RomaTaskNode,
+  RomaCheckpoint,
+  RomaDependency,
+  RomaProfileConfig,
+  RomaModuleConfig,
+  RomaExecutionStatus,
+  RomaModuleType,
+  RomaTaskType,
+  RomaPredictionStrategy,
+  RomaExecutionMethod,
+  type RomaExecutionStatus as RomaExecutionStatusEnum,
+  type RomaModuleType as RomaModuleTypeEnum,
+  type RomaTaskType as RomaTaskTypeEnum,
+  type RomaPredictionStrategy as RomaPredictionStrategyEnum,
+  type RomaExecutionMethod as RomaExecutionMethodEnum,
+  transformRomaResponseToCanonical,
+  transformCanonicalToRomaRequest,
+  transformRomaCheckpointToCanonical,
+  validateRomaExecutionRequest,
+  validateRomaExecutionResponse,
+  validateRomaCheckpoint,
+  RomaExamples,
+} from './roma-canonical';
+
 // Export PES schemas (Plan-Execute-Summarize pattern)
 export {
   Problem,
@@ -555,6 +584,25 @@ export const SchemaRegistry = {
       ParadigmShift: 'ParadigmShift',
       SynthesizedKnowledge: 'SynthesizedKnowledge',
       ArchitectureAssembly: 'ArchitectureAssembly',
+    },
+  },
+  roma: {
+    name: 'roma',
+    version: '1.0.0',
+    schemas: {
+      RomaExecutionRequest: 'RomaExecutionRequest',
+      RomaExecutionResponse: 'RomaExecutionResponse',
+      RomaExecutionStatistics: 'RomaExecutionStatistics',
+      RomaTaskNode: 'RomaTaskNode',
+      RomaCheckpoint: 'RomaCheckpoint',
+      RomaDependency: 'RomaDependency',
+      RomaProfileConfig: 'RomaProfileConfig',
+      RomaModuleConfig: 'RomaModuleConfig',
+      RomaExecutionStatus: 'RomaExecutionStatus',
+      RomaModuleType: 'RomaModuleType',
+      RomaTaskType: 'RomaTaskType',
+      RomaPredictionStrategy: 'RomaPredictionStrategy',
+      RomaExecutionMethod: 'RomaExecutionMethod',
     },
   },
   pes: {

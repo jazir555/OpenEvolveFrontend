@@ -1,0 +1,4 @@
+# Phase 3: Valkey State Persistence Requirements
+# Valkey is a Redis fork, so we use redis-py library
+
+redis[hiredis]>=5.0.0

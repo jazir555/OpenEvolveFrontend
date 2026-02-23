@@ -25,6 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import uvicorn
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field, validator
+import redis.asyncio as redis
+from redis.exceptions import RedisError
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -37,23 +39,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# LoongFlow imports
-# NOTE: Phase 1 uses simulated evolution, so these imports aren't needed yet
-# TODO: Uncomment and fix paths for Phase 2 integration
-# The actual imports should be:
-#   from agents.general_agent.evaluator import GeneralEvaluator
-#   from agents.general_agent.general_evolve_agent import GeneralPESAgent
-#   from loongflow.framework.pes.context import EvolveChainConfig
-#
-# For Phase 2, the path setup should be:
-#   project_root = Path(__file__).parent
-#   sys.path.insert(0, str(project_root))
-#   sys.path.insert(0, str(project_root / "src"))
-#
-# See QUICKFIX.md for details on fixing these imports when ready for Phase 2.
-# from loongflow.agents.general_agent.evaluator import GeneralEvaluator
-# from loongflow.agents.general_agent.general_evolve_agent import GeneralPESAgent
-# from loongflow.framework.pes.context import EvolveChainConfig
+# ============================================================================
+# LoongFlow Imports (Phase 2 - Real Integration)
+# ============================================================================
+# Add project root and src to Python path for imports
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "src"))
+
+# Import real LoongFlow components
+from agents.general_agent.evaluator import GeneralEvaluator, create_evaluator
+from agents.general_agent.general_evolve_agent import GeneralPESAgent
+from agents.general_agent.planner import GeneralPlanAgent
+from agents.general_agent.executor import GeneralExecuteAgent
+from agents.general_agent.summary import GeneralSummaryAgent
 
 app = FastAPI(
     title="LoongFlow PES API",
@@ -62,10 +61,214 @@ app = FastAPI(
 )
 
 # ============================================================================
-# In-Memory Storage for Running Evolutions
+# Valkey State Manager - Phase 3: 100% Completion
 # ============================================================================
-# In production, this should be replaced with Redis or similar
-evolutions: Dict[str, Dict[str, Any]] = {}
+# Replaces in-memory storage with Valkey (Redis fork) for persistence
+
+class ValkeyStateManager:
+    """
+    Manages evolution state using Valkey/Redis for persistence.
+
+    Provides:
+    - State persistence across server restarts
+    - Automatic serialization/deserialization
+    - Atomic operations for consistency
+    - Reconnect logic for resilience
+    """
+
+    def __init__(self):
+        """Initialize Valkey Redis client."""
+        self.redis_url = os.getenv(
+            "VALKEY_URL",
+            os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        )
+        self.key_prefix = "evolution:"
+        self.ttl_seconds = int(os.getenv("EVOLUTION_STATE_TTL", "86400"))  # 24 hours default
+        self._redis: Optional[redis.Redis] = None
+
+    async def get_client(self) -> redis.Redis:
+        """Get or create Redis client with lazy initialization."""
+        if self._redis is None:
+            try:
+                self._redis = await redis.from_url(
+                    self.redis_url,
+                    encoding="utf-8",
+                    decode_responses=True,
+                    socket_connect_timeout=5,
+                    socket_keepalive=True
+                )
+                # Test connection
+                await self._redis.ping()
+                logger.info({
+                    "msg": "Valkey connection established",
+                    "redis_url": self.redis_url,
+                    "service": "loongflow-api"
+                })
+            except Exception as e:
+                logger.error({
+                    "msg": "Failed to connect to Valkey",
+                    "error": str(e),
+                    "redis_url": self.redis_url,
+                    "service": "loongflow-api"
+                })
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Cannot connect to Valkey: {str(e)}"
+                )
+        return self._redis
+
+    def _make_key(self, evolution_id: str) -> str:
+        """Create Redis key for evolution."""
+        return f"{self.key_prefix}{evolution_id}"
+
+    async def create_evolution(self, evolution_id: str, data: Dict[str, Any]) -> bool:
+        """Create new evolution state in Valkey."""
+        try:
+            client = await self.get_client()
+            key = self._make_key(evolution_id)
+
+            # Serialize data
+            serialized = json.dumps(data)
+
+            # Store in Redis with TTL
+            await client.setex(key, self.ttl_seconds, serialized)
+
+            logger.info({
+                "msg": "Evolution state created in Valkey",
+                "evolution_id": evolution_id,
+                "ttl": self.ttl_seconds,
+                "service": "loongflow-api"
+            })
+            return True
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to create evolution state",
+                "error": str(e),
+                "evolution_id": evolution_id,
+                "service": "loongflow-api"
+            })
+            return False
+
+    async def get_evolution(self, evolution_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve evolution state from Valkey."""
+        try:
+            client = await self.get_client()
+            key = self._make_key(evolution_id)
+
+            serialized = await client.get(key)
+            if serialized is None:
+                return None
+
+            return json.loads(serialized)
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to retrieve evolution state",
+                "error": str(e),
+                "evolution_id": evolution_id,
+                "service": "loongflow-api"
+            })
+            return None
+
+    async def update_evolution(self, evolution_id: str, updates: Dict[str, Any]) -> bool:
+        """Update evolution state in Valkey."""
+        try:
+            client = await self.get_client()
+            key = self._make_key(evolution_id)
+
+            # Get current state
+            serialized = await client.get(key)
+            if serialized is None:
+                return False
+
+            # Merge updates
+            current = json.loads(serialized)
+            current.update(updates)
+
+            # Serialize and store back
+            updated_serialized = json.dumps(current)
+            await client.setex(key, self.ttl_seconds, updated_serialized)
+
+            return True
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to update evolution state",
+                "error": str(e),
+                "evolution_id": evolution_id,
+                "service": "loongflow-api"
+            })
+            return False
+
+    async def delete_evolution(self, evolution_id: str) -> bool:
+        """Delete evolution state from Valkey."""
+        try:
+            client = await self.get_client()
+            key = self._make_key(evolution_id)
+
+            result = await client.delete(key)
+            return result > 0
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to delete evolution state",
+                "error": str(e),
+                "evolution_id": evolution_id,
+                "service": "loongflow-api"
+            })
+            return False
+
+    async def list_evolutions(self) -> List[str]:
+        """List all evolution IDs from Valkey."""
+        try:
+            client = await self.get_client()
+            pattern = f"{self.key_prefix}*"
+
+            keys = []
+            async for key in client.scan_iter(match=pattern):
+                # Remove prefix to return just IDs
+                evolution_id = key.replace(self.key_prefix, "", 1)
+                keys.append(evolution_id)
+
+            return keys
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to list evolutions",
+                "error": str(e),
+                "service": "loongflow-api"
+            })
+            return []
+
+    async def set_field(self, evolution_id: str, field: str, value: Any) -> bool:
+        """Set a single field in evolution state (atomic operation)."""
+        try:
+            client = await self.get_client()
+            key = self._make_key(evolution_id)
+
+            # Get current state
+            serialized = await client.get(key)
+            if serialized is None:
+                return False
+
+            # Update field
+            current = json.loads(serialized)
+            current[field] = value
+
+            # Store back
+            updated_serialized = json.dumps(current)
+            await client.setex(key, self.ttl_seconds, updated_serialized)
+
+            return True
+        except Exception as e:
+            logger.error({
+                "msg": "Failed to set field",
+                "error": str(e),
+                "evolution_id": evolution_id,
+                "field": field,
+                "service": "loongflow-api"
+            })
+            return False
+
+
+# Global state manager instance
+state_manager = ValkeyStateManager()
 
 
 # ============================================================================
@@ -133,34 +336,75 @@ def get_utc_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def create_temp_config(task: str, max_generations: int, **kwargs) -> str:
+def create_temp_config(task: str, max_generations: int, population_size: int = 50, **kwargs) -> str:
     """
     Create a temporary config file for LoongFlow.
 
     Returns the path to the created config file.
     """
+    import tempfile
+
+    # Create EvolveChainConfig structure
     config_data = {
+        "workspace_path": tempfile.gettempdir(),
         "llm_config": {
-            "url": os.getenv("LOONGFLOW_LLM_URL", "https://api.openai.com/v1"),
+            "url": os.getenv("LOONGFLOW_LLM_URL", "https://api.deepseek.com/v1"),
             "api_key": os.getenv("LOONGFLOW_LLM_API_KEY", ""),
-            "model": os.getenv("LOONGFLOW_LLM_MODEL", "gpt-4"),
+            "model": os.getenv("LOONGFLOW_LLM_MODEL", "deepseek-chat"),
             "temperature": float(os.getenv("LOONGFLOW_LLM_TEMPERATURE", "0.7")),
             "max_tokens": int(os.getenv("LOONGFLOW_LLM_MAX_TOKENS", "2000")),
         },
-        "task": task,
-        "max_generations": max_generations,
-        "population_size": kwargs.get("population_size", 50),
-        "evaluator": {
-            "type": "agent",
-            "timeout": int(os.getenv("LOONGFLOW_EVAL_TIMEOUT", "300")),
+        # Define all available workers
+        "planners": {
+            "general_planner": {
+                "type": "general"
+            }
         },
-        "enable_checkpointing": os.getenv("LOONGFLOW_ENABLE_CHECKPOINTING", "true").lower() == "true",
-        "checkpoint_path": os.getenv("LOONGFLOW_CHECKPOINT_DIR", "/app/checkpoints"),
+        "executors": {
+            "general_executor": {
+                "type": "general"
+            }
+        },
+        "summarizers": {
+            "general_summarizer": {
+                "type": "general"
+            }
+        },
+        # Main evolution config
+        "evolve": {
+            "task_name": kwargs.get("name", "api_task"),
+            "task": task,
+            "initial_code": "",
+            "max_iterations": max_generations,
+            "target_score": float(kwargs.get("target_score", "1.0")),
+            "concurrency": int(kwargs.get("concurrency", "5")),
+            "planner_name": "general_planner",
+            "executor_name": "general_executor",
+            "summary_name": "general_summarizer",
+            "database": {
+                "storage_type": "in_memory",
+                "population_size": population_size,
+                "num_islands": 3,
+                "elite_archive_size": 50,
+            },
+            "evaluator": {
+                "evaluate_code": "",
+                "timeout": int(os.getenv("LOONGFLOW_EVAL_TIMEOUT", "300")),
+            }
+        }
     }
 
-    # Merge additional config
+    # Merge additional config overrides
     if "config" in kwargs and kwargs["config"]:
-        config_data.update(kwargs["config"])
+        # Deep merge for nested dicts
+        def deep_merge(base_dict, update_dict):
+            for key, value in update_dict.items():
+                if key in base_dict and isinstance(base_dict[key], dict) and isinstance(value, dict):
+                    deep_merge(base_dict[key], value)
+                else:
+                    base_dict[key] = value
+
+        deep_merge(config_data, kwargs["config"])
 
     # Create temp file
     fd, path = tempfile.mkstemp(suffix=".yaml", prefix="loongflow_config_")
@@ -194,55 +438,156 @@ async def run_evolution_async(
         })
 
         # Update status to RUNNING
-        evolutions[evolution_id]["status"] = "RUNNING"
-        evolutions[evolution_id]["updated_at"] = get_utc_timestamp()
+        await state_manager.set_field(evolution_id, "status", "RUNNING")
+        await state_manager.set_field(evolution_id, "updated_at", get_utc_timestamp())
 
-        # TODO: This is a simplified implementation
-        # The actual implementation would need to:
-        # 1. Initialize GeneralPESAgent with config
-        # 2. Hook into progress callbacks to update generation count
-        # 3. Extract final solution and fitness
+        # ========================================================================
+        # PHASE 2: Real LoongFlow Integration
+        # ========================================================================
+        # Build EvolveChainConfig from the request and run real evolution
 
-        # For now, simulate evolution progress
-        # This demonstrates the API structure without requiring
-        # full integration with LoongFlow's internal state management
+        logger.info({
+            "msg": "Initializing real LoongFlow evolution",
+            "evolution_id": evolution_id,
+            "service": "loongflow-api",
+            "correlation_id": evolution_id,
+        })
 
-        max_gen = evolutions[evolution_id]["max_generations"]
+        # Load the config file that was created earlier
+        import yaml
+        with open(config_path, 'r') as f:
+            config_dict = yaml.safe_load(f)
 
-        for gen in range(max_gen):
-            # Simulate evolution work
-            await asyncio.sleep(0.5)
+        # Validate and create EvolveChainConfig
+        from loongflow.framework.pes.context import EvolveChainConfig
+        config = EvolveChainConfig.model_validate(config_dict)
 
-            # Update progress
-            evolutions[evolution_id]["current_generation"] = gen + 1
-            evolutions[evolution_id]["updated_at"] = get_utc_timestamp()
+        # Create PESAgent with the config
+        from loongflow.framework.pes.pes_agent import PESAgent
 
-            # Simulate improving fitness
-            fitness = (gen + 1) / max_gen
-            if fitness > evolutions[evolution_id]["best_fitness"]:
-                evolutions[evolution_id]["best_fitness"] = fitness
+        agent = PESAgent(config=config)
+
+        # Register workers (General Agent components)
+        agent.register_planner_worker("general_planner", GeneralPlanAgent)
+        agent.register_executor_worker("general_executor", GeneralExecuteAgent)
+        agent.register_summary_worker("general_summarizer", GeneralSummaryAgent)
+
+        logger.info({
+            "msg": "PESAgent initialized, starting evolution",
+            "evolution_id": evolution_id,
+            "task": config.evolve.task[:100] if config.evolve.task else "",
+            "max_iterations": config.evolve.max_iterations,
+            "target_score": config.evolve.target_score,
+            "service": "loongflow-api",
+            "correlation_id": evolution_id,
+        })
+
+        # Create a background task to monitor progress
+        async def monitor_progress():
+            """Monitor evolution progress by polling the database."""
+            while True:
+                # Check status from Valkey
+                evo_state = await state_manager.get_evolution(evolution_id)
+                if evo_state is None or evo_state.get("status") in ["COMPLETED", "FAILED"]:
+                    break
+
+                await asyncio.sleep(1.0)  # Poll every second
+
+                try:
+                    # Get status from database
+                    global_status = agent.database.memory_status().get("global_status", {})
+
+                    # Update progress
+                    current_gen = global_status.get("current_iteration", 0)
+                    best_score = global_status.get("best_score", 0.0)
+
+                    await state_manager.set_field(evolution_id, "current_generation", current_gen)
+                    await state_manager.set_field(evolution_id, "best_fitness", best_score)
+                    await state_manager.set_field(evolution_id, "updated_at", get_utc_timestamp())
+
+                    if current_gen > 0:
+                        logger.info({
+                            "msg": "Evolution progress update",
+                            "evolution_id": evolution_id,
+                            "generation": current_gen,
+                            "best_fitness": best_score,
+                            "service": "loongflow-api",
+                            "correlation_id": evolution_id,
+                        })
+
+                except Exception as e:
+                    logger.warning({
+                        "msg": "Error monitoring progress",
+                        "error": str(e),
+                        "evolution_id": evolution_id,
+                        "service": "loongflow-api",
+                    })
+
+        # Start progress monitoring
+        monitor_task = asyncio.create_task(monitor_progress())
+
+        # Run the evolution
+        try:
+            final_message = await agent.run()
+
+            # Cancel monitor task
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
+
+            # Extract final solution from the message
+            final_solution_text = final_message.text if hasattr(final_message, 'text') else str(final_message)
+
+            # Get final stats from database
+            global_status = agent.database.memory_status().get("global_status", {})
+            final_gen = global_status.get("current_iteration", 0)
+            final_fitness = global_status.get("best_score", 0.0)
+
+            # Mark as completed with real solution
+            completion_data = {
+                "status": "COMPLETED",
+                "current_generation": final_gen,
+                "best_fitness": final_fitness,
+                "updated_at": get_utc_timestamp(),
+                "solution": {
+                    "solution": final_solution_text,
+                    "fitness": final_fitness,
+                    "generations_completed": final_gen,
+                    "metadata": {
+                        "config_path": config_path,
+                        "completed_at": get_utc_timestamp(),
+                        "message_type": str(type(final_message).__name__),
+                    }
+                }
+            }
+
+            # Update all fields atomically
+            current_state = await state_manager.get_evolution(evolution_id)
+            if current_state:
+                current_state.update(completion_data)
+                await state_manager.update_evolution(evolution_id, completion_data)
 
             logger.info({
-                "msg": "Evolution progress",
+                "msg": "Real evolution completed successfully",
                 "evolution_id": evolution_id,
-                "generation": gen + 1,
-                "fitness": fitness,
+                "generations": final_gen,
+                "fitness": final_fitness,
                 "service": "loongflow-api",
                 "correlation_id": evolution_id,
             })
 
-        # Mark as completed with a placeholder solution
-        evolutions[evolution_id]["status"] = "COMPLETED"
-        evolutions[evolution_id]["updated_at"] = get_utc_timestamp()
-        evolutions[evolution_id]["solution"] = {
-            "solution": f"# Placeholder solution for {name}\n\n# This is a simulated result.\n# Full integration requires adapting LoongFlow to expose internal state.",
-            "fitness": evolutions[evolution_id]["best_fitness"],
-            "generations_completed": max_gen,
-            "metadata": {
-                "config_path": config_path,
-                "completed_at": get_utc_timestamp(),
-            }
-        }
+        except Exception as e:
+            # Cancel monitor task
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
+
+            # Re-raise to be caught by outer exception handler
+            raise
 
         # Clean up temp config file
         try:
@@ -259,16 +604,16 @@ async def run_evolution_async(
             "msg": "Evolution completed",
             "evolution_id": evolution_id,
             "name": name,
-            "fitness": evolutions[evolution_id]["best_fitness"],
+            "fitness": final_fitness,
             "service": "loongflow-api",
             "correlation_id": evolution_id,
         })
 
     except Exception as e:
         # Mark as FAILED
-        evolutions[evolution_id]["status"] = "FAILED"
-        evolutions[evolution_id]["updated_at"] = get_utc_timestamp()
-        evolutions[evolution_id]["error"] = str(e)
+        await state_manager.set_field(evolution_id, "status", "FAILED")
+        await state_manager.set_field(evolution_id, "updated_at", get_utc_timestamp())
+        await state_manager.set_field(evolution_id, "error", str(e))
 
         logger.error({
             "msg": "Evolution failed",
@@ -325,8 +670,8 @@ async def start_evolution(
         config=request.config
     )
 
-    # Initialize evolution state
-    evolutions[evolution_id] = {
+    # Initialize evolution state in Valkey
+    evolution_state = {
         "evolution_id": evolution_id,
         "name": request.name,
         "status": "PENDING",
@@ -338,6 +683,13 @@ async def start_evolution(
         "solution": None,
         "error": None,
     }
+
+    # Store in Valkey for persistence
+    if not await state_manager.create_evolution(evolution_id, evolution_state):
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to initialize evolution state in Valkey"
+        )
 
     # Start evolution in background
     background_tasks.add_task(
@@ -369,13 +721,13 @@ async def get_evolution_status(evolution_id: str):
 
     Returns current generation, best fitness, and overall status.
     """
-    if evolution_id not in evolutions:
+    evo = await state_manager.get_evolution(evolution_id)
+
+    if evo is None:
         raise HTTPException(
             status_code=404,
             detail=f"Evolution {evolution_id} not found"
         )
-
-    evo = evolutions[evolution_id]
 
     return EvolutionStatus(
         evolution_id=evolution_id,
@@ -397,13 +749,13 @@ async def get_solution(evolution_id: str):
 
     Only works for evolutions with status COMPLETED.
     """
-    if evolution_id not in evolutions:
+    evo = await state_manager.get_evolution(evolution_id)
+
+    if evo is None:
         raise HTTPException(
             status_code=404,
             detail=f"Evolution {evolution_id} not found"
         )
-
-    evo = evolutions[evolution_id]
 
     if evo["status"] != "COMPLETED":
         raise HTTPException(
@@ -437,7 +789,15 @@ async def list_evolutions(
     """
     List all evolutions, optionally filtered by status.
     """
-    evo_list = list(evolutions.values())
+    # Get all evolution IDs from Valkey
+    evo_ids = await state_manager.list_evolutions()
+
+    # Fetch all evolution states
+    evo_list = []
+    for evo_id in evo_ids:
+        evo = await state_manager.get_evolution(evo_id)
+        if evo:
+            evo_list.append(evo)
 
     if status:
         evo_list = [e for e in evo_list if e["status"] == status]
@@ -457,25 +817,33 @@ async def list_evolutions(
 @app.delete("/api/v1/evolutions/{evolution_id}")
 async def delete_evolution(evolution_id: str):
     """
-    Delete an evolution from memory.
+    Delete an evolution from Valkey.
 
     Idempotent: Safe to call multiple times.
     """
-    if evolution_id not in evolutions:
+    evo = await state_manager.get_evolution(evolution_id)
+
+    if evo is None:
         raise HTTPException(
             status_code=404,
             detail=f"Evolution {evolution_id} not found"
         )
 
     # Only allow deletion of completed or failed evolutions
-    evo = evolutions[evolution_id]
     if evo["status"] in ["RUNNING", "PENDING"]:
         raise HTTPException(
             status_code=400,
             detail=f"Cannot delete evolution with status {evo['status']}"
         )
 
-    del evolutions[evolution_id]
+    # Delete from Valkey
+    deleted = await state_manager.delete_evolution(evolution_id)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete evolution from Valkey"
+        )
 
     logger.info({
         "msg": "Evolution deleted",

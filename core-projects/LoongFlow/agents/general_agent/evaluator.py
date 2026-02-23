@@ -19,7 +19,8 @@ import os
 import sys
 import traceback
 import uuid
-from typing import Any, override, Optional
+from typing import Any, Optional
+from typing_extensions import override
 
 from loongflow.agentsdk.logger import get_logger
 from loongflow.agentsdk.message import Message, ContentElement
