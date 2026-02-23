@@ -1,6 +1,6 @@
 /**
  * OpenEvolve BubbleLabs Plugin - Extended TypeScript Interfaces
- * 
+ *
  * This file extends the core plugin types to include ALL parameters from parameter_definitions.py
  * Covering every category: core evolution, model config, quality diversity, multi-objective,
  * adversarial, island models, selection, evaluation, prompt engineering, artifact management,
@@ -8,7 +8,7 @@
  * advanced research, custom requirements, UI visualization, and experimental features.
  */
 
-import { 
+import {
   OpenEvolvePluginState,
   EvolutionConfig,
   AdversarialConfig,
@@ -1021,4 +1021,3 @@ export const DEFAULT_EXTENDED_OPENEVOLVE_CONFIG: ExtendedOpenEvolvePluginState =
   uiVisualizationConfig: EXTENDED_OPENEVOLVE_PLUGIN_CONSTANTS.UI_VISUALIZATION_DEFAULTS,
   experimentalConfig: EXTENDED_OPENEVOLVE_PLUGIN_CONSTANTS.EXPERIMENTAL_DEFAULTS,
 };
-

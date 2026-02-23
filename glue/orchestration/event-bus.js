@@ -8,7 +8,7 @@
  * - Observability: JSON Lines logging with correlation IDs
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.eventBus = exports.EventBus = exports.EventBusType = void 0;
+exports.inMemoryEventBus = exports.eventBus = exports.InMemoryEventBus = exports.EventBus = exports.EventBusType = void 0;
 const events_1 = require("events");
 const event_types_1 = require("./event-types");
 const dead_letter_queue_1 = require("./dead-letter-queue");
@@ -20,7 +20,7 @@ var EventBusType;
     EventBusType["REDIS"] = "redis";
     EventBusType["RABBITMQ"] = "rabbitmq";
     EventBusType["KAFKA"] = "kafka";
-})(EventBusType = exports.EventBusType || (exports.EventBusType = {}));
+})(EventBusType || (exports.EventBusType = EventBusType = {}));
 /**
  * Event Bus Implementation
  *
@@ -28,16 +28,11 @@ var EventBusType;
  * Includes event persistence, DLQ routing, and circuit breakers
  */
 class EventBus extends events_1.EventEmitter {
-    logger;
-    config;
-    subscriptions = new Map();
-    eventHistory = new Map(); // For replay
-    stats;
-    startTime;
-    dlq;
-    circuitBreakers = new Map();
     constructor(config) {
         super();
+        this.subscriptions = new Map();
+        this.eventHistory = new Map(); // For replay
+        this.circuitBreakers = new Map();
         this.logger = new logger_1.Logger('event-bus');
         this.startTime = Date.now();
         // Load config from environment
@@ -315,9 +310,196 @@ class EventBus extends events_1.EventEmitter {
 }
 exports.EventBus = EventBus;
 /**
+ * In-memory implementation of EventBus
+ * Suitable for testing and single-instance deployments
+ */
+class InMemoryEventBus {
+    constructor(maxHistorySize = 10000) {
+        this.handlers = new Map();
+        this.eventHistory = new Map();
+        this.maxHistorySize = maxHistorySize;
+        this.logger = new logger_1.Logger('in-memory-event-bus');
+    }
+    /**
+     * Publish an event to the bus
+     */
+    async publish(event) {
+        // Validate event
+        const validation = (0, event_types_1.validateEvent)(event);
+        if (!validation.valid) {
+            const error = new Error(`Invalid event: ${validation.errors.join(', ')}`);
+            this.logger.error('Event validation failed', error, {
+                event_id: event.id,
+                validation_errors: validation.errors
+            });
+            throw error;
+        }
+        // Store in history
+        this.eventHistory.set(event.id, event);
+        // Enforce history size limit
+        if (this.eventHistory.size > this.maxHistorySize) {
+            // Remove oldest
+            const oldest = Array.from(this.eventHistory.keys())[0];
+            this.eventHistory.delete(oldest);
+            this.logger.debug('Removed oldest event from history', { event_id: oldest });
+        }
+        // Get handlers for this event type
+        const handlers = this.handlers.get(event.type) || [];
+        // Execute all handlers
+        await Promise.all(handlers.map(handler => this.executeHandler(handler, event)));
+        // Execute wildcard handlers
+        const wildcardHandlers = this.handlers.get('*') || [];
+        await Promise.all(wildcardHandlers.map(handler => this.executeHandler(handler, event)));
+        this.logger.debug('Event published', {
+            event_id: event.id,
+            event_type: event.type,
+            correlation_id: event.correlation_id,
+            source_service: event.source_service,
+            handler_count: handlers.length + wildcardHandlers.length
+        });
+    }
+    /**
+     * Subscribe to events of a specific type
+     */
+    subscribe(eventType, handler) {
+        if (!this.handlers.has(eventType)) {
+            this.handlers.set(eventType, []);
+        }
+        this.handlers.get(eventType).push(handler);
+        this.logger.info('Event subscription created', {
+            event_type: eventType,
+            handler_name: handler.name || 'anonymous'
+        });
+    }
+    /**
+     * Unsubscribe from events
+     */
+    unsubscribe(eventType, handler) {
+        const handlers = this.handlers.get(eventType);
+        if (!handlers)
+            return;
+        const index = handlers.indexOf(handler);
+        if (index > -1) {
+            handlers.splice(index, 1);
+            this.logger.info('Event subscription removed', {
+                event_type: eventType,
+                handler_name: handler.name || 'anonymous'
+            });
+        }
+    }
+    /**
+     * Replay events from history
+     * Supports filtering to avoid loading everything into memory
+     */
+    async replay(filter, limit) {
+        let events = Array.from(this.eventHistory.values());
+        // Apply filter if provided
+        if (filter) {
+            events = events.filter(filter);
+        }
+        // Apply limit
+        if (limit) {
+            events = events.slice(0, limit);
+        }
+        this.logger.info('Replaying events', {
+            event_count: events.length,
+            filter_applied: !!filter,
+            limit_applied: !!limit
+        });
+        return events;
+    }
+    /**
+     * Get event history
+     */
+    getHistory() {
+        return new Map(this.eventHistory);
+    }
+    /**
+     * Get events by type
+     */
+    getEventsByType(eventType) {
+        return Array.from(this.eventHistory.values()).filter(event => event.type === eventType);
+    }
+    /**
+     * Clear old events from history
+     */
+    clearHistory(olderThanMs) {
+        const cutoff = Date.now() - olderThanMs;
+        let cleared = 0;
+        for (const [id, event] of this.eventHistory.entries()) {
+            const eventTime = new Date(event.timestamp).getTime();
+            if (eventTime < cutoff) {
+                this.eventHistory.delete(id);
+                cleared++;
+            }
+        }
+        if (cleared > 0) {
+            this.logger.info('Cleared old events from history', {
+                count: cleared,
+                older_than_ms: olderThanMs
+            });
+        }
+        return cleared;
+    }
+    /**
+     * Clear all history
+     */
+    clearAllHistory() {
+        const count = this.eventHistory.size;
+        this.eventHistory.clear();
+        this.logger.warn('Cleared all event history', { count });
+    }
+    /**
+     * Get statistics
+     */
+    getStats() {
+        return {
+            total_events: this.eventHistory.size,
+            subscriptions: Array.from(this.handlers.entries()).map(([type, handlers]) => ({
+                event_type: type,
+                handler_count: handlers.length
+            })),
+            max_history_size: this.maxHistorySize
+        };
+    }
+    /**
+     * Execute handler with error handling
+     */
+    async executeHandler(handler, event) {
+        try {
+            await handler(event);
+        }
+        catch (error) {
+            this.logger.error('Event handler failed', error, {
+                event_type: event.type,
+                event_id: event.id,
+                correlation_id: event.correlation_id,
+                handler_name: handler.name || 'anonymous'
+            });
+            // Don't re-throw - allow other handlers to execute
+        }
+    }
+    /**
+     * Shutdown event bus gracefully
+     */
+    async shutdown() {
+        this.logger.info('Shutting down in-memory event bus');
+        // Clear subscriptions
+        this.handlers.clear();
+        // Clear history
+        this.eventHistory.clear();
+        this.logger.info('In-memory event bus shutdown complete');
+    }
+}
+exports.InMemoryEventBus = InMemoryEventBus;
+/**
  * Singleton instance
  */
 exports.eventBus = new EventBus();
+/**
+ * Singleton instance of InMemoryEventBus
+ */
+exports.inMemoryEventBus = new InMemoryEventBus();
 /**
  * Example usage:
  *
@@ -362,4 +544,3 @@ exports.eventBus = new EventBus();
  * eventBus.unsubscribe(subscription.subscriptionId);
  * ```
  */
-//# sourceMappingURL=event-bus.js.map

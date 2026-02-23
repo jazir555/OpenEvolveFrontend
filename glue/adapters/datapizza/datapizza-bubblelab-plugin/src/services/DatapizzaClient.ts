@@ -102,14 +102,14 @@ export class DatapizzaClient {
     // Law of Configuration Explicitness: Crash loudly if required config is missing
     if (!config.baseUrl) {
       throw new Error(
-        'DatapizzaClient: baseUrl is REQUIRED. ' +
-        'Set DATAPIZZA_BASE_URL environment variable.'
+        'DatapizzaClient: baseUrl is REQUIRED. '
+        + 'Set DATAPIZZA_BASE_URL environment variable.'
       );
     }
     if (!config.timeout || config.timeout <= 0) {
       throw new Error(
-        'DatapizzaClient: timeout is REQUIRED and must be > 0. ' +
-        'Set DATAPIZZA_TIMEOUT_MS environment variable.'
+        'DatapizzaClient: timeout is REQUIRED and must be > 0. '
+        + 'Set DATAPIZZA_TIMEOUT_MS environment variable.'
       );
     }
 
@@ -163,14 +163,13 @@ export class DatapizzaClient {
           status: response.status
         });
         return true;
-      } else {
-        logger.warn('Datapizza connection failed', {
-          ...context,
-          status: response.status,
-          status_text: response.statusText
-        });
-        return false;
       }
+      logger.warn('Datapizza connection failed', {
+        ...context,
+        status: response.status,
+        status_text: response.statusText
+      });
+      return false;
     } catch (error) {
       logger.error('Datapizza connection test failed', error as Error, context);
       throw error;
@@ -535,7 +534,7 @@ export class DatapizzaClient {
     options: RequestInit = {}
   ): Promise<Response> {
     const url = `${this.config.baseUrl}${path}`;
-    const timeout = this.config.timeout;
+    const { timeout } = this.config;
 
     // Create abort controller for timeout - MANDATORY per Law 3.2
     const controller = new AbortController();

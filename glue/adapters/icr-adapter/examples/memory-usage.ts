@@ -12,6 +12,7 @@
  * 4. Learning from session outcomes
  */
 
+import { GraphitiAdapter } from '@openevolve/graphiti-adapter';
 import { ICRAdapter } from '../src/adapter';
 import {
   EnhancedICRMemoryAgent,
@@ -22,7 +23,6 @@ import {
   SessionOutcome,
   RefinementInsights
 } from '../src/memory/canonical';
-import { GraphitiAdapter } from '@openevolve/graphiti-adapter';
 
 // ============================================================================
 // CONFIGURATION
@@ -62,7 +62,7 @@ async function setupMemoryAgent(): Promise<ICRAdapter> {
   // Create memory agent configuration
   const memoryAgentConfig: MemoryAgentConfig = {
     graphiti: {
-      graphitiAdapter: graphitiAdapter,
+      graphitiAdapter,
       default_context_window: 5,
       max_historical_results: 20,
       enable_pattern_learning: true,
@@ -80,7 +80,7 @@ async function setupMemoryAgent(): Promise<ICRAdapter> {
 
   // Create ICR adapter with memory
   const icrAdapter = new ICRAdapter({
-    memoryAgentConfig: memoryAgentConfig
+    memoryAgentConfig
   });
 
   console.log('✓ ICR adapter with memory initialized');
@@ -139,7 +139,6 @@ async function example1_MemoryEnhancedRequest(icrAdapter: ICRAdapter) {
       console.log('New Relationships:', response.learning_result.new_relationships);
       console.log('Insights Extracted:', response.learning_result.insights_extracted);
     }
-
   } catch (error) {
     console.error('✗ Error:', error);
   }
@@ -435,7 +434,6 @@ async function main() {
     console.log('\n========================================');
     console.log('Examples completed successfully!');
     console.log('========================================\n');
-
   } catch (error) {
     console.error('\n✗ Error:', error);
     process.exit(1);

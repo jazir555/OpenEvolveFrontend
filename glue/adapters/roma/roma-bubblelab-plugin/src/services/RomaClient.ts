@@ -1,6 +1,6 @@
 /**
  * ROMA Client Service
- * 
+ *
  * This service handles all HTTP communication with the ROMA backend API.
  * It provides methods for executing tasks, managing executions, and configuring MCP servers and toolkits.
  */
@@ -93,13 +93,13 @@ export class RomaClient implements RomaClientInterface {
    */
   public updateConfig(configUpdate: Partial<RomaClientConfig>): void {
     this.config = { ...this.config, ...configUpdate };
-    
+
     // Update axios instance if base URL or timeout changed
     if (configUpdate.baseUrl || configUpdate.timeout) {
       this.axiosInstance.defaults.baseURL = this.config.baseUrl;
       this.axiosInstance.defaults.timeout = this.config.timeout;
     }
-    
+
     // Update headers if provided
     if (configUpdate.headers) {
       this.axiosInstance.defaults.headers = {
@@ -149,7 +149,7 @@ export class RomaClient implements RomaClientInterface {
         '/api/v1/executions',
         requestData
       );
-      
+
       return this.mapExecutionResponse(response.data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to execute task';
@@ -190,7 +190,7 @@ export class RomaClient implements RomaClientInterface {
         '/api/v1/executions',
         { params }
       );
-      
+
       return response.data.map(exec => this.mapExecutionResponse(exec));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get execution history';
@@ -380,9 +380,9 @@ export class RomaClient implements RomaClientInterface {
   private handleAxiosError(error: AxiosError): Promise<any> {
     if (error.response) {
       // Server responded with a status code outside 2xx
-      const status = error.response.status;
-      const data = error.response.data;
-      
+      const { status } = error.response;
+      const { data } = error.response;
+
       let errorMessage = 'Request failed';
       if (typeof data === 'string') {
         errorMessage = data;

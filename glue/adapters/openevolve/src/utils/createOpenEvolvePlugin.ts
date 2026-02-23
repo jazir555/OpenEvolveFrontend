@@ -1,9 +1,9 @@
 /**
  * OpenEvolve BubbleLabs Plugin Factory
- * 
+ *
  * This file implements the OpenEvolve plugin factory with comprehensive state management,
  * following the same pattern as other BubbleLabs plugins (LeanAIDE, ClaudieMiro, Datapizza, ROMA).
- * 
+ *
  * Features:
  * - Singleton pattern with global instance management
  * - Zustand store for state management
@@ -557,8 +557,8 @@ export function createOpenEvolvePlugin(
         const executionMethod = options.executionMethod || globalState.defaultExecutionMethod;
 
         // Check if MDAP/MAKER should be used
-        const shouldUseMdapMaker = executionMethod === 'roma_mdap_maker' ||
-          (executionMethod === 'auto' && this.shouldUseMdapMakerForGoal(goal));
+        const shouldUseMdapMaker = executionMethod === 'roma_mdap_maker'
+          || (executionMethod === 'auto' && this.shouldUseMdapMakerForGoal(goal));
 
         if (shouldUseMdapMaker) {
           toast.info('Using MDAP/MAKER for integrated execution');

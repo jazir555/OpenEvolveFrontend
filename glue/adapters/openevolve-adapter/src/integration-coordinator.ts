@@ -26,8 +26,8 @@
  *   COORDINATION_TIMEOUT_MS - Coordination timeout
  */
 
-import { OpenEvolveAdapter, StructuredLogger, LogContext } from './adapter';
 import axios, { AxiosInstance } from 'axios';
+import { OpenEvolveAdapter, StructuredLogger, LogContext } from './adapter';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -291,10 +291,9 @@ export class IntegrationCoordinator {
     if (parallel) {
       // Parallel: duration is the max of individual adapters + coordination overhead
       return baseDuration + perAdapterDuration;
-    } else {
-      // Sequential: duration is sum of all adapters
-      return baseDuration + (adapters.length * perAdapterDuration);
     }
+    // Sequential: duration is sum of all adapters
+    return baseDuration + (adapters.length * perAdapterDuration);
   }
 
   // ==========================================================================

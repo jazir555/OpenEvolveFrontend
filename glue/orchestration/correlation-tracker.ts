@@ -199,11 +199,10 @@ export class CorrelationTracker {
    */
   extractOrGenerate(headers: Record<string, string>): string {
     // Check various header names for correlation ID
-    const correlationId =
-      headers['x-correlation-id'] ||
-      headers['x-request-id'] ||
-      headers['correlation-id'] ||
-      undefined;
+    const correlationId =      headers['x-correlation-id']
+      || headers['x-request-id']
+      || headers['correlation-id']
+      || undefined;
 
     return correlationId || this.generateCorrelationId();
   }

@@ -8,6 +8,9 @@
  */
 
 // Canonical schemas
+// Server (started when run directly)
+import './server';
+
 export * from './icr-canonical';
 
 // Memory canonical schemas
@@ -29,9 +32,6 @@ export {
   EnhancedICRMemoryAgent,
   MemoryAgentConfig
 } from './memory/memory-agent';
-
-// Server (started when run directly)
-import './server';
 
 // Version
 export const VERSION = '1.0.0';

@@ -1,0 +1,1 @@
+{"version":3,"file":"useRAGBitsConfig.d.ts","sourceRoot":"","sources":["../../../../../../../glue/adapters/ragbits/bubblelabs-ragbits-plugin/src/hooks/useRAGBitsConfig.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,uBAAuB,CAAC;AAIjE,wBAAgB,gBAAgB,IAAI;IAClC,mBAAmB;IACnB,CAAC,MAAM,EAAE,OAAO,CAAC,mBAAmB,CAAC,KAAK,IAAI;CAC/C,CAkBA"}

@@ -393,9 +393,244 @@ export class EventBus extends EventEmitter {
 }
 
 /**
+ * In-memory implementation of EventBus
+ * Suitable for testing and single-instance deployments
+ */
+export class InMemoryEventBus {
+  private handlers: Map<string, EventHandler[]> = new Map();
+  private eventHistory: Map<string, Event> = new Map();
+  private readonly maxHistorySize: number;
+  private logger: Logger;
+
+  constructor(maxHistorySize: number = 10000) {
+    this.maxHistorySize = maxHistorySize;
+    this.logger = new Logger('in-memory-event-bus');
+  }
+
+  /**
+   * Publish an event to the bus
+   */
+  async publish(event: Event): Promise<void> {
+    // Validate event
+    const validation = validateEvent(event);
+    if (!validation.valid) {
+      const error = new Error(`Invalid event: ${validation.errors.join(', ')}`);
+      this.logger.error('Event validation failed', error, {
+        event_id: event.id,
+        validation_errors: validation.errors
+      });
+      throw error;
+    }
+
+    // Store in history
+    this.eventHistory.set(event.id, event);
+
+    // Enforce history size limit
+    if (this.eventHistory.size > this.maxHistorySize) {
+      // Remove oldest
+      const oldest = Array.from(this.eventHistory.keys())[0];
+      this.eventHistory.delete(oldest);
+      this.logger.debug('Removed oldest event from history', { event_id: oldest });
+    }
+
+    // Get handlers for this event type
+    const handlers = this.handlers.get(event.type) || [];
+
+    // Execute all handlers
+    await Promise.all(
+      handlers.map(handler =>
+        this.executeHandler(handler, event)
+      )
+    );
+
+    // Execute wildcard handlers
+    const wildcardHandlers = this.handlers.get('*') || [];
+    await Promise.all(
+      wildcardHandlers.map(handler =>
+        this.executeHandler(handler, event)
+      )
+    );
+
+    this.logger.debug('Event published', {
+      event_id: event.id,
+      event_type: event.type,
+      correlation_id: event.correlation_id,
+      source_service: event.source_service,
+      handler_count: handlers.length + wildcardHandlers.length
+    });
+  }
+
+  /**
+   * Subscribe to events of a specific type
+   */
+  subscribe(eventType: string, handler: EventHandler): void {
+    if (!this.handlers.has(eventType)) {
+      this.handlers.set(eventType, []);
+    }
+
+    this.handlers.get(eventType)!.push(handler);
+
+    this.logger.info('Event subscription created', {
+      event_type: eventType,
+      handler_name: handler.name || 'anonymous'
+    });
+  }
+
+  /**
+   * Unsubscribe from events
+   */
+  unsubscribe(eventType: string, handler: EventHandler): void {
+    const handlers = this.handlers.get(eventType);
+    if (!handlers) return;
+
+    const index = handlers.indexOf(handler);
+    if (index > -1) {
+      handlers.splice(index, 1);
+      this.logger.info('Event subscription removed', {
+        event_type: eventType,
+        handler_name: handler.name || 'anonymous'
+      });
+    }
+  }
+
+  /**
+   * Replay events from history
+   * Supports filtering to avoid loading everything into memory
+   */
+  async replay(
+    filter?: (event: Event) => boolean,
+    limit?: number
+  ): Promise<Event[]> {
+    let events = Array.from(this.eventHistory.values());
+
+    // Apply filter if provided
+    if (filter) {
+      events = events.filter(filter);
+    }
+
+    // Apply limit
+    if (limit) {
+      events = events.slice(0, limit);
+    }
+
+    this.logger.info('Replaying events', {
+      event_count: events.length,
+      filter_applied: !!filter,
+      limit_applied: !!limit
+    });
+
+    return events;
+  }
+
+  /**
+   * Get event history
+   */
+  getHistory(): Map<string, Event> {
+    return new Map(this.eventHistory);
+  }
+
+  /**
+   * Get events by type
+   */
+  getEventsByType(eventType: string): Event[] {
+    return Array.from(this.eventHistory.values()).filter(
+      event => event.type === eventType
+    );
+  }
+
+  /**
+   * Clear old events from history
+   */
+  clearHistory(olderThanMs: number): number {
+    const cutoff = Date.now() - olderThanMs;
+    let cleared = 0;
+
+    for (const [id, event] of this.eventHistory.entries()) {
+      const eventTime = new Date(event.timestamp).getTime();
+      if (eventTime < cutoff) {
+        this.eventHistory.delete(id);
+        cleared++;
+      }
+    }
+
+    if (cleared > 0) {
+      this.logger.info('Cleared old events from history', {
+        count: cleared,
+        older_than_ms: olderThanMs
+      });
+    }
+
+    return cleared;
+  }
+
+  /**
+   * Clear all history
+   */
+  clearAllHistory(): void {
+    const count = this.eventHistory.size;
+    this.eventHistory.clear();
+    this.logger.warn('Cleared all event history', { count });
+  }
+
+  /**
+   * Get statistics
+   */
+  getStats() {
+    return {
+      total_events: this.eventHistory.size,
+      subscriptions: Array.from(this.handlers.entries()).map(([type, handlers]) => ({
+        event_type: type,
+        handler_count: handlers.length
+      })),
+      max_history_size: this.maxHistorySize
+    };
+  }
+
+  /**
+   * Execute handler with error handling
+   */
+  private async executeHandler(
+    handler: EventHandler,
+    event: Event
+  ): Promise<void> {
+    try {
+      await handler(event);
+    } catch (error) {
+      this.logger.error('Event handler failed', error as Error, {
+        event_type: event.type,
+        event_id: event.id,
+        correlation_id: event.correlation_id,
+        handler_name: handler.name || 'anonymous'
+      });
+      // Don't re-throw - allow other handlers to execute
+    }
+  }
+
+  /**
+   * Shutdown event bus gracefully
+   */
+  async shutdown(): Promise<void> {
+    this.logger.info('Shutting down in-memory event bus');
+
+    // Clear subscriptions
+    this.handlers.clear();
+
+    // Clear history
+    this.eventHistory.clear();
+
+    this.logger.info('In-memory event bus shutdown complete');
+  }
+}
+
+/**
  * Singleton instance
  */
 export const eventBus = new EventBus();
+
+/**
+ * Singleton instance of InMemoryEventBus
+ */
+export const inMemoryEventBus = new InMemoryEventBus();
 
 /**
  * Example usage:

@@ -49,9 +49,12 @@ export const TreeNode = z.object({
   parent: z.string().optional().describe("Parent node ID"),
 
   metadata: z.object({
-    depth: z.number().int().min(0).optional().describe("Node depth"),
-    height: z.number().int().min(0).optional().describe("Node height"),
-    size: z.number().int().positive().optional().describe("Subtree size"),
+    depth: z.number().int().min(0).optional()
+      .describe("Node depth"),
+    height: z.number().int().min(0).optional()
+      .describe("Node height"),
+    size: z.number().int().positive().optional()
+      .describe("Subtree size"),
     balance_factor: z.number().optional().describe("Balance factor (AVL)"),
     color: z.enum(['red', 'black']).optional().describe("Node color (Red-Black)"),
   }).optional().describe("Node metadata"),
@@ -113,7 +116,8 @@ export const TreeOperation = z.object({
     comparison_key: z.string().optional().describe("Key for comparisons"),
   }).optional().describe("Operation parameters"),
 
-  timeout_ms: z.number().int().positive().max(30000).optional(),
+  timeout_ms: z.number().int().positive().max(30000)
+    .optional(),
 });
 
 export type TreeOperation = z.infer<typeof TreeOperation>;
@@ -137,8 +141,10 @@ export const ArborRequest = z.object({
   tree_config: z.object({
     tree_type: TreeType.optional(),
     comparison_key: z.string().optional().describe("Key for ordered trees"),
-    max_children: z.number().int().positive().optional().describe("Max children (n-ary)"),
-    order: z.number().int().positive().optional().describe("Tree order (B-tree)"),
+    max_children: z.number().int().positive().optional()
+      .describe("Max children (n-ary)"),
+    order: z.number().int().positive().optional()
+      .describe("Tree order (B-tree)"),
     auto_balance: z.boolean().optional().describe("Auto-balance on insert/delete"),
   }).optional().describe("Tree configuration"),
 
@@ -260,8 +266,8 @@ export function validateArborRequest(data: unknown): {
 }
 
 export function isArborRequest(data: unknown): data is ArborRequest {
-  return typeof data === 'object' && data !== null &&
-    'action' in data;
+  return typeof data === 'object' && data !== null
+    && 'action' in data;
 }
 
 /**

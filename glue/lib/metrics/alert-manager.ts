@@ -285,7 +285,7 @@ export class AlertManager {
    * Send webhook notification
    */
   private async sendWebhookNotification(alert: Alert, config: Record<string, any>): Promise<void> {
-    const url = config.url;
+    const { url } = config;
 
     if (!url) {
       throw new Error('Webhook URL not configured');

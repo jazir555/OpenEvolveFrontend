@@ -137,7 +137,6 @@ export class UnifiedVerificationOrchestrator {
       });
 
       return result;
-
     } catch (error) {
       this.logger.error({
         msg: 'Verification failed',
@@ -222,7 +221,6 @@ export class UnifiedVerificationOrchestrator {
       });
 
       return crossValidationResult;
-
     } catch (error) {
       this.logger.error({
         msg: 'Cross-validation verification failed',
@@ -320,7 +318,6 @@ export class UnifiedVerificationOrchestrator {
       // TODO: Store in Vector DB + Graphiti
       // await this.vectorStore.store(result);
       // await this.graphiti.storeRelationship(result);
-
     } catch (error) {
       this.logger.error({
         msg: 'Failed to store result',
@@ -351,7 +348,6 @@ export class UnifiedVerificationOrchestrator {
       });
 
       // TODO: Store cross-validation metadata in Vector DB + Graphiti
-
     } catch (error) {
       this.logger.error({
         msg: 'Failed to store cross-validation results',
@@ -392,7 +388,6 @@ export class UnifiedVerificationOrchestrator {
         verified: result.verified,
         confidence: result.confidence
       });
-
     } catch (error) {
       this.logger.error({
         msg: 'Failed to learn from outcome',

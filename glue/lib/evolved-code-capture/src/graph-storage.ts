@@ -13,8 +13,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../logger';
-import { CircuitBreaker } from '../circuit-breaker';
+import { Logger } from '../../logger';
+import { CircuitBreaker } from '../../circuit-breaker';
 import {
   EvolvedCode,
   Problem,
@@ -497,23 +497,25 @@ export class GraphStorage {
 
         // Convert results to EvolvedCode
         // Note: In production, would fetch full code from storage
-        return (response.edges || []).map((edge: any) => ({
-          id: edge.attributes?.code_id || uuidv4(),
-          problem: {
-            description: edge.attributes?.problem_description || '',
-            type: problemType as any,
-          },
-          language: edge.attributes?.language || 'python',
-          code: '', // Would be fetched from storage
-          metrics: {
-            iterations: edge.attributes?.iterations || 0,
-            fitness_score: edge.attributes?.fitness_score || 0,
-            fitness_improvement: 0,
-            duration_ms: edge.attributes?.duration_ms || 0,
-          },
-          timestamp_utc: edge.created_at || new Date().toISOString(),
-          is_valid: edge.attributes?.is_valid ?? true,
-        } as EvolvedCode);
+        return (response.edges || []).map((edge: any) => {
+          return {
+            id: edge.attributes?.code_id || uuidv4(),
+            problem: {
+              description: edge.attributes?.problem_description || '',
+              type: problemType as any,
+            },
+            language: edge.attributes?.language || 'python',
+            code: '', // Would be fetched from storage
+            metrics: {
+              iterations: edge.attributes?.iterations || 0,
+              fitness_score: edge.attributes?.fitness_score || 0,
+              fitness_improvement: 0,
+              duration_ms: edge.attributes?.duration_ms || 0,
+            },
+            timestamp_utc: edge.created_at || new Date().toISOString(),
+            is_valid: edge.attributes?.is_valid ?? true,
+          } as EvolvedCode;
+        });
       });
 
       this.logger.info('Evolution history retrieved successfully', {

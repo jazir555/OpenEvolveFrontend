@@ -147,13 +147,18 @@ export const NodeEmbeddingRequest = z.object({
 
   // Algorithm parameters
   parameters: z.object({
-    dimensions: z.number().int().positive().default(128).describe("Embedding dimensionality"),
-    walk_length: z.number().int().positive().optional().describe("Random walk length"),
-    walk_number: z.number().int().positive().optional().describe("Number of random walks"),
-    window_size: z.number().int().positive().optional().describe("Context window size"),
+    dimensions: z.number().int().positive().default(128)
+      .describe("Embedding dimensionality"),
+    walk_length: z.number().int().positive().optional()
+      .describe("Random walk length"),
+    walk_number: z.number().int().positive().optional()
+      .describe("Number of random walks"),
+    window_size: z.number().int().positive().optional()
+      .describe("Context window size"),
     p: z.number().positive().optional().describe("Node2Vec return parameter"),
     q: z.number().positive().optional().describe("Node2Vec in-out parameter"),
-    epochs: z.number().int().positive().optional().describe("Training epochs"),
+    epochs: z.number().int().positive().optional()
+      .describe("Training epochs"),
     seed: z.number().int().optional().describe("Random seed"),
   }).optional().describe("Algorithm-specific parameters"),
 
@@ -218,7 +223,8 @@ export const CommunityDetectionRequest = z.object({
   // Algorithm parameters
   parameters: z.object({
     resolution: z.number().positive().optional().describe("Resolution parameter"),
-    iterations: z.number().int().positive().optional().describe("Number of iterations"),
+    iterations: z.number().int().positive().optional()
+      .describe("Number of iterations"),
     seed: z.number().int().optional().describe("Random seed"),
   }).optional(),
 
@@ -284,11 +290,13 @@ export const GraphEmbeddingRequest = z.object({
   // Algorithm parameters
   parameters: z.object({
     dimensions: z.number().int().positive().default(128),
-    wl_iterations: z.number().int().positive().optional().describe("Weisfeiler-Lehman iterations"),
+    wl_iterations: z.number().int().positive().optional()
+      .describe("Weisfeiler-Lehman iterations"),
     epochs: z.number().int().positive().optional(),
     learning_rate: z.number().positive().optional(),
     seed: z.number().int().optional(),
-    scales: z.number().int().positive().optional().describe("Number of scales for wavelet methods"),
+    scales: z.number().int().positive().optional()
+      .describe("Number of scales for wavelet methods"),
   }).optional(),
 
   // Timeout (longer for graph embeddings)
@@ -351,7 +359,8 @@ export const GraphAnalysisRequest = z.object({
   // Parameters
   parameters: z.object({
     embedding_dimensions: z.number().int().positive().default(128),
-    top_k_nodes: z.number().int().positive().default(10).describe("For centrality rankings"),
+    top_k_nodes: z.number().int().positive().default(10)
+      .describe("For centrality rankings"),
   }).optional(),
 
   timeout_ms: z.number()

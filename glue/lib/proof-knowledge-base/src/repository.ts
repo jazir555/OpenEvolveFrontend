@@ -12,7 +12,7 @@
  * - Retry Logic: Handles transient failures
  */
 
-import { logger, LoggerContext } from '../logger';
+import { logger, LoggerContext } from '../../logger';
 import { validateEnvWithTypes, EnvVar } from '../env-validator';
 import { ProofVectorIndex } from './vector-index';
 import { ProofGraphIndex } from './graph-index';
@@ -590,11 +590,10 @@ export class ProofKnowledgeBase {
 
       // Calculate average confidence
       const proofsWithConfidence = proofs.filter(p => p.confidence !== undefined);
-      const averageConfidence =
-        proofsWithConfidence.length > 0
-          ? proofsWithConfidence.reduce((sum, p) => sum + (p.confidence || 0), 0) /
-            proofsWithConfidence.length
-          : undefined;
+      const averageConfidence =        proofsWithConfidence.length > 0
+        ? proofsWithConfidence.reduce((sum, p) => sum + (p.confidence || 0), 0)
+            / proofsWithConfidence.length
+        : undefined;
 
       // Calculate total dependencies
       let totalDependencies = 0;

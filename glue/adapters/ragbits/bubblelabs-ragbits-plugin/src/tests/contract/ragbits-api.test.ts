@@ -10,7 +10,7 @@
  * Runs on container startup. If these tests fail, the application should NOT start.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from '@jest/globals';
 import { RagbitsClient } from '../../lib/ragbitsClient';
 
 // Configuration

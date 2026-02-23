@@ -115,7 +115,6 @@ export class ConfidenceAggregator {
       });
 
       return score;
-
     } catch (error) {
       this.logger.error({
         msg: 'Confidence aggregation failed',
@@ -137,11 +136,11 @@ export class ConfidenceAggregator {
       let normalized = result.confidence;
 
       // Adjust based on factors
-      normalized = normalized * (
-        factors.historicalAccuracy * 0.3 +
-        factors.problemTypeMatch * 0.3 +
-        factors.executionQuality * 0.2 +
-        factors.confidenceConsistency * 0.2
+      normalized *= (
+        factors.historicalAccuracy * 0.3
+        + factors.problemTypeMatch * 0.3
+        + factors.executionQuality * 0.2
+        + factors.confidenceConsistency * 0.2
       );
 
       // Ensure within [0, 1]
@@ -176,9 +175,9 @@ export class ConfidenceAggregator {
     }
 
     // Confidence consistency (penalty for extreme values)
-    const confidenceConsistency = result.confidence > 0.1 && result.confidence < 0.95 ?
-      1.0 :
-      0.8;
+    const confidenceConsistency = result.confidence > 0.1 && result.confidence < 0.95
+      ? 1.0
+      : 0.8;
 
     // Problem type match (simplified - would use actual problem type matching)
     const problemTypeMatch = 0.9;

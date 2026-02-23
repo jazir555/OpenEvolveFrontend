@@ -138,7 +138,6 @@ export class CrossValidator {
       });
 
       return result;
-
     } catch (error) {
       this.logger.error({
         msg: 'Cross-validation failed',
@@ -243,7 +242,6 @@ export class CrossValidator {
       });
 
       return result;
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
 
@@ -345,7 +343,6 @@ export class CrossValidator {
       });
 
       return result;
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
 
@@ -599,7 +596,7 @@ export class CrossValidator {
     // Partial agreement - check if we can trust higher confidence
     if (comparison.agreementType === 'partial_agreement') {
       const highest = results.reduce((prev, current) =>
-        prev.confidence > current.confidence ? prev : current
+        (prev.confidence > current.confidence ? prev : current)
       );
       return highest.verified ? 'verified' : 'not_verified';
     }

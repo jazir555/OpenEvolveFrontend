@@ -1,6 +1,6 @@
 /**
  * OpenEvolve BubbleLabs Plugin - Main Exports
- * 
+ *
  * This file exports all public APIs, components, hooks, and utilities
  * for the OpenEvolve plugin, following the same pattern as other BubbleLabs plugins.
  */

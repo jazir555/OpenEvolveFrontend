@@ -301,7 +301,7 @@ class BubbleLabIntegration {
     started: boolean;
     pluginCount: number;
     healthyPlugins: number;
-  } {
+    } {
     if (!this.state) {
       return {
         initialized: false,

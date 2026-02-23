@@ -186,7 +186,7 @@ export class WorkflowOrchestrator {
           this.reportProgress(request, {
             workflow_id: workflowId,
             current_stage: stage.name,
-            progress: progress,
+            progress,
             message: `Stage "${stage.name}" completed`,
             timestamp: new Date().toISOString(),
           });
@@ -195,7 +195,6 @@ export class WorkflowOrchestrator {
           if (request.checkpoint_enabled) {
             await this.saveCheckpoint(workflowState);
           }
-
         } catch (error) {
           stagesFailed.push(stage.name);
 
@@ -257,7 +256,6 @@ export class WorkflowOrchestrator {
       }
 
       return result;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const state = this.activeWorkflows.get(workflowId);

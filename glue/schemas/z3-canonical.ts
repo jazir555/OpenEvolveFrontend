@@ -344,7 +344,7 @@ export const Z3Examples = {
         id: "550e8400-e29b-41d4-a716-446655440003",
         source: "550e8400-e29b-41d4-a716-446655440001",
         target: "550e8400-e29b-41d4-a716-446655440002",
-        type: "greater_than",
+        type: "implies",
       },
     ],
     metadata: {

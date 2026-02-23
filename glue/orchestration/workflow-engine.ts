@@ -612,8 +612,8 @@ export class WorkflowEngine {
    */
   getWorkflow(executionId: string): WorkflowContext | undefined {
     return (
-      this.activeWorkflows.get(executionId) ||
-      this.completedWorkflows.get(executionId)
+      this.activeWorkflows.get(executionId)
+      || this.completedWorkflows.get(executionId)
     );
   }
 

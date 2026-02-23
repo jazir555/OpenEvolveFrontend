@@ -177,7 +177,7 @@ export class OIDCProvider {
 
     const params = new URLSearchParams({
       grant_type: 'authorization_code',
-      code: code,
+      code,
       redirect_uri: this.config.redirectUri,
       client_id: this.config.clientId,
     });

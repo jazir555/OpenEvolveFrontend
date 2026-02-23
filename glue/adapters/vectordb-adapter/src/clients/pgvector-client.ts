@@ -296,7 +296,7 @@ export class PgvectorClient {
           params.push(key, value);
           paramIndex += 2;
         }
-        whereClause = ' AND ' + filters.join(' AND ');
+        whereClause = ` AND ${filters.join(' AND ')}`;
       }
 
       const sql = `

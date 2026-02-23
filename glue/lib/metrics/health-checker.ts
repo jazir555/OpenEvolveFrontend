@@ -158,11 +158,10 @@ export class HealthChecker {
 
     if (hasUnhealthy) {
       return 'unhealthy';
-    } else if (hasDegraded) {
+    } if (hasDegraded) {
       return 'degraded';
-    } else {
-      return 'healthy';
     }
+    return 'healthy';
   }
 
   /**
@@ -340,15 +339,14 @@ export function createHttpHealthCheck(
           response_time_ms: responseTime,
           timestamp: new Date().toISOString(),
         };
-      } else {
-        return {
-          name: url,
-          status: 'degraded',
-          message: `Unexpected status: ${response.status}`,
-          response_time_ms: responseTime,
-          timestamp: new Date().toISOString(),
-        };
       }
+      return {
+        name: url,
+        status: 'degraded',
+        message: `Unexpected status: ${response.status}`,
+        response_time_ms: responseTime,
+        timestamp: new Date().toISOString(),
+      };
     } catch (error) {
       const responseTime = Date.now() - start;
 

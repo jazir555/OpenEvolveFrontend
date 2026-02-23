@@ -574,7 +574,7 @@ describe('ICR Adapter Contract Tests', () => {
 
       await adapter.createRefinementRequest('test');
 
-      const calls = mockInstance.post.mock.calls;
+      const { calls } = mockInstance.post.mock;
       expect(calls.length).toBeGreaterThan(0);
 
       const lastCall = calls[calls.length - 1];

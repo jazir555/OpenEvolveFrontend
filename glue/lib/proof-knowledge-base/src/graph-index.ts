@@ -10,7 +10,7 @@
  * - Idempotency: Safe to replay operations
  */
 
-import { logger, LoggerContext } from '../logger';
+import { logger, LoggerContext } from '../../logger';
 import {
   FormalProof,
   Theorem,

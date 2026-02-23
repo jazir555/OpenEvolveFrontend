@@ -124,8 +124,8 @@ export class QueryRouter {
     }
 
     // Entity/relationship types -> use graph traversal
-    if (query.knowledgeTypes.includes('entity') ||
-        query.knowledgeTypes.includes('relationship')) {
+    if (query.knowledgeTypes.includes('entity')
+        || query.knowledgeTypes.includes('relationship')) {
       return this.getStrategyForType('graph-traversal');
     }
 

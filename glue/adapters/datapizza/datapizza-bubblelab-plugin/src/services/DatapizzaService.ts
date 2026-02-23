@@ -2,10 +2,10 @@
 // Service layer for Datapizza functionality
 
 import { DatapizzaClient } from './DatapizzaClient';
-import { 
-  DatapizzaPipelineResult, 
-  DatapizzaProcessingResult, 
-  DatapizzaQueryResult 
+import {
+  DatapizzaPipelineResult,
+  DatapizzaProcessingResult,
+  DatapizzaQueryResult
 } from '../types/plugin-types';
 
 export class DatapizzaService {
@@ -18,7 +18,7 @@ export class DatapizzaService {
   async runPipeline(dataSource: string, pipelineType: string): Promise<DatapizzaPipelineResult> {
     try {
       const result = await this.client.runPipeline({ dataSource, pipelineType });
-      
+
       return {
         success: true,
         pipelineId: result.pipelineId,
@@ -65,7 +65,7 @@ export class DatapizzaService {
   async processData(data: any, processingType?: string): Promise<DatapizzaProcessingResult> {
     try {
       const result = await this.client.processData({ data, processingType });
-      
+
       return {
         success: true,
         dataId: result.dataId,
@@ -104,7 +104,7 @@ export class DatapizzaService {
   async queryData(query: string, dataSource?: string): Promise<DatapizzaQueryResult> {
     try {
       const result = await this.client.queryData({ query, dataSource });
-      
+
       return {
         success: true,
         query: result.query,

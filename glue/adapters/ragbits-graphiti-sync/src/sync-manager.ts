@@ -345,8 +345,8 @@ export class SyncManager {
       let conflictReport: ConflictReport | undefined;
 
       if (
-        spec.direction === SyncDirection.ragbits_to_graphiti ||
-        spec.direction === SyncDirection.bidirectional
+        spec.direction === SyncDirection.ragbits_to_graphiti
+        || spec.direction === SyncDirection.bidirectional
       ) {
         // Sync RAGBits to Graphiti
         if (spec.chunk_ids && spec.chunk_ids.length > 0) {
@@ -356,8 +356,8 @@ export class SyncManager {
       }
 
       if (
-        spec.direction === SyncDirection.graphiti_to_ragbits ||
-        spec.direction === SyncDirection.bidirectional
+        spec.direction === SyncDirection.graphiti_to_ragbits
+        || spec.direction === SyncDirection.bidirectional
       ) {
         // Sync Graphiti to RAGBits
         if (spec.entity_ids && spec.entity_ids.length > 0) {
@@ -629,8 +629,7 @@ export class SyncManager {
       combinedResult.operations_failed += graphitiToRAGBitsResult.operations_failed;
     }
 
-    combinedResult.operations_total =
-      combinedResult.operations_completed + combinedResult.operations_failed;
+    combinedResult.operations_total =      combinedResult.operations_completed + combinedResult.operations_failed;
     combinedResult.conflicts_detected = conflictReport.total_conflicts;
     combinedResult.conflicts_resolved = conflictReport.resolved_count;
 

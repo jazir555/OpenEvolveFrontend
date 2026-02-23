@@ -175,7 +175,7 @@ async function syncUser(userId: string): Promise<void> {
     logger.info('User sync completed', {
       correlation_id: correlationId,
       user_id: userId,
-      result: result,
+      result,
     });
   } catch (error) {
     // Circuit is open - system is down, don't retry immediately

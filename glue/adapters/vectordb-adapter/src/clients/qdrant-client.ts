@@ -164,7 +164,7 @@ export class QdrantClient {
       }
 
       const data = await response.json();
-      const result = data.result;
+      const { result } = data;
 
       return {
         name: result.config.params.vectors.size,

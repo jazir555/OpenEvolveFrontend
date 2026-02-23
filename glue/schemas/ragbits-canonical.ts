@@ -343,16 +343,16 @@ export function validateDocumentChunk(data: unknown): {
  * Check if data is a valid RAGRequest
  */
 export function isRAGRequest(data: unknown): data is RAGRequest {
-  return typeof data === 'object' && data !== null &&
-    'query' in data && 'retrieval_count' in data && 'timeout_ms' in data;
+  return typeof data === 'object' && data !== null
+    && 'query' in data && 'retrieval_count' in data && 'timeout_ms' in data;
 }
 
 /**
  * Check if data is a valid RAGResponse
  */
 export function isRAGResponse(data: unknown): data is RAGResponse {
-  return typeof data === 'object' && data !== null &&
-    'results' in data && 'timestamp' in data;
+  return typeof data === 'object' && data !== null
+    && 'results' in data && 'timestamp' in data;
 }
 
 /**

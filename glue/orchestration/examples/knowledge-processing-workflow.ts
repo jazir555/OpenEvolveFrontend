@@ -13,10 +13,10 @@
  * - Law of Idempotency: Safe to replay events
  */
 
+import { randomUUID } from 'crypto';
 import { EventBus } from '../event-bus';
 import { DeadLetterQueue } from '../dead-letter-queue';
 import { createBaseEvent } from '../event-types';
-import { randomUUID } from 'crypto';
 import { RAGBitsEventAdapter } from '../../adapters/ragbits-adapter/src/event-enabled-adapter';
 import { VectorDBEventAdapter } from '../../adapters/vectordb-adapter/src/event-enabled-adapter';
 import { Logger } from '../../lib/logger';
@@ -229,7 +229,7 @@ export class KnowledgeProcessingWorkflow {
         document_id: documentId,
         correlation_id: cid,
         steps_completed: stepsCompleted,
-        errors: errors,
+        errors,
       });
 
       return {
@@ -237,7 +237,7 @@ export class KnowledgeProcessingWorkflow {
         document_id: documentId,
         correlation_id: cid,
         steps_completed: stepsCompleted,
-        errors: errors,
+        errors,
       };
     } catch (error) {
       const err = error as Error;
@@ -308,17 +308,16 @@ export class KnowledgeProcessingWorkflow {
           results: ragbitsResult.data,
           rag_duration_ms: ragbitsResult.duration_ms,
         };
-      } else {
-        logger.error('Knowledge search failed', ragbitsResult.error, {
-          correlation_id: cid,
-          query,
-        });
-
-        return {
-          success: false,
-          correlation_id: cid,
-        };
       }
+      logger.error('Knowledge search failed', ragbitsResult.error, {
+        correlation_id: cid,
+        query,
+      });
+
+      return {
+        success: false,
+        correlation_id: cid,
+      };
     } catch (error) {
       logger.error('Knowledge search failed with error', error as Error, {
         correlation_id: cid,
@@ -340,7 +339,7 @@ export class KnowledgeProcessingWorkflow {
     dlq: any;
     ragbits_circuit_breaker: any;
     vectordb_circuit_breaker: any;
-  } {
+    } {
     return {
       event_bus: this.eventBus.getStats(),
       dlq: this.dlq.getStats(),

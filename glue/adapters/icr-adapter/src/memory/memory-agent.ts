@@ -242,7 +242,6 @@ export class EnhancedICRMemoryAgent {
       });
 
       return enrichedContext;
-
     } catch (error) {
       this.logger.error({
         msg: 'Failed to retrieve historical knowledge',
@@ -310,7 +309,6 @@ export class EnhancedICRMemoryAgent {
 
         // Invalidate pattern cache to force refresh
         this.invalidatePatternCache();
-
       } else {
         this.logger.error({
           msg: 'Failed to store refinement insights',
@@ -318,7 +316,6 @@ export class EnhancedICRMemoryAgent {
           error: result.error
         });
       }
-
     } catch (error) {
       this.logger.error({
         msg: 'Error storing refinement insights',
@@ -366,7 +363,6 @@ export class EnhancedICRMemoryAgent {
 
         // Invalidate pattern cache
         this.invalidatePatternCache();
-
       } else {
         this.logger.error({
           msg: 'Failed to store contextual session',
@@ -374,7 +370,6 @@ export class EnhancedICRMemoryAgent {
           error: result.error
         });
       }
-
     } catch (error) {
       this.logger.error({
         msg: 'Error storing contextual session',
@@ -436,7 +431,6 @@ export class EnhancedICRMemoryAgent {
       });
 
       return sessionMemory;
-
     } catch (error) {
       this.logger.error({
         msg: 'Error retrieving contextual memory',
@@ -514,7 +508,6 @@ export class EnhancedICRMemoryAgent {
       }
 
       return result;
-
     } catch (error) {
       this.logger.error({
         msg: 'Error learning from session',
@@ -575,7 +568,6 @@ export class EnhancedICRMemoryAgent {
       });
 
       return patterns;
-
     } catch (error) {
       this.logger.error({
         msg: 'Error analyzing patterns',
@@ -629,8 +621,8 @@ export class EnhancedICRMemoryAgent {
           existing.last_seen_utc = item.timestamp_utc;
 
           // Update success rate
-          const outcomeWeight = item.outcome === 'success' ? 1.0 :
-                              item.outcome === 'partial_success' ? 0.5 : 0.0;
+          const outcomeWeight = item.outcome === 'success' ? 1.0
+            : item.outcome === 'partial_success' ? 0.5 : 0.0;
           existing.success_rate = (existing.success_rate + outcomeWeight) / 2;
         }
       }
@@ -690,10 +682,10 @@ export class EnhancedICRMemoryAgent {
         for (const insight of item.insights) {
           // Look for negative patterns
           const lowerInsight = insight.toLowerCase();
-          if (lowerInsight.includes('fail') ||
-              lowerInsight.includes('error') ||
-              lowerInsight.includes('avoid') ||
-              lowerInsight.includes('pitfall')) {
+          if (lowerInsight.includes('fail')
+              || lowerInsight.includes('error')
+              || lowerInsight.includes('avoid')
+              || lowerInsight.includes('pitfall')) {
             pitfalls.set(insight, (pitfalls.get(insight) || 0) + 1);
           }
         }
@@ -720,8 +712,8 @@ export class EnhancedICRMemoryAgent {
 
     for (const item of knowledge) {
       const weight = item.relevance_score;
-      const outcomeWeight = item.outcome === 'success' ? 1.0 :
-                          item.outcome === 'partial_success' ? 0.5 : 0.0;
+      const outcomeWeight = item.outcome === 'success' ? 1.0
+        : item.outcome === 'partial_success' ? 0.5 : 0.0;
 
       totalWeight += weight;
       successWeight += weight * outcomeWeight;
@@ -778,7 +770,7 @@ export class EnhancedICRMemoryAgent {
           pattern_name: node.name,
           description: node.description,
           related_sessions: connectedEdges.map(e =>
-            e.source_id === node.id ? e.target_id : e.source_id
+            (e.source_id === node.id ? e.target_id : e.source_id)
           ),
           success_rate: connectedEdges.length > 0
             ? connectedEdges.reduce((sum, e) => sum + (e.weight || 0.5), 0) / connectedEdges.length
@@ -803,17 +795,16 @@ export class EnhancedICRMemoryAgent {
 
     if (name.includes('refinement') || name.includes('iteration')) {
       return 'iterative_refinement';
-    } else if (name.includes('agent') || name.includes('collaboration')) {
+    } if (name.includes('agent') || name.includes('collaboration')) {
       return 'agent_collaboration';
-    } else if (name.includes('memory') || name.includes('compression')) {
+    } if (name.includes('memory') || name.includes('compression')) {
       return 'memory_compression';
-    } else if (name.includes('quality') || name.includes('improvement')) {
+    } if (name.includes('quality') || name.includes('improvement')) {
       return 'quality_improvement';
-    } else if (name.includes('novelty') || name.includes('generative')) {
+    } if (name.includes('novelty') || name.includes('generative')) {
       return 'novelty_generation';
-    } else {
-      return 'custom';
     }
+    return 'custom';
   }
 
   /**

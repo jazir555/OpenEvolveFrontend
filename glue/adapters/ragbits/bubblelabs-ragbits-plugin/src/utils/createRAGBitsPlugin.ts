@@ -127,7 +127,6 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
 
         state.status = 'ready';
         toast.success('RAGBits plugin initialized successfully');
-
       } catch (error) {
         state.status = 'error';
         toast.error(`Failed to initialize RAGBits plugin: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -148,7 +147,6 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
         });
 
         toast.success('RAGBits configuration updated successfully');
-
       } catch (error) {
         toast.error(`Failed to update configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
@@ -196,8 +194,8 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
         if (result.success) {
           state.statistics.successfulSearches++;
           state.statistics.averageSearchTime = (
-            (state.statistics.averageSearchTime * (state.statistics.totalSearches - 1)) +
-            executionTime
+            (state.statistics.averageSearchTime * (state.statistics.totalSearches - 1))
+            + executionTime
           ) / state.statistics.totalSearches;
 
           // Calculate average relevance score
@@ -237,7 +235,6 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
           executionTime: executionTime / 1000,
           timestamp: new Date()
         };
-
       } catch (error) {
         state.status = 'error';
         state.currentOperation = undefined;
@@ -297,7 +294,6 @@ export function createRAGBitsPlugin(initialConfig?: Partial<RAGBitsPluginConfig>
         state.currentOperation = undefined;
 
         return result;
-
       } catch (error) {
         state.status = 'error';
         state.currentOperation = undefined;

@@ -259,7 +259,7 @@ class WorkflowMonitor {
     averageStepsPerWorkflow: number;
     mostUsedPlugins: Array<{ plugin: string; count: number }>;
     errorRate: number;
-  } {
+    } {
     const allMetrics = Array.from(this.workflowMetrics.values());
 
     const totalExecutions = allMetrics.length;
@@ -309,7 +309,7 @@ class WorkflowMonitor {
     p90: number;
     p95: number;
     p99: number;
-  } {
+    } {
     const durations = Array.from(this.workflowMetrics.values())
       .map(m => m.duration)
       .sort((a, b) => a - b);

@@ -25,7 +25,7 @@
  */
 
 import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
-import { getEventBus, type EventBus, type EventSubscriber } from '../../../glue/orchestration/event-bus';
+import { getEventBus, type EventBus, type EventSubscriber } from "../event-bus";
 import type { PluginInterface } from './plugin-registry';
 import type { WorkflowDefinition, WorkflowExecutionResult } from './workflow-orchestrator';
 
@@ -548,7 +548,7 @@ class PluginEventIntegration {
     totalSubscribers: number;
     subscriberPlugins: string[];
     recentEvents: number;
-  } {
+    } {
     const stats = {
       totalSubscribers: this.subscribers.size,
       subscriberPlugins: Array.from(this.subscribers.values()).map(s => s.plugin),

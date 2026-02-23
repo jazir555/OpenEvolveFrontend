@@ -59,7 +59,8 @@ export const CouncilMember = z.object({
 
   expertise: z.array(z.string()).optional().describe("Areas of expertise"),
 
-  weight: z.number().min(0).max(1).optional().describe("Voting weight"),
+  weight: z.number().min(0).max(1).optional()
+    .describe("Voting weight"),
 
   config: z.object({
     participation_required: z.boolean().optional(),
@@ -124,7 +125,8 @@ export const CouncilVote = z.object({
 
   rationale: z.string().optional().describe("Reasoning for vote"),
 
-  confidence: z.number().min(0).max(1).optional().describe("Confidence level"),
+  confidence: z.number().min(0).max(1).optional()
+    .describe("Confidence level"),
 
   timestamp: z.string().datetime().optional().describe("Vote timestamp"),
 
@@ -156,7 +158,8 @@ export const AiCouncilRequest = z.object({
     name: z.string().optional(),
     description: z.string().optional(),
     decision_method: DecisionMethod.optional(),
-    quorum: z.number().min(0).max(1).optional().describe("Minimum participation"),
+    quorum: z.number().min(0).max(1).optional()
+      .describe("Minimum participation"),
     max_deliberation_time_ms: z.number().int().positive().optional(),
     voting_timeout_ms: z.number().int().positive().optional(),
   }).optional().describe("Council configuration"),
@@ -170,7 +173,8 @@ export const AiCouncilRequest = z.object({
   deliberation_config: z.object({
     topic: z.string().optional().describe("Topic to deliberate"),
     context: z.record(z.any()).optional().describe("Deliberation context"),
-    max_rounds: z.number().int().positive().optional().describe("Max deliberation rounds"),
+    max_rounds: z.number().int().positive().optional()
+      .describe("Max deliberation rounds"),
   }).optional().describe("Deliberation configuration"),
 
   timeout_ms: z.number()
@@ -289,8 +293,8 @@ export function validateAiCouncilRequest(data: unknown): {
 }
 
 export function isAiCouncilRequest(data: unknown): data is AiCouncilRequest {
-  return typeof data === 'object' && data !== null &&
-    'action' in data;
+  return typeof data === 'object' && data !== null
+    && 'action' in data;
 }
 
 /**

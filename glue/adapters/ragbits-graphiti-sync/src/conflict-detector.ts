@@ -471,15 +471,14 @@ export class ConflictDetector {
     if (driftMs > 86400000) {
       // More than 1 day
       return ConflictSeverity.critical;
-    } else if (driftMs > 3600000) {
+    } if (driftMs > 3600000) {
       // More than 1 hour
       return ConflictSeverity.high;
-    } else if (driftMs > 60000) {
+    } if (driftMs > 60000) {
       // More than 1 minute
       return ConflictSeverity.medium;
-    } else {
-      return ConflictSeverity.low;
     }
+    return ConflictSeverity.low;
   }
 
   /**

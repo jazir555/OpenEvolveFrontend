@@ -218,4 +218,3 @@ export declare function validateEvent(event: any): EventValidationResult;
  * }
  * ```
  */
-//# sourceMappingURL=event-types.d.ts.map

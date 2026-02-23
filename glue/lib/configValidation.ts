@@ -100,9 +100,9 @@ class ConfigValidator {
         errors
       }));
       throw new Error(
-        `Configuration validation failed for ${this.serviceName}:\n` +
-        errors.map(e => `  - ${e}`).join('\n') +
-        '\nService cannot start. Fix the configuration and retry.'
+        `Configuration validation failed for ${this.serviceName}:\n${
+          errors.map(e => `  - ${e}`).join('\n')
+        }\nService cannot start. Fix the configuration and retry.`
       );
     }
 

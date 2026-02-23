@@ -15,7 +15,7 @@
  */
 
 import { trace, context, Context, Span, SpanStatusCode, SpanKind } from '@opentelemetry/api';
-import { Logger } from '../logger';
+import { logger } from '../logger';
 
 export interface TraceOptions {
   name: string;

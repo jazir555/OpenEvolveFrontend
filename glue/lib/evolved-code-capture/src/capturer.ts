@@ -15,8 +15,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../logger';
-import { validateEnvWithTypes } from '../env-validator';
+import { Logger } from '../../logger';
+import { validateEnvWithTypes } from '../../env-validator';
 import { VectorStorage, VectorStorageConfig } from './vector-storage';
 import { GraphStorage, GraphStorageConfig } from './graph-storage';
 import {
@@ -559,9 +559,9 @@ export class EvolvedCodeCapturer {
       ? await this.graphStorage.healthCheck()
       : { enabled: false, healthy: false };
 
-    const healthy = this.initialized &&
-      (!this.config.enable_vector_storage || vectorHealth.healthy) &&
-      (!this.config.enable_graph_storage || graphHealth.healthy);
+    const healthy = this.initialized
+      && (!this.config.enable_vector_storage || vectorHealth.healthy)
+      && (!this.config.enable_graph_storage || graphHealth.healthy);
 
     return {
       healthy,

@@ -8,7 +8,7 @@ import { useRAGBitsPlugin } from '../utils/createRAGBitsPlugin';
 export function useRAGBitsConfig(): [
   RAGBitsPluginConfig,
   (config: Partial<RAGBitsPluginConfig>) => void
-] {
+  ] {
   const plugin = useRAGBitsPlugin();
   const [config, setConfig] = useState<RAGBitsPluginConfig>({
     ...DEFAULT_RAGBITS_CONFIG,

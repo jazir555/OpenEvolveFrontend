@@ -715,6 +715,126 @@ services:
       timeout: 10s
       retries: 3
 
+  loongflow:
+    build:
+      context: ..
+      dockerfile: glue/adapters/loongflow-adapter/Dockerfile
+    container_name: loongflow-adapter
+    hostname: loongflow
+    ports:
+      - "${LOONGFLOW_PORT:-8040}:8040"
+    environment:
+      # REQUIRED - Service will crash if missing
+      - LOONGFLOW_API_URL=${LOONGFLOW_API_URL:-http://loongflow-core:8000}
+
+      # Optional with defaults
+      - LOONGFLOW_TIMEOUT_MS=${LOONGFLOW_TIMEOUT_MS:-30000}
+      - LOONGFLOW_MAX_RETRIES=${LOONGFLOW_MAX_RETRIES:-3}
+      - LOONGFLOW_MAX_CONCURRENT_WORKFLOWS=${LOONGFLOW_MAX_CONCURRENT_WORKFLOWS:-5}
+      - LOONGFLOW_ENABLE_CHECKPOINTING=${LOONGFLOW_ENABLE_CHECKPOINTING:-true}
+      - PORT=${LOONGFLOW_PORT:-8040}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - TZ=UTC
+      - SKIP_CONTRACT_TESTS=${SKIP_CONTRACT_TESTS:-false}
+
+      # Event bus configuration
+      - EVENT_BUS_URL=redis://event-bus:6379
+      - EVENT_BUS_CHANNEL_PREFIX=loongflow
+
+      # Hybrid orchestration (PES + RESE)
+      - ENABLE_HYBRID_ORCHESTRATION=${LOONGFLOW_ENABLE_HYBRID:-true}
+      - ENABLE_PES_FALLBACK=${LOONGFLOW_ENABLE_PES_FALLBACK:-true}
+      - PES_TIMEOUT_MS=${LOONGFLOW_PES_TIMEOUT_MS:-60000}
+      - PES_MAX_ITERATIONS=${LOONGFLOW_PES_MAX_ITERATIONS:-10}
+
+    volumes:
+      - loongflow-data:/data
+      - loongflow-logs:/var/log/loongflow-adapter
+    networks:
+      - federation-network
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('axios').get('http://localhost:8040/health', {timeout: 2000}).then(() => process.exit(0)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================================
+  # LoongFlow Core Service (for local development)
+  # ============================================================================
+  loongflow-core:
+    build:
+      context: ../core-projects/LoongFlow
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: loongflow-core
+    hostname: loongflow-core
+    networks:
+      - federation-network
+    ports:
+      - "${LOONGFLOW_CORE_PORT:-8000}:8000"
+    environment:
+      # REQUIRED - Service will crash if missing
+      - LLM_PROVIDER=${LOONGFLOW_LLM_PROVIDER:-openai}
+      - LLM_API_KEY=${LOONGFLOW_LLM_API_KEY}
+
+      # Optional with defaults
+      - LLM_MODEL=${LOONGFLOW_LLM_MODEL:-gpt-4}
+      - LLM_TEMPERATURE=${LOONGFLOW_LLM_TEMPERATURE:-0.7}
+      - LLM_MAX_TOKENS=${LOONGFLOW_LLM_MAX_TOKENS:-2000}
+      - LOG_LEVEL=${LOONGFLOW_LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
+
+      # Redis configuration
+      - REDIS_URL=redis://event-bus:6379
+      - ENABLE_CHECKPOINTING=${LOONGFLOW_ENABLE_CHECKPOINTING:-true}
+      - CHECKPOINT_DIR=/app/checkpoints
+
+      # Workflow configuration
+      - MAX_CONCURRENT_WORKFLOWS=${LOONGFLOW_MAX_CONCURRENT_WORKFLOWS:-10}
+      - WORKFLOW_TIMEOUT_MS=${LOONGFLOW_WORKFLOW_TIMEOUT_MS:-300000}
+      - ENABLE_PRUNING=${LOONGFLOW_ENABLE_PRUNING:-true}
+      - PRUNING_THRESHOLD=${LOONGFLOW_PRUNING_THRESHOLD:-1000}
+
+      # PES Integration
+      - ENABLE_PES=${LOONGFLOW_ENABLE_PES:-false}
+      - PES_MAX_ITERATIONS=${LOONGFLOW_PES_MAX_ITERATIONS:-10}
+      - PES_TIMEOUT_MS=${LOONGFLOW_PES_TIMEOUT_MS:-60000}
+
+    volumes:
+      - loongflow-checkpoints:/app/checkpoints
+      - loongflow-logs:/app/logs
+      - loongflow-data:/app/data
+
+    depends_on:
+      event-bus:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=5).raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
   # ========================================
   # Orchestration Layer
   # ========================================
@@ -772,6 +892,8 @@ volumes:
   ragbits-graphiti-sync-data:
   vectordb-data:
   z3-data:
+  loongflow-data:
+  loongflow-checkpoints:
   orchestrator-data:
 
   # Adapter log volumes
@@ -783,3 +905,4 @@ volumes:
   ragbits-graphiti-sync-logs:
   vectordb-logs:
   z3-logs:
+  loongflow-logs:

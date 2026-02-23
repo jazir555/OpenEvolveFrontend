@@ -426,8 +426,8 @@ export class ContradictionDetector {
    */
   private hasCircularDependency(c1: Constraint, c2: Constraint): boolean {
     return (
-      c1.dependencies.includes(c2.constraint_id) &&
-      c2.dependencies.includes(c1.constraint_id)
+      c1.dependencies.includes(c2.constraint_id)
+      && c2.dependencies.includes(c1.constraint_id)
     );
   }
 
@@ -438,8 +438,8 @@ export class ContradictionDetector {
    */
   private isHardSoftMismatch(c1: Constraint, c2: Constraint): boolean {
     return (
-      c1.type !== c2.type &&
-      (c1.category === c2.category || c1.description === c2.description)
+      c1.type !== c2.type
+      && (c1.category === c2.category || c1.description === c2.description)
     );
   }
 
@@ -1008,7 +1008,7 @@ export class SymbolicConstraintEngine {
       audit_id: uuidv4(),
       problem_description: problemDescription,
       tacit_assumptions: tacitAssumptions,
-      contradictions: contradictions,
+      contradictions,
       falsification_results: [], // To be populated by red team protocol (Φ₄)
       metrics: {
         total_assumptions_analyzed: tacitAssumptions.length,
@@ -1079,7 +1079,7 @@ export class SymbolicConstraintEngine {
     hard_constraints: number;
     soft_constraints: number;
     contradiction_detector_stats: any;
-  } {
+    } {
     const constraints = this.getAllConstraints();
 
     return {

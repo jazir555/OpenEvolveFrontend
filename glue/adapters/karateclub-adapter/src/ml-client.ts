@@ -100,8 +100,8 @@ export class KarateClubMLClient {
 
     // If OPEN and timeout expired, move to HALF_OPEN
     if (
-      this.circuitBreaker.state === CircuitState.OPEN &&
-      now - this.circuitBreaker.lastFailureTime > this.circuitBreakerConfig.timeout
+      this.circuitBreaker.state === CircuitState.OPEN
+      && now - this.circuitBreaker.lastFailureTime > this.circuitBreakerConfig.timeout
     ) {
       this.circuitBreaker.state = CircuitState.HALF_OPEN;
       this.circuitBreaker.halfOpenCalls = 0;
@@ -116,8 +116,8 @@ export class KarateClubMLClient {
 
     // Check HALF_OPEN call limit
     if (
-      this.circuitBreaker.state === CircuitState.HALF_OPEN &&
-      this.circuitBreaker.halfOpenCalls >= this.circuitBreakerConfig.halfOpenMaxCalls
+      this.circuitBreaker.state === CircuitState.HALF_OPEN
+      && this.circuitBreaker.halfOpenCalls >= this.circuitBreakerConfig.halfOpenMaxCalls
     ) {
       this.log('warn', 'Circuit breaker HALF_OPEN call limit exceeded');
       return false;
@@ -154,8 +154,8 @@ export class KarateClubMLClient {
     this.circuitBreaker.successCount = 0;
 
     if (
-      this.circuitBreaker.state === CircuitState.HALF_OPEN ||
-      this.circuitBreaker.failureCount >= this.circuitBreakerConfig.failureThreshold
+      this.circuitBreaker.state === CircuitState.HALF_OPEN
+      || this.circuitBreaker.failureCount >= this.circuitBreakerConfig.failureThreshold
     ) {
       this.circuitBreaker.state = CircuitState.OPEN;
       this.log('error', `Circuit breaker moved to OPEN (failures: ${this.circuitBreaker.failureCount})`);

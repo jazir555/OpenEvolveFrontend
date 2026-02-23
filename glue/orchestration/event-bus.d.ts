@@ -109,9 +109,76 @@ export declare class EventBus extends EventEmitter {
     shutdown(): Promise<void>;
 }
 /**
+ * In-memory implementation of EventBus
+ * Suitable for testing and single-instance deployments
+ */
+export declare class InMemoryEventBus {
+    private handlers;
+    private eventHistory;
+    private readonly maxHistorySize;
+    private logger;
+    constructor(maxHistorySize?: number);
+    /**
+     * Publish an event to the bus
+     */
+    publish(event: Event): Promise<void>;
+    /**
+     * Subscribe to events of a specific type
+     */
+    subscribe(eventType: string, handler: EventHandler): void;
+    /**
+     * Unsubscribe from events
+     */
+    unsubscribe(eventType: string, handler: EventHandler): void;
+    /**
+     * Replay events from history
+     * Supports filtering to avoid loading everything into memory
+     */
+    replay(filter?: (event: Event) => boolean, limit?: number): Promise<Event[]>;
+    /**
+     * Get event history
+     */
+    getHistory(): Map<string, Event>;
+    /**
+     * Get events by type
+     */
+    getEventsByType(eventType: string): Event[];
+    /**
+     * Clear old events from history
+     */
+    clearHistory(olderThanMs: number): number;
+    /**
+     * Clear all history
+     */
+    clearAllHistory(): void;
+    /**
+     * Get statistics
+     */
+    getStats(): {
+        total_events: number;
+        subscriptions: {
+            event_type: string;
+            handler_count: number;
+        }[];
+        max_history_size: number;
+    };
+    /**
+     * Execute handler with error handling
+     */
+    private executeHandler;
+    /**
+     * Shutdown event bus gracefully
+     */
+    shutdown(): Promise<void>;
+}
+/**
  * Singleton instance
  */
 export declare const eventBus: EventBus;
+/**
+ * Singleton instance of InMemoryEventBus
+ */
+export declare const inMemoryEventBus: InMemoryEventBus;
 /**
  * Example usage:
  *
@@ -156,4 +223,3 @@ export declare const eventBus: EventBus;
  * eventBus.unsubscribe(subscription.subscriptionId);
  * ```
  */
-//# sourceMappingURL=event-bus.d.ts.map

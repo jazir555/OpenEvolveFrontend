@@ -186,7 +186,7 @@ export function getEnv(name: string, type: EnvType = 'string'): any {
     case 'boolean':
       if (value.toLowerCase() === 'true' || value === '1') {
         return true;
-      } else if (value.toLowerCase() === 'false' || value === '0') {
+      } if (value.toLowerCase() === 'false' || value === '0') {
         return false;
       }
       throw new Error(`${name}: "${value}" is not a valid boolean (use true/false or 1/0)`);

@@ -10,7 +10,7 @@
  * Run on container startup to validate API contract before accepting traffic.
  */
 
-import { describe, it, expect, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from '@jest/globals';
 import { fetch, RequestInit, Response } from 'node-fetch';
 import { openevolveApi, ApiConfig } from './openevolveApi';
 

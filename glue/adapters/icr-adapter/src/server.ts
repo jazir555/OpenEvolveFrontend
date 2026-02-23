@@ -26,14 +26,14 @@ app.use(express.json());
 app.use((req, res, next) => {
   const correlationId = req.headers['x-correlation-id'] || uuidv4();
   (req as any).correlationId = correlationId;
-  
+
   logger.info({
     msg: 'Incoming request',
     method: req.method,
     url: req.url,
     correlation_id: correlationId
   });
-  
+
   next();
 });
 
@@ -50,7 +50,7 @@ app.get('/health', async (req, res) => {
 // Mode execution endpoint
 app.post('/api/modes/execute', async (req, res) => {
   const { mode, prompt, options } = req.body;
-  const correlationId = (req as any).correlationId;
+  const { correlationId } = (req as any);
 
   if (!mode || !prompt) {
     return res.status(400).json({ error: 'Missing mode or prompt' });

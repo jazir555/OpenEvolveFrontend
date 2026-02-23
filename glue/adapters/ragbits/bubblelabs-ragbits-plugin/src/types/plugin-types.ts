@@ -395,9 +395,9 @@ function getRAGBitsServerUrl(): string {
 
   if (!url) {
     throw new Error(
-      'FATAL: RAGBITS_SERVER_URL environment variable is not set. ' +
-      'This is a required configuration. Please set RAGBITS_SERVER_URL before starting the service. ' +
-      'Example: http://localhost:3000/ragbits or http://ragbits-core:3000/ragbits'
+      'FATAL: RAGBITS_SERVER_URL environment variable is not set. '
+      + 'This is a required configuration. Please set RAGBITS_SERVER_URL before starting the service. '
+      + 'Example: http://localhost:3000/ragbits or http://ragbits-core:3000/ragbits'
     );
   }
 
@@ -406,8 +406,8 @@ function getRAGBitsServerUrl(): string {
     new URL(url);
   } catch (error) {
     throw new Error(
-      `FATAL: Invalid RAGBITS_SERVER_URL format: "${url}". ` +
-      `Must be a valid URL. Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `FATAL: Invalid RAGBITS_SERVER_URL format: "${url}". `
+      + `Must be a valid URL. Error: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 
@@ -422,8 +422,8 @@ export const DEFAULT_RAGBITS_CONFIG: RAGBitsPluginConfig = {
     } catch (error) {
       // Fallback for development only (production will crash)
       console.warn(
-        'WARNING: Using fallback RAGBits URL. ' +
-        'Set VITE_RAGBITS_SERVER_URL environment variable for production use.'
+        'WARNING: Using fallback RAGBits URL. '
+        + 'Set VITE_RAGBITS_SERVER_URL environment variable for production use.'
       );
       return 'http://localhost:3000/ragbits';
     }

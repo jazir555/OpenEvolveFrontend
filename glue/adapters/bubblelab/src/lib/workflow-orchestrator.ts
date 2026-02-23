@@ -30,8 +30,8 @@
 
 import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
 import { retryWithBackoff, RetryConfig } from '../../../../lib/retry';
-import { getPluginRegistry, type PluginInterface } from './plugin-registry';
-import type { PluginRegistry } from './plugin-registry';
+import { getPluginRegistry, type PluginInterface, PluginRegistry } from './plugin-registry';
+
 import { getWorkflowMonitor } from './workflow-monitoring';
 import { getPluginEventIntegration } from './plugin-events';
 
@@ -167,8 +167,7 @@ class WorkflowOrchestrator {
       // Map final outputs
       context.output = this.mapOutputs(workflow, context);
 
-      const workflowStatus: WorkflowExecutionResult['status'] =
-        stepExecution.errors.length > 0 && stepResults.size === 0 ? 'failed' : 'completed';
+      const workflowStatus: WorkflowExecutionResult['status'] =        stepExecution.errors.length > 0 && stepResults.size === 0 ? 'failed' : 'completed';
       context.status = workflowStatus === 'failed' ? 'failed' : 'completed';
       const duration = Date.now() - startTime;
 
@@ -328,7 +327,7 @@ class WorkflowOrchestrator {
     workflow: WorkflowDefinition
   ): Promise<StepExecutionResult> {
     const startTime = Date.now();
-    let retryCount = 0;
+    const retryCount = 0;
 
     apiLogger.info('Executing step', {
       ...this.correlationContext,

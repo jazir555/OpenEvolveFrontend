@@ -218,10 +218,9 @@ export function createHealthCheckServer(options: HealthCheckOptions) {
         const results = await Promise.all(checks.map((check) => check()));
 
         // Determine overall status
-        const overallStatus: 'healthy' | 'unhealthy' | 'degraded' =
-          results.every((r) => r.status === 'healthy')
-            ? 'healthy'
-            : results.some((r) => r.status === 'unhealthy')
+        const overallStatus: 'healthy' | 'unhealthy' | 'degraded' =          results.every((r) => r.status === 'healthy')
+          ? 'healthy'
+          : results.some((r) => r.status === 'unhealthy')
             ? 'unhealthy'
             : 'degraded';
 

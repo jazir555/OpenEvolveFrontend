@@ -119,7 +119,7 @@ export class ShadowAccountSynchronizer {
       });
 
       // Step 1: Check if user exists by external ID (OIDC subject)
-      let existingUser = await this.adapter.findByExternalId(oidcUser.sub);
+      const existingUser = await this.adapter.findByExternalId(oidcUser.sub);
 
       if (existingUser) {
         // User exists - check if update needed
@@ -223,11 +223,10 @@ export class ShadowAccountSynchronizer {
     now: Date
   ): Promise<SyncResult> {
     // Check if update needed
-    const needsUpdate =
-      existingUser.email !== oidcUser.email ||
-      existingUser.display_name !== oidcUser.name ||
-      existingUser.email_verified !== (oidcUser.email_verified || false) ||
-      existingUser.picture_url !== oidcUser.picture;
+    const needsUpdate =      existingUser.email !== oidcUser.email
+      || existingUser.display_name !== oidcUser.name
+      || existingUser.email_verified !== (oidcUser.email_verified || false)
+      || existingUser.picture_url !== oidcUser.picture;
 
     if (needsUpdate) {
       logger.info({
@@ -555,7 +554,7 @@ export class MongoUserDatabaseAdapter implements UserDatabaseAdapter {
 
   async findByEmail(email: string): Promise<LocalUserRecord | null> {
     try {
-      const doc = await this.collection.findOne({ email: email });
+      const doc = await this.collection.findOne({ email });
       return doc ? this.mapDocToUserRecord(doc) : null;
     } catch (err: any) {
       logger.error({
@@ -596,7 +595,7 @@ export class MongoUserDatabaseAdapter implements UserDatabaseAdapter {
   async update(id: string, updates: Partial<LocalUserRecord>): Promise<LocalUserRecord> {
     try {
       const result = await this.collection.findOneAndUpdate(
-        { id: id },
+        { id },
         { $set: updates },
         { returnDocument: 'after' }
       );
@@ -620,7 +619,7 @@ export class MongoUserDatabaseAdapter implements UserDatabaseAdapter {
   async updateLastLogin(id: string, lastLoginAt: Date): Promise<void> {
     try {
       await this.collection.updateOne(
-        { id: id },
+        { id },
         { $set: { last_login_at: lastLoginAt } }
       );
     } catch (err: any) {

@@ -173,7 +173,7 @@ export type FalsificationResult = z.infer<typeof FalsificationResult>;
  */
 export const EpistemicAuditResult = z.object({
   // Phase identification
-  phase: z.literal(RESEPhase.values.phase1_epistemic_audit)
+  phase: z.literal('phase1_epistemic_audit')
     .describe("RESE phase identifier"),
 
   // Audit metadata
@@ -359,7 +359,7 @@ export type InvertedConstraint = z.infer<typeof InvertedConstraint>;
  */
 export const IsomorphicMapping = z.object({
   // Phase identification
-  phase: z.literal(RESEPhase.values.phase2_isomorphic_mapping)
+  phase: z.literal('phase2_isomorphic_mapping')
     .describe("RESE phase identifier"),
 
   // Mapping metadata
@@ -528,7 +528,7 @@ export type ValidationMetrics = z.infer<typeof ValidationMetrics>;
  */
 export const MCTSSearchResult = z.object({
   // Phase identification
-  phase: z.literal(RESEPhase.values.phase3_mcts_refinement)
+  phase: z.literal('phase3_mcts_refinement')
     .describe("RESE phase identifier"),
 
   // Search metadata
@@ -687,7 +687,7 @@ export type SynthesizedKnowledge = z.infer<typeof SynthesizedKnowledge>;
  */
 export const ArchitectureAssembly = z.object({
   // Phase identification
-  phase: z.literal(RESEPhase.values.phase4_architecture_assembly)
+  phase: z.literal('phase4_architecture_assembly')
     .describe("RESE phase identifier"),
 
   // Assembly metadata
@@ -1114,7 +1114,7 @@ export function validateArchitectureAssembly(data: unknown): {
  * Generate a UUID v4
  */
 function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);

@@ -1,9 +1,9 @@
 /**
  * OpenEvolve BubbleLabs Plugin - TypeScript Interfaces
- * 
+ *
  * This file contains all TypeScript interfaces, types, and constants for the OpenEvolve plugin.
  * The interfaces follow the same pattern as other BubbleLabs plugins (LeanAIDE, ClaudieMiro, Datapizza, ROMA).
- * 
+ *
  * This plugin integrates the complete OpenEvolve system including:
  * - Evolution functionality (genetic algorithms, evolutionary optimization)
  * - Adversarial functionality (red/blue team testing, quality improvement)
@@ -681,4 +681,3 @@ export const DEFAULT_OPENEVOLVE_CONFIG: OpenEvolvePluginState = {
     autoSelectionKeywords: OPENEVOLVE_PLUGIN_CONSTANTS.DEFAULT_MDAP_MAKER_KEYWORDS,
   },
 };
-

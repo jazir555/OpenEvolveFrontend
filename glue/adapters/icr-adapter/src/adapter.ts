@@ -449,7 +449,6 @@ export class ICRAdapter {
         enriched_context: enrichedContext,
         learning_result: learningResult
       };
-
     } catch (error) {
       console.error('Error in contextual request with memory:', error);
 
@@ -608,7 +607,7 @@ export class ICRAdapter {
     enrichedContext: EnrichedContext
   ): RefinementInsights {
     const iterations = response.result.iteration_count || 1;
-    const success = response.result.success;
+    const { success } = response.result;
 
     return {
       session_id: sessionId,
@@ -657,7 +656,7 @@ export class ICRAdapter {
       mode: 'contextual',
       prompt,
       agents_involved: interactions.map(i => i.agent_type),
-      interactions: interactions,
+      interactions,
       context_window: enrichedContext.historical_knowledge.length,
       successes: response.result.success ? 1 : 0,
       failures: response.result.success ? 0 : 1,

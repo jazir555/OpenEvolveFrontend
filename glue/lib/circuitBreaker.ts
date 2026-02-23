@@ -60,8 +60,8 @@ export class CircuitBreaker {
     operation: () => Promise<T>,
     context?: LogContext
   ): Promise<T> {
-    const correlationId = context?.correlation_id ||
-      `cb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const correlationId = context?.correlation_id
+      || `cb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const cbContext: LogContext = {
       ...context,
@@ -77,8 +77,8 @@ export class CircuitBreaker {
         // Circuit is still open, reject request
         apiLogger.error('Circuit breaker is open, rejecting request', undefined, cbContext);
         throw new CircuitBreakerOpenError(
-          `Circuit breaker is open for ${this.serviceName}. ` +
-          `Will retry after ${new Date(this.nextAttemptAt || 0).toISOString()}`
+          `Circuit breaker is open for ${this.serviceName}. `
+          + `Will retry after ${new Date(this.nextAttemptAt || 0).toISOString()}`
         );
       }
 

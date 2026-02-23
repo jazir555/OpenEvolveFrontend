@@ -4,7 +4,7 @@
  * Tests the workflow execution engine with various scenarios
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { WorkflowOrchestrator, type WorkflowDefinition } from '../../lib/workflow-orchestrator';
 import { PluginRegistry, type PluginInterface } from '../../lib/plugin-registry';
 
@@ -350,7 +350,7 @@ describe('Workflow Orchestrator', () => {
   describe('Workflow Cancellation', () => {
     it('should cancel a running workflow', async () => {
       // Create a workflow with delays
-      let shouldBlock = true;
+      const shouldBlock = true;
 
       const workflow: WorkflowDefinition = {
         id: 'long-workflow',

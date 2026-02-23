@@ -102,8 +102,8 @@ export class GraphitiMemoryManager {
     // Verify Graphiti adapter is initialized
     if (!this.config.graphitiAdapter.isInitialized()) {
       throw new Error(
-        'GraphitiMemoryManager: Graphiti adapter is not initialized. ' +
-        'Cannot proceed with memory operations.'
+        'GraphitiMemoryManager: Graphiti adapter is not initialized. '
+        + 'Cannot proceed with memory operations.'
       );
     }
   }
@@ -173,7 +173,6 @@ export class GraphitiMemoryManager {
         processing_time_ms: result.processing_time_ms,
         correlation_id: cid
       };
-
     } catch (error) {
       return {
         success: false,
@@ -243,7 +242,6 @@ export class GraphitiMemoryManager {
         processing_time_ms: result.processing_time_ms,
         correlation_id: cid
       };
-
     } catch (error) {
       return {
         success: false,
@@ -305,7 +303,6 @@ export class GraphitiMemoryManager {
       filtered = filtered.slice(0, contextWindow);
 
       return filtered;
-
     } catch (error) {
       console.error('Error retrieving historical knowledge:', error);
       return [];
@@ -342,7 +339,6 @@ export class GraphitiMemoryManager {
       // Extract session data from the first result
       const edge = searchResult.edges[0];
       return this.extractSessionFromEdge(edge);
-
     } catch (error) {
       console.error('Error retrieving contextual memory:', error);
       return null;
@@ -471,7 +467,6 @@ export class GraphitiMemoryManager {
         pattern_count: nodes.filter(n => n.type === 'pattern').length,
         last_updated: new Date().toISOString()
       };
-
     } catch (error) {
       console.error('Error building contextual graph:', error);
       return {
@@ -564,7 +559,6 @@ export class GraphitiMemoryManager {
         confidence_score: confidenceScore,
         correlation_id: cid
       };
-
     } catch (error) {
       return {
         success: false,
@@ -735,8 +729,8 @@ export class GraphitiMemoryManager {
     // Filter by minimum success rate
     if (query.min_success_rate !== undefined) {
       filtered = filtered.filter(k => {
-        const successWeight = k.outcome === 'success' ? 1.0 :
-                            k.outcome === 'partial_success' ? 0.5 : 0.0;
+        const successWeight = k.outcome === 'success' ? 1.0
+          : k.outcome === 'partial_success' ? 0.5 : 0.0;
         return successWeight >= query.min_success_rate!;
       });
     }
@@ -870,15 +864,14 @@ export class GraphitiMemoryManager {
 
     if (name.includes('refinement') || name.includes('iteration')) {
       return 'iterative_refinement';
-    } else if (name.includes('agent') || name.includes('collaboration')) {
+    } if (name.includes('agent') || name.includes('collaboration')) {
       return 'agent_collaboration';
-    } else if (name.includes('memory') || name.includes('compression')) {
+    } if (name.includes('memory') || name.includes('compression')) {
       return 'memory_compression';
-    } else if (name.includes('quality') || name.includes('improvement')) {
+    } if (name.includes('quality') || name.includes('improvement')) {
       return 'quality_improvement';
-    } else {
-      return 'custom';
     }
+    return 'custom';
   }
 
   /**

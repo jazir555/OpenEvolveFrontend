@@ -116,9 +116,9 @@ export class PineconeClient {
       const body = {
         name: config.name,
         dimension: config.dimension,
-        metric: config.distance_metric === 'cosine' ? 'cosine' :
-                 config.distance_metric === 'euclidean' ? 'euclidean' :
-                 'dotproduct',
+        metric: config.distance_metric === 'cosine' ? 'cosine'
+          : config.distance_metric === 'euclidean' ? 'euclidean'
+            : 'dotproduct',
         pods: 1,
         replicas: 1,
         pod_type: 'p1.x1',

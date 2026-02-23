@@ -2,6 +2,10 @@
 // Standalone plugin for data pipeline processing and querying
 
 // Export types
+// Export the main plugin factory
+import type { DatapizzaPlugin as DatapizzaPluginInstance, DatapizzaPluginConfig } from './types/plugin-types';
+import { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
+
 export type {
   DatapizzaPluginConfig,
   DatapizzaPluginState,
@@ -44,10 +48,6 @@ export { DatapizzaService } from './services/DatapizzaService';
 // Export utilities
 export { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
 export { useDatapizzaPlugin } from './utils/createDatapizzaPlugin';
-
-// Export the main plugin factory
-import type { DatapizzaPlugin as DatapizzaPluginInstance, DatapizzaPluginConfig } from './types/plugin-types';
-import { createDatapizzaPlugin } from './utils/createDatapizzaPlugin';
 
 /**
  * Create a new Datapizza plugin instance

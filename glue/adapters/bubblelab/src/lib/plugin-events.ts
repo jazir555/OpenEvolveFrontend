@@ -289,65 +289,62 @@ class PluginEventIntegration {
   setupCrossPluginHandlers(): void {
     // When knowledge is indexed, notify search plugins to refresh
     this.eventBus.subscribe('knowledge.indexed', async (event) => {
-        const eventData = this.asEventData(event);
-        apiLogger.info('Knowledge indexed, notifying search plugins', {
-          ...this.correlationContext,
-          document_id: eventData.documentId
-        });
-
-        // Publish refresh event for search plugins
-        await this.eventBus.publish(
-          this.buildEvent('search.refresh', 'plugin-event-integration', {
-            documentId: eventData.documentId,
-            documentType: eventData.documentType,
-          }),
-        );
+      const eventData = this.asEventData(event);
+      apiLogger.info('Knowledge indexed, notifying search plugins', {
+        ...this.correlationContext,
+        document_id: eventData.documentId
       });
+
+      // Publish refresh event for search plugins
+      await this.eventBus.publish(
+        this.buildEvent('search.refresh', 'plugin-event-integration', {
+          documentId: eventData.documentId,
+          documentType: eventData.documentType,
+        }),
+      );
+    });
 
     // When data is processed, trigger analytics
     this.eventBus.subscribe('data.processed', async (event) => {
-        const eventData = this.asEventData(event);
-        apiLogger.info('Data processed, triggering analytics', {
-          ...this.correlationContext,
-          processing_type: eventData.processingType
-        });
-
-        // Publish analytics event
-        await this.eventBus.publish(
-          this.buildEvent('analytics.track', 'plugin-event-integration', {
-            processingType: eventData.processingType,
-            inputSize: eventData.inputSize,
-            outputSize: eventData.outputSize,
-            duration: eventData.duration,
-          }),
-        );
+      const eventData = this.asEventData(event);
+      apiLogger.info('Data processed, triggering analytics', {
+        ...this.correlationContext,
+        processing_type: eventData.processingType
       });
+
+      // Publish analytics event
+      await this.eventBus.publish(
+        this.buildEvent('analytics.track', 'plugin-event-integration', {
+          processingType: eventData.processingType,
+          inputSize: eventData.inputSize,
+          outputSize: eventData.outputSize,
+          duration: eventData.duration,
+        }),
+      );
+    });
 
     // When workflow fails, trigger alert
     this.eventBus.subscribe('workflow.failed', async (event) => {
-        const eventData = this.asEventData(event);
-        const workflowId =
-          typeof eventData.workflowId === 'string' ? eventData.workflowId : 'unknown';
-        const executionId =
-          typeof eventData.executionId === 'string' ? eventData.executionId : 'unknown';
-        const errorMessage =
-          typeof eventData.error === 'string' ? eventData.error : String(eventData.error ?? 'Unknown error');
-        apiLogger.warn('Workflow failed, triggering alert', {
-          ...this.correlationContext,
-          workflow_id: workflowId,
-          execution_id: executionId
-        });
-
-        // Publish alert event
-        await this.eventBus.publish(
-          this.buildEvent('alert.workflow', 'plugin-event-integration', {
-            workflowId,
-            executionId,
-            error: errorMessage,
-            severity: 'high',
-          }),
-        );
+      const eventData = this.asEventData(event);
+      const workflowId =          typeof eventData.workflowId === 'string' ? eventData.workflowId : 'unknown';
+      const executionId =          typeof eventData.executionId === 'string' ? eventData.executionId : 'unknown';
+      const errorMessage =          typeof eventData.error === 'string' ? eventData.error : String(eventData.error ?? 'Unknown error');
+      apiLogger.warn('Workflow failed, triggering alert', {
+        ...this.correlationContext,
+        workflow_id: workflowId,
+        execution_id: executionId
       });
+
+      // Publish alert event
+      await this.eventBus.publish(
+        this.buildEvent('alert.workflow', 'plugin-event-integration', {
+          workflowId,
+          executionId,
+          error: errorMessage,
+          severity: 'high',
+        }),
+      );
+    });
 
     apiLogger.info('Cross-plugin event handlers setup complete', this.correlationContext);
   }
@@ -359,7 +356,7 @@ class PluginEventIntegration {
     totalSubscribers: number;
     subscriberPlugins: string[];
     recentEvents: number;
-  } {
+    } {
     const stats = {
       totalSubscribers: this.subscribers.size,
       subscriberPlugins: Array.from(this.subscribers.values()).map(s => s.plugin),
@@ -392,10 +389,9 @@ class PluginEventIntegration {
     correlationId?: string,
   ): Event {
     const fallbackId = `${sourceService}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const eventId =
-      typeof globalThis.crypto?.randomUUID === 'function'
-        ? globalThis.crypto.randomUUID()
-        : fallbackId;
+    const eventId =      typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID()
+      : fallbackId;
 
     return {
       id: eventId,

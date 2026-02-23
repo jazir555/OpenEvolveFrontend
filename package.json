@@ -1,0 +1,63 @@
+{
+  "name": "openevolve-frontend",
+  "version": "1.0.0",
+  "description": "OpenEvolve Frontend - Hybrid PES-Evolution System",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:ci": "jest --ci --coverage --maxWorkers=2 --coverageReporters=cobertura --coverageReporters=html",
+    "test:e2e": "bash tests/run_hybrid_e2e_tests.sh",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "test:contract": "jest --testPathPattern=contract",
+    "test:smoke": "jest --testPathPattern=smoke --testNamePattern=\"Smoke Test\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint glue/**/*.ts tests/**/*.ts --max-warnings=0",
+    "lint:fix": "eslint glue/**/*.ts tests/**/*.ts --fix",
+    "format": "prettier --write \"glue/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"glue/**/*.ts\" \"tests/**/*.ts\"",
+    "validate": "npm run lint && npm run typecheck && npm run test",
+    "build": "npm run build:workflows && npm run build:adapters",
+    "build:workflows": "cd glue/orchestration/workflows && npm run build",
+    "build:adapters": "cd glue/orchestration && npm run build",
+    "clean": "rm -rf dist node_modules glue/**/dist glue/**/node_modules",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:production": "./scripts/deploy.sh production",
+    "deploy:status": "./scripts/deploy.sh staging --status-only"
+  },
+  "keywords": [
+    "openevolve",
+    "loongflow",
+    "pes",
+    "evolution",
+    "hybrid",
+    "workflow"
+  ],
+  "author": "OpenEvolve Distinguished Engineer",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "jest": "^30.2.0",
+    "prettier": "^3.2.4",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/frontend"
+  }
+}

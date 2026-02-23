@@ -54,9 +54,9 @@ function validateEnvVars(): void {
 
   if (missing.length > 0) {
     throw new Error(
-      `ICR Adapter Configuration Error: Missing required environment variables: ${missing.join(', ')}\n` +
-      `The Federation Constitution prohibits magic defaults. ` +
-      `Please set these environment variables before starting the service.`
+      `ICR Adapter Configuration Error: Missing required environment variables: ${missing.join(', ')}\n`
+      + `The Federation Constitution prohibits magic defaults. `
+      + `Please set these environment variables before starting the service.`
     );
   }
 }
@@ -310,7 +310,7 @@ export class ICRClient {
 
     this.axiosInstance = axios.create({
       baseURL: apiUrl,
-      timeout: timeout,
+      timeout,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -465,7 +465,7 @@ export class ICRClient {
       return true;
     }
 
-    const status = error.response.status;
+    const { status } = error.response;
 
     // Retry on 429 (Too Many Requests) and 5xx errors
     return status === 429 || status >= 500;

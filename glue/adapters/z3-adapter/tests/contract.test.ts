@@ -205,10 +205,10 @@ describe('Z3 API Contract - Solve Endpoint', () => {
         // Each value should be string, number, boolean, or null
         Object.values(mockSolveResponse.model).forEach(value => {
           expect(
-            value === null ||
-            typeof value === 'string' ||
-            typeof value === 'number' ||
-            typeof value === 'boolean'
+            value === null
+            || typeof value === 'string'
+            || typeof value === 'number'
+            || typeof value === 'boolean'
           ).toBe(true);
         });
       }
@@ -219,9 +219,9 @@ describe('Z3 API Contract - Solve Endpoint', () => {
         expect(typeof mockSolveResponse.statistics).toBe('object');
         Object.values(mockSolveResponse.statistics).forEach(value => {
           expect(
-            typeof value === 'string' ||
-            typeof value === 'number' ||
-            typeof value === 'boolean'
+            typeof value === 'string'
+            || typeof value === 'number'
+            || typeof value === 'boolean'
           ).toBe(true);
         });
       }
@@ -283,7 +283,7 @@ describe('Z3 API Contract - Simplify Endpoint', () => {
 
   test('result must be valid SMTLIB2 expression', () => {
     // Basic validation: should contain parentheses or be a simple value
-    const result = mockSimplifyResponse.result;
+    const { result } = mockSimplifyResponse;
     const isValid = result.includes('(') || /^[\w\d-]+$/.test(result);
     expect(isValid).toBe(true);
   });

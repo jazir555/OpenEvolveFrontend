@@ -76,7 +76,8 @@ export const GraphEdge = z.object({
 
   target_id: z.string().describe("Target node ID"),
 
-  weight: z.number().min(0).max(1).optional().describe("Edge weight"),
+  weight: z.number().min(0).max(1).optional()
+    .describe("Edge weight"),
 
   properties: z.record(z.any()).optional().describe("Edge properties"),
 
@@ -108,14 +109,18 @@ export const GraphQuery = z.object({
     edge_type: EdgeType.optional().describe("Filter by edge type"),
     properties: z.record(z.any()).optional().describe("Property filters"),
     labels: z.array(z.string()).optional().describe("Label filters"),
-    max_depth: z.number().int().min(1).optional().describe("Max traversal depth"),
-    limit: z.number().int().positive().optional().describe("Result limit"),
+    max_depth: z.number().int().min(1).optional()
+      .describe("Max traversal depth"),
+    limit: z.number().int().positive().optional()
+      .describe("Result limit"),
   }).describe("Query criteria"),
 
   similarity: z.object({
     vector: z.array(z.number()).optional().describe("Query vector"),
-    threshold: z.number().min(0).max(1).optional().describe("Similarity threshold"),
-    top_k: z.number().int().positive().optional().describe("Top K results"),
+    threshold: z.number().min(0).max(1).optional()
+      .describe("Similarity threshold"),
+    top_k: z.number().int().positive().optional()
+      .describe("Top K results"),
   }).optional().describe("Similarity search parameters"),
 
   metadata: z.record(z.any()).optional(),
@@ -282,8 +287,8 @@ export function validateAiKnowledgeGraphRequest(data: unknown): {
 }
 
 export function isAiKnowledgeGraphRequest(data: unknown): data is AiKnowledgeGraphRequest {
-  return typeof data === 'object' && data !== null &&
-    'action' in data;
+  return typeof data === 'object' && data !== null
+    && 'action' in data;
 }
 
 /**

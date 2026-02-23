@@ -397,20 +397,3 @@ export function validateCaptureResult(data: unknown): {
     errors: result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
   };
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export {
-  EvolvedCodeSchema,
-  ProblemSchema,
-  EvolutionMetricsSchema,
-  SimilarSolutionSchema,
-  EvolutionLineageSchema,
-  CaptureResultSchema,
-  CaptureMetricsSchema,
-  StoreWithEmbeddingRequestSchema,
-  SearchSimilarRequestSchema,
-  GetLineageRequestSchema,
-};

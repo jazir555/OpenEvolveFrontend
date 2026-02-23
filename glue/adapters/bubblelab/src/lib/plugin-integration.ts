@@ -248,7 +248,7 @@ class BubbleLabIntegration {
     for (const moduleName of moduleNames) {
       try {
         const loaded = await import(moduleName);
-        const createPlugin = (loaded as { createPlugin?: (config?: Record<string, unknown>) => unknown }).createPlugin;
+        const { createPlugin } = (loaded as { createPlugin?: (config?: Record<string, unknown>) => unknown });
         if (typeof createPlugin === 'function') {
           return createPlugin;
         }
@@ -375,7 +375,7 @@ class BubbleLabIntegration {
     started: boolean;
     pluginCount: number;
     healthyPlugins: number;
-  } {
+    } {
     if (!this.state) {
       return {
         initialized: false,

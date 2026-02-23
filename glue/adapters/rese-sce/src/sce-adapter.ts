@@ -570,20 +570,20 @@ export class SCEAdapter {
 
     // System failures (circuit breaker)
     if (
-      errorMessage.includes('circuit') ||
-      errorMessage.includes('timeout') ||
-      errorMessage.includes('econnrefused') ||
-      errorMessage.includes('enotfound')
+      errorMessage.includes('circuit')
+      || errorMessage.includes('timeout')
+      || errorMessage.includes('econnrefused')
+      || errorMessage.includes('enotfound')
     ) {
       return 'system';
     }
 
     // Logic failures (bad data, validation errors)
     if (
-      errorMessage.includes('validation') ||
-      errorMessage.includes('invalid') ||
-      errorMessage.includes('not found') ||
-      errorMessage.includes('duplicate')
+      errorMessage.includes('validation')
+      || errorMessage.includes('invalid')
+      || errorMessage.includes('not found')
+      || errorMessage.includes('duplicate')
     ) {
       return 'logic';
     }
@@ -599,7 +599,7 @@ export class SCEAdapter {
     circuit_breaker: any;
     dlq_size: number;
     sce_stats: any;
-  } {
+    } {
     return {
       circuit_breaker: this.circuitBreaker.getStats(),
       dlq_size: this.dlq.size(),
@@ -639,9 +639,8 @@ export class SCEAdapter {
     constraint_count: number;
   }> {
     const stats = this.getStats();
-    const healthy =
-      stats.circuit_breaker.state === CircuitState.CLOSED &&
-      stats.dlq_size < this.config.DLQ_MAX_SIZE;
+    const healthy =      stats.circuit_breaker.state === CircuitState.CLOSED
+      && stats.dlq_size < this.config.DLQ_MAX_SIZE;
 
     return {
       healthy,

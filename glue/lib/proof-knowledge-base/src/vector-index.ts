@@ -10,7 +10,7 @@
  * - Retry Logic: Handles transient failures
  */
 
-import { logger, LoggerContext } from '../logger';
+import { logger, LoggerContext } from '../../logger';
 import { FormalProof, Theorem, SimilarProof, IndexResult } from './canonical';
 
 /**
@@ -456,7 +456,7 @@ export class ProofVectorIndex {
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash &= hash; // Convert to 32bit integer
     }
     return Math.abs(hash);
   }

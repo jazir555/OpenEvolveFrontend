@@ -14,7 +14,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 import { CircuitBreaker } from '../circuit-breaker';
 import {
   EvolvedCode,
@@ -416,8 +416,8 @@ export class VectorStorage {
     try {
       await this.circuitBreaker.execute(async () => {
         // Generate embedding if not provided
-        const embedding = request.embedding ||
-          await this.generateEmbedding(request.evolved_code);
+        const embedding = request.embedding
+          || await this.generateEmbedding(request.evolved_code);
 
         // Prepare vector entry
         const vectorEntry = {

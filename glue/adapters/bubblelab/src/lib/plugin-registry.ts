@@ -334,7 +334,7 @@ class PluginRegistry {
     healthyPlugins: number;
     unhealthyPlugins: number;
     pluginsByStatus: Record<string, number>;
-  } {
+    } {
     const stats = {
       totalPlugins: this.plugins.size,
       enabledPlugins: 0,

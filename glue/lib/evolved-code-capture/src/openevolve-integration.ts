@@ -11,7 +11,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../logger';
+import { Logger } from '../../logger';
 import { EvolvedCodeCapturer } from './capturer';
 import {
   Problem,
@@ -518,13 +518,12 @@ export class OpenEvolveIntegration {
 
     if (payload.event_type === 'evolution_complete' || payload.event_type === 'completion') {
       return await this.captureEvolution(payload.evolution_id, cid);
-    } else {
-      this.logger.warn('Unhandled webhook event type', {
-        correlation_id: cid,
-        event_type: payload.event_type,
-      });
-      return [];
     }
+    this.logger.warn('Unhandled webhook event type', {
+      correlation_id: cid,
+      event_type: payload.event_type,
+    });
+    return [];
   }
 
   // ========================================================================

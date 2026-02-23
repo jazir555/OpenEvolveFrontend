@@ -11,7 +11,7 @@
  * - Retry Logic: Handles transient failures
  */
 
-import { logger, LoggerContext } from '../logger';
+import { logger, LoggerContext } from '../../logger';
 import { retryWithBackoff } from '../retry';
 import { CircuitBreaker } from '../circuit-breaker';
 import {

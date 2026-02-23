@@ -1,0 +1,3 @@
+# Requirements for API client examples
+
+requests>=2.31.0

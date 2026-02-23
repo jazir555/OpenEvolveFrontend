@@ -12,7 +12,7 @@
  */
 
 import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
-import { CircuitBreaker } from '../../../glue/lib/circuit-breaker';
+import { CircuitBreaker } from "../../lib/circuit-breaker";
 
 export interface PluginMetadata {
   name: string;
@@ -334,7 +334,7 @@ class PluginRegistry {
     healthyPlugins: number;
     unhealthyPlugins: number;
     pluginsByStatus: Record<string, number>;
-  } {
+    } {
     const stats = {
       totalPlugins: this.plugins.size,
       enabledPlugins: 0,

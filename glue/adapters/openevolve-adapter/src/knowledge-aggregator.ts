@@ -22,9 +22,9 @@
  *   SEMANTIC_SIMILARITY_THRESHOLD - Minimum similarity score
  */
 
+import axios, { AxiosInstance } from 'axios';
 import { OpenEvolveAdapter, KnowledgeArtifact, StructuredLogger, LogContext } from './adapter';
 import { IntegrationCoordinator } from './integration-coordinator';
-import axios, { AxiosInstance } from 'axios';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -252,7 +252,7 @@ export class KnowledgeAggregator {
       // Transform response to KnowledgeResult format
       const results: KnowledgeResult[] = (response.data.results || []).map((item: any) => ({
         artifact_id: item.id || `${source}-${Date.now()}-${Math.random()}`,
-        source: source,
+        source,
         source_type: adapter.type,
         content: item.content || item,
         relevance_score: item.score || item.relevance || 0.5,
@@ -266,7 +266,6 @@ export class KnowledgeAggregator {
       });
 
       return results;
-
     } catch (error) {
       this.logger.error('Source query failed', {
         ...context,
@@ -367,7 +366,7 @@ export class KnowledgeAggregator {
             },
             source_workflow_id: workflowState.workflow_id,
             extraction_timestamp: Date.now(),
-            domain: domain,
+            domain,
             problem_type: problemType,
             usage_count: 0,
             effectiveness_score: 0.0,
@@ -394,7 +393,7 @@ export class KnowledgeAggregator {
             },
             source_workflow_id: workflowState.workflow_id,
             extraction_timestamp: Date.now(),
-            domain: domain,
+            domain,
             problem_type: problemType,
           });
         }
@@ -412,7 +411,7 @@ export class KnowledgeAggregator {
             },
             source_workflow_id: workflowState.workflow_id,
             extraction_timestamp: Date.now(),
-            domain: domain,
+            domain,
             problem_type: problemType,
           });
         }
@@ -448,7 +447,7 @@ export class KnowledgeAggregator {
     // Create nodes from artifacts
     const nodes: KnowledgeGraphNode[] = artifacts.map(artifact => ({
       id: artifact.id,
-      artifact: artifact,
+      artifact,
       connections: [],
     }));
 

@@ -1,0 +1,424 @@
+# LoongFlow Core Service Kubernetes Deployment Manifests
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Law of Runtime Truth: Health checks verify API availability
+# - Law of UTC: All services use TZ=UTC
+# - High Availability: HPA + PDB for production
+#
+# Usage:
+#   kubectl apply -f k8s-loongflow-core.yaml
+#   kubectl get pods -n loongflow-system
+#   kubectl logs -f deployment/loongflow-core -n loongflow-system
+
+---
+# ConfigMap for LoongFlow Core Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loongflow-core-config
+  namespace: loongflow-system
+data:
+  # LLM configuration
+  LLM_PROVIDER: "openai"
+  LLM_MODEL: "gpt-4"
+  LLM_TEMPERATURE: "0.7"
+  LLM_MAX_TOKENS: "2000"
+
+  # Logging configuration
+  LOG_LEVEL: "INFO"
+  PYTHONUNBUFFERED: "1"
+
+  # Timezone (Law of UTC)
+  TZ: "UTC"
+
+  # Redis configuration
+  REDIS_URL: "redis://redis-service.federation-system.svc.cluster.local:6379"
+  ENABLE_CHECKPOINTING: "true"
+  CHECKPOINT_DIR: "/app/checkpoints"
+
+  # Workflow configuration
+  MAX_CONCURRENT_WORKFLOWS: "10"
+  WORKFLOW_TIMEOUT_MS: "300000"
+  ENABLE_PRUNING: "true"
+  PRUNING_THRESHOLD: "1000"
+
+  # PES Integration (optional)
+  ENABLE_PES: "false"
+  PES_MAX_ITERATIONS: "10"
+  PES_TIMEOUT_MS: "60000"
+
+---
+# Secret for LLM API keys
+apiVersion: v1
+kind: Secret
+metadata:
+  name: loongflow-core-secrets
+  namespace: loongflow-system
+type: Opaque
+# ⚠️ IMPORTANT: DO NOT hardcode API keys in this file!
+# Create secrets using:
+#   kubectl create secret generic loongflow-core-secrets \
+#     --from-literal=LLM_API_KEY=$OPENAI_API_KEY \
+#     -n loongflow-system
+#
+# For production, use:
+#   - External Secrets Operator
+#   - Sealed Secrets
+#   - Vault
+#   - Cloud provider secret management
+stringData:
+  # Placeholder - must be provided via kubectl
+  LLM_API_KEY: ""  # Empty placeholder - service will crash if not set
+
+  # Optional: Other LLM provider credentials
+  # ANTHROPIC_API_KEY: ""
+  # GOOGLE_API_KEY: ""
+
+---
+# LoongFlow Core Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loongflow-core
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+    component: core-service
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: loongflow-core
+  template:
+    metadata:
+      labels:
+        app: loongflow-core
+        component: core-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8050"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+
+      # Init container to wait for Redis
+      initContainers:
+      - name: wait-for-redis
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z -v -w30 redis-service.federation-system.svc.cluster.local 6379; do
+              echo "Waiting for Redis..."
+              sleep 5
+            done
+            echo "Redis is ready!"
+
+      containers:
+      - name: loongflow-core
+        image: loongflow-core:latest
+        imagePullPolicy: IfNotPresent
+
+        ports:
+        - name: http
+          containerPort: 8050
+          protocol: TCP
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: loongflow-core-config
+
+        # Environment variables from Secret
+        env:
+        - name: LLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: loongflow-core-secrets
+              key: LLM_API_KEY
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+
+        # Volume mounts
+        volumeMounts:
+        - name: loongflow-checkpoints
+          mountPath: /app/checkpoints
+        - name: loongflow-logs
+          mountPath: /app/logs
+        - name: loongflow-data
+          mountPath: /app/data
+
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+
+        # Startup probe
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+          successThreshold: 1
+
+      # Volumes
+      volumes:
+      - name: loongflow-checkpoints
+        persistentVolumeClaim:
+          claimName: loongflow-checkpoints-pvc
+      - name: loongflow-logs
+        persistentVolumeClaim:
+          claimName: loongflow-logs-pvc
+      - name: loongflow-data
+        persistentVolumeClaim:
+          claimName: loongflow-data-pvc
+
+      # Node affinity for better distribution
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - loongflow-core
+              topologyKey: kubernetes.io/hostname
+
+---
+# LoongFlow Core Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: loongflow-core-service
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 8050
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: loongflow-core
+
+---
+# Persistent Volume Claim for checkpoints
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loongflow-checkpoints-pvc
+  namespace: loongflow-system
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Persistent Volume Claim for logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loongflow-logs-pvc
+  namespace: loongflow-system
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# Persistent Volume Claim for data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loongflow-data-pvc
+  namespace: loongflow-system
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: loongflow-core-hpa
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: loongflow-core
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      selectPolicy: Min
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Pod Disruption Budget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: loongflow-core-pdb
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: loongflow-core
+
+---
+# NetworkPolicy (optional, for security)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loongflow-core-netpol
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+spec:
+  podSelector:
+    matchLabels:
+      app: loongflow-core
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: loongflow-system
+    - podSelector:
+        matchLabels:
+          app: loongflow-adapter
+    ports:
+    - protocol: TCP
+      port: 8050
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: federation-system
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443   # HTTPS for LLM APIs
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: UDP
+      port: 53    # DNS
+
+---
+# Prometheus ServiceMonitor (if using Prometheus Operator)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: loongflow-core
+  namespace: loongflow-system
+  labels:
+    app: loongflow-core
+spec:
+  selector:
+    matchLabels:
+      app: loongflow-core
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s

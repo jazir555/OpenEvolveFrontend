@@ -404,7 +404,7 @@ export class KarateClubAdapter {
 
       return {
         success: !hasError,
-        results: results,
+        results,
         algorithms_used: algorithmsUsed,
         execution_time_ms: executionTime,
         error: hasError ? firstError : undefined,
@@ -459,7 +459,7 @@ export class KarateClubAdapter {
     return {
       num_nodes: numNodes,
       num_edges: numEdges,
-      density: density,
+      density,
       is_connected: true, // Would need full connected components analysis
       avg_degree: avgDegree,
     };

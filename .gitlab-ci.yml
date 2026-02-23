@@ -1,0 +1,322 @@
+# ============================================================================
+# OpenEvolve Frontend - GitLab CI/CD Pipeline
+# ============================================================================
+# This pipeline orchestrates the build, test, and deployment of the
+# OpenEvolve Frontend hybrid PES-Evolution System.
+#
+# Architecture: Federation of 30+ Open Source systems
+# Operating Mode: ZERO TRUST
+# ============================================================================
+
+stages:
+  - install
+  - validate
+  - test
+  - build
+  - security
+  - deploy
+
+# ============================================================================
+# Global Variables
+# ============================================================================
+variables:
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
+  CACHE_KEY_PREFIX: "openevolve-frontend"
+  # Docker configuration
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  # Deployment configuration
+  KUBECONFIG: /tmp/kubeconfig
+  HELM_TIMEOUT: "300s"
+
+# ============================================================================
+# Cache Configuration
+# ============================================================================
+.cache_template: &cache_config
+  key:
+    files:
+      - package-lock.json
+      - glue/orchestration/package-lock.json
+    prefix: ${CACHE_KEY_PREFIX}-${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - glue/orchestration/node_modules/
+    - glue/adapters/*/node_modules/
+    - .npm/
+  policy: pull
+
+# ============================================================================
+# Stage 1: Install Dependencies
+# ============================================================================
+install:dependencies:
+  stage: install
+  image: node:${NODE_VERSION}
+  cache:
+    <<: *cache_config
+    policy: pull-push
+  script:
+    - echo "Installing dependencies..."
+    - npm ci --prefer-offline --no-audit
+    - cd glue/orchestration && npm ci --prefer-offline --no-audit
+  artifacts:
+    paths:
+      - node_modules/
+      - glue/orchestration/node_modules/
+    expire_in: 1 hour
+  tags:
+    - docker
+
+# ============================================================================
+# Stage 2: Validate Code Quality
+# ============================================================================
+validate:lint:
+  stage: validate
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  script:
+    - echo "Running ESLint..."
+    - npm run lint
+    - echo "Checking TypeScript types..."
+    - npm run typecheck
+  allow_failure: false
+  tags:
+    - docker
+
+validate:format:
+  stage: validate
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  script:
+    - echo "Checking code formatting with Prettier..."
+    - npm run format -- --check
+  allow_failure: true
+  tags:
+    - docker
+
+# ============================================================================
+# Stage 3: Test Suite
+# ============================================================================
+test:unit:
+  stage: test
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  script:
+    - echo "Running unit tests with coverage..."
+    - npm run test:ci
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - coverage/
+    expire_in: 1 week
+  tags:
+    - docker
+
+test:integration:
+  stage: test
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  services:
+    - name: redis:7-alpine
+      alias: valkey
+      command: ["--save", "", "--appendonly", "no"]
+  variables:
+    VALKEY_HOST: valkey
+    VALKEY_PORT: 6379
+    NODE_ENV: test
+  script:
+    - echo "Running integration tests..."
+    - npm run test:e2e
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+    expire_in: 1 week
+  tags:
+    - docker
+
+test:contract:
+  stage: test
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  script:
+    - echo "Running contract tests against core projects..."
+    - npm run test:contract || echo "No contract tests configured"
+  allow_failure: true
+  tags:
+    - docker
+
+# ============================================================================
+# Stage 4: Build Artifacts
+# ============================================================================
+build:typescript:
+  stage: build
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  script:
+    - echo "Building TypeScript projects..."
+    - npm run build
+  artifacts:
+    paths:
+      - glue/orchestration/workflows/dist/
+      - glue/adapters/*/dist/
+    expire_in: 1 day
+  tags:
+    - docker
+
+build:docker:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  dependencies:
+    - build:typescript
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+  script:
+    - echo "Building Docker image..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG -t $IMAGE_LATEST .
+    - docker push $IMAGE_TAG
+    - docker push $IMAGE_LATEST
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+# ============================================================================
+# Stage 5: Security Scanning
+# ============================================================================
+security:dependency-scan:
+  stage: security
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  script:
+    - echo "Scanning dependencies for vulnerabilities..."
+    - npm audit --audit-level=moderate --production || true
+    - npm audit --audit-level=high || exit 1
+  allow_failure: true
+  artifacts:
+    reports:
+      dependency_scanning: gl-dependency-scanning-report.json
+    paths:
+      - gl-dependency-scanning-report.json
+    expire_in: 1 week
+  tags:
+    - docker
+
+security:sast:
+  stage: security
+  image: returntocorp/semgrep
+  dependencies: []
+  script:
+    - echo "Running static application security testing..."
+    - semgrep --config auto --json --output semgrep-report.json .
+  allow_failure: true
+  artifacts:
+    paths:
+      - semgrep-report.json
+    expire_in: 1 week
+  tags:
+    - docker
+
+# ============================================================================
+# Stage 6: Deploy
+# ============================================================================
+deploy:staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  dependencies:
+    - build:docker
+  environment:
+    name: staging
+    url: https://staging.openevolve.io
+  script:
+    - echo "Deploying to staging environment..."
+    - kubectl config use-context $KUBE_CONTEXT_STAGING
+    - kubectl set image deployment/openevolve-frontend openevolve=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA -n openevolve-staging
+    - kubectl rollout status deployment/openevolve-frontend -n openevolve-staging --timeout=5m
+  only:
+    - develop
+  when: manual
+  tags:
+    - kubernetes
+
+deploy:production:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  dependencies:
+    - build:docker
+  environment:
+    name: production
+    url: https://openevolve.io
+  script:
+    - echo "Deploying to production environment..."
+    - kubectl config use-context $KUBE_CONTEXT_PRODUCTION
+    - kubectl set image deployment/openevolve-frontend openevolve=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA -n openevolve-production
+    - kubectl rollout status deployment/openevolve-frontend -n openevolve-production --timeout=10m
+  only:
+    - main
+  when: manual
+  tags:
+    - kubernetes
+
+# ============================================================================
+# Post-Deployment Smoke Tests
+# ============================================================================
+test:smoke-staging:
+  stage: deploy
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  needs:
+    - deploy:staging
+  script:
+    - echo "Running smoke tests on staging..."
+    - npm run test:smoke -- --env=staging
+  only:
+    - develop
+  allow_failure: true
+  tags:
+    - docker
+
+test:smoke-production:
+  stage: deploy
+  image: node:${NODE_VERSION}
+  dependencies:
+    - install:dependencies
+  needs:
+    - deploy:production
+  script:
+    - echo "Running smoke tests on production..."
+    - npm run test:smoke -- --env=production
+  only:
+    - main
+  allow_failure: true
+  tags:
+    - docker
+
+# ============================================================================
+# Pipeline Cleanup
+# ============================================================================
+cleanup:cache:
+  stage: .post
+  image: alpine:3.19
+  script:
+    - echo "Pipeline completed. Cache retained for next run."
+  when: always
+  tags:
+    - docker

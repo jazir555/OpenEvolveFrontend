@@ -88,13 +88,12 @@ export function formatDuration(ms: number): string {
 
   if (days > 0) {
     return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  } else if (hours > 0) {
+  } if (hours > 0) {
     return `${hours}h ${minutes % 60}m`;
-  } else if (minutes > 0) {
+  } if (minutes > 0) {
     return `${minutes}m ${seconds % 60}s`;
-  } else {
-    return `${seconds}s`;
   }
+  return `${seconds}s`;
 }
 
 /**
@@ -183,7 +182,7 @@ export function fromUnix(unix: number): string {
  */
 export function truncateToSeconds(timestamp: TimestampInput): string {
   const iso = toUtcIso(timestamp);
-  return iso.substring(0, 19) + 'Z';
+  return `${iso.substring(0, 19)}Z`;
 }
 
 /**

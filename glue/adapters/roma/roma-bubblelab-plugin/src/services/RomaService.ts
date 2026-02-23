@@ -1,6 +1,6 @@
 /**
  * ROMA Service Layer
- * 
+ *
  * This service provides business logic and additional functionality on top of the ROMA client.
  * It includes caching, retry logic, validation, and performance analysis.
  */
@@ -54,13 +54,12 @@ export class RomaService implements RomaServiceInterface {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const result = await this.client.executeTask(goal, options);
-        
+
         // Validate the result
         if (this.validateExecutionResult(result)) {
           return result;
-        } else {
-          throw new Error('Invalid execution result');
         }
+        throw new Error('Invalid execution result');
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         console.warn(`ROMA execution attempt ${attempt} failed: ${lastError.message}`);
@@ -110,7 +109,7 @@ export class RomaService implements RomaServiceInterface {
    */
   public getCachedExecution(goal: string): RomaExecutionResult | undefined {
     const cachedResult = this.executionCache.get(goal);
-    
+
     if (!cachedResult) {
       return undefined;
     }
@@ -178,9 +177,9 @@ export class RomaService implements RomaServiceInterface {
 
     // Check statistics
     if (result.statistics && (
-      result.statistics.executionTime < 0 ||
-      result.statistics.subtasksCreated < 0 ||
-      result.statistics.subtasksCompleted < 0
+      result.statistics.executionTime < 0
+      || result.statistics.subtasksCreated < 0
+      || result.statistics.subtasksCompleted < 0
     )) {
       console.error('Invalid ROMA execution statistics: negative values');
       return false;
@@ -235,10 +234,10 @@ export class RomaService implements RomaServiceInterface {
   public async getExecutionPlan(executionId: string): Promise<any> {
     try {
       console.log(`Getting execution plan for ${executionId}`);
-      
+
       // Get execution details from ROMA API
       const execution = await this.client.getExecution(executionId);
-      
+
       if (!execution) {
         throw new Error(`Execution ${executionId} not found`);
       }
@@ -246,7 +245,7 @@ export class RomaService implements RomaServiceInterface {
       // Build execution plan from execution data
       // In a real implementation, this would call ROMA's /executions/{id}/plan endpoint
       // For now, we construct a plan from available execution data
-      
+
       const plan = {
         executionId,
         originalGoal: execution.goal,
@@ -279,10 +278,10 @@ export class RomaService implements RomaServiceInterface {
   public async analyzeExecutionPerformance(executionId: string): Promise<Record<string, any>> {
     try {
       console.log(`Analyzing performance for execution ${executionId}`);
-      
+
       // Get execution details from ROMA API
       const execution = await this.client.getExecution(executionId);
-      
+
       if (!execution) {
         throw new Error(`Execution ${executionId} not found`);
       }

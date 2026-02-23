@@ -25,10 +25,8 @@ exports.DEFAULT_RETRY_POLICY = {
  * Transient failures (network blips) should use retry logic before DLQ
  */
 class DeadLetterQueue {
-    logger;
-    queue = new Map();
-    retryPolicy;
     constructor(retryPolicy) {
+        this.queue = new Map();
         this.logger = new logger_1.Logger('dead-letter-queue');
         this.retryPolicy = { ...exports.DEFAULT_RETRY_POLICY, ...retryPolicy };
     }
@@ -314,4 +312,3 @@ exports.deadLetterQueue = new DeadLetterQueue();
  * });
  * ```
  */
-//# sourceMappingURL=dead-letter-queue.js.map

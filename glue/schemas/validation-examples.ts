@@ -68,8 +68,8 @@ function testZ3Schemas() {
   const solverRequestValidation = validateSolverRequest(Z3Examples.validSolverRequest);
   if (solverRequestValidation.success) {
     logSuccess('Valid SolverRequest passed validation');
-    console.log('  Problem:', solverRequestValidation.data!.problem.substring(0, 50) + '...');
-    console.log('  Timeout:', solverRequestValidation.data!.timeout_ms + 'ms');
+    console.log('  Problem:', `${solverRequestValidation.data!.problem.substring(0, 50)}...`);
+    console.log('  Timeout:', `${solverRequestValidation.data!.timeout_ms}ms`);
   } else {
     logError('Valid SolverRequest failed validation');
     console.log('  Errors:', solverRequestValidation.errors);
@@ -141,7 +141,7 @@ function testLeanAideSchemas() {
   if (proofRequestValidation.success) {
     logSuccess('Valid ProofVerificationRequest passed validation');
     console.log('  Theorem:', proofRequestValidation.data!.theorem);
-    console.log('  Timeout:', proofRequestValidation.data!.timeout_ms + 'ms');
+    console.log('  Timeout:', `${proofRequestValidation.data!.timeout_ms}ms`);
   } else {
     logError('Valid ProofVerificationRequest failed validation');
     console.log('  Errors:', proofRequestValidation.errors);
@@ -169,7 +169,7 @@ function testLeanAideSchemas() {
   if (compilationRequestValidation.success) {
     logSuccess('Valid LeanCompilationRequest passed validation');
     console.log('  Filename:', compilationRequestValidation.data!.filename);
-    console.log('  Code length:', compilationRequestValidation.data!.code.length + ' chars');
+    console.log('  Code length:', `${compilationRequestValidation.data!.code.length} chars`);
   } else {
     logError('Valid LeanCompilationRequest failed validation');
     console.log('  Errors:', compilationRequestValidation.errors);

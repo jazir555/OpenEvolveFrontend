@@ -386,6 +386,48 @@ result = await agent(message)
 
 For more details, please refer to [ReActAgent](./src/loongflow/framework/react/README.md)
 
+## HTTP API
+
+---
+
+**REST API wrapper** for integrating LoongFlow into microservice architectures:
+
+```bash
+# Start the API server
+export LOONGFLOW_LLM_API_KEY="your-api-key"
+python api_server.py
+
+# Or use Docker
+docker-compose -f docker-compose.loongflow-core.yml up -d
+```
+
+The API provides endpoints for:
+- `POST /api/v1/evolve` - Start a new evolution
+- `GET /api/v1/status/{id}` - Check evolution progress
+- `GET /api/v1/solutions/{id}` - Get final solution
+- `GET /health` - Health check
+
+**Example usage:**
+```python
+import requests
+
+# Start evolution
+response = requests.post("http://localhost:8000/api/v1/evolve", json={
+    "name": "my-evolution",
+    "task": "Solve the packing problem",
+    "max_generations": 10
+})
+evolution_id = response.json()["evolution_id"]
+
+# Check status
+status = requests.get(f"http://localhost:8000/api/v1/status/{evolution_id}").json()
+
+# Get solution (when complete)
+solution = requests.get(f"http://localhost:8000/api/v1/solutions/{evolution_id}").json()
+```
+
+For full API documentation, see [API.md](./API.md)
+
 ## Visualization
 
 ---

@@ -162,7 +162,7 @@ export class OIDCProvider {
     if (errors.length > 0) {
       logger.fatal({
         msg: 'OIDC configuration validation failed',
-        errors: errors,
+        errors,
       });
       throw new Error(`FATAL: OIDC Configuration Error:\n${errors.map(e => `  - ${e}`).join('\n')}`);
     }
@@ -237,8 +237,8 @@ export class OIDCProvider {
       client_id: this.config.clientId,
       redirect_uri: redirectPath ? `${this.config.redirectUri}${redirectPath}` : this.config.redirectUri,
       scope: this.config.scopes.join(' '),
-      state: state,
-      nonce: nonce,
+      state,
+      nonce,
       response_mode: 'query',
     });
 
@@ -246,8 +246,8 @@ export class OIDCProvider {
 
     logger.info({
       msg: 'Generated authorization URL',
-      state: state,
-      nonce: nonce,
+      state,
+      nonce,
       correlation_id: this.generateCorrelationId(),
     });
 
@@ -283,7 +283,7 @@ export class OIDCProvider {
     try {
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
-        code: code,
+        code,
         redirect_uri: this.config.redirectUri,
         client_id: this.config.clientId,
         client_secret: this.config.clientSecret,

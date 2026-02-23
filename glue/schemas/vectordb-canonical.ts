@@ -211,7 +211,6 @@ export const VectorSearchResult = z.object({
   id: z.string().describe("ID of the matching vector"),
 
   score: z.number()
-    .float("Score must be a float")
     .describe("Similarity score (higher is more similar)"),
 
   metadata: VectorMetadata.optional()
@@ -569,18 +568,18 @@ export function validateCollectionInfo(data: unknown): {
  */
 
 export function isVectorSearchRequest(data: unknown): data is VectorSearchRequest {
-  return typeof data === 'object' && data !== null &&
-    'collection_name' in data && 'query_vector' in data && 'top_k' in data;
+  return typeof data === 'object' && data !== null
+    && 'collection_name' in data && 'query_vector' in data && 'top_k' in data;
 }
 
 export function isVectorUpsertRequest(data: unknown): data is VectorUpsertRequest {
-  return typeof data === 'object' && data !== null &&
-    'collection_name' in data && 'vectors' in data;
+  return typeof data === 'object' && data !== null
+    && 'collection_name' in data && 'vectors' in data;
 }
 
 export function isCollectionInfo(data: unknown): data is CollectionInfo {
-  return typeof data === 'object' && data !== null &&
-    'name' in data && 'dimension' in data && 'count' in data;
+  return typeof data === 'object' && data !== null
+    && 'name' in data && 'dimension' in data && 'count' in data;
 }
 
 /**

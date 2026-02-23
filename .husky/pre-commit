@@ -1,0 +1,45 @@
+#!/bin/sh
+# ============================================================================
+# OpenEvolve Frontend - Pre-commit Hook
+# ============================================================================
+# This hook runs linting and tests before allowing commits.
+#
+# Operating Mode: ZERO TRUST - Verify before committing
+# ============================================================================
+
+. "$(dirname "$0")/_/husky.sh"
+
+echo "========================================"
+echo "OpenEvolve Frontend - Pre-commit Checks"
+echo "========================================"
+
+# Run linting
+echo "Running ESLint..."
+npm run lint --silent
+
+if [ $? -ne 0 ]; then
+    echo "❌ Linting failed. Please fix linting errors before committing."
+    echo "Run 'npm run lint:fix' to auto-fix many issues."
+    exit 1
+fi
+
+# Run type checking
+echo "Running TypeScript type check..."
+npm run typecheck --silent
+
+if [ $? -ne 0 ]; then
+    echo "❌ Type check failed. Please fix type errors before committing."
+    exit 1
+fi
+
+# Run tests (quick, non-E2E)
+echo "Running tests..."
+npm run test --silent -- --passWithNoTests
+
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed. Please fix failing tests before committing."
+    exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+echo "========================================"

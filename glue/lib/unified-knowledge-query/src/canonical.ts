@@ -78,13 +78,18 @@ export const UnifiedKnowledgeQuerySchema = z.object({
   knowledgeTypes: z.array(KnowledgeTypeSchema).optional().default(['all']),
 
   // Result limits
-  maxResults: z.number().int().positive().max(1000).optional().default(50),
+  maxResults: z.number().int().positive().max(1000)
+    .optional()
+    .default(50),
 
   // Confidence threshold (0.0 to 1.0)
-  minConfidence: z.number().min(0).max(1).optional().default(0.0),
+  minConfidence: z.number().min(0).max(1).optional()
+    .default(0.0),
 
   // Graph traversal depth
-  maxDepth: z.number().int().positive().max(10).optional().default(2),
+  maxDepth: z.number().int().positive().max(10)
+    .optional()
+    .default(2),
 
   // Include metadata
   includeMetadata: z.boolean().optional().default(true),
@@ -294,11 +299,16 @@ export type EngineMetrics = z.infer<typeof EngineMetricsSchema>;
 export const QueryOptionsSchema = z.object({
   domains: z.array(KnowledgeDomainSchema).optional().default(['all']),
   knowledgeTypes: z.array(KnowledgeTypeSchema).optional().default(['all']),
-  maxResults: z.number().int().positive().max(1000).optional().default(50),
-  minConfidence: z.number().min(0).max(1).optional().default(0.0),
+  maxResults: z.number().int().positive().max(1000)
+    .optional()
+    .default(50),
+  minConfidence: z.number().min(0).max(1).optional()
+    .default(0.0),
   temporalFilter: TemporalFilterSchema.optional(),
   queryType: QueryTypeSchema.optional().default('hybrid'),
-  maxDepth: z.number().int().positive().max(10).optional().default(2),
+  maxDepth: z.number().int().positive().max(10)
+    .optional()
+    .default(2),
 });
 export type QueryOptions = z.infer<typeof QueryOptionsSchema>;
 

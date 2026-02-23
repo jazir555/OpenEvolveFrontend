@@ -72,7 +72,8 @@ export const BubbleRequest = z.object({
   config: z.object({
     priority: z.enum(['low', 'normal', 'high', 'urgent']).optional()
       .describe("Execution priority"),
-    retry_count: z.number().int().min(0).max(10).optional()
+    retry_count: z.number().int().min(0).max(10)
+      .optional()
       .describe("Number of retry attempts on failure"),
     timeout_ms: z.number()
       .int("Timeout must be an integer")
@@ -172,7 +173,8 @@ export const WorkflowRequest = z.object({
       .describe("Whether to execute bubbles in parallel where possible"),
 
     retry_config: z.object({
-      max_retries: z.number().int().min(0).max(10).optional()
+      max_retries: z.number().int().min(0).max(10)
+        .optional()
         .describe("Maximum number of retries"),
       backoff_ms: z.number().int().min(0).optional()
         .describe("Backoff delay between retries"),
@@ -516,13 +518,13 @@ export function validateWorkflowResponse(data: unknown): {
  */
 
 export function isBubbleRequest(data: unknown): data is BubbleRequest {
-  return typeof data === 'object' && data !== null &&
-    'workspace_id' in data && 'bubble_type' in data && 'name' in data;
+  return typeof data === 'object' && data !== null
+    && 'workspace_id' in data && 'bubble_type' in data && 'name' in data;
 }
 
 export function isWorkflowRequest(data: unknown): data is WorkflowRequest {
-  return typeof data === 'object' && data !== null &&
-    'workflow_id' in data && 'workspace_id' in data;
+  return typeof data === 'object' && data !== null
+    && 'workflow_id' in data && 'workspace_id' in data;
 }
 
 /**

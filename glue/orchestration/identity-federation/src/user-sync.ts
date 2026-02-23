@@ -163,41 +163,39 @@ export class ShadowAccountSync {
           });
 
           return { created: false, account: updated };
-        } else {
-          logger.debug('Account up to date, skipping', {
-            ...this.loggerContext,
-            service_name: serviceName,
-            remote_id: centralUser.sub,
-          });
-
-          return { created: false, account: existing };
         }
-      } else {
-        // Create new shadow account
-        const accountData = this.buildAccountData(centralUser);
-
-        if (options.dryRun) {
-          logger.info('[DRY RUN] Would create account', {
-            ...this.loggerContext,
-            service_name: serviceName,
-            username: centralUser.username,
-          });
-          return { created: true, account: accountData as ShadowAccount };
-        }
-
-        const created = await retryWithBackoff(
-          () => adapter.createAccount(accountData),
-          { max_retries: 3, base_delay_ms: 1000 }
-        );
-
-        logger.info('Created shadow account', {
+        logger.debug('Account up to date, skipping', {
           ...this.loggerContext,
           service_name: serviceName,
           remote_id: centralUser.sub,
         });
 
-        return { created: true, account: created };
+        return { created: false, account: existing };
       }
+      // Create new shadow account
+      const accountData = this.buildAccountData(centralUser);
+
+      if (options.dryRun) {
+        logger.info('[DRY RUN] Would create account', {
+          ...this.loggerContext,
+          service_name: serviceName,
+          username: centralUser.username,
+        });
+        return { created: true, account: accountData as ShadowAccount };
+      }
+
+      const created = await retryWithBackoff(
+        () => adapter.createAccount(accountData),
+        { max_retries: 3, base_delay_ms: 1000 }
+      );
+
+      logger.info('Created shadow account', {
+        ...this.loggerContext,
+        service_name: serviceName,
+        remote_id: centralUser.sub,
+      });
+
+      return { created: true, account: created };
     } catch (error) {
       logger.error('Failed to sync user', error as Error, {
         ...this.loggerContext,

@@ -3,23 +3,24 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { DatapizzaPluginConfig, DatapizzaPluginState, DatapizzaPlugin, 
-         DatapizzaPipelineResult, DatapizzaProcessingResult, DatapizzaQueryResult,
-         DatapizzaPluginContext, DEFAULT_DATAPIZZA_CONFIG, DATAPIZZA_PIPELINE_TYPES, DATAPIZZA_DATA_DOMAINS } from '../types/plugin-types';
+import { DatapizzaPluginConfig, DatapizzaPluginState, DatapizzaPlugin,
+  DatapizzaPipelineResult, DatapizzaProcessingResult, DatapizzaQueryResult,
+  DatapizzaPluginContext, DEFAULT_DATAPIZZA_CONFIG, DATAPIZZA_PIPELINE_TYPES, DATAPIZZA_DATA_DOMAINS } from '../types/plugin-types';
 import { DatapizzaClient } from '../services/DatapizzaClient';
 import { DatapizzaService } from '../services/DatapizzaService';
 
 // Global plugin state management
-let globalPluginState: DatapizzaPluginState = { ...DEFAULT_DATAPIZZA_CONFIG, ...{
-  status: 'idle',
-  operationHistory: [],
-  statistics: {
-    totalOperations: 0,
-    successfulOperations: 0,
-    failedOperations: 0,
-    averageProcessingTime: 0
-  }
-} };
+let globalPluginState: DatapizzaPluginState = { ...DEFAULT_DATAPIZZA_CONFIG,
+  ...{
+    status: 'idle',
+    operationHistory: [],
+    statistics: {
+      totalOperations: 0,
+      successfulOperations: 0,
+      failedOperations: 0,
+      averageProcessingTime: 0
+    }
+  } };
 
 let globalPluginInstance: DatapizzaPlugin | null = null;
 
@@ -79,7 +80,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
     async initialize(configUpdate?: Partial<DatapizzaPluginConfig>) {
       try {
         state.status = 'initializing';
-        
+
         if (configUpdate) {
           Object.assign(config, configUpdate);
           Object.assign(state, config);
@@ -97,7 +98,6 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
 
         state.status = 'ready';
         toast.success('Datapizza plugin initialized successfully');
-        
       } catch (error) {
         state.status = 'error';
         toast.error(`Failed to initialize Datapizza plugin: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -118,7 +118,6 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         });
 
         toast.success('Datapizza configuration updated successfully');
-        
       } catch (error) {
         toast.error(`Failed to update configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
         throw error;
@@ -128,7 +127,7 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
     async resetConfig() {
       Object.assign(config, DEFAULT_DATAPIZZA_CONFIG);
       Object.assign(state, DEFAULT_DATAPIZZA_CONFIG);
-      
+
       client.configure({
         baseUrl: config.serverUrl,
         apiKey: config.apiKey,
@@ -156,18 +155,18 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         };
 
         const startTime = Date.now();
-        
+
         const result = await service.runPipeline(dataSource, pipelineType || config.defaultPipelineType);
-        
+
         const executionTime = Date.now() - startTime;
-        
+
         // Update statistics
         state.statistics.totalOperations++;
         if (result.success) {
           state.statistics.successfulOperations++;
           state.statistics.averageProcessingTime = (
-            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1)) + 
-            executionTime
+            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1))
+            + executionTime
           ) / state.statistics.totalOperations;
         } else {
           state.statistics.failedOperations++;
@@ -201,14 +200,13 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
           ...result,
           executionTime
         };
-        
       } catch (error) {
         state.status = 'error';
         state.currentOperation = undefined;
-        
+
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         toast.error(`Pipeline failed: ${errorMessage}`);
-        
+
         // Add error to operation history
         state.operationHistory.unshift({
           id: Date.now().toString(),
@@ -245,18 +243,18 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         };
 
         const startTime = Date.now();
-        
+
         const result = await service.processData(data, processingType);
-        
+
         const executionTime = Date.now() - startTime;
-        
+
         // Update statistics
         state.statistics.totalOperations++;
         if (result.success) {
           state.statistics.successfulOperations++;
           state.statistics.averageProcessingTime = (
-            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1)) + 
-            executionTime
+            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1))
+            + executionTime
           ) / state.statistics.totalOperations;
         } else {
           state.statistics.failedOperations++;
@@ -290,14 +288,13 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
           ...result,
           executionTime
         };
-        
       } catch (error) {
         state.status = 'error';
         state.currentOperation = undefined;
-        
+
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         toast.error(`Data processing failed: ${errorMessage}`);
-        
+
         // Add error to operation history
         state.operationHistory.unshift({
           id: Date.now().toString(),
@@ -334,18 +331,18 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
         };
 
         const startTime = Date.now();
-        
+
         const result = await service.queryData(query, dataSource);
-        
+
         const executionTime = Date.now() - startTime;
-        
+
         // Update statistics
         state.statistics.totalOperations++;
         if (result.success) {
           state.statistics.successfulOperations++;
           state.statistics.averageProcessingTime = (
-            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1)) + 
-            executionTime
+            (state.statistics.averageProcessingTime * (state.statistics.totalOperations - 1))
+            + executionTime
           ) / state.statistics.totalOperations;
         } else {
           state.statistics.failedOperations++;
@@ -380,14 +377,13 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
           ...result,
           processingTime: executionTime
         };
-        
       } catch (error) {
         state.status = 'error';
         state.currentOperation = undefined;
-        
+
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         toast.error(`Query failed: ${errorMessage}`);
-        
+
         // Add error to operation history
         state.operationHistory.unshift({
           id: Date.now().toString(),
@@ -499,15 +495,15 @@ export function createDatapizzaPlugin(initialConfig?: Partial<DatapizzaPluginCon
 // React hook for using the plugin
 export function useDatapizzaPlugin(): DatapizzaPlugin {
   const [plugin] = useState<DatapizzaPlugin>(() => createDatapizzaPlugin());
-  
+
   useEffect(() => {
     // Initialize plugin on mount
     plugin.initialize();
-    
+
     return () => {
       // Cleanup if needed
     };
   }, []);
-  
+
   return plugin;
 }

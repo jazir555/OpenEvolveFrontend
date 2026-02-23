@@ -129,7 +129,8 @@ export const AgentJsonRequest = z.object({
     task_id: z.string().optional(),
     task_type: z.string(),
     parameters: z.record(z.any()),
-    timeout_ms: z.number().int().positive().max(3600000).optional(),
+    timeout_ms: z.number().int().positive().max(3600000)
+      .optional(),
   }).optional().describe("Task to execute"),
 
   timeout_ms: z.number()
@@ -203,7 +204,8 @@ export const AgentJsonBatchRequest = z.object({
   config: z.object({
     parallel: z.boolean().optional().describe("Send messages in parallel"),
     stop_on_error: z.boolean().optional().describe("Stop on first error"),
-    timeout_ms: z.number().int().positive().max(300000).optional(),
+    timeout_ms: z.number().int().positive().max(300000)
+      .optional(),
   }).optional(),
 
   timeout_ms: z.number().int().positive().max(60000),
@@ -282,8 +284,8 @@ export function validateAgentJsonRequest(data: unknown): {
 }
 
 export function isAgentJsonRequest(data: unknown): data is AgentJsonRequest {
-  return typeof data === 'object' && data !== null &&
-    'agent_id' in data && 'action' in data;
+  return typeof data === 'object' && data !== null
+    && 'agent_id' in data && 'action' in data;
 }
 
 /**

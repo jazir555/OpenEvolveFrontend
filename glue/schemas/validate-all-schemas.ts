@@ -243,9 +243,9 @@ function runTests(): void {
     testResults.push({ name: 'KarateClub NodeEmbeddingRequest', passed: true });
   } else {
     console.log('  ❌ FAIL: KarateClub NodeEmbeddingRequest validation');
-    console.log('  Errors:', nodeEmbResult.errors);
+    console.log('  Errors:', nodeEmbResult.error);
     failed++;
-    testResults.push({ name: 'KarateClub NodeEmbeddingRequest', passed: false, error: nodeEmbResult.errors?.join(', ') });
+    testResults.push({ name: 'KarateClub NodeEmbeddingRequest', passed: false, error: nodeEmbResult.error?.issues.map(i => i.message).join(', ') });
   }
 
   // Test 12: KarateClub Community Detection Request
@@ -273,13 +273,13 @@ function runTests(): void {
     testResults.push({ name: 'KarateClub CommunityDetectionRequest', passed: true });
   } else {
     console.log('  ❌ FAIL: KarateClub CommunityDetectionRequest validation');
-    console.log('  Errors:', communityResult.errors);
+    console.log('  Errors:', communityResult.error);
     failed++;
-    testResults.push({ name: 'KarateClub CommunityDetectionRequest', passed: false, error: communityResult.errors?.join(', ') });
+    testResults.push({ name: 'KarateClub CommunityDetectionRequest', passed: false, error: communityResult.error?.issues.map(i => i.message).join(', ') });
   }
 
   // Summary
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 VALIDATION SUMMARY');
   console.log('='.repeat(60));
   console.log(`Total Tests: ${passed + failed}`);

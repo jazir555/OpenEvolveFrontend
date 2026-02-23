@@ -94,7 +94,7 @@ class LeanAideAPIClient {
     // Mock responses based on the request
     if (path === '/' || path === '/verify') {
       return this.mockVerifyResponse(data);
-    } else if (path === '/compile') {
+    } if (path === '/compile') {
       return this.mockCompileResponse(data);
     }
 

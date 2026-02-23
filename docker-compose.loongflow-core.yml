@@ -1,0 +1,127 @@
+# LoongFlow Core Service Docker Compose Configuration
+#
+# Following CLAUDE.md principles:
+# - Law of Configuration Explicitness: All config via env vars
+# - Law of Runtime Truth: Health checks verify API availability
+# - Law of UTC: All services use TZ=UTC
+# - Isolation: Core service separate from adapter
+#
+# Usage:
+#   docker-compose -f docker-compose.loongflow-core.yml up -d
+#   docker-compose -f docker-compose.loongflow-core.yml logs -f loongflow-core
+#   docker-compose -f docker-compose.loongflow-core.yml down
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Redis Service for LoongFlow
+  # ============================================================================
+  loongflow-redis:
+    image: redis:7-alpine
+    container_name: loongflow-redis
+    hostname: loongflow-redis
+    networks:
+      - loongflow-net
+    ports:
+      - "6379:6379"
+    environment:
+      - TZ=UTC
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - loongflow-redis-data:/data
+
+  # ============================================================================
+  # LoongFlow Core Service
+  # ============================================================================
+  loongflow-core:
+    build:
+      context: ./core-projects/LoongFlow
+      dockerfile: docker/Dockerfile.api
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: loongflow-core
+    hostname: loongflow-core
+    networks:
+      - loongflow-net
+    ports:
+      - "${LOONGFLOW_API_PORT:-8000}:8000"  # LoongFlow HTTP API
+    environment:
+      # REQUIRED - Service will crash if missing (Law of Configuration Explicitness)
+      - LOONGFLOW_LLM_API_KEY=${LOONGFLOW_LLM_API_KEY}
+
+      # API Server Configuration
+      - LOONGFLOW_API_HOST=${LOONGFLOW_API_HOST:-0.0.0.0}
+      - LOONGFLOW_API_PORT=${LOONGFLOW_API_PORT:-8000}
+      - LOONGFLOW_API_WORKERS=${LOONGFLOW_API_WORKERS:-1}
+
+      # LLM Configuration
+      - LOONGFLOW_LLM_URL=${LOONGFLOW_LLM_URL:-https://api.openai.com/v1}
+      - LOONGFLOW_LLM_MODEL=${LOONGFLOW_LLM_MODEL:-gpt-4}
+      - LOONGFLOW_LLM_TEMPERATURE=${LOONGFLOW_LLM_TEMPERATURE:-0.7}
+      - LOONGFLOW_LLM_MAX_TOKENS=${LOONGFLOW_LLM_MAX_TOKENS:-2000}
+
+      # Checkpointing
+      - LOONGFLOW_ENABLE_CHECKPOINTING=${LOONGFLOW_ENABLE_CHECKPOINTING:-true}
+      - LOONGFLOW_CHECKPOINT_DIR=${LOONGFLOW_CHECKPOINT_DIR:-/app/checkpoints}
+
+      # Evaluator Configuration
+      - LOONGFLOW_EVAL_TIMEOUT=${LOONGFLOW_EVAL_TIMEOUT:-300}
+
+      # Logging (UTC required by Law of UTC)
+      - LOONGFLOW_LOG_LEVEL=${LOONGFLOW_LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+      - TZ=UTC
+
+    volumes:
+      - loongflow-checkpoints:/app/checkpoints
+      - loongflow-logs:/app/logs
+      - loongflow-data:/app/data
+
+    depends_on:
+      loongflow-redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  loongflow-net:
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  loongflow-checkpoints:
+    driver: local
+  loongflow-logs:
+    driver: local
+  loongflow-data:
+    driver: local
+  loongflow-redis-data:
+    driver: local

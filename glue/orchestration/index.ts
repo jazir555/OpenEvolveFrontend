@@ -4,7 +4,7 @@
  * Event bus, workflow engine, dead letter queue, and correlation tracking
  */
 
-export { EventBus, eventBus, EventBusType } from './event-bus';
+export { EventBus, eventBus, InMemoryEventBus, inMemoryEventBus, EventBusType } from './event-bus';
 export type { EventBusConfig, EventBusStats } from './event-bus';
 
 export { WorkflowEngine, workflowEngine, PREDEFINED_WORKFLOWS } from './workflow-engine';

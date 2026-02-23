@@ -57,7 +57,7 @@ export interface UseRomaPluginReturn {
  */
 export function useRomaPlugin(): UseRomaPluginReturn {
   const plugin = useMemo(() => getRomaPluginInstance(), []);
-  
+
   if (!plugin) {
     return {
       plugin: {} as RomaPlugin,

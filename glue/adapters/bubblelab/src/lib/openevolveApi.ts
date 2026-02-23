@@ -8,15 +8,11 @@ import type {
   WorkflowCreateRequest,
   WorkflowCreateResponse,
   WorkflowResults,
-} from "./types";
-import type {
+
   AuditLogEntry,
   StatisticsSummary,
   AdaptiveMdapDashboard,
-  AdaptiveMdapProfiles,
-} from "./types";
-import type { IcrOverview, IcrComponents, IcrRefinements } from "./types";
-import type {
+  AdaptiveMdapProfiles, IcrOverview, IcrComponents, IcrRefinements,
   KnowledgeArtifact,
   KnowledgeGraph,
   KnowledgeStats,
@@ -31,8 +27,6 @@ import type {
   ProviderSummary,
   ParameterDefinition,
   ParameterValidationResult,
-} from "./types";
-import type {
   PerformanceMetric,
   AnalyticsWorkflowMetric,
   AnalyticsKnowledgeStats,
@@ -46,8 +40,6 @@ import type {
   CrewAIWorkflowTicket,
   WorkflowPlanResponse,
   SovereignPlan,
-} from "./types";
-import type {
   EvaluatorListResponse,
   EvaluatorUploadResponse,
   WorkflowPlanUpdateRequest,
@@ -92,8 +84,7 @@ import type {
   EvolutionRunListResponse,
   AdversarialRunResponse,
   AdversarialRunStatus,
-  AdversarialRunListResponse,
-} from "./types";
+  AdversarialRunListResponse } from "./types";
 
 import { apiLogger, LogContext } from '../../../../lib/structuredLogger';
 import { retryWithBackoff, RetryConfig } from '../../../../lib/retry';
@@ -151,8 +142,8 @@ const resolveBaseUrl = (override?: string): string => {
   // Law of Configuration Explicitness: No magic defaults
   // If no baseUrl is found, this will fail loudly
   throw new Error(
-    'OpenEvolve API base URL not configured. ' +
-    'Set OPENEVOLVE_API_BASE environment variable or provide via config.'
+    'OpenEvolve API base URL not configured. '
+    + 'Set OPENEVOLVE_API_BASE environment variable or provide via config.'
   );
 };
 
@@ -173,8 +164,8 @@ const resolveApiKey = (override?: string): string => {
 
   // Law of Configuration Explicitness: No magic defaults
   throw new Error(
-    'OpenEvolve API key not configured. ' +
-    'Set OPENEVOLVE_API_KEY environment variable or provide via config.'
+    'OpenEvolve API key not configured. '
+    + 'Set OPENEVOLVE_API_KEY environment variable or provide via config.'
   );
 };
 

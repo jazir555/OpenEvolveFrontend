@@ -49,7 +49,8 @@ export const ContextEntry = z.object({
     'null',
   ]).optional().describe("Data type for validation"),
   timestamp: z.string().datetime().optional().describe("UTC timestamp when entry was created"),
-  ttl_seconds: z.number().int().positive().optional().describe("Time-to-live in seconds"),
+  ttl_seconds: z.number().int().positive().optional()
+    .describe("Time-to-live in seconds"),
   metadata: z.record(z.any()).optional().describe("Additional metadata"),
 });
 
@@ -130,8 +131,10 @@ export const AgenticContextQueryRequest = z.object({
     keys: z.array(z.string()).optional().describe("Specific keys to retrieve"),
     pattern: z.string().optional().describe("Pattern match for keys"),
     filter: z.record(z.any()).optional().describe("Filter criteria"),
-    limit: z.number().int().positive().optional().describe("Maximum results"),
-    offset: z.number().int().min(0).optional().describe("Result offset"),
+    limit: z.number().int().positive().optional()
+      .describe("Maximum results"),
+    offset: z.number().int().min(0).optional()
+      .describe("Result offset"),
   }).describe("Query criteria"),
 
   timeout_ms: z.number().int().positive().max(30000),
@@ -228,8 +231,8 @@ export function validateAgenticContextRequest(data: unknown): {
 }
 
 export function isAgenticContextRequest(data: unknown): data is AgenticContextRequest {
-  return typeof data === 'object' && data !== null &&
-    'context_type' in data;
+  return typeof data === 'object' && data !== null
+    && 'context_type' in data;
 }
 
 /**

@@ -168,16 +168,15 @@ export class UnifiedVerificationService {
       );
 
       return results;
-    } else {
-      // Sequential verification
-      const results: CrossValidationResult[] = [];
-      for (const req of requests) {
-        const result = await this.verifyProof(req, { ...options, correlationId });
-        results.push(result);
-      }
-
-      return results;
     }
+    // Sequential verification
+    const results: CrossValidationResult[] = [];
+    for (const req of requests) {
+      const result = await this.verifyProof(req, { ...options, correlationId });
+      results.push(result);
+    }
+
+    return results;
   }
 
   /**

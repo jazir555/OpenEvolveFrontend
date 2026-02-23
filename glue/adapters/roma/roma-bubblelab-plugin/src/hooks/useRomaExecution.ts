@@ -68,7 +68,7 @@ export interface UseRomaExecutionReturn {
 export function useRomaExecution(): UseRomaExecutionReturn {
   const { plugin, isReady, error } = useRomaPlugin();
   const state = plugin.getState();
-  const currentExecution = state.currentExecution;
+  const { currentExecution } = state;
   const isExecuting = state.status === 'executing';
 
   /**
@@ -78,7 +78,7 @@ export function useRomaExecution(): UseRomaExecutionReturn {
     if (!isReady) {
       throw new RomaPluginError('Plugin not initialized. Call initialize() first.', 'PLUGIN_NOT_INITIALIZED');
     }
-    
+
     return await plugin.executeTask(goal, options);
   }, [plugin, isReady]);
 
@@ -89,7 +89,7 @@ export function useRomaExecution(): UseRomaExecutionReturn {
     if (!isReady) {
       throw new RomaPluginError('Plugin not initialized. Call initialize() first.', 'PLUGIN_NOT_INITIALIZED');
     }
-    
+
     await plugin.cancelExecution();
   }, [plugin, isReady]);
 

@@ -11,9 +11,8 @@
  */
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
-import { validateSyncOperation, validateSyncConfig, validateSyncResult, validateConflict, validateSyncSpec } from '../src/canonical';
-import { DEFAULT_SYNC_CONFIG, createSyncOperation, createSyncResult, createConflict } from '../src/canonical';
 import { v4 as uuidv4 } from 'uuid';
+import { validateSyncOperation, validateSyncConfig, validateSyncResult, validateConflict, validateSyncSpec, DEFAULT_SYNC_CONFIG, createSyncOperation, createSyncResult, createConflict } from '../src/canonical';
 
 describe('RAGBits-Graphiti Sync Contract Tests', () => {
   describe('Canonical Schema Validation', () => {

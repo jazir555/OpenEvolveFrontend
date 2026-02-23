@@ -53,8 +53,10 @@ export const AdaptiveMdapRequest = z.object({
   adaptation_config: z.object({
     mode: AdaptationMode.optional().describe("Adaptation learning mode"),
     learning_rate: z.number().positive().optional().describe("Learning rate for adaptation"),
-    batch_size: z.number().int().positive().optional().describe("Batch size for incremental updates"),
-    threshold: z.number().min(0).max(1).optional().describe("Confidence threshold for adaptation"),
+    batch_size: z.number().int().positive().optional()
+      .describe("Batch size for incremental updates"),
+    threshold: z.number().min(0).max(1).optional()
+      .describe("Confidence threshold for adaptation"),
   }).optional().describe("Adaptation configuration"),
 
   model_config: z.object({
@@ -109,7 +111,8 @@ export const AdaptiveMdapResponse = z.object({
   }).optional().describe("Adaptation information"),
 
   performance: z.object({
-    accuracy: z.number().min(0).max(1).optional().describe("Accuracy score"),
+    accuracy: z.number().min(0).max(1).optional()
+      .describe("Accuracy score"),
     latency_ms: z.number().optional().describe("Processing latency"),
     throughput: z.number().optional().describe("Throughput metrics"),
     resource_usage: z.record(z.number()).optional().describe("Resource utilization"),
@@ -138,11 +141,13 @@ export const AdaptiveMdapBatchRequest = z.object({
     .describe("Tasks to process"),
 
   config: z.object({
-    parallelism: z.number().int().min(1).max(100).optional()
+    parallelism: z.number().int().min(1).max(100)
+      .optional()
       .describe("Number of parallel tasks"),
     stop_on_error: z.boolean().optional()
       .describe("Whether to stop on first error"),
-    timeout_ms: z.number().int().positive().max(7200000).optional()
+    timeout_ms: z.number().int().positive().max(7200000)
+      .optional()
       .describe("Overall batch timeout (max 2 hours)"),
   }).optional().describe("Batch configuration"),
 
@@ -245,8 +250,8 @@ export function validateAdaptiveMdapResponse(data: unknown): {
  * Type Guards
  */
 export function isAdaptiveMdapRequest(data: unknown): data is AdaptiveMdapRequest {
-  return typeof data === 'object' && data !== null &&
-    'task_id' in data && 'domain' in data && 'input_data' in data;
+  return typeof data === 'object' && data !== null
+    && 'task_id' in data && 'domain' in data && 'input_data' in data;
 }
 
 /**
@@ -322,7 +327,8 @@ export type ComplexityDimensions = z.infer<typeof ComplexityDimensions>;
 export const ComplexityScore = z.object({
   overall_score: z.number().min(0).max(1).describe("Overall complexity (0-1)"),
   dimensions: ComplexityDimensions.optional().describe("Dimension breakdown"),
-  confidence: z.number().min(0).max(1).optional().describe("Confidence in score"),
+  confidence: z.number().min(0).max(1).optional()
+    .describe("Confidence in score"),
   strategy: z.enum([
     'DIRECT',
     'SEQUENTIAL',
@@ -394,7 +400,8 @@ export const TeamSelectionResult = z.object({
   recommended_teams: z.record(z.object({
     agents: z.array(z.string()).describe("Agent names/types"),
     reasoning: z.string().describe("Reasoning for selection"),
-    confidence: z.number().min(0).max(1).optional().describe("Confidence in selection"),
+    confidence: z.number().min(0).max(1).optional()
+      .describe("Confidence in selection"),
   })).describe("Recommended team composition"),
   estimated_cost: z.number().optional().describe("Estimated cost"),
   metadata: z.record(z.any()).optional(),
@@ -414,7 +421,8 @@ export const ResourceOptimizationResult = z.object({
   memory_allocation_mb: z.number().describe("Memory in MB"),
   timeout_ms: z.number().describe("Timeout in milliseconds"),
   estimated_duration_ms: z.number().optional().describe("Estimated duration"),
-  estimated_cost_savings: z.number().min(0).max(1).optional().describe("Cost savings (0-1)"),
+  estimated_cost_savings: z.number().min(0).max(1).optional()
+    .describe("Cost savings (0-1)"),
   recommendations: z.array(z.string()).optional().describe("Optimization recommendations"),
   metadata: z.record(z.any()).optional(),
   timestamp: z.string().datetime(),
@@ -695,7 +703,8 @@ export const PerformanceMetrics = z.object({
   p95_ms: z.number().describe("P95 latency in ms"),
   p99_ms: z.number().describe("P99 latency in ms"),
   throughput_per_sec: z.number().optional().describe("Operations per second"),
-  error_rate: z.number().min(0).max(1).optional().describe("Error rate"),
+  error_rate: z.number().min(0).max(1).optional()
+    .describe("Error rate"),
   timestamp: z.string().datetime(),
 });
 

@@ -148,13 +148,13 @@ export function validateMakerRunResult(data: unknown): {
  * Type Guards
  */
 export function isMakerConfig(data: unknown): data is MakerConfig {
-  return typeof data === 'object' && data !== null &&
-    'k_min' in data && 'k_max' in data;
+  return typeof data === 'object' && data !== null
+    && 'k_min' in data && 'k_max' in data;
 }
 
 export function isMakerStep(data: unknown): data is MakerStep {
-  return typeof data === 'object' && data !== null &&
-    'step_id' in data && 'prompt_template' in data;
+  return typeof data === 'object' && data !== null
+    && 'step_id' in data && 'prompt_template' in data;
 }
 
 /**

@@ -106,33 +106,33 @@ export class VerificationStrategySelector {
     const description = problem.description.toLowerCase();
 
     // Heuristics for problem type detection
-    if (statement.includes('smt') || statement.includes('satisfiable') ||
-        statement.includes('constraint solving')) {
+    if (statement.includes('smt') || statement.includes('satisfiable')
+        || statement.includes('constraint solving')) {
       return 'SMT_CONSTRAINTS';
     }
 
-    if (statement.includes('theorem') || statement.includes('prove') ||
-        statement.includes('lemma') || description.includes('theorem')) {
+    if (statement.includes('theorem') || statement.includes('prove')
+        || statement.includes('lemma') || description.includes('theorem')) {
       return 'THEOREM_PROVING';
     }
 
-    if (statement.includes('verify') || statement.includes('correctness') ||
-        description.includes('verification')) {
+    if (statement.includes('verify') || statement.includes('correctness')
+        || description.includes('verification')) {
       return 'FORMAL_VERIFICATION';
     }
 
-    if (statement.includes('function') || statement.includes('code') ||
-        description.includes('code')) {
+    if (statement.includes('function') || statement.includes('code')
+        || description.includes('code')) {
       return 'CODE_CORRECTNESS';
     }
 
-    if (statement.includes('model') || statement.includes('state') ||
-        description.includes('model checking')) {
+    if (statement.includes('model') || statement.includes('state')
+        || description.includes('model checking')) {
       return 'MODEL_CHECKING';
     }
 
-    if (statement.includes('sat') || statement.includes('boolean') ||
-        description.includes('satisfiability')) {
+    if (statement.includes('sat') || statement.includes('boolean')
+        || description.includes('satisfiability')) {
       return 'SAT_SOLVING';
     }
 
@@ -248,9 +248,9 @@ export class VerificationStrategySelector {
     const avgConfidence = systems.reduce((sum, s) => sum + s.confidence, 0) / systems.length;
 
     // Boost confidence when using multiple systems
-    const multiplier = strategy === 'parallel' ? 1.15 :
-                      strategy === 'hybrid' ? 1.10 :
-                      1.05; // sequential
+    const multiplier = strategy === 'parallel' ? 1.15
+      : strategy === 'hybrid' ? 1.10
+        : 1.05; // sequential
 
     return Math.min(0.99, avgConfidence * multiplier);
   }
@@ -274,13 +274,13 @@ export class VerificationStrategySelector {
       'SAT_SOLVING': `SAT solving is Z3's core strength`
     };
 
-    const strategyReason = strategy === 'parallel' ?
-      'Parallel execution provides cross-validation and highest confidence' :
-      strategy === 'sequential' ?
-      'Sequential execution allows early termination on success' :
-      strategy === 'hybrid' ?
-      'Hybrid approach combines the strengths of both systems' :
-      `${systemNames} selected based on problem type`;
+    const strategyReason = strategy === 'parallel'
+      ? 'Parallel execution provides cross-validation and highest confidence'
+      : strategy === 'sequential'
+        ? 'Sequential execution allows early termination on success'
+        : strategy === 'hybrid'
+          ? 'Hybrid approach combines the strengths of both systems'
+          : `${systemNames} selected based on problem type`;
 
     return `${reasons[problemType]}. ${strategyReason}`;
   }

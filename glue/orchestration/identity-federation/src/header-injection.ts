@@ -300,7 +300,7 @@ export class HeaderInjectionAuth {
     for (let i = 0; i < combined.length; i++) {
       const char = combined.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash &= hash; // Convert to 32bit integer
     }
 
     return Math.abs(hash).toString(16);

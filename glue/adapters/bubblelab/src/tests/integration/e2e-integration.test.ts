@@ -8,7 +8,7 @@
  * - Monitoring and telemetry
  */
 
-import { describe, it, expect, beforeEach, afterEach, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from '@jest/globals';
 import {
   initializeBubbleLabIntegration,
   getBubbleLabIntegration,

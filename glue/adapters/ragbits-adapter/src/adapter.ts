@@ -391,7 +391,7 @@ export class RAGBitsAdapter {
     state: CircuitState;
     failureCount: number;
     successCount: number;
-  } {
+    } {
     return {
       state: this.circuitState,
       failureCount: this.failureCount,
@@ -446,7 +446,7 @@ export class RAGBitsAdapter {
     circuit: Readonly<CircuitBreakerConfig>;
     retry: Readonly<RetryConfig>;
     client: Readonly<RAGClientConfig>;
-  } {
+    } {
     return {
       circuit: { ...this.circuitConfig },
       retry: { ...this.retryConfig },

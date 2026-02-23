@@ -10,7 +10,7 @@
  * Runs on container startup. If these tests fail, the application should NOT start.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { openevolveApi, type ApiConfig } from '../../lib/openevolveApi';
 
 // Configuration

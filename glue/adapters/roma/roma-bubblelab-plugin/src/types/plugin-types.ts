@@ -1,6 +1,6 @@
 /**
  * ROMA BubbleLabs Plugin - TypeScript Interfaces
- * 
+ *
  * This file contains all TypeScript interfaces, types, and constants for the ROMA plugin.
  * The interfaces follow the same pattern as other BubbleLabs plugins (LeanAIDE, ClaudieMiro, Datapizza).
  */
@@ -253,118 +253,118 @@ export interface RomaExecutionPlan {
  */
 export interface RomaPlugin {
   metadata: RomaPluginMetadata;
-  
+
   /**
    * Initialize the ROMA plugin
    * @param config Plugin configuration
    */
   initialize: (config?: Partial<RomaPluginConfig>) => Promise<void>;
-  
+
   /**
    * Update plugin configuration
    * @param configUpdate Configuration updates
    */
   updateConfig: (configUpdate: Partial<RomaPluginConfig>) => Promise<void>;
-  
+
   /**
    * Execute a task using ROMA
    * @param goal The task goal
    * @param options Execution options
    */
   executeTask: (goal: string, options?: RomaExecutionOptions) => Promise<RomaExecutionResult>;
-  
+
   /**
    * Get current plugin state
    */
   getState: () => RomaPluginState;
-  
+
   /**
    * Get execution history
    * @param limit Maximum number of results
    */
   getExecutionHistory: (limit?: number) => RomaExecutionResult[];
-  
+
   /**
    * Get execution by ID
    * @param executionId Execution ID
    */
   getExecution: (executionId: string) => RomaExecutionResult | undefined;
-  
+
   /**
    * Cancel current execution
    */
   cancelExecution: () => Promise<void>;
-  
+
   /**
    * Clear execution history
    */
   clearHistory: () => Promise<void>;
-  
+
   /**
    * Reset plugin state
    */
   reset: () => Promise<void>;
-  
+
   /**
    * Get available MCP servers
    */
   getAvailableMcps: () => RomaMcpServerConfig[];
-  
+
   /**
    * Add MCP server configuration
    * @param mcpConfig MCP server configuration
    */
   addMcpServer: (mcpConfig: RomaMcpServerConfig) => Promise<void>;
-  
+
   /**
    * Remove MCP server
    * @param serverName Server name
    */
   removeMcpServer: (serverName: string) => Promise<void>;
-  
+
   /**
    * Get available toolkits
    */
   getAvailableToolkits: () => RomaToolkitConfig[];
-  
+
   /**
    * Add toolkit configuration
    * @param toolkitConfig Toolkit configuration
    */
   addToolkit: (toolkitConfig: RomaToolkitConfig) => Promise<void>;
-  
+
   /**
    * Remove toolkit
    * @param toolkitName Toolkit name
    */
   removeToolkit: (toolkitName: string) => Promise<void>;
-  
+
   /**
    * Get plugin statistics
    */
   getStatistics: () => RomaExecutionStatistics;
-  
+
   /**
    * Export plugin state
    */
   exportState: () => RomaPluginState;
-  
+
   /**
    * Import plugin state
    * @param state Plugin state to import
    */
   importState: (state: RomaPluginState) => Promise<void>;
-  
+
   /**
    * Check if plugin is ready
    */
   isReady: () => boolean;
-  
+
   /**
    * Get plugin version
    */
   getVersion: () => string;
-  
+
   /**
    * Get plugin metadata
    */
@@ -645,7 +645,7 @@ export interface RomaClientConfig {
  */
 export interface RomaClient {
   config: RomaClientConfig;
-  
+
   executeTask(goal: string, options?: RomaExecutionOptions): Promise<RomaExecutionResult>;
   getExecution(executionId: string): Promise<RomaExecutionResult>;
   getExecutionHistory(limit?: number): Promise<RomaExecutionResult[]>;
@@ -667,7 +667,7 @@ export interface RomaClient {
  */
 export interface RomaService {
   client: RomaClient;
-  
+
   executeTaskWithRetry(goal: string, options?: RomaExecutionOptions, retries?: number): Promise<RomaExecutionResult>;
   executeTaskWithCache(goal: string, options?: RomaExecutionOptions): Promise<RomaExecutionResult>;
   getCachedExecution(goal: string): RomaExecutionResult | undefined;
@@ -699,4 +699,3 @@ export interface RomaPluginFactoryReturn {
   initialize: () => Promise<void>;
   destroy: () => Promise<void>;
 }
-

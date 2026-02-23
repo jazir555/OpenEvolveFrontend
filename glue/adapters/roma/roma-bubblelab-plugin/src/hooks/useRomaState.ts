@@ -46,7 +46,7 @@ export interface UseRomaStateReturn {
  */
 export function useRomaState(): UseRomaStateReturn {
   const { state, isReady, error } = useRomaPlugin();
-  
+
   const isExecuting = state.status === 'executing';
   const isInitializing = state.status === 'initializing';
   const hasError = !!error || state.status === 'failed';

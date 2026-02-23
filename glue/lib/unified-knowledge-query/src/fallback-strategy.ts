@@ -9,8 +9,8 @@
  * - Law of Idempotency: Fallback queries are safe to retry
  */
 
-import { Logger } from '@openevolve/glue-lib';
-import { CircuitBreaker } from '@openevolve/glue-lib';
+import { Logger, CircuitBreaker } from '@openevolve/glue-lib';
+
 import {
   SystemConfig,
   SystemSource,

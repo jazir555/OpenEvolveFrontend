@@ -263,7 +263,8 @@ export const SyncSpecSchema = z.object({
     .describe('Date range for sync'),
   filters: z.record(z.any()).optional().describe('Filters to apply'),
   conflict_resolution: ConflictResolutionEnum.optional().describe('Conflict resolution strategy'),
-  timeout_ms: z.number().int().positive().optional().describe('Timeout for this sync'),
+  timeout_ms: z.number().int().positive().optional()
+    .describe('Timeout for this sync'),
   metadata: z.record(z.any()).optional().describe('Additional metadata'),
 });
 
@@ -424,12 +425,12 @@ export function validateSyncSpec(data: unknown): {
  */
 export function isSyncOperation(data: unknown): data is SyncOperation {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'type' in data &&
-    'status' in data &&
-    'timestamp_utc' in data
+    typeof data === 'object'
+    && data !== null
+    && 'id' in data
+    && 'type' in data
+    && 'status' in data
+    && 'timestamp_utc' in data
   );
 }
 
@@ -438,11 +439,11 @@ export function isSyncOperation(data: unknown): data is SyncOperation {
  */
 export function isSyncResult(data: unknown): data is SyncResult {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'operation_id' in data &&
-    'status' in data &&
-    'duration_ms' in data
+    typeof data === 'object'
+    && data !== null
+    && 'operation_id' in data
+    && 'status' in data
+    && 'duration_ms' in data
   );
 }
 
@@ -451,12 +452,12 @@ export function isSyncResult(data: unknown): data is SyncResult {
  */
 export function isConflict(data: unknown): data is Conflict {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'type' in data &&
-    'severity' in data &&
-    'resolved' in data
+    typeof data === 'object'
+    && data !== null
+    && 'id' in data
+    && 'type' in data
+    && 'severity' in data
+    && 'resolved' in data
   );
 }
 

@@ -232,7 +232,7 @@ export class DeadLetterQueue {
 
     const byEventType: Record<string, number> = {};
     for (const entry of entries) {
-      const type = entry.event.type;
+      const { type } = entry.event;
       byEventType[type] = (byEventType[type] || 0) + 1;
     }
 

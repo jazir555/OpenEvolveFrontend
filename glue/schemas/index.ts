@@ -254,18 +254,6 @@ export {
   GraphAnalysisRequest,
   GraphAnalysisResponse,
   type AlgorithmCategory as KarateClubAlgorithmCategory,
-  type NodeEmbeddingAlgorithm,
-  type CommunityAlgorithm,
-  type GraphEmbeddingAlgorithm,
-  type GraphStructure,
-  type NodeEmbeddingRequest,
-  type NodeEmbeddingResponse,
-  type CommunityDetectionRequest,
-  type CommunityDetectionResponse,
-  type GraphEmbeddingRequest,
-  type GraphEmbeddingResponse,
-  type GraphAnalysisRequest,
-  type GraphAnalysisResponse,
   validateNodeEmbeddingRequest,
   validateCommunityDetectionRequest,
   validateGraphEmbeddingRequest,
@@ -322,6 +310,123 @@ export {
   createCorrelationId as createRESECorrelationId,
   RESEExamples,
 } from './rese-canonical';
+
+// Export PES schemas (Plan-Execute-Summarize pattern)
+export {
+  Problem,
+  ProblemType,
+  ExecutionStep,
+  ExecutionStepType,
+  ExecutionPlan,
+  ExecutionState,
+  ExecutionResult,
+  ExecutionMetrics,
+  LogEntry,
+  Artifact,
+  Summary,
+  PerformanceAssessment,
+  type Problem as PESProblem,
+  type ProblemType as PESProblemTypeEnum,
+  type ExecutionStep as PESExecutionStep,
+  type ExecutionStepType as PESExecutionStepTypeEnum,
+  type ExecutionPlan as PESExecutionPlan,
+  type ExecutionState as PESExecutionStateEnum,
+  type ExecutionResult as PESExecutionResult,
+  type ExecutionMetrics as PESExecutionMetrics,
+  type LogEntry as PESLogEntry,
+  type Artifact as PESArtifact,
+  type Summary as PESSummary,
+  type PerformanceAssessment as PESPerformanceAssessment,
+  transformProblemToCanonical,
+  transformCanonicalToProblem,
+  transformExecutionResultToCanonical,
+  transformCanonicalToSummary,
+  validateProblem,
+  validateExecutionPlan,
+  validateExecutionResult,
+  validateSummary,
+  createPESUTCTimestamp,
+  createPESCorrelationId,
+  isProblem,
+  isExecutionResult,
+  isSummary,
+} from './pes-canonical';
+
+// Export LoongFlow schemas (PES + Evolutionary Optimization)
+export {
+  LoongFlowSolution,
+  LoongFlowState,
+  LoongFlowWorkerType,
+  LLMConfig,
+  WorkerConfig,
+  EvolutionConfig as LoongFlowEvolutionConfig,
+  LoongFlowConfig,
+  LoongFlowRequest,
+  LoongFlowResponse,
+  LoongFlowCheckpoint,
+  type LoongFlowSolution as LoongFlowSolutionType,
+  type LoongFlowState as LoongFlowStateEnum,
+  type LoongFlowWorkerType as LoongFlowWorkerTypeEnum,
+  type LLMConfig as LoongFlowLLMConfigType,
+  type WorkerConfig as LoongFlowWorkerConfigType,
+  type EvolutionConfig as LoongFlowEvolutionConfigType,
+  type LoongFlowConfig as LoongFlowConfigType,
+  type LoongFlowRequest as LoongFlowRequestType,
+  type LoongFlowResponse as LoongFlowResponseType,
+  type LoongFlowCheckpoint as LoongFlowCheckpointType,
+  transformLoongFlowSolutionToCanonical,
+  transformCanonicalToLoongFlowSolution,
+  transformLoongFlowResponseToExecutionResult,
+  transformCanonicalProblemToLoongFlowRequest,
+  validateLoongFlowSolution,
+  validateLoongFlowConfig,
+  validateLoongFlowRequest,
+  validateLoongFlowResponse,
+  isLoongFlowRequest,
+  isLoongFlowResponse,
+} from './loongflow-canonical';
+
+// Export Hybrid PES-Evolution schemas
+export {
+  HybridTask,
+  HybridTaskType,
+  IntegrationStrategy,
+  AdaptiveTriggerCondition,
+  AdaptiveAction,
+  KnowledgeSourceType,
+  KnowledgeType,
+  EvolutionConfig,
+  EvolutionaryKnowledge,
+  PopulationIndividual,
+  EvolutionResult,
+  IntegrationMetrics,
+  HybridExecutionResult,
+  AdaptiveTrigger,
+  KnowledgeTransfer,
+  type HybridTaskType as HybridTaskTypeEnum,
+  type IntegrationStrategy as IntegrationStrategyEnum,
+  type AdaptiveTriggerCondition as AdaptiveTriggerConditionEnum,
+  type AdaptiveAction as AdaptiveActionEnum,
+  type KnowledgeSourceType as KnowledgeSourceTypeEnum,
+  type KnowledgeType as KnowledgeTypeEnum,
+  type EvolutionConfig as EvolutionConfigType,
+  type EvolutionaryKnowledge as EvolutionaryKnowledgeType,
+  type PopulationIndividual as PopulationIndividualType,
+  type EvolutionResult as EvolutionResultType,
+  type IntegrationMetrics as IntegrationMetricsType,
+  type HybridExecutionResult as HybridExecutionResultType,
+  type AdaptiveTrigger as AdaptiveTriggerType,
+  type KnowledgeTransfer as KnowledgeTransferType,
+  transformLoongFlowSolutionToKnowledge,
+  transformHybridResultToSummary,
+  validateHybridTask,
+  validateEvolutionaryKnowledge,
+  validateHybridExecutionResult,
+  validateAdaptiveTrigger,
+  isHybridExecutionResult,
+  isEvolutionaryKnowledge,
+  isAdaptiveTrigger,
+} from './hybrid-pes-evolution-canonical';
 
 /**
  * Schema Registry
@@ -452,6 +557,61 @@ export const SchemaRegistry = {
       ArchitectureAssembly: 'ArchitectureAssembly',
     },
   },
+  pes: {
+    name: 'pes',
+    version: '1.0.0',
+    schemas: {
+      Problem: 'Problem',
+      ProblemType: 'ProblemType',
+      ExecutionStep: 'ExecutionStep',
+      ExecutionStepType: 'ExecutionStepType',
+      ExecutionPlan: 'ExecutionPlan',
+      ExecutionState: 'ExecutionState',
+      ExecutionResult: 'ExecutionResult',
+      ExecutionMetrics: 'ExecutionMetrics',
+      LogEntry: 'LogEntry',
+      Artifact: 'Artifact',
+      Summary: 'Summary',
+      PerformanceAssessment: 'PerformanceAssessment',
+    },
+  },
+  loongflow: {
+    name: 'loongflow',
+    version: '1.0.0',
+    schemas: {
+      LoongFlowSolution: 'LoongFlowSolution',
+      LoongFlowState: 'LoongFlowState',
+      LoongFlowWorkerType: 'LoongFlowWorkerType',
+      LLMConfig: 'LLMConfig',
+      WorkerConfig: 'WorkerConfig',
+      EvolutionConfig: 'EvolutionConfig',
+      LoongFlowConfig: 'LoongFlowConfig',
+      LoongFlowRequest: 'LoongFlowRequest',
+      LoongFlowResponse: 'LoongFlowResponse',
+      LoongFlowCheckpoint: 'LoongFlowCheckpoint',
+    },
+  },
+  hybrid: {
+    name: 'hybrid-pes-evolution',
+    version: '1.0.0',
+    schemas: {
+      HybridTask: 'HybridTask',
+      HybridTaskType: 'HybridTaskType',
+      IntegrationStrategy: 'IntegrationStrategy',
+      AdaptiveTriggerCondition: 'AdaptiveTriggerCondition',
+      AdaptiveAction: 'AdaptiveAction',
+      KnowledgeSourceType: 'KnowledgeSourceType',
+      KnowledgeType: 'KnowledgeType',
+      EvolutionConfig: 'EvolutionConfig',
+      EvolutionaryKnowledge: 'EvolutionaryKnowledge',
+      PopulationIndividual: 'PopulationIndividual',
+      EvolutionResult: 'EvolutionResult',
+      IntegrationMetrics: 'IntegrationMetrics',
+      HybridExecutionResult: 'HybridExecutionResult',
+      AdaptiveTrigger: 'AdaptiveTrigger',
+      KnowledgeTransfer: 'KnowledgeTransfer',
+    },
+  },
 } as const;
 
 /**
@@ -505,11 +665,11 @@ export function isLeanAideProofVerificationRequest(
   data: unknown
 ): data is import('./leanaide-canonical').ProofVerificationRequest {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'proof_code' in data &&
-    'theorem' in data &&
-    'timeout_ms' in data
+    typeof data === 'object'
+    && data !== null
+    && 'proof_code' in data
+    && 'theorem' in data
+    && 'timeout_ms' in data
   );
 }
 
@@ -520,11 +680,11 @@ export function isRAGBitsRequest(
   data: unknown
 ): data is import('./ragbits-canonical').RAGRequest {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'query' in data &&
-    'retrieval_count' in data &&
-    'timeout_ms' in data
+    typeof data === 'object'
+    && data !== null
+    && 'query' in data
+    && 'retrieval_count' in data
+    && 'timeout_ms' in data
   );
 }
 
@@ -535,11 +695,11 @@ export function isBubbleLabRequest(
   data: unknown
 ): data is import('./bubblelab-canonical').BubbleRequest {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'workspace_id' in data &&
-    'bubble_type' in data &&
-    'name' in data
+    typeof data === 'object'
+    && data !== null
+    && 'workspace_id' in data
+    && 'bubble_type' in data
+    && 'name' in data
   );
 }
 
@@ -550,11 +710,11 @@ export function isVectorDBSearchRequest(
   data: unknown
 ): data is import('./vectordb-canonical').VectorSearchRequest {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'collection_name' in data &&
-    'query_vector' in data &&
-    'top_k' in data
+    typeof data === 'object'
+    && data !== null
+    && 'collection_name' in data
+    && 'query_vector' in data
+    && 'top_k' in data
   );
 }
 
@@ -565,12 +725,12 @@ export function isGraphitiEpisode(
   data: unknown
 ): data is import('./graphiti-canonical').CanonicalEpisode {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'name' in data &&
-    'content' in data &&
-    'valid_at' in data
+    typeof data === 'object'
+    && data !== null
+    && 'id' in data
+    && 'name' in data
+    && 'content' in data
+    && 'valid_at' in data
   );
 }
 
@@ -581,11 +741,11 @@ export function isKarateClubNodeEmbeddingRequest(
   data: unknown
 ): data is import('./karateclub-canonical').NodeEmbeddingRequest {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'algorithm' in data &&
-    'graph' in data &&
-    'timeout_ms' in data
+    typeof data === 'object'
+    && data !== null
+    && 'algorithm' in data
+    && 'graph' in data
+    && 'timeout_ms' in data
   );
 }
 
@@ -596,12 +756,60 @@ export function isRESEEpistemicAuditResult(
   data: unknown
 ): data is import('./rese-canonical').EpistemicAuditResult {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'phase' in data &&
-    'audit_id' in data &&
-    'problem_description' in data &&
-    'timestamp' in data
+    typeof data === 'object'
+    && data !== null
+    && 'phase' in data
+    && 'audit_id' in data
+    && 'problem_description' in data
+    && 'timestamp' in data
+  );
+}
+
+/**
+ * Check if data is a valid PES Problem
+ */
+export function isPESProblem(
+  data: unknown
+): data is import('./pes-canonical').Problem {
+  return (
+    typeof data === 'object'
+    && data !== null
+    && 'id' in data
+    && 'type' in data
+    && 'description' in data
+    && 'created_at' in data
+  );
+}
+
+/**
+ * Check if data is a valid LoongFlow Solution
+ */
+export function isLoongFlowSolution(
+  data: unknown
+): data is import('./loongflow-canonical').LoongFlowSolution {
+  return (
+    typeof data === 'object'
+    && data !== null
+    && 'solution' in data
+    && 'solution_id' in data
+    && 'score' in data
+    && 'island_id' in data
+  );
+}
+
+/**
+ * Check if data is a valid Hybrid Task
+ */
+export function isHybridTask(
+  data: unknown
+): data is import('./hybrid-pes-evolution-canonical').HybridTask {
+  return (
+    typeof data === 'object'
+    && data !== null
+    && 'id' in data
+    && 'type' in data
+    && 'problem' in data
+    && 'integration_strategy' in data
   );
 }
 
@@ -666,6 +874,29 @@ export const MAX_SIZES = {
   CROSS_DOMAIN_PATTERNS: 500,      // Maximum cross-domain patterns
   PARADIGM_SHIFTS: 50,             // Maximum paradigm shifts
   SYNTHESIZED_KNOWLEDGE: 1000,     // Maximum knowledge items
+
+  // PES limits
+  PROBLEM_DESCRIPTION_LENGTH: 100000,    // Maximum problem description (100KB)
+  EXECUTION_STEPS: 1000,                 // Maximum execution steps in a plan
+  PLAN_DEPENDENCY_DEPTH: 50,              // Maximum dependency chain depth
+  LOG_ENTRIES: 10000,                     // Maximum log entries per result
+  ARTIFACTS: 100,                        // Maximum artifacts per result
+  INSIGHTS: 100,                         // Maximum insights per summary
+  RECOMMENDATIONS: 50,                   // Maximum recommendations per summary
+
+  // LoongFlow limits
+  LOONGFLOW_ISLANDS: 100,                // Maximum islands in island model
+  LOONGFLOW_ITERATIONS: 10000,           // Maximum iterations
+  LOONGFLOW_SAMPLE_SIZE: 10000,          // Maximum Boltzmann sample size
+  LOONGFLOW_SOLUTIONS: 100000,           // Maximum solutions in population
+  LOONGFLOW_CHECKPOINTS: 1000,           // Maximum checkpoints
+
+  // Hybrid PES-Evolution limits
+  HYBRID_ADAPTIVE_TRIGGERS: 50,          // Maximum adaptive triggers
+  EVOLUTIONARY_KNOWLEDGE: 10000,         // Maximum knowledge items
+  EVOLUTION_GENERATIONS: 100000,         // Maximum evolution generations
+  POPULATION_SIZE: 100000,               // Maximum population size
+  KNOWLEDGE_TRANSFERS: 1000,             // Maximum knowledge transfers
 } as const;
 
 /**
@@ -956,7 +1187,6 @@ export type {
  *   correlation_id: createCorrelationId(),
  * };
  * ```
- */
  */
 
 /**
