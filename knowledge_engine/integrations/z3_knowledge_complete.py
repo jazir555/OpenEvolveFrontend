@@ -733,7 +733,7 @@ class Z3KnowledgePersistence:
         finally:
             session.close()
     
-    def _store_proof_pattern(self, session: Session, record_id: int, content: Dict):
+    def _store_proof_pattern(self, session: 'Session', record_id: int, content: Dict):
         """Store proof pattern details."""
         pattern = Z3ProofPatternRecord(
             knowledge_record_id=record_id,
@@ -746,7 +746,7 @@ class Z3KnowledgePersistence:
         )
         session.add(pattern)
     
-    def _store_constraint_pattern(self, session: Session, record_id: int, content: Dict):
+    def _store_constraint_pattern(self, session: 'Session', record_id: int, content: Dict):
         """Store constraint pattern details."""
         pattern = Z3ConstraintPatternRecord(
             knowledge_record_id=record_id,
@@ -758,7 +758,7 @@ class Z3KnowledgePersistence:
         )
         session.add(pattern)
     
-    def _store_strategy(self, session: Session, record_id: int, content: Dict):
+    def _store_strategy(self, session: 'Session', record_id: int, content: Dict):
         """Store strategy details."""
         strategy = Z3StrategyRecord(
             knowledge_record_id=record_id,
@@ -770,7 +770,7 @@ class Z3KnowledgePersistence:
         )
         session.add(strategy)
     
-    def _store_insight(self, session: Session, record_id: int, content: Dict):
+    def _store_insight(self, session: 'Session', record_id: int, content: Dict):
         """Store insight details."""
         insight = Z3InsightRecord(
             knowledge_record_id=record_id,

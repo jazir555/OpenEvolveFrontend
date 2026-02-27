@@ -24,6 +24,15 @@ import logging
 import json
 import os
 
+# Try to import psutil once at module level
+try:
+    import psutil
+    _PROCESS = psutil.Process()
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
+    _PROCESS = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,10 +127,11 @@ class PerformanceProfiler:
             auto_detect_bottlenecks: Whether to automatically detect bottlenecks
             output_dir: Directory to save profiling reports
         """
-        self.enable_memory_profiling = enable_memory_profiling
+        self.enable_memory_profiling = enable_memory_profiling and HAS_PSUTIL
         self.max_traces = max_traces
         self.auto_detect_bottlenecks = auto_detect_bottlenecks
         self.output_dir = output_dir
+        self._process = _PROCESS
 
         # Profile storage
         self.profiles: Dict[str, FunctionProfile] = {}
@@ -198,16 +208,8 @@ class PerformanceProfiler:
 
         # Get memory before (if enabled)
         memory_before = 0
-        if self.enable_memory_profiling and track_memory:
-            try:
-                import psutil
-                process = psutil.Process()
-                memory_before = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+        if self.enable_memory_profiling and track_memory and self._process:
+            memory_before = self._process.memory_info().rss
 
         # Record call stack
         call_stack = []
@@ -231,16 +233,8 @@ class PerformanceProfiler:
 
             # Get memory after
             memory_after = 0
-            if self.enable_memory_profiling and track_memory:
-                try:
-                    import psutil
-                    process = psutil.Process()
-                    memory_after = process.memory_info().rss
-                except ImportError:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Error in {__name__}", exc_info=True)
-                    raise  # Re-raise the exception
+            if self.enable_memory_profiling and track_memory and self._process:
+                memory_after = self._process.memory_info().rss
 
             memory_delta = memory_after - memory_before
 
@@ -532,16 +526,8 @@ class ProfileContext:
 
     def __enter__(self):
         self.start_time = time.perf_counter()
-        if self.profiler.enable_memory_profiling:
-            try:
-                import psutil
-                process = psutil.Process()
-                self.memory_before = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+        if self.profiler.enable_memory_profiling and _PROCESS:
+            self.memory_before = _PROCESS.memory_info().rss
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -549,16 +535,8 @@ class ProfileContext:
         duration = end_time - self.start_time
 
         memory_after = None
-        if self.memory_before is not None:
-            try:
-                import psutil
-                process = psutil.Process()
-                memory_after = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+        if self.memory_before is not None and _PROCESS:
+            memory_after = _PROCESS.memory_info().rss
 
         # Record as synthetic profile
         with self.profiler._lock:

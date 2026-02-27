@@ -23,7 +23,7 @@ class ParameterType(Enum):
     SELECT = "select"
 
 
-@dataclass
+@dataclass(slots=True)
 class Parameter:
     """Definition of a single parameter"""
     name: str
@@ -38,7 +38,7 @@ class Parameter:
     dependencies: List[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class ValidationResult:
     """Result from parameter validation"""
     valid: bool
@@ -801,13 +801,25 @@ class ParameterSchema:
         """Get all parameter categories (memoized)"""
         return list(set(p.category for p in self.parameters.values()))
     
+    @functools.lru_cache(maxsize=32)
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
-        """Get all parameters in a category"""
+        """Get all parameters in a category (memoized)"""
         return [p for p in self.parameters.values() if p.category == category]
 
 
 class ParameterValidator:
     """Validates parameter values"""
+
+    # Static type map to avoid re-creation
+    _TYPE_MAP = {
+        ParameterType.STRING: str,
+        ParameterType.INTEGER: int,
+        ParameterType.FLOAT: (int, float),
+        ParameterType.BOOLEAN: bool,
+        ParameterType.LIST: list,
+        ParameterType.DICT: dict,
+        ParameterType.SELECT: str
+    }
     
     def __init__(self, schema: ParameterSchema):
         self.schema = schema
@@ -858,17 +870,7 @@ class ParameterValidator:
         if value is None:
             return True
         
-        type_map = {
-            ParameterType.STRING: str,
-            ParameterType.INTEGER: int,
-            ParameterType.FLOAT: (int, float),
-            ParameterType.BOOLEAN: bool,
-            ParameterType.LIST: list,
-            ParameterType.DICT: dict,
-            ParameterType.SELECT: str
-        }
-        
-        expected_type = type_map.get(param_type)
+        expected_type = self._TYPE_MAP.get(param_type)
         if expected_type:
             return isinstance(value, expected_type)
         return True
@@ -974,8 +976,9 @@ class ParameterPersistence:
 class ParameterManager:
     """Main parameter management class"""
 
-    # Static cache for schema to avoid redundant initializations
+    # Static cache for schema and defaults to avoid redundant initializations
     _cached_schema: Optional[ParameterSchema] = None
+    _cached_defaults: Optional[Dict[str, Any]] = None
 
     def __init__(self, config_dir: str = ".openevolve"):
         if ParameterManager._cached_schema is None:
@@ -985,7 +988,12 @@ class ParameterManager:
         self.validator = ParameterValidator(self.schema)
         self.preset_manager = PresetManager()
         self.persistence = ParameterPersistence(config_dir)
-        self._params = self.get_defaults()
+
+        # Performance: Use cached defaults if available
+        if ParameterManager._cached_defaults is None:
+            ParameterManager._cached_defaults = self.get_defaults()
+
+        self._params = ParameterManager._cached_defaults.copy()
 
     def get_parameter(self, name: str) -> Optional[Parameter]:
         """Get parameter definition"""
@@ -1042,7 +1050,11 @@ class ParameterManager:
     
     def get_defaults(self) -> Dict[str, Any]:
         """Get all default parameter values"""
-        return {name: param.default for name, param in self.schema.parameters.items()}
+        if ParameterManager._cached_defaults is not None:
+            return ParameterManager._cached_defaults.copy()
+
+        defaults = {name: param.default for name, param in self.schema.parameters.items()}
+        return defaults
     
     def merge_with_defaults(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Merge provided params with defaults"""

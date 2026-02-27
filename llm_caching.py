@@ -99,12 +99,13 @@ class LRUCache:
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
-            
-            # Remove oldest entry if at max size
+            # If cache is full, clean expired entries first to see if we can make room
             if len(self.cache) >= self.max_size:
-                self.cache.popitem(last=False)
+                self._clean_expired()
+
+                # If still at max size, remove oldest entry (LRU)
+                if len(self.cache) >= self.max_size:
+                    self.cache.popitem(last=False)
             
             # Add new entry
             entry = CacheEntry(
@@ -155,6 +156,9 @@ class DatabaseCache:
         self.logger = logging.getLogger(__name__)
         self._init_db()
         self.lock = Lock()
+        self._hit_buffer = {}  # key -> increment
+        self._buffer_lock = Lock()
+        self._last_flush = time.time()
     
     def _init_db(self):
         """Initialize database tables."""
@@ -163,13 +167,31 @@ class DatabaseCache:
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
                     value BLOB,
-                    timestamp TEXT,
+                    timestamp REAL,
                     ttl INTEGER,
                     hit_count INTEGER DEFAULT 1
                 )
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON llm_cache(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_ttl ON llm_cache(ttl)")
+
+            # Migration: check if timestamp is TEXT (old schema)
+            cursor = conn.execute("PRAGMA table_info(llm_cache)")
+            columns = cursor.fetchall()
+            timestamp_col = next((c for c in columns if c[1] == 'timestamp'), None)
+            if timestamp_col and "TEXT" in timestamp_col[2].upper():
+                self.logger.info("Migrating llm_cache timestamp column from TEXT to REAL")
+                # Drop table as it's just a cache
+                conn.execute("DROP TABLE llm_cache")
+                conn.execute("""
+                    CREATE TABLE llm_cache (
+                        key TEXT PRIMARY KEY,
+                        value BLOB,
+                        timestamp REAL,
+                        ttl INTEGER,
+                        hit_count INTEGER DEFAULT 1
+                    )
+                """)
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -189,20 +211,27 @@ class DatabaseCache:
             row = cursor.fetchone()
             
             if row:
-                value, timestamp_str, ttl = row
-                timestamp = datetime.fromisoformat(timestamp_str)
+                value, timestamp_val, ttl = row
+                # Handle both float (new) and ISO string (old)
+                if isinstance(timestamp_val, str):
+                    try:
+                        timestamp = datetime.fromisoformat(timestamp_val)
+                    except ValueError:
+                        return None
+                else:
+                    timestamp = datetime.fromtimestamp(timestamp_val)
                 
                 if self._is_expired(timestamp, ttl):
                     # Remove expired entry
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # Buffer hit count update
+                with self._buffer_lock:
+                    self._hit_buffer[key] = self._hit_buffer.get(key, 0) + 1
+                    if len(self._hit_buffer) >= 50 or time.time() - self._last_flush > 60:
+                        # Flush in current thread for simplicity, or could use background
+                        self.flush_hits()
                 
                 # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
@@ -259,7 +288,7 @@ class DatabaseCache:
                 """, (
                     key, 
                     serialized_value,
-                    datetime.now().isoformat(),
+                    time.time(),
                     ttl,
                     1  # New entry starts with hit_count of 1
                 ))
@@ -268,6 +297,22 @@ class DatabaseCache:
             except Exception as e:
                 self.logger.error(f"Failed to cache value: {e}")
                 return False
+
+    def flush_hits(self):
+        """Flush buffered hit counts to database."""
+        with self._buffer_lock:
+            if not self._hit_buffer:
+                return
+            updates = list(self._hit_buffer.items())
+            self._hit_buffer.clear()
+            self._last_flush = time.time()
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.executemany(
+                "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                [(count, key) for key, count in updates]
+            )
+            conn.commit()
     
     def _is_expired(self, timestamp: datetime, ttl: int) -> bool:
         """Check if cache entry is expired."""
@@ -283,7 +328,7 @@ class DatabaseCache:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 "DELETE FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (time.time(),)
             )
             removed_count = cursor.rowcount
             conn.commit()
@@ -291,6 +336,7 @@ class DatabaseCache:
     
     def get_stats(self) -> Dict[str, Any]:
         """Get database cache statistics."""
+        self.flush_hits()
         with sqlite3.connect(self.db_path) as conn:
             # Count total entries
             cursor = conn.execute("SELECT COUNT(*) FROM llm_cache")
@@ -299,7 +345,7 @@ class DatabaseCache:
             # Count expired entries
             cursor = conn.execute(
                 "SELECT COUNT(*) FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (time.time(),)
             )
             expired_entries = cursor.fetchone()[0]
             
