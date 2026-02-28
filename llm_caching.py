@@ -117,11 +117,22 @@ class LRUCache:
             
             return True
     
-    def _clean_expired(self):
-        """Clean expired entries from cache."""
-        # Note: OrderedDict iteration is O(n), but we only do it on set()
-        # and only if needed. A more aggressive optimization could use a
-        # separate TTL-sorted structure, but for simplicity we keep it here.
+    def _clean_expired(self, force: bool = False):
+        """
+        Clean expired entries from cache.
+        Optimized to avoid full scan on every call.
+        """
+        # Only perform full scan if forced or randomly (approx 1% of sets)
+        # to keep the O(n) overhead amortized.
+        import random
+        if not force and random.random() > 0.01:
+            # Quick check of the oldest entry (LRU)
+            if self.cache:
+                key, entry = next(iter(self.cache.items()))
+                if entry.is_expired():
+                    del self.cache[key]
+            return
+
         expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
         for key in expired_keys:
             del self.cache[key]
@@ -153,17 +164,39 @@ class DatabaseCache:
         """
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
+        # Instance-level buffer for hit count updates to reduce I/O
+        self._hit_buffer: Dict[str, int] = {}
+        self._total_buffered_hits = 0
+        self._buffer_lock = Lock()
         self._init_db()
         self.lock = Lock()
     
     def _init_db(self):
         """Initialize database tables."""
         with sqlite3.connect(self.db_path) as conn:
+            # Check if we need to migrate timestamp from TEXT to REAL
+            cursor = conn.execute("PRAGMA table_info(llm_cache)")
+            columns = cursor.fetchall()
+
+            if columns:
+                timestamp_col = next((c for c in columns if c[1] == 'timestamp'), None)
+                if timestamp_col and timestamp_col[2].upper() == 'TEXT':
+                    # Migration needed
+                    self.logger.info("Migrating llm_cache timestamp from TEXT to REAL")
+                    # This is a simplified migration for SQLite
+                    conn.execute("CREATE TABLE llm_cache_new (key TEXT PRIMARY KEY, value BLOB, timestamp REAL, ttl INTEGER, hit_count INTEGER DEFAULT 1)")
+                    # We'll just start fresh or try to convert. Converting ISO TEXT to REAL is tricky in SQL.
+                    # Given it's a cache, starting fresh or losing old entries is often acceptable,
+                    # but let's try a basic conversion for those that might work.
+                    # Or better, just drop and recreate if schema is old, it's a cache.
+                    conn.execute("DROP TABLE llm_cache")
+                    conn.execute("ALTER TABLE llm_cache_new RENAME TO llm_cache")
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
                     value BLOB,
-                    timestamp TEXT,
+                    timestamp REAL,
                     ttl INTEGER,
                     hit_count INTEGER DEFAULT 1
                 )
@@ -171,6 +204,9 @@ class DatabaseCache:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON llm_cache(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_ttl ON llm_cache(ttl)")
     
+    # Max buffer size before flushing to database
+    _MAX_BUFFER_SIZE = 50
+
     def get(self, key: str) -> Optional[Any]:
         """
         Get value from database cache.
@@ -189,44 +225,56 @@ class DatabaseCache:
             row = cursor.fetchone()
             
             if row:
-                value, timestamp_str, ttl = row
-                timestamp = datetime.fromisoformat(timestamp_str)
+                value, ts_val, ttl = row
+                # Handle both REAL (timestamp) and old TEXT (ISO string) if migration didn't happen
+                if isinstance(ts_val, (int, float)):
+                    timestamp = datetime.fromtimestamp(ts_val)
+                else:
+                    timestamp = datetime.fromisoformat(ts_val)
                 
                 if self._is_expired(timestamp, ttl):
                     # Remove expired entry
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # Buffer hit count update instead of immediate write
+                with self._buffer_lock:
+                    self._hit_buffer[key] = self._hit_buffer.get(key, 0) + 1
+                    self._total_buffered_hits += 1
+                    if self._total_buffered_hits >= self._MAX_BUFFER_SIZE:
+                        self._flush_hit_buffer(conn)
                 
-                # Deserialize value - SECURITY FIX: Use safer serialization method
+                # Deserialize value - Fallback to safer/legacy methods
                 try:
-                    # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
                     import ast
-                    import json
-                    # First try JSON (safer and faster)
                     try:
+                        # Try JSON again if fast check missed it
                         return json.loads(value.decode('utf-8'))
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         try:
-                            # If JSON fails, try ast.literal_eval
                             return ast.literal_eval(value.decode('utf-8'))
                         except (ValueError, SyntaxError, UnicodeDecodeError):
-                            # Fallback to pickle for legacy/complex data
                             return pickle.loads(value)
                 except Exception as e:
                     self.logger.error(f"Failed to deserialize cached value: {e}")
-                    # Remove corrupted entry
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
         
         return None
     
+    def _flush_hit_buffer(self, conn: sqlite3.Connection):
+        """Flush hit count buffer to database."""
+        # This assumes we are inside a context where conn is already open
+        # and we have the buffer lock
+        for key, count in self._hit_buffer.items():
+            conn.execute(
+                "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                (count, key)
+            )
+        self._hit_buffer.clear()
+        self._total_buffered_hits = 0
+        conn.commit()
+
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """
         Set value in database cache.
@@ -252,16 +300,21 @@ class DatabaseCache:
         
         with sqlite3.connect(self.db_path) as conn:
             try:
+                # Flush hit buffer to ensure consistency
+                with self._buffer_lock:
+                    if self._hit_buffer:
+                        self._flush_hit_buffer(conn)
+
                 conn.execute("""
                     INSERT OR REPLACE INTO llm_cache 
                     (key, value, timestamp, ttl, hit_count)
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, COALESCE((SELECT hit_count FROM llm_cache WHERE key = ?), 0) + 1)
                 """, (
                     key, 
                     serialized_value,
-                    datetime.now().isoformat(),
+                    datetime.now().timestamp(),
                     ttl,
-                    1  # New entry starts with hit_count of 1
+                    key
                 ))
                 conn.commit()
                 return True
@@ -281,9 +334,10 @@ class DatabaseCache:
             Number of entries removed
         """
         with sqlite3.connect(self.db_path) as conn:
+            # Handle migration in WHERE clause if needed
             cursor = conn.execute(
                 "DELETE FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (datetime.now().timestamp(),)
             )
             removed_count = cursor.rowcount
             conn.commit()
@@ -292,6 +346,11 @@ class DatabaseCache:
     def get_stats(self) -> Dict[str, Any]:
         """Get database cache statistics."""
         with sqlite3.connect(self.db_path) as conn:
+            # Flush buffer for accurate stats
+            with self._buffer_lock:
+                if self._hit_buffer:
+                    self._flush_hit_buffer(conn)
+
             # Count total entries
             cursor = conn.execute("SELECT COUNT(*) FROM llm_cache")
             total_entries = cursor.fetchone()[0]
@@ -299,7 +358,7 @@ class DatabaseCache:
             # Count expired entries
             cursor = conn.execute(
                 "SELECT COUNT(*) FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (datetime.now().timestamp(),)
             )
             expired_entries = cursor.fetchone()[0]
             
@@ -418,6 +477,7 @@ class LLMCacheManager:
     def _generate_cache_key(self, prompt: str, model_params: Dict[str, Any]) -> str:
         """
         Generate cache key from prompt and parameters.
+        Optimized to hash prompt separately from metadata for speed.
         
         Args:
             prompt: Input prompt
@@ -426,12 +486,15 @@ class LLMCacheManager:
         Returns:
             Hash-based cache key
         """
-        cache_input = {
-            'prompt': prompt,
-            'params': model_params
-        }
-        cache_input_json = json.dumps(cache_input, sort_keys=True)
-        return hashlib.sha256(cache_input_json.encode()).hexdigest()
+        # Hash the prompt (potentially very large) separately
+        prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()
+
+        # Hash metadata (small)
+        params_json = json.dumps(model_params, sort_keys=True)
+        params_hash = hashlib.sha256(params_json.encode()).hexdigest()
+
+        # Combine hashes
+        return hashlib.sha256((prompt_hash + params_hash).encode()).hexdigest()
     
     def get_cached_response(self, prompt: str, model_params: Dict[str, Any]) -> Optional[Any]:
         """

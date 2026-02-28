@@ -23,7 +23,7 @@ class ParameterType(Enum):
     SELECT = "select"
 
 
-@dataclass
+@dataclass(slots=True)
 class Parameter:
     """Definition of a single parameter"""
     name: str
@@ -38,7 +38,7 @@ class Parameter:
     dependencies: List[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class ValidationResult:
     """Result from parameter validation"""
     valid: bool
@@ -49,9 +49,17 @@ class ValidationResult:
 class ParameterSchema:
     """Defines all 211 OpenEvolve parameters"""
     
+    _cached_defaults: Optional[Dict[str, Any]] = None
+
     def __init__(self):
         self.parameters: Dict[str, Parameter] = {}
         self._initialize_parameters()
+
+    def get_defaults(self) -> Dict[str, Any]:
+        """Get all default parameter values (cached)"""
+        if ParameterSchema._cached_defaults is None:
+            ParameterSchema._cached_defaults = {name: param.default for name, param in self.parameters.items()}
+        return ParameterSchema._cached_defaults.copy()
 
     def _load_parameters_from_dict(self, parameters_data: Dict[str, Any]):
         """Load parameters from a dictionary structure."""
@@ -877,8 +885,12 @@ class ParameterValidator:
 class PresetManager:
     """Manages configuration presets"""
     
+    _cached_presets: Optional[Dict[str, Dict[str, Any]]] = None
+
     def __init__(self):
-        self.presets = self._initialize_presets()
+        if PresetManager._cached_presets is None:
+            PresetManager._cached_presets = self._initialize_presets()
+        self.presets = PresetManager._cached_presets
     
     def _initialize_presets(self) -> Dict[str, Dict[str, Any]]:
         """Initialize configuration presets"""
@@ -1041,8 +1053,8 @@ class ParameterManager:
         return self.schema.get_parameters_by_category(category)
     
     def get_defaults(self) -> Dict[str, Any]:
-        """Get all default parameter values"""
-        return {name: param.default for name, param in self.schema.parameters.items()}
+        """Get all default parameter values (cached)"""
+        return self.schema.get_defaults()
     
     def merge_with_defaults(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Merge provided params with defaults"""

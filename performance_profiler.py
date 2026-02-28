@@ -24,6 +24,14 @@ import logging
 import json
 import os
 
+# Performance optimization: Import psutil at module level and cache process instance
+try:
+    import psutil
+    _PROCESS = psutil.Process()
+except ImportError:
+    psutil = None
+    _PROCESS = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -198,16 +206,11 @@ class PerformanceProfiler:
 
         # Get memory before (if enabled)
         memory_before = 0
-        if self.enable_memory_profiling and track_memory:
+        if self.enable_memory_profiling and track_memory and _PROCESS:
             try:
-                import psutil
-                process = psutil.Process()
-                memory_before = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+                memory_before = _PROCESS.memory_info().rss
+            except Exception:
+                logger.error(f"Error getting memory info in {__name__}", exc_info=True)
 
         # Record call stack
         call_stack = []
@@ -231,16 +234,11 @@ class PerformanceProfiler:
 
             # Get memory after
             memory_after = 0
-            if self.enable_memory_profiling and track_memory:
+            if self.enable_memory_profiling and track_memory and _PROCESS:
                 try:
-                    import psutil
-                    process = psutil.Process()
-                    memory_after = process.memory_info().rss
-                except ImportError:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"Error in {__name__}", exc_info=True)
-                    raise  # Re-raise the exception
+                    memory_after = _PROCESS.memory_info().rss
+                except Exception:
+                    logger.error(f"Error getting memory info in {__name__}", exc_info=True)
 
             memory_delta = memory_after - memory_before
 
@@ -532,16 +530,11 @@ class ProfileContext:
 
     def __enter__(self):
         self.start_time = time.perf_counter()
-        if self.profiler.enable_memory_profiling:
+        if self.profiler.enable_memory_profiling and _PROCESS:
             try:
-                import psutil
-                process = psutil.Process()
-                self.memory_before = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+                self.memory_before = _PROCESS.memory_info().rss
+            except Exception:
+                logger.error(f"Error getting memory info in {__name__}", exc_info=True)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -549,16 +542,11 @@ class ProfileContext:
         duration = end_time - self.start_time
 
         memory_after = None
-        if self.memory_before is not None:
+        if self.memory_before is not None and _PROCESS:
             try:
-                import psutil
-                process = psutil.Process()
-                memory_after = process.memory_info().rss
-            except ImportError:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+                memory_after = _PROCESS.memory_info().rss
+            except Exception:
+                logger.error(f"Error getting memory info in {__name__}", exc_info=True)
 
         # Record as synthetic profile
         with self.profiler._lock:
