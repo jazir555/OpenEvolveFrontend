@@ -52,7 +52,7 @@ try:
 except ImportError:
     pass
 
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Any, Callable
 from dataclasses import dataclass
 
 def _import_validated_ir():

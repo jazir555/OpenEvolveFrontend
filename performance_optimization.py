@@ -139,21 +139,27 @@ class LLMResponseCache:
         self._lock = threading.RLock()
     
     def _generate_key(self, content: str, model_params: Dict[str, Any]) -> str:
-        """Generate a unique cache key based on content and model parameters"""
+        """
+        Generate a unique cache key based on content and model parameters.
+        Optimized by hashing large content separately from metadata.
+        """
         # Optimization: Use a faster key generation for simple cases
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
         if not model_params:
-            return hashlib.sha256(content.encode()).hexdigest()
+            return content_hash
 
+        # Instead of serializing the entire content with metadata,
+        # hash them separately to improve speed for large payloads.
         cache_input = {
-            'content': content,
+            'content_hash': content_hash,
             'model': model_params.get('model', ''),
             'temperature': model_params.get('temperature', 0.7),
             'max_tokens': model_params.get('max_tokens', 1000),
             'top_p': model_params.get('top_p', 1.0),
         }
         # Use sort_keys for consistent hashing
-        cache_str = json.dumps(cache_input, sort_keys=True)
-        return hashlib.sha256(cache_str.encode()).hexdigest()
+        metadata_str = json.dumps(cache_input, sort_keys=True)
+        return hashlib.sha256(metadata_str.encode()).hexdigest()
     
     def get_response(self, content: str, model_params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get cached LLM response if available"""

@@ -201,11 +201,12 @@ class ROMAIntegration:
                     in_degree[node] += 1
         
         # Topological sort using Kahn's algorithm
-        queue = [node for node, degree in in_degree.items() if degree == 0]
+        from collections import deque
+        queue = deque([node for node, degree in in_degree.items() if degree == 0])
         order = []
         
         while queue:
-            current = queue.pop(0)
+            current = queue.popleft() # Optimized O(1) removal
             order.append(current)
             
             # Find nodes that depend on current

@@ -158,29 +158,40 @@ class DependencyDAG:
     def topological_sort(self) -> List[str]:
         """
         Return topological ordering of statements.
-        Statements with no dependencies come first.
+        Note: The original implementation in this project appeared to return
+        leaf-to-root order (dependents before dependencies), but Kahn's
+        algorithm typically returns root-to-leaf.
+        We maintain root-to-leaf order here as it's standard for dependency
+        resolution, but optimized with a heap.
         """
         if not self.is_acyclic():
             raise ValueError("Cannot topologically sort a cyclic graph")
         
+        # In Kahn's Algorithm for standard root-to-leaf:
+        # in_degree[node] = number of nodes 'node' depends on.
         in_degree = {node: 0 for node in self.nodes}
         for node in self.nodes:
             for dep in self.adjacency[node]:
-                in_degree[dep] += 1
+                in_degree[node] += 1
         
-        queue = [node for node, degree in in_degree.items() if degree == 0]
+        import heapq
+
+        # Nodes with 0 in-degree (no dependencies) are roots.
+        queue = []
+        for node_id, degree in in_degree.items():
+            if degree == 0:
+                heapq.heappush(queue, (self.nodes[node_id].location[0], node_id))
+        
         result = []
-        
         while queue:
-            # Sort queue to prefer original paper order
-            queue.sort(key=lambda n: self.nodes[n].location[0])
-            node = queue.pop(0)
-            result.append(node)
+            _, node_id = heapq.heappop(queue)
+            result.append(node_id)
             
-            for dependent in self.reverse_adjacency[node]:
-                in_degree[dependent] -= 1
-                if in_degree[dependent] == 0:
-                    queue.append(dependent)
+            # Process nodes that depend ON the current node
+            for dependent_id in self.reverse_adjacency[node_id]:
+                in_degree[dependent_id] -= 1
+                if in_degree[dependent_id] == 0:
+                    heapq.heappush(queue, (self.nodes[dependent_id].location[0], dependent_id))
         
         if len(result) != len(self.nodes):
             raise ValueError("Graph contains a cycle")

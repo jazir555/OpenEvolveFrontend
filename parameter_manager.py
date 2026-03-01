@@ -23,7 +23,7 @@ class ParameterType(Enum):
     SELECT = "select"
 
 
-@dataclass
+@dataclass(slots=True)
 class Parameter:
     """Definition of a single parameter"""
     name: str
@@ -38,7 +38,7 @@ class Parameter:
     dependencies: List[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class ValidationResult:
     """Result from parameter validation"""
     valid: bool

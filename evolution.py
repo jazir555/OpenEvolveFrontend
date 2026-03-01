@@ -5,7 +5,7 @@ import os
 import re
 import json
 import logging
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -40,6 +40,9 @@ try:
 except ImportError as e:
     SECURITY_AVAILABLE = False
     logger.warning(f"SECURITY: Evolution engine security not available: {e}")
+
+# Module-level cache for string similarity calculations to avoid redundant O(N*M) operations
+_similarity_cache: Dict[Tuple[str, str], float] = {}
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Evolution Engine
 try:
@@ -869,7 +872,10 @@ class ContentEvaluator:
     @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
-        Calculate diversity of a population
+        Calculate diversity of a population.
+
+        Optimized with O(U²) complexity where U is the number of unique individuals.
+        Uses counts of unique individuals to avoid redundant pairwise comparisons.
 
         Args:
             population: List of content strings
@@ -880,38 +886,62 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
+        from collections import Counter
         import difflib
 
-        total_similarity = 0.0
-        comparisons = 0
+        counts = Counter(population)
+        unique_items = list(counts.keys())
+        num_unique = len(unique_items)
+        total_items = len(population)
 
-        for i in range(len(population)):
-            p1 = population[i]
-            len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
-                len2 = len(p2)
-
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
-                else:
-                    similarity = 0.0
-
-                total_similarity += similarity
-                comparisons += 1
-
-        if comparisons == 0:
+        # Total number of pairs: L * (L - 1) / 2
+        total_pairs = total_items * (total_items - 1) / 2
+        if total_pairs == 0:
             return 0.0
 
-        avg_similarity = total_similarity / comparisons
+        total_similarity = 0.0
+
+        # 1. Similarity between same items (always 1.0)
+        for count in counts.values():
+            if count > 1:
+                # Number of pairs for this unique item: c * (c - 1) / 2
+                total_similarity += (count * (count - 1) / 2) * 1.0
+
+        # 2. Similarity between different items
+        for i in range(num_unique):
+            u1 = unique_items[i]
+            len1 = len(u1)
+            count1 = counts[u1]
+
+            for j in range(i + 1, num_unique):
+                u2 = unique_items[j]
+                len2 = len(u2)
+                count2 = counts[u2]
+
+                # Check cache first
+                cache_key = tuple(sorted((u1, u2)))
+                if cache_key in _similarity_cache:
+                    similarity = _similarity_cache[cache_key]
+                else:
+                    # Performance optimization: skip expensive SequenceMatcher if strings are of
+                    # vastly different lengths, as they cannot be very similar.
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2:
+                            similarity = max_possible_ratio * 0.5
+                        else:
+                            # Use weighted similarity: each pair (u1, u2) occurs count1 * count2 times
+                            similarity = difflib.SequenceMatcher(None, u1, u2).ratio()
+                    else:
+                        similarity = 0.0
+
+                    # Store in cache (limit size to prevent memory leaks)
+                    if len(_similarity_cache) < 10000:
+                        _similarity_cache[cache_key] = similarity
+
+                total_similarity += (count1 * count2) * similarity
+
+        avg_similarity = total_similarity / total_pairs
         diversity = 1.0 - avg_similarity
 
         return max(0.0, min(1.0, diversity))
