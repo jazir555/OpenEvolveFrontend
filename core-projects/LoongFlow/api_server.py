@@ -68,16 +68,18 @@ app = FastAPI(
 class ValkeyStateManager:
     """
     Manages evolution state using Valkey/Redis for persistence.
+    Falls back to in-memory storage if Valkey is unavailable.
 
     Provides:
-    - State persistence across server restarts
+    - State persistence across server restarts (when Valkey available)
+    - In-memory fallback for development/testing
     - Automatic serialization/deserialization
     - Atomic operations for consistency
     - Reconnect logic for resilience
     """
 
     def __init__(self):
-        """Initialize Valkey Redis client."""
+        """Initialize Valkey Redis client with in-memory fallback."""
         self.redis_url = os.getenv(
             "VALKEY_URL",
             os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -85,10 +87,12 @@ class ValkeyStateManager:
         self.key_prefix = "evolution:"
         self.ttl_seconds = int(os.getenv("EVOLUTION_STATE_TTL", "86400"))  # 24 hours default
         self._redis: Optional[redis.Redis] = None
+        self._use_fallback = False  # Track if using in-memory fallback
+        self._fallback_store: Dict[str, Dict[str, Any]] = {}  # In-memory storage
 
-    async def get_client(self) -> redis.Redis:
+    async def get_client(self) -> Optional[redis.Redis]:
         """Get or create Redis client with lazy initialization."""
-        if self._redis is None:
+        if self._redis is None and not self._use_fallback:
             try:
                 self._redis = await redis.from_url(
                     self.redis_url,
@@ -105,16 +109,14 @@ class ValkeyStateManager:
                     "service": "loongflow-api"
                 })
             except Exception as e:
-                logger.error({
-                    "msg": "Failed to connect to Valkey",
+                logger.warning({
+                    "msg": "Failed to connect to Valkey, using in-memory fallback",
                     "error": str(e),
                     "redis_url": self.redis_url,
                     "service": "loongflow-api"
                 })
-                raise HTTPException(
-                    status_code=503,
-                    detail=f"Cannot connect to Valkey: {str(e)}"
-                )
+                self._use_fallback = True
+                self._redis = None
         return self._redis
 
     def _make_key(self, evolution_id: str) -> str:
@@ -122,9 +124,23 @@ class ValkeyStateManager:
         return f"{self.key_prefix}{evolution_id}"
 
     async def create_evolution(self, evolution_id: str, data: Dict[str, Any]) -> bool:
-        """Create new evolution state in Valkey."""
+        """Create new evolution state in Valkey or in-memory fallback."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                self._fallback_store[evolution_id] = data.copy()
+                logger.info({
+                    "msg": "Evolution state created in-memory (fallback)",
+                    "evolution_id": evolution_id,
+                    "service": "loongflow-api"
+                })
+                return True
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.create_evolution(evolution_id, data)
+
             key = self._make_key(evolution_id)
 
             # Serialize data
@@ -147,12 +163,23 @@ class ValkeyStateManager:
                 "evolution_id": evolution_id,
                 "service": "loongflow-api"
             })
-            return False
+            # Fall back to in-memory on error
+            self._use_fallback = True
+            self._fallback_store[evolution_id] = data.copy()
+            return True
 
     async def get_evolution(self, evolution_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve evolution state from Valkey."""
+        """Retrieve evolution state from Valkey or in-memory fallback."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                return self._fallback_store.get(evolution_id)
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.get_evolution(evolution_id)
+
             key = self._make_key(evolution_id)
 
             serialized = await client.get(key)
@@ -170,9 +197,20 @@ class ValkeyStateManager:
             return None
 
     async def update_evolution(self, evolution_id: str, updates: Dict[str, Any]) -> bool:
-        """Update evolution state in Valkey."""
+        """Update evolution state in Valkey or in-memory fallback."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                if evolution_id in self._fallback_store:
+                    self._fallback_store[evolution_id].update(updates)
+                    return True
+                return False
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.update_evolution(evolution_id, updates)
+
             key = self._make_key(evolution_id)
 
             # Get current state
@@ -199,9 +237,20 @@ class ValkeyStateManager:
             return False
 
     async def delete_evolution(self, evolution_id: str) -> bool:
-        """Delete evolution state from Valkey."""
+        """Delete evolution state from Valkey or in-memory fallback."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                if evolution_id in self._fallback_store:
+                    del self._fallback_store[evolution_id]
+                    return True
+                return False
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.delete_evolution(evolution_id)
+
             key = self._make_key(evolution_id)
 
             result = await client.delete(key)
@@ -216,9 +265,17 @@ class ValkeyStateManager:
             return False
 
     async def list_evolutions(self) -> List[str]:
-        """List all evolution IDs from Valkey."""
+        """List all evolution IDs from Valkey or in-memory fallback."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                return list(self._fallback_store.keys())
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.list_evolutions()
+
             pattern = f"{self.key_prefix}*"
 
             keys = []
@@ -239,7 +296,18 @@ class ValkeyStateManager:
     async def set_field(self, evolution_id: str, field: str, value: Any) -> bool:
         """Set a single field in evolution state (atomic operation)."""
         try:
+            if self._use_fallback:
+                # Use in-memory storage
+                if evolution_id in self._fallback_store:
+                    self._fallback_store[evolution_id][field] = value
+                    return True
+                return False
+
             client = await self.get_client()
+            if client is None:
+                self._use_fallback = True
+                return await self.set_field(evolution_id, field, value)
+
             key = self._make_key(evolution_id)
 
             # Get current state

@@ -38,6 +38,11 @@ export type RomaExecutionStatus =
   | 'cancelled';
 
 /**
+ * ROMA Server Health Status
+ */
+export type RomaHealthStatus = 'healthy' | 'unhealthy' | 'degraded';
+
+/**
  * ROMA Module Types (Core ROMA Architecture)
  */
 export type RomaModuleType =
@@ -650,7 +655,7 @@ export interface RomaClient {
   getExecution(executionId: string): Promise<RomaExecutionResult>;
   getExecutionHistory(limit?: number): Promise<RomaExecutionResult[]>;
   cancelExecution(executionId: string): Promise<void>;
-  getStatus(): Promise<{ status: RomaExecutionStatus }>;
+  getStatus(): Promise<{ status: RomaHealthStatus }>;
   getStatistics(): Promise<RomaExecutionStatistics>;
   getAvailableMcps(): Promise<RomaMcpServerConfig[]>;
   addMcpServer(mcpConfig: RomaMcpServerConfig): Promise<void>;

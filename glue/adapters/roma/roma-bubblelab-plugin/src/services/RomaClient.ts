@@ -15,6 +15,7 @@ import {
   RomaToolkitConfig,
   RomaExecutionStatistics,
   RomaExecutionStatus,
+  RomaHealthStatus,
   RomaPluginConfig,
   RomaPluginError
 } from '../types/plugin-types';
@@ -33,7 +34,7 @@ export class RomaClient implements RomaClientInterface {
    */
   constructor(config: RomaClientConfig) {
     this.config = {
-      baseUrl: config.baseUrl || import.meta.env.VITE_ROMA_SERVER_URL || 'http://localhost:8000',
+      baseUrl: config.baseUrl || import.meta.env?.VITE_ROMA_SERVER_URL || 'http://localhost:8000',
       apiKey: config.apiKey,
       timeout: config.timeout || 30000,
       headers: config.headers || {}
@@ -45,15 +46,17 @@ export class RomaClient implements RomaClientInterface {
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        ...this.config.headers
+        ...(this.config.headers || {})
       }
     });
 
     // Add request interceptor for API key
     this.axiosInstance.interceptors.request.use((config) => {
       if (this.config.apiKey) {
-        config.headers = config.headers || {};
-        config.headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+        if (!config.headers) {
+          config.headers = {} as any;
+        }
+        (config.headers as any)['Authorization'] = `Bearer ${this.config.apiKey}`;
       }
       return config;
     });
@@ -103,9 +106,9 @@ export class RomaClient implements RomaClientInterface {
     // Update headers if provided
     if (configUpdate.headers) {
       this.axiosInstance.defaults.headers = {
-        ...this.axiosInstance.defaults.headers,
+        ...(this.axiosInstance.defaults.headers as any),
         ...configUpdate.headers
-      };
+      } as any;
     }
   }
 
@@ -218,10 +221,10 @@ export class RomaClient implements RomaClientInterface {
   /**
    * Get server status
    */
-  public async getStatus(): Promise<{ status: RomaExecutionStatus }> {
+  public async getStatus(): Promise<{ status: RomaHealthStatus }> {
     try {
       const response = await this.axiosInstance.get('/health');
-      return { status: response.data.status as RomaExecutionStatus };
+      return { status: response.data.status as RomaHealthStatus };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get server status';
       console.error('ROMA get status failed:', error);

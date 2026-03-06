@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Plus, Save, Server, Settings, Tool, Trash2, X } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import type {
@@ -8,6 +8,18 @@ import type {
   RomaPluginConfig,
   RomaToolkitConfig,
 } from '../types/plugin-types';
+
+// Icon component wrapper
+type IconComponent = React.ComponentType<{ className?: string; size?: number }>;
+
+const Icon: React.FC<{
+  icon: keyof typeof LucideIcons;
+  className?: string;
+  size?: number;
+}> = ({ icon, className, size }) => {
+  const LucideIcon = LucideIcons[icon] as IconComponent;
+  return LucideIcon ? <LucideIcon className={className} size={size} /> : null;
+};
 
 const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChange, onClose }) => {
   const [config, setConfig] = useState<RomaPluginConfig>(plugin.getState());
@@ -100,7 +112,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
     <div className="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-white">
-          <Settings className="h-5 w-5" />
+          <Icon icon="Settings" className="h-5 w-5" />
           ROMA Configuration
         </h2>
         <button
@@ -109,14 +121,14 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
           className="rounded p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-200"
           aria-label="Close"
         >
-          <X className="h-5 w-5" />
+          <Icon icon="X" className="h-5 w-5" />
         </button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="rounded-md border p-4">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-white">
-            <Settings className="h-4 w-4" />
+            <Icon icon="Settings" className="h-4 w-4" />
             General
           </h3>
           <div className="space-y-3">
@@ -158,7 +170,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
 
         <section className="rounded-md border p-4">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-white">
-            <Bot className="h-4 w-4" />
+            <Icon icon="Bot" className="h-4 w-4" />
             Execution
           </h3>
           <div className="space-y-3">
@@ -193,7 +205,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
 
         <section className="rounded-md border p-4">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-white">
-            <Server className="h-4 w-4" />
+            <Icon icon="Server" className="h-4 w-4" />
             MCP Servers
           </h3>
           <div className="mb-3 flex gap-2">
@@ -211,7 +223,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
               className="rounded bg-blue-600 px-2 py-2 text-white"
               aria-label="Add MCP server"
             >
-              <Plus className="h-4 w-4" />
+              <Icon icon="Plus" className="h-4 w-4" />
             </button>
           </div>
 
@@ -227,7 +239,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
                   className="text-red-600"
                   aria-label={`Remove MCP server ${server.server_name}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Icon icon="Trash2" className="h-4 w-4" />
                 </button>
               </div>
             ))}
@@ -236,7 +248,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
 
         <section className="rounded-md border p-4">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-white">
-            <Tool className="h-4 w-4" />
+            <Icon icon="Tool" className="h-4 w-4" />
             Toolkits
           </h3>
           <div className="mb-3 flex gap-2">
@@ -254,7 +266,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
               className="rounded bg-blue-600 px-2 py-2 text-white"
               aria-label="Add toolkit"
             >
-              <Plus className="h-4 w-4" />
+              <Icon icon="Plus" className="h-4 w-4" />
             </button>
           </div>
 
@@ -270,7 +282,7 @@ const RomaConfigPanel: React.FC<RomaConfigPanelProps> = ({ plugin, onConfigChang
                   className="text-red-600"
                   aria-label={`Remove toolkit ${toolkit.class_name}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Icon icon="Trash2" className="h-4 w-4" />
                 </button>
               </div>
             ))}

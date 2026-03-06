@@ -27,6 +27,22 @@ global.performance = {
 } as any;
 
 // Setup axios mock defaults
+const mockAxiosInstance = {
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  delete: vi.fn(),
+  patch: vi.fn(),
+  interceptors: {
+    request: {
+      use: vi.fn(),
+    },
+    response: {
+      use: vi.fn(),
+    },
+  },
+};
+
 vi.mock('axios', () => ({
   default: {
     get: vi.fn(),
@@ -34,22 +50,9 @@ vi.mock('axios', () => ({
     put: vi.fn(),
     delete: vi.fn(),
     patch: vi.fn(),
-    create: vi.fn(() => ({
-      get: vi.fn(),
-      post: vi.fn(),
-      put: vi.fn(),
-      delete: vi.fn(),
-      patch: vi.fn(),
-      interceptors: {
-        request: {
-          use: vi.fn()
-        },
-        response: {
-          use: vi.fn()
-        },
-      },
-    })),
+    create: vi.fn(() => mockAxiosInstance),
   },
+  AxiosInstance: vi.fn(),
 }));
 
 // Mock React and related UI libraries for hook tests
