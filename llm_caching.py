@@ -48,6 +48,8 @@ class LRUCache:
         self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self._last_clean = time.time()
+        self._clean_interval = 300  # Clean every 5 minutes
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -99,8 +101,9 @@ class LRUCache:
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
+            # PERFORMANCE: Only clean expired entries periodically to avoid O(n) scan on every set()
+            if time.time() - self._last_clean > self._clean_interval:
+                self._clean_expired()
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
@@ -119,9 +122,8 @@ class LRUCache:
     
     def _clean_expired(self):
         """Clean expired entries from cache."""
-        # Note: OrderedDict iteration is O(n), but we only do it on set()
-        # and only if needed. A more aggressive optimization could use a
-        # separate TTL-sorted structure, but for simplicity we keep it here.
+        # Note: OrderedDict iteration is O(n), so we do it sparingly.
+        self._last_clean = time.time()
         expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
         for key in expired_keys:
             del self.cache[key]
@@ -155,10 +157,19 @@ class DatabaseCache:
         self.logger = logging.getLogger(__name__)
         self._init_db()
         self.lock = Lock()
+        self._hit_buffer: Dict[str, int] = {}
+        self._buffer_lock = Lock()
+        self._last_flush = time.time()
+        self._flush_interval = 60  # Flush every 60 seconds
     
     def _init_db(self):
         """Initialize database tables."""
         with sqlite3.connect(self.db_path) as conn:
+            # PERFORMANCE: SQLite PRAGMAs for better throughput
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
@@ -170,6 +181,24 @@ class DatabaseCache:
             """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON llm_cache(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_ttl ON llm_cache(ttl)")
+
+    def _flush_hit_counts(self):
+        """Flush buffered hit counts to database."""
+        with self._buffer_lock:
+            if not self._hit_buffer:
+                return
+            buffer_to_flush = self._hit_buffer.copy()
+            self._hit_buffer.clear()
+            self._last_flush = time.time()
+
+        with sqlite3.connect(self.db_path) as conn:
+            # PERFORMANCE: Batch update for hit counts
+            for key, count in buffer_to_flush.items():
+                conn.execute(
+                    "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                    (count, key)
+                )
+            conn.commit()
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -181,6 +210,10 @@ class DatabaseCache:
         Returns:
             Cached value or None if not found/expired
         """
+        # Periodic flush check
+        if time.time() - self._last_flush > self._flush_interval:
+            self._flush_hit_counts()
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 "SELECT value, timestamp, ttl FROM llm_cache WHERE key = ?",
@@ -197,15 +230,19 @@ class DatabaseCache:
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # PERFORMANCE: Buffer hit count update instead of immediate DB write
+                with self._buffer_lock:
+                    self._hit_buffer[key] = self._hit_buffer.get(key, 0) + 1
                 
                 # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
+                    # PERFORMANCE: Fast path for JSON data
+                    if value.startswith(b'{') or value.startswith(b'['):
+                        try:
+                            return json.loads(value.decode('utf-8'))
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            pass
+
                     # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
                     import ast
                     import json

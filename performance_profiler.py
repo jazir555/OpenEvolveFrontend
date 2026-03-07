@@ -212,7 +212,11 @@ class PerformanceProfiler:
         # Record call stack
         call_stack = []
         if trace_calls:
-            call_stack = [frame.function for frame in inspect.stack()[1:]]
+            # PERFORMANCE: Use sys._getframe for much faster stack retrieval
+            frame = sys._getframe(1)
+            while frame:
+                call_stack.append(frame.f_code.co_name)
+                frame = frame.f_back
 
         # Execute and time
         start_time = time.perf_counter()

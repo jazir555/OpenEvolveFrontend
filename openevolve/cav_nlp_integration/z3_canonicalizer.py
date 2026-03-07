@@ -52,13 +52,13 @@ try:
 except ImportError:
     pass
 
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Any, Callable
 from dataclasses import dataclass
 
 def _import_validated_ir():
     """Lazy import validated IR."""
     try:
-        from .z3_validated_ir import Any, Any, Z3ValidationResult
+        from .z3_validated_ir import Z3ValidationResult
         return Any, Any, Z3ValidationResult
     except ImportError:
         return None, None, None

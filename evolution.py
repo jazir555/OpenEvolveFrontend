@@ -5,7 +5,8 @@ import os
 import re
 import json
 import logging
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
+from collections import Counter
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -71,6 +72,9 @@ try:
 except ImportError as e:
     TEAM_SYSTEM_AVAILABLE = False
     logger.warning(f"Team system components not available - adversarial features will be limited: {e}")
+
+# PERFORMANCE: Cache for expensive similarity calculations
+_SIMILARITY_CACHE: Dict[Tuple[str, str], float] = {}
 
 class EvolutionConfiguration(BaseConfiguration if BASE_CONFIGURATION_AVAILABLE else object):
     """
@@ -880,38 +884,60 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
+        # PERFORMANCE: Group duplicate individuals to reduce complexity from O(L^2) to O(U^2)
+        counts = Counter(population)
+        unique_individuals = list(counts.keys())
+        n_unique = len(unique_individuals)
+        n_total = len(population)
+
         # Calculate pairwise diversity using simple string similarity
         import difflib
 
         total_similarity = 0.0
-        comparisons = 0
+        total_comparisons = n_total * (n_total - 1) / 2
 
-        for i in range(len(population)):
-            p1 = population[i]
+        # 1. Similarity between identical individuals
+        for count in counts.values():
+            if count > 1:
+                total_similarity += (count * (count - 1) / 2) * 1.0
+
+        # 2. Similarity between different unique individuals
+        for i in range(n_unique):
+            p1 = unique_individuals[i]
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+            c1 = counts[p1]
+
+            for j in range(i + 1, n_unique):
+                p2 = unique_individuals[j]
                 len2 = len(p2)
+                c2 = counts[p2]
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                # PERFORMANCE: Memoize expensive SequenceMatcher calculations
+                cache_key = tuple(sorted((p1, p2)))
+                if cache_key in _SIMILARITY_CACHE:
+                    similarity = _SIMILARITY_CACHE[cache_key]
                 else:
-                    similarity = 0.0
+                    # Performance optimization: skip expensive SequenceMatcher if strings are of
+                    # vastly different lengths, as they cannot be very similar.
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2: # Very different lengths
+                            similarity = max_possible_ratio * 0.5 # Heuristic
+                        else:
+                            similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                    else:
+                        similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                    # Store in cache (limit size to prevent memory leaks)
+                    if len(_SIMILARITY_CACHE) < 5000:
+                        _SIMILARITY_CACHE[cache_key] = similarity
 
-        if comparisons == 0:
+                total_similarity += (c1 * c2) * similarity
+
+        if total_comparisons == 0:
             return 0.0
 
-        avg_similarity = total_similarity / comparisons
+        avg_similarity = total_similarity / total_comparisons
         diversity = 1.0 - avg_similarity
 
         return max(0.0, min(1.0, diversity))

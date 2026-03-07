@@ -15,7 +15,7 @@ import logging
 import re
 import json
 from typing import List, Dict, Any, Optional, Set, Tuple
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, deque
 from datetime import datetime
 
 # MIGRATION: Fixed imports for semantic_analyzer.py
@@ -540,11 +540,11 @@ you don't need to list B relating to A (relationships are bidirectional by defau
             if concept not in visited:
                 # Start BFS to find this component
                 cluster = []
-                queue = [concept]
+                queue = deque([concept])
                 visited.add(concept)
 
                 while queue:
-                    current = queue.pop(0)
+                    current = queue.popleft()
                     cluster.append(current)
 
                     # Add unvisited neighbors
