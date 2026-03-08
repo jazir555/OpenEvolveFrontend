@@ -5,8 +5,10 @@ import os
 import re
 import json
 import logging
+import functools
 from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass, asdict
+from collections import Counter
 from datetime import datetime
 
 import requests
@@ -867,6 +869,27 @@ class ContentEvaluator:
         return min(1.0, (length_score + structure_score) / 2)
 
     @staticmethod
+    @functools.lru_cache(maxsize=1024)
+    def _memoized_similarity(p1: str, p2: str) -> float:
+        """Memoized pairwise string similarity."""
+        import difflib
+        # BOLT Rule: Memoize O(L²) diversity/similarity calculations to prevent redundant string comparisons
+
+        # Order inputs to ensure (a, b) and (b, a) hit the same cache entry
+        if p1 > p2:
+            p1, p2 = p2, p1
+
+        len1, len2 = len(p1), len(p2)
+        if len1 == 0 or len2 == 0:
+            return 0.0
+
+        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+        if max_possible_ratio < 0.2:
+            return max_possible_ratio * 0.5
+
+        return difflib.SequenceMatcher(None, p1, p2).ratio()
+
+    @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
         Calculate diversity of a population
@@ -880,34 +903,36 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
-        import difflib
+        # BOLT Rule: Group duplicate individuals using collections.Counter before performing
+        # pairwise comparisons to reduce complexity from O(L²) to O(U²).
+        counts = Counter(population)
+        unique_items = list(counts.keys())
+        n_total = len(population)
 
         total_similarity = 0.0
-        comparisons = 0
 
-        for i in range(len(population)):
-            p1 = population[i]
-            len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
-                len2 = len(p2)
+        # Self-comparisons (identical items have similarity 1.0)
+        for item, count in counts.items():
+            if count > 1:
+                # Number of pairs of identical items
+                pairs = (count * (count - 1)) // 2
+                total_similarity += pairs * 1.0
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
-                else:
-                    similarity = 0.0
+        # Cross-comparisons between different unique items
+        for i in range(len(unique_items)):
+            u1 = unique_items[i]
+            c1 = counts[u1]
+            for j in range(i + 1, len(unique_items)):
+                u2 = unique_items[j]
+                c2 = counts[u2]
 
-                total_similarity += similarity
-                comparisons += 1
+                # Get similarity (memoized)
+                sim = ContentEvaluator._memoized_similarity(u1, u2)
 
+                # Multiply by number of occurrences of each item in the pair
+                total_similarity += sim * (c1 * c2)
+
+        comparisons = (n_total * (n_total - 1)) // 2
         if comparisons == 0:
             return 0.0
 
