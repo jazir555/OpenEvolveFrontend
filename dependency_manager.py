@@ -5,6 +5,7 @@ Manages dependencies between sub-problems, validates graphs, and optimizes execu
 """
 
 import logging
+import heapq
 from typing import List, Dict, Set, Optional, Tuple
 from collections import deque, defaultdict
 from datetime import datetime
@@ -371,7 +372,9 @@ class DependencyManager:
                     in_degree[node] = 0
             
             # Find nodes with no dependencies
-            queue = deque([node for node, degree in in_degree.items() if degree == 0])
+            # PERFORMANCE: Use heapq for O(log N) priority management instead of O(N log N) sorting every iteration
+            queue = [(-graph.nodes[node].priority, node) for node, degree in in_degree.items() if degree == 0]
+            heapq.heapify(queue)
             execution_order = []
             
             # Build reverse edges
@@ -382,16 +385,14 @@ class DependencyManager:
             
             # Process nodes in topological order
             while queue:
-                # Sort queue by priority (higher priority first)
-                queue = deque(sorted(queue, key=lambda n: graph.nodes[n].priority, reverse=True))
-                current = queue.popleft()
+                _, current = heapq.heappop(queue)
                 execution_order.append(current)
                 
                 # Update in-degree for successors
                 for successor in reverse_edges[current]:
                     in_degree[successor] -= 1
                     if in_degree[successor] == 0:
-                        queue.append(successor)
+                        heapq.heappush(queue, (-graph.nodes[successor].priority, successor))
             
             return execution_order
         except Exception as e:

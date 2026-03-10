@@ -5,6 +5,7 @@ import os
 import re
 import json
 import logging
+import functools
 from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -867,6 +868,19 @@ class ContentEvaluator:
         return min(1.0, (length_score + structure_score) / 2)
 
     @staticmethod
+    @functools.lru_cache(maxsize=1000)
+    def _calculate_pair_similarity(p1: str, p2: str) -> float:
+        """Helper to calculate similarity between two strings with memoization."""
+        import difflib
+        len1, len2 = len(p1), len(p2)
+        if len1 > 0 and len2 > 0:
+            max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+            if max_possible_ratio < 0.2:
+                return max_possible_ratio * 0.5
+            return difflib.SequenceMatcher(None, p1, p2).ratio()
+        return 0.0
+
+    @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
         Calculate diversity of a population
@@ -880,31 +894,18 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
-        import difflib
-
         total_similarity = 0.0
         comparisons = 0
 
-        for i in range(len(population)):
-            p1 = population[i]
-            len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
-                len2 = len(p2)
+        # Sort population to ensure consistent pair ordering for cache hits
+        sorted_pop = sorted(population)
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
-                else:
-                    similarity = 0.0
-
+        for i in range(len(sorted_pop)):
+            p1 = sorted_pop[i]
+            for j in range(i + 1, len(sorted_pop)):
+                p2 = sorted_pop[j]
+                # PERFORMANCE: Use memoized pair similarity calculation
+                similarity = ContentEvaluator._calculate_pair_similarity(p1, p2)
                 total_similarity += similarity
                 comparisons += 1
 
