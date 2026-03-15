@@ -62,10 +62,10 @@ class LRUCache:
     def get(self, key: str) -> Optional[Any]:
         """Get a value from cache, return None if not found or expired"""
         with self._lock:
-            if key not in self._cache:
+            # PERFORMANCE OPTIMIZATION: Use get() to avoid double lookup (in + [])
+            entry = self._cache.get(key)
+            if entry is None:
                 return None
-            
-            entry = self._cache[key]
             
             # Check if expired
             if entry.is_expired():
@@ -140,12 +140,15 @@ class LLMResponseCache:
     
     def _generate_key(self, content: str, model_params: Dict[str, Any]) -> str:
         """Generate a unique cache key based on content and model parameters"""
-        # Optimization: Use a faster key generation for simple cases
+        # PERFORMANCE OPTIMIZATION: Hash large content separately to avoid
+        # serializing it into JSON, which is slow for large strings.
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
+
         if not model_params:
-            return hashlib.sha256(content.encode()).hexdigest()
+            return content_hash
 
         cache_input = {
-            'content': content,
+            'content_hash': content_hash,
             'model': model_params.get('model', ''),
             'temperature': model_params.get('temperature', 0.7),
             'max_tokens': model_params.get('max_tokens', 1000),
@@ -211,6 +214,8 @@ class DatabaseOptimizer:
         conn.execute("PRAGMA mmap_size=536870912")  # Increased to 512MB memory mapping
         conn.execute("PRAGMA page_size=4096")
         conn.execute("PRAGMA threads=4")
+        conn.execute("PRAGMA journal_size_limit=67108864")  # 64MB journal limit
+        conn.execute("PRAGMA busy_timeout=5000")            # 5s busy timeout
         
         return conn
     

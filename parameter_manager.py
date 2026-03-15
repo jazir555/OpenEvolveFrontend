@@ -23,7 +23,7 @@ class ParameterType(Enum):
     SELECT = "select"
 
 
-@dataclass
+@dataclass(slots=True)
 class Parameter:
     """Definition of a single parameter"""
     name: str
@@ -38,7 +38,7 @@ class Parameter:
     dependencies: List[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class ValidationResult:
     """Result from parameter validation"""
     valid: bool
@@ -801,6 +801,7 @@ class ParameterSchema:
         """Get all parameter categories (memoized)"""
         return list(set(p.category for p in self.parameters.values()))
     
+    @functools.lru_cache(maxsize=32)
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
         """Get all parameters in a category"""
         return [p for p in self.parameters.values() if p.category == category]
@@ -1036,6 +1037,7 @@ class ParameterManager:
         """Get all parameter categories"""
         return self.schema.get_categories()
     
+    @functools.lru_cache(maxsize=32)
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
         """Get parameters in a category"""
         return self.schema.get_parameters_by_category(category)

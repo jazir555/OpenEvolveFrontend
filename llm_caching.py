@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 import pickle
+import ast
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Callable, Tuple
 from dataclasses import dataclass
@@ -48,6 +49,7 @@ class LRUCache:
         self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self.last_cleanup = time.time()
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -99,8 +101,10 @@ class LRUCache:
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
+            # Clean expired entries periodically to minimize overhead
+            if time.time() - self.last_cleanup > 300:
+                self._clean_expired()
+                self.last_cleanup = time.time()
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
@@ -155,6 +159,9 @@ class DatabaseCache:
         self.logger = logging.getLogger(__name__)
         self._init_db()
         self.lock = Lock()
+        self._hit_buffer = {}
+        self._buffer_lock = Lock()
+        self._last_flush = time.time()
     
     def _init_db(self):
         """Initialize database tables."""
@@ -197,19 +204,25 @@ class DatabaseCache:
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # Update hit count using buffer to avoid redundant I/O
+                with self._buffer_lock:
+                    self._hit_buffer[key] = self._hit_buffer.get(key, 0) + 1
+                    should_flush = (len(self._hit_buffer) >= 100 or
+                                   time.time() - self._last_flush > 60)
+
+                if should_flush:
+                    self._flush_hit_counts()
                 
                 # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
-                    # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
-                    import ast
-                    import json
-                    # First try JSON (safer and faster)
+                    # PERFORMANCE OPTIMIZATION: Check for JSON byte markers for fast path
+                    if value.startswith(b'{') or value.startswith(b'['):
+                        try:
+                            return json.loads(value.decode('utf-8'))
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            pass
+
+                    # SECURITY FIX: Use JSON (safer and faster)
                     try:
                         return json.loads(value.decode('utf-8'))
                     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -269,6 +282,25 @@ class DatabaseCache:
                 self.logger.error(f"Failed to cache value: {e}")
                 return False
     
+    def _flush_hit_counts(self):
+        """Batch update hit counts in the database."""
+        with self._buffer_lock:
+            if not self._hit_buffer:
+                return
+            updates = list(self._hit_buffer.items())
+            self._hit_buffer.clear()
+            self._last_flush = time.time()
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.executemany(
+                    "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                    [(hits, key) for key, hits in updates]
+                )
+                conn.commit()
+        except Exception as e:
+            self.logger.error(f"Failed to flush hit counts: {e}")
+
     def _is_expired(self, timestamp: datetime, ttl: int) -> bool:
         """Check if cache entry is expired."""
         return (datetime.now() - timestamp).total_seconds() > ttl

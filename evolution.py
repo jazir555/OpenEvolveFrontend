@@ -1,5 +1,6 @@
 from ui_shim import ui as st
 import time
+import collections
 import tempfile
 import os
 import re
@@ -880,33 +881,54 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
+        # PERFORMANCE OPTIMIZATION: Group identical individuals to reduce comparisons
+        counts = collections.Counter(population)
+        unique_population = list(counts.keys())
+
         # Calculate pairwise diversity using simple string similarity
         import difflib
 
         total_similarity = 0.0
         comparisons = 0
 
-        for i in range(len(population)):
-            p1 = population[i]
+        # Memoize similarity results for unique pairs
+        similarity_cache = {}
+
+        for i in range(len(unique_population)):
+            p1 = unique_population[i]
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+            count1 = counts[p1]
+
+            # Identical individuals within the population
+            if count1 > 1:
+                # Similarity of p1 to itself is 1.0
+                pair_count = (count1 * (count1 - 1)) // 2
+                total_similarity += pair_count
+                comparisons += pair_count
+
+            for j in range(i + 1, len(unique_population)):
+                p2 = unique_population[j]
                 len2 = len(p2)
+                count2 = counts[p2]
+                pair_count = count1 * count2
 
                 # Performance optimization: skip expensive SequenceMatcher if strings are of
                 # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
                 if len1 > 0 and len2 > 0:
                     max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
                     if max_possible_ratio < 0.2: # Very different lengths
                         similarity = max_possible_ratio * 0.5 # Heuristic
                     else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                        # Check cache for this pair
+                        pair_key = tuple(sorted((p1, p2)))
+                        if pair_key not in similarity_cache:
+                            similarity_cache[pair_key] = difflib.SequenceMatcher(None, p1, p2).ratio()
+                        similarity = similarity_cache[pair_key]
                 else:
                     similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                total_similarity += similarity * pair_count
+                comparisons += pair_count
 
         if comparisons == 0:
             return 0.0

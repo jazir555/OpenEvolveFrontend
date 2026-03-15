@@ -248,6 +248,9 @@ class ConfigCache:
 
     def extract_all(self) -> 'ConfigCache':
         """Extract all attributes from config object"""
+        if self._cached:
+            return self
+
         if hasattr(self._config, '__dataclass_fields__'):
             # Dataclass object
             for field in self._config.__dataclass_fields__:
@@ -266,6 +269,7 @@ class ConfigCache:
                         logger = logging.getLogger(__name__)
                         logger.error(f"Error in performance_optimizations.py: {e}", exc_info=True)
                         raise
+        self._cached = True
         return self
 
     def __getattr__(self, name: str) -> Any:
