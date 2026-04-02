@@ -5,7 +5,7 @@ import os
 import re
 import json
 import logging
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -866,6 +866,9 @@ class ContentEvaluator:
 
         return min(1.0, (length_score + structure_score) / 2)
 
+    # Static cache for similarity results to avoid O(L^2) redundant calculations
+    _similarity_cache: Dict[Tuple[int, int], float] = {}
+
     @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
@@ -886,24 +889,37 @@ class ContentEvaluator:
         total_similarity = 0.0
         comparisons = 0
 
+        # Performance optimization: use hash-based cache
+        pop_hashes = [hash(p) for p in population]
+
         for i in range(len(population)):
             p1 = population[i]
+            h1 = pop_hashes[i]
             len1 = len(p1)
             for j in range(i + 1, len(population)):
                 p2 = population[j]
+                h2 = pop_hashes[j]
                 len2 = len(p2)
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                # Check cache
+                cache_key = tuple(sorted((h1, h2)))
+                if cache_key in ContentEvaluator._similarity_cache:
+                    similarity = ContentEvaluator._similarity_cache[cache_key]
                 else:
-                    similarity = 0.0
+                    # Performance optimization: skip expensive SequenceMatcher if strings are of
+                    # vastly different lengths, as they cannot be very similar.
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2: # Very different lengths
+                            similarity = max_possible_ratio * 0.5 # Heuristic
+                        else:
+                            similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                    else:
+                        similarity = 0.0
+
+                    # Store in cache (limit size if necessary)
+                    if len(ContentEvaluator._similarity_cache) < 10000:
+                        ContentEvaluator._similarity_cache[cache_key] = similarity
 
                 total_similarity += similarity
                 comparisons += 1
