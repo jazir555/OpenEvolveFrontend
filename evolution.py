@@ -880,22 +880,41 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
+        # Optimization: Group duplicate individuals to reduce pairwise comparisons from O(L^2) to O(U^2)
+        import collections
         import difflib
 
-        total_similarity = 0.0
-        comparisons = 0
+        counts = collections.Counter(population)
+        unique_items = list(counts.keys())
+        num_unique = len(unique_items)
 
-        for i in range(len(population)):
-            p1 = population[i]
+        if num_unique < 2:
+            # If all items are same (or only 1 item exists which is handled above)
+            return 0.0
+
+        total_similarity = 0.0
+        total_comparisons = 0
+
+        for i in range(num_unique):
+            p1 = unique_items[i]
+            count1 = counts[p1]
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+
+            # Same-item comparisons (similarity is 1.0)
+            if count1 > 1:
+                # Number of pairs of the same item: n*(n-1)/2
+                same_pairs = count1 * (count1 - 1) // 2
+                total_similarity += same_pairs * 1.0
+                total_comparisons += same_pairs
+
+            for j in range(i + 1, num_unique):
+                p2 = unique_items[j]
+                count2 = counts[p2]
                 len2 = len(p2)
 
+                # Pairwise comparisons between different unique items
                 # Performance optimization: skip expensive SequenceMatcher if strings are of
                 # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
                 if len1 > 0 and len2 > 0:
                     max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
                     if max_possible_ratio < 0.2: # Very different lengths
@@ -905,13 +924,14 @@ class ContentEvaluator:
                 else:
                     similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                pairs = count1 * count2
+                total_similarity += pairs * similarity
+                total_comparisons += pairs
 
-        if comparisons == 0:
+        if total_comparisons == 0:
             return 0.0
 
-        avg_similarity = total_similarity / comparisons
+        avg_similarity = total_similarity / total_comparisons
         diversity = 1.0 - avg_similarity
 
         return max(0.0, min(1.0, diversity))

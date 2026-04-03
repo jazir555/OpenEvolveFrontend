@@ -803,7 +803,15 @@ class ParameterSchema:
     
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
         """Get all parameters in a category"""
-        return [p for p in self.parameters.values() if p.category == category]
+        # Optimization: Use an internal per-instance cache to avoid O(N) scan
+        # and prevent memory leaks common with @lru_cache on methods.
+        if not hasattr(self, "_category_cache"):
+            self._category_cache = {}
+
+        if category not in self._category_cache:
+            self._category_cache[category] = [p for p in self.parameters.values() if p.category == category]
+
+        return self._category_cache[category]
 
 
 class ParameterValidator:

@@ -19,6 +19,7 @@ from datetime import datetime
 import logging
 from contextlib import contextmanager
 import psutil
+from collections import OrderedDict
 
 # Optional imports for distributed processing
 try:
@@ -438,37 +439,39 @@ class MemoryOptimizer:
     
     def __init__(self, max_memory_mb: int = 512):
         self.max_memory_mb = max_memory_mb
-        self.cache = {}
-        self.lru_order = []
+        # Optimization: Use OrderedDict for O(1) LRU management instead of list.remove()
+        self.cache: OrderedDict[str, Any] = OrderedDict()
         self._lock = threading.Lock()
     
     def get_from_cache(self, key: str) -> Optional[Any]:
         """Get item from memory cache"""
         with self._lock:
-            if key in self.cache:
-                # Update LRU order
-                if key in self.lru_order:
-                    self.lru_order.remove(key)
-                self.lru_order.append(key)
-                return self.cache[key]
+            # Optimization: Use dict.get() and move_to_end()
+            value = self.cache.get(key)
+            if value is not None:
+                self.cache.move_to_end(key)
+                return value
             return None
     
     def put_in_cache(self, key: str, value: Any, size_estimate: int = 1) -> bool:
         """Put item in memory cache with size check"""
         with self._lock:
+            # Check if key already exists
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                self.cache[key] = value
+                return True
+
             # Check memory usage
             if self._estimate_memory_usage() + size_estimate > self.max_memory_mb:
                 # Remove LRU items until memory is available
                 while (self._estimate_memory_usage() + size_estimate > self.max_memory_mb 
-                       and self.lru_order):
-                    lru_key = self.lru_order.pop(0)
-                    if lru_key in self.cache:
-                        del self.cache[lru_key]
+                       and self.cache):
+                    self.cache.popitem(last=False)
             
             # Check if we have space now
             if self._estimate_memory_usage() + size_estimate <= self.max_memory_mb:
                 self.cache[key] = value
-                self.lru_order.append(key)
                 return True
             else:
                 logger.warning(f"Memory cache full, could not add item: {key}")
@@ -615,10 +618,8 @@ class ScalabilityManager:
         # Clear least recently used items from memory cache if needed
         with self.memory_optimizer._lock:
             while (self.memory_optimizer._estimate_memory_usage() > self.memory_optimizer.max_memory_mb
-                   and self.memory_optimizer.lru_order):
-                lru_key = self.memory_optimizer.lru_order.pop(0)
-                if lru_key in self.memory_optimizer.cache:
-                    del self.memory_optimizer.cache[lru_key]
+                   and self.memory_optimizer.cache):
+                self.memory_optimizer.cache.popitem(last=False)
         logger.info("Memory optimization completed")
 
     def register_task_handler(self, task_type: str, handler: Callable):

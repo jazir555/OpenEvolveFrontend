@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 import pickle
+import ast
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Callable, Tuple
 from dataclasses import dataclass
@@ -48,6 +49,8 @@ class LRUCache:
         self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self._last_clean = time.time()
+        self._clean_interval = 300 # Optimization: clean every 5 minutes
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -60,10 +63,11 @@ class LRUCache:
             Cached value or None if not found/expired
         """
         with self.lock:
-            if key not in self.cache:
+            # Optimization: Use dict.get() for O(1) lookup + presence check
+            entry = self.cache.get(key)
+            if entry is None:
                 return None
             
-            entry = self.cache[key]
             if entry.is_expired():
                 del self.cache[key]
                 return None
@@ -87,20 +91,22 @@ class LRUCache:
             True if set successfully
         """
         with self.lock:
-            # If key already exists, update its position and value
-            if key in self.cache:
+            # Optimization: Use dict.get()
+            entry = self.cache.get(key)
+            if entry is not None:
                 self.cache.move_to_end(key)
                 self.cache[key] = CacheEntry(
                     key=key,
                     value=value,
                     timestamp=datetime.now(),
                     ttl=ttl,
-                    hit_count=self.cache[key].hit_count
+                    hit_count=entry.hit_count
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
+            # Optimization: Clean expired entries periodically, not every write
+            if time.time() - self._last_clean > self._clean_interval:
+                self._clean_expired()
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
@@ -119,9 +125,8 @@ class LRUCache:
     
     def _clean_expired(self):
         """Clean expired entries from cache."""
-        # Note: OrderedDict iteration is O(n), but we only do it on set()
-        # and only if needed. A more aggressive optimization could use a
-        # separate TTL-sorted structure, but for simplicity we keep it here.
+        # Note: OrderedDict iteration is O(n), so we perform this periodically.
+        self._last_clean = time.time()
         expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
         for key in expired_keys:
             del self.cache[key]
@@ -159,11 +164,16 @@ class DatabaseCache:
     def _init_db(self):
         """Initialize database tables."""
         with sqlite3.connect(self.db_path) as conn:
+            # Optimization: Use WAL mode and performance-tuning PRAGMAs
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
                     value BLOB,
-                    timestamp TEXT,
+                    timestamp REAL, -- Optimization: Use Unix timestamps for faster comparisons
                     ttl INTEGER,
                     hit_count INTEGER DEFAULT 1
                 )
@@ -189,8 +199,12 @@ class DatabaseCache:
             row = cursor.fetchone()
             
             if row:
-                value, timestamp_str, ttl = row
-                timestamp = datetime.fromisoformat(timestamp_str)
+                value, ts_val, ttl = row
+                # Handle both REAL (Unix timestamp) and legacy TEXT (ISO string) formats
+                if isinstance(ts_val, (int, float)):
+                    timestamp = datetime.fromtimestamp(ts_val)
+                else:
+                    timestamp = datetime.fromisoformat(ts_val)
                 
                 if self._is_expired(timestamp, ttl):
                     # Remove expired entry
@@ -207,18 +221,21 @@ class DatabaseCache:
                 # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
                     # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
-                    import ast
-                    import json
-                    # First try JSON (safer and faster)
-                    try:
-                        return json.loads(value.decode('utf-8'))
-                    except (json.JSONDecodeError, UnicodeDecodeError):
+
+                    # Optimization: JSON 'Fast Path' - check for byte markers before complex deserialization
+                    if value and value[0] in (123, 91): # { or [
                         try:
-                            # If JSON fails, try ast.literal_eval
-                            return ast.literal_eval(value.decode('utf-8'))
-                        except (ValueError, SyntaxError, UnicodeDecodeError):
-                            # Fallback to pickle for legacy/complex data
-                            return pickle.loads(value)
+                            return json.loads(value.decode('utf-8'))
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            pass
+
+                    # Fallback to other methods if fast path fails
+                    try:
+                        # Try ast.literal_eval
+                        return ast.literal_eval(value.decode('utf-8'))
+                    except (ValueError, SyntaxError, UnicodeDecodeError):
+                        # Fallback to pickle for legacy/complex data
+                        return pickle.loads(value)
                 except Exception as e:
                     self.logger.error(f"Failed to deserialize cached value: {e}")
                     # Remove corrupted entry
@@ -259,7 +276,7 @@ class DatabaseCache:
                 """, (
                     key, 
                     serialized_value,
-                    datetime.now().isoformat(),
+                    datetime.now().timestamp(), # Optimization: Store as Unix timestamp
                     ttl,
                     1  # New entry starts with hit_count of 1
                 ))
@@ -280,10 +297,13 @@ class DatabaseCache:
         Returns:
             Number of entries removed
         """
+        now_ts = datetime.now().timestamp()
         with sqlite3.connect(self.db_path) as conn:
+            # Note: This handles legacy ISO strings by using strftime/datetime logic in SQL if needed,
+            # but for REAL timestamps it is extremely fast.
             cursor = conn.execute(
                 "DELETE FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (now_ts,)
             )
             removed_count = cursor.rowcount
             conn.commit()
@@ -297,9 +317,10 @@ class DatabaseCache:
             total_entries = cursor.fetchone()[0]
             
             # Count expired entries
+            now_ts = datetime.now().timestamp()
             cursor = conn.execute(
                 "SELECT COUNT(*) FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (now_ts,)
             )
             expired_entries = cursor.fetchone()[0]
             

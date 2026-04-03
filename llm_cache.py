@@ -135,9 +135,9 @@ class LLMCache:
         cache_key = self._generate_cache_key(model, messages, temperature, max_tokens, **kwargs)
         
         with self._lock:
-            if cache_key in self.cache:
-                entry = self.cache[cache_key]
-                
+            # Optimization: Use dict.get() for single lookup
+            entry = self.cache.get(cache_key)
+            if entry is not None:
                 # Check if expired
                 if time.time() - entry["timestamp"] > self.ttl_seconds:
                     del self.cache[cache_key]
