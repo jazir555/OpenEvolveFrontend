@@ -880,33 +880,68 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
+        # Performance Optimization: Group duplicates to reduce comparisons from O(L^2) to O(U^2)
+        from collections import Counter
+        counts = Counter(population)
+        unique_items = list(counts.keys())
+
         # Calculate pairwise diversity using simple string similarity
         import difflib
+        import hashlib
+
+        # In-memory memoization for string comparisons to avoid redundant O(N*M) work
+        if not hasattr(ContentEvaluator.calculate_diversity, "_memo"):
+            ContentEvaluator.calculate_diversity._memo = {}
+        memo = ContentEvaluator.calculate_diversity._memo
 
         total_similarity = 0.0
         comparisons = 0
+        total_pairs = len(population) * (len(population) - 1) // 2
 
-        for i in range(len(population)):
-            p1 = population[i]
+        # Nested loop over UNIQUE items only
+        for i, p1 in enumerate(unique_items):
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+            count1 = counts[p1]
+
+            # Handle identical pairs (same unique string)
+            if count1 > 1:
+                # Number of pairs within the same unique group is count*(count-1)/2
+                same_group_pairs = count1 * (count1 - 1) // 2
+                total_similarity += same_group_pairs * 1.0
+                comparisons += same_group_pairs
+
+            # Handle cross-pairs between different unique strings
+            for j in range(i + 1, len(unique_items)):
+                p2 = unique_items[j]
                 len2 = len(p2)
+                count2 = counts[p2]
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
-                    else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                # Pair weight is the product of their frequencies
+                pair_multiplier = count1 * count2
+
+                # Check memo first
+                # Use sorted tuple of strings as key for symmetric comparison
+                memo_key = tuple(sorted([p1, p2]))
+                if memo_key in memo:
+                    similarity = memo[memo_key]
                 else:
-                    similarity = 0.0
+                    # Performance optimization: skip expensive SequenceMatcher if strings are of
+                    # vastly different lengths, as they cannot be very similar.
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2: # Very different lengths
+                            similarity = max_possible_ratio * 0.5 # Heuristic
+                        else:
+                            similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
+                    else:
+                        similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                    # Store in memo (bounded size to avoid memory leaks)
+                    if len(memo) < 5000:
+                        memo[memo_key] = similarity
+
+                total_similarity += similarity * pair_multiplier
+                comparisons += pair_multiplier
 
         if comparisons == 0:
             return 0.0

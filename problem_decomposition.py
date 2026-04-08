@@ -70,7 +70,7 @@ class ComponentType(Enum):
     ERROR_HANDLING = "error_handling"
 
 
-@dataclass
+@dataclass(slots=True)
 class Component:
     """Represents a decomposed component"""
     id: str

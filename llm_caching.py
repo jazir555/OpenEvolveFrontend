@@ -48,6 +48,8 @@ class LRUCache:
         self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self._last_clean_time = 0
+        self._clean_interval = 300  # Clean every 5 minutes
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -99,8 +101,11 @@ class LRUCache:
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
+            # Clean expired entries periodically to avoid O(n) scan on every set
+            current_time = time.time()
+            if current_time - self._last_clean_time > self._clean_interval:
+                self._clean_expired()
+                self._last_clean_time = current_time
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
@@ -155,10 +160,21 @@ class DatabaseCache:
         self.logger = logging.getLogger(__name__)
         self._init_db()
         self.lock = Lock()
+        self._hit_count_buffer = {}  # key -> count
+        self._buffer_lock = Lock()
+        self._last_flush_time = time.time()
+        self._flush_interval = 60  # Flush hit counts every minute
     
     def _init_db(self):
-        """Initialize database tables."""
+        """Initialize database tables and optimize settings."""
         with sqlite3.connect(self.db_path) as conn:
+            # Performance PRAGMAs for high-concurrency and throughput
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
+            conn.execute("PRAGMA temp_store=MEMORY")
+            conn.execute("PRAGMA busy_timeout=5000")
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
@@ -181,6 +197,7 @@ class DatabaseCache:
         Returns:
             Cached value or None if not found/expired
         """
+        should_flush = False
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 "SELECT value, timestamp, ttl FROM llm_cache WHERE key = ?",
@@ -197,28 +214,37 @@ class DatabaseCache:
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # Buffer hit count update to reduce I/O
+                with self._buffer_lock:
+                    self._hit_count_buffer[key] = self._hit_count_buffer.get(key, 0) + 1
+                    if time.time() - self._last_flush_time > self._flush_interval:
+                        should_flush = True
                 
-                # Deserialize value - SECURITY FIX: Use safer serialization method
+                # Deserialize value - Optimized fast path for JSON
                 try:
-                    # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
-                    import ast
-                    import json
-                    # First try JSON (safer and faster)
-                    try:
-                        return json.loads(value.decode('utf-8'))
-                    except (json.JSONDecodeError, UnicodeDecodeError):
+                    # Optimized fast-path: check for JSON markers first
+                    # Avoids unnecessary imports and nested try-except in hot paths
+                    deserialized_value = None
+                    if value.startswith(b'{') or value.startswith(b'['):
                         try:
-                            # If JSON fails, try ast.literal_eval
-                            return ast.literal_eval(value.decode('utf-8'))
+                            import json
+                            deserialized_value = json.loads(value.decode('utf-8'))
+                        except (json.JSONDecodeError, UnicodeDecodeError):
+                            pass
+
+                    if deserialized_value is None:
+                        # Fallback for complex/legacy data
+                        import ast
+                        try:
+                            deserialized_value = ast.literal_eval(value.decode('utf-8'))
                         except (ValueError, SyntaxError, UnicodeDecodeError):
-                            # Fallback to pickle for legacy/complex data
-                            return pickle.loads(value)
+                            deserialized_value = pickle.loads(value)
+
+                    # Periodic flush of hit counts - outside the main connection block to minimize contention
+                    if should_flush:
+                        self._flush_hit_counts()
+
+                    return deserialized_value
                 except Exception as e:
                     self.logger.error(f"Failed to deserialize cached value: {e}")
                     # Remove corrupted entry
@@ -269,6 +295,26 @@ class DatabaseCache:
                 self.logger.error(f"Failed to cache value: {e}")
                 return False
     
+    def _flush_hit_counts(self):
+        """Flush buffered hit counts to the database in a single transaction."""
+        with self._buffer_lock:
+            if not self._hit_count_buffer:
+                return
+            current_buffer = self._hit_count_buffer
+            self._hit_count_buffer = {}
+            self._last_flush_time = time.time()
+
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                # Optimized batch update
+                conn.executemany(
+                    "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                    [(count, key) for key, count in current_buffer.items()]
+                )
+                conn.commit()
+        except Exception as e:
+            self.logger.error(f"Failed to flush hit counts: {e}")
+
     def _is_expired(self, timestamp: datetime, ttl: int) -> bool:
         """Check if cache entry is expired."""
         return (datetime.now() - timestamp).total_seconds() > ttl

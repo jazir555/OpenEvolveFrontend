@@ -62,10 +62,10 @@ class LRUCache:
     def get(self, key: str) -> Optional[Any]:
         """Get a value from cache, return None if not found or expired"""
         with self._lock:
-            if key not in self._cache:
+            # Optimization: Use get() to avoid double lookup (membership check + retrieval)
+            entry = self._cache.get(key)
+            if entry is None:
                 return None
-            
-            entry = self._cache[key]
             
             # Check if expired
             if entry.is_expired():
@@ -140,20 +140,24 @@ class LLMResponseCache:
     
     def _generate_key(self, content: str, model_params: Dict[str, Any]) -> str:
         """Generate a unique cache key based on content and model parameters"""
-        # Optimization: Use a faster key generation for simple cases
-        if not model_params:
-            return hashlib.sha256(content.encode()).hexdigest()
+        # Optimization: Hash content and parameters separately to avoid serializing large strings
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
 
-        cache_input = {
-            'content': content,
-            'model': model_params.get('model', ''),
-            'temperature': model_params.get('temperature', 0.7),
-            'max_tokens': model_params.get('max_tokens', 1000),
-            'top_p': model_params.get('top_p', 1.0),
+        if not model_params:
+            return content_hash
+
+        # Extract only relevant params for hashing
+        relevant_params = {
+            'm': model_params.get('model', ''),
+            't': model_params.get('temperature', 0.7),
+            'mt': model_params.get('max_tokens', 1000),
+            'tp': model_params.get('top_p', 1.0),
         }
-        # Use sort_keys for consistent hashing
-        cache_str = json.dumps(cache_input, sort_keys=True)
-        return hashlib.sha256(cache_str.encode()).hexdigest()
+        params_str = json.dumps(relevant_params, sort_keys=True)
+        params_hash = hashlib.sha256(params_str.encode()).hexdigest()
+
+        # Combine hashes
+        return hashlib.sha256(f"{content_hash}:{params_hash}".encode()).hexdigest()
     
     def get_response(self, content: str, model_params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get cached LLM response if available"""
@@ -361,21 +365,39 @@ class RateLimiter:
 class ParallelProcessor:
     """Parallel processing utilities for independent tasks"""
     
+    # Class-level persistent executor to avoid leaks and creation overhead
+    _shared_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+    _executor_lock = threading.Lock()
+
     def __init__(self, max_workers: Optional[int] = None):
         self.max_workers = max_workers or min(32, (os.cpu_count() or 1) + 4)
+
+    def _get_executor(self):
+        """Get or create the shared ThreadPoolExecutor."""
+        if ParallelProcessor._shared_executor is None:
+            with ParallelProcessor._executor_lock:
+                if ParallelProcessor._shared_executor is None:
+                    ParallelProcessor._shared_executor = concurrent.futures.ThreadPoolExecutor(
+                        max_workers=self.max_workers,
+                        thread_name_prefix="ParallelProcessor"
+                    )
+        return ParallelProcessor._shared_executor
     
     def process_in_parallel(self, tasks: List[Callable[[], Any]], timeout: Optional[float] = None) -> List[Any]:
-        """Process multiple tasks in parallel using ThreadPoolExecutor"""
-        results = []
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            future_to_index = {
-                executor.submit(task): i for i, task in enumerate(tasks)
-            }
+        """Process multiple tasks in parallel using a shared ThreadPoolExecutor"""
+        if not tasks:
+            return []
             
-            # Collect results maintaining order
-            temp_results = [None] * len(tasks)
+        executor = self._get_executor()
+
+        # Submit all tasks
+        future_to_index = {
+            executor.submit(task): i for i, task in enumerate(tasks)
+        }
+
+        # Collect results maintaining order
+        temp_results = [None] * len(tasks)
+        try:
             for future in concurrent.futures.as_completed(future_to_index, timeout=timeout):
                 index = future_to_index[future]
                 try:
@@ -383,10 +405,13 @@ class ParallelProcessor:
                 except Exception as e:
                     logger.error(f"Task {index} failed: {e}")
                     temp_results[index] = None  # Or raise the exception
-            
-            results = temp_results
+        except concurrent.futures.TimeoutError:
+            logger.warning(f"Parallel processing timed out after {timeout} seconds")
+            # Cancel pending futures if possible (standard executor doesn't support easily but we can try)
+            for future in future_to_index:
+                future.cancel()
         
-        return results
+        return temp_results
     
     async def process_in_parallel_async(self, tasks: List[Callable[[], Any]]) -> List[Any]:
         """Process multiple tasks in parallel using asyncio"""

@@ -13,6 +13,7 @@ The strategy identifies:
 
 import logging
 import re
+import heapq
 from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
@@ -42,7 +43,7 @@ except ImportError:
         TEST_CASE = "test_case"
         ERROR_HANDLING = "error_handling"
     
-    @dataclass
+    @dataclass(slots=True)
     class Component:
         id: str
         title: str
@@ -803,35 +804,39 @@ Provide dependencies for all {len(sub_problems)} sub-problems:"""
         Perform topological sort on the dependency graph.
         
         Returns a valid execution order respecting dependencies.
+        Uses a heap for O(V log V) deterministic sort instead of O(V^2 log V).
         """
         # Kahn's algorithm
         in_degree = {node: 0 for node in dependency_graph}
-        for deps in dependency_graph.values():
-            for dep in deps:
-                if dep in in_degree:
-                    in_degree[dep] += 0  # Ensure all deps are in dict
         
+        # Pre-calculate adjacency list for faster lookups during traversal
+        # The input dependency_graph is node -> [dependencies]
+        # We need node -> [dependents] for Kahn's algorithm
+        dependents = {node: [] for node in dependency_graph}
         for node, deps in dependency_graph.items():
             for dep in deps:
-                if dep in in_degree:
-                    in_degree[dep] = in_degree.get(dep, 0) + 1
+                if dep in dependents:
+                    dependents[dep].append(node)
+                    in_degree[node] += 1
+                else:
+                    # External dependency not in graph, ignore for sorting
+                    pass
         
-        # Find all nodes with no dependencies
+        # Find all nodes with no dependencies (in-degree 0)
+        # Use a heap to maintain deterministic order with O(log V) operations
         queue = [node for node, degree in in_degree.items() if degree == 0]
+        heapq.heapify(queue)
         result = []
         
         while queue:
-            # Sort for deterministic order
-            queue.sort()
-            node = queue.pop(0)
+            node = heapq.heappop(queue)
             result.append(node)
             
             # Find nodes that depend on this one
-            for other_node, deps in dependency_graph.items():
-                if node in deps:
-                    in_degree[other_node] -= 1
-                    if in_degree[other_node] == 0:
-                        queue.append(other_node)
+            for dependent in dependents.get(node, []):
+                in_degree[dependent] -= 1
+                if in_degree[dependent] == 0:
+                    heapq.heappush(queue, dependent)
         
         # Add any remaining nodes (shouldn't happen with valid DAG)
         for node in dependency_graph:
