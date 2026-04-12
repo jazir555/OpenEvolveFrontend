@@ -866,47 +866,73 @@ class ContentEvaluator:
 
         return min(1.0, (length_score + structure_score) / 2)
 
+    # Static cache for similarity calculations (Symmetric pairwise memoization)
+    _similarity_cache: Dict[Tuple[str, str], float] = {}
+    _sim_cache_lock = Lock()
+
     @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
-        Calculate diversity of a population
-
-        Args:
-            population: List of content strings
-
-        Returns:
-            Diversity score (0.0 to 1.0)
+        Calculate diversity of a population.
+        Complexity optimized from O(L^2) to O(U^2) where U is unique individuals.
         """
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
+        # Optimization: Use Counter to group duplicates and reduce comparisons
+        from collections import Counter
+        population_counts = Counter(population)
+        unique_population = list(population_counts.keys())
+        total_individuals = len(population)
+
         import difflib
 
         total_similarity = 0.0
         comparisons = 0
 
-        for i in range(len(population)):
-            p1 = population[i]
+        for i, p1 in enumerate(unique_population):
+            count1 = population_counts[p1]
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+
+            # Case 1: Pairs of the same individual (Self-similarity = 1.0)
+            if count1 > 1:
+                pairs = (count1 * (count1 - 1)) // 2
+                total_similarity += 1.0 * pairs
+                comparisons += pairs
+
+            for j in range(i + 1, len(unique_population)):
+                p2 = unique_population[j]
+                count2 = population_counts[p2]
                 len2 = len(p2)
+                pairs = count1 * count2
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
+                # Symmetric memoization key
+                cache_key = tuple(sorted([p1, p2]))
+
+                with ContentEvaluator._sim_cache_lock:
+                    similarity = ContentEvaluator._similarity_cache.get(cache_key)
+
+                if similarity is None:
+                    # Performance optimization: skip expensive SequenceMatcher if strings are of
+                    # vastly different lengths, as they cannot be very similar.
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2: # Very different lengths
+                            similarity = max_possible_ratio * 0.5 # Heuristic
+                        else:
+                            similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
                     else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
-                else:
-                    similarity = 0.0
+                        similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                    # Store in cache
+                    with ContentEvaluator._sim_cache_lock:
+                        # Limit cache size
+                        if len(ContentEvaluator._similarity_cache) > 10000:
+                            ContentEvaluator._similarity_cache.clear()
+                        ContentEvaluator._similarity_cache[cache_key] = similarity
+
+                total_similarity += similarity * pairs
+                comparisons += pairs
 
         if comparisons == 0:
             return 0.0

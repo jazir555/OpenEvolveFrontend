@@ -15,6 +15,21 @@ import threading
 class ParallelExecutor:
     """Executes tasks in parallel using thread pools."""
     
+    # Shared thread pool executor (Singleton pattern)
+    _shared_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+    _lock = threading.Lock()
+
+    @classmethod
+    def get_executor(cls, max_workers: int = 10) -> concurrent.futures.ThreadPoolExecutor:
+        """Get or create the shared thread pool executor."""
+        with cls._lock:
+            if cls._shared_executor is None:
+                cls._shared_executor = concurrent.futures.ThreadPoolExecutor(
+                    max_workers=max_workers,
+                    thread_name_prefix="ParallelExecutor"
+                )
+            return cls._shared_executor
+
     def __init__(self, max_workers: int = 5):
         """
         Initialize parallel executor.
@@ -42,22 +57,22 @@ class ParallelExecutor:
             List of results
         """
         results = []
+        executor = self.get_executor(self.max_workers)
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            future_to_item = {
-                executor.submit(func, item, **kwargs): item
-                for item in items
-            }
-            
-            # Collect results as they complete
-            for future in concurrent.futures.as_completed(future_to_item):
-                try:
-                    result = future.result()
-                    results.append(result)
-                except Exception as e:
-                    print(f"Error processing item: {e}")
-                    results.append(None)
+        # Submit all tasks
+        future_to_item = {
+            executor.submit(func, item, **kwargs): item
+            for item in items
+        }
+
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_item):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                print(f"Error processing item: {e}")
+                results.append(None)
         
         return results
     
@@ -82,27 +97,27 @@ class ParallelExecutor:
         """
         results = [None] * len(items)
         completed = 0
+        executor = self.get_executor(self.max_workers)
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks with index
-            future_to_index = {
-                executor.submit(func, item, **kwargs): idx
-                for idx, item in enumerate(items)
-            }
+        # Submit all tasks with index
+        future_to_index = {
+            executor.submit(func, item, **kwargs): idx
+            for idx, item in enumerate(items)
+        }
+
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_index):
+            idx = future_to_index[future]
+            try:
+                result = future.result()
+                results[idx] = result
+            except Exception as e:
+                print(f"Error processing item {idx}: {e}")
+                results[idx] = None
             
-            # Collect results as they complete
-            for future in concurrent.futures.as_completed(future_to_index):
-                idx = future_to_index[future]
-                try:
-                    result = future.result()
-                    results[idx] = result
-                except Exception as e:
-                    print(f"Error processing item {idx}: {e}")
-                    results[idx] = None
-                
-                completed += 1
-                if progress_callback:
-                    progress_callback(completed, len(items))
+            completed += 1
+            if progress_callback:
+                progress_callback(completed, len(items))
         
         return results
 
@@ -160,14 +175,22 @@ def timing_decorator(func):
 
 
 def memoize(func):
-    """Decorator to memoize function results."""
+    """Decorator to memoize function results using efficient hashing."""
+    import hashlib
+    import json
     cache = {}
     cache_lock = threading.Lock()
     
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # Create cache key from args and kwargs
-        key = str(args) + str(sorted(kwargs.items()))
+        # Create cache key using efficient hashing
+        try:
+            # Try to JSON serialize for consistent hashing
+            key_data = json.dumps({'args': args, 'kwargs': kwargs}, sort_keys=True)
+            key = hashlib.sha256(key_data.encode()).hexdigest()
+        except (TypeError, ValueError):
+            # Fallback to string representation if not JSON serializable
+            key = hashlib.sha256((str(args) + str(sorted(kwargs.items()))).encode()).hexdigest()
         
         with cache_lock:
             if key in cache:
