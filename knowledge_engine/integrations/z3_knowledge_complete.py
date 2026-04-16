@@ -71,6 +71,7 @@ except ImportError:
     Text = lambda: None
     JSON = lambda: None
     Boolean = lambda: None
+    Session = Any
 
 # Redis imports
 try:

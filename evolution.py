@@ -866,6 +866,10 @@ class ContentEvaluator:
 
         return min(1.0, (length_score + structure_score) / 2)
 
+    # Static cache for similarity calculations to avoid O(L^2) redundant computations
+    _similarity_cache: Dict[Tuple[str, str], float] = {}
+    _similarity_lock = threading.Lock()
+
     @staticmethod
     def calculate_diversity(population: List[str]) -> float:
         """
@@ -880,38 +884,79 @@ class ContentEvaluator:
         if not population or len(population) < 2:
             return 0.0
 
-        # Calculate pairwise diversity using simple string similarity
+        # Group identical strings to reduce O(L^2) to O(U^2) where U is unique individuals
+        from collections import Counter
+        counts = Counter(population)
+        unique_items = list(counts.keys())
+        num_unique = len(unique_items)
+
+        # Performance optimization: if all unique, Proceed as normal
+        # If many duplicates, this significantly reduces comparisons
+
         import difflib
 
         total_similarity = 0.0
-        comparisons = 0
+        total_weight = 0
 
-        for i in range(len(population)):
-            p1 = population[i]
+        # Pairwise unique items
+        for i in range(num_unique):
+            p1 = unique_items[i]
+            c1 = counts[p1]
             len1 = len(p1)
-            for j in range(i + 1, len(population)):
-                p2 = population[j]
+
+            # Identical items have similarity 1.0
+            # Number of pairs of identical items = c1 * (c1 - 1) / 2
+            if c1 > 1:
+                pairs = (c1 * (c1 - 1)) // 2
+                total_similarity += 1.0 * pairs
+                total_weight += pairs
+
+            for j in range(i + 1, num_unique):
+                p2 = unique_items[j]
+                c2 = counts[p2]
                 len2 = len(p2)
 
-                # Performance optimization: skip expensive SequenceMatcher if strings are of
-                # vastly different lengths, as they cannot be very similar.
-                # max_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                if len1 > 0 and len2 > 0:
-                    max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
-                    if max_possible_ratio < 0.2: # Very different lengths
-                        similarity = max_possible_ratio * 0.5 # Heuristic
+                # Number of pairs between unique item i and unique item j
+                pairs = c1 * c2
+                total_weight += pairs
+
+                # Use sorted tuple for symmetric memoization
+                cache_key = tuple(sorted([p1, p2]))
+
+                # Check cache with lock
+                similarity = None
+                with ContentEvaluator._similarity_lock:
+                    if cache_key in ContentEvaluator._similarity_cache:
+                        similarity = ContentEvaluator._similarity_cache[cache_key]
+
+                if similarity is None:
+                    # Skip expensive SequenceMatcher if strings are of vastly different lengths
+                    if len1 > 0 and len2 > 0:
+                        max_possible_ratio = 2.0 * min(len1, len2) / (len1 + len2)
+                        if max_possible_ratio < 0.2: # Very different lengths
+                            similarity = max_possible_ratio * 0.5 # Heuristic
+                        else:
+                            similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
                     else:
-                        similarity = difflib.SequenceMatcher(None, p1, p2).ratio()
-                else:
-                    similarity = 0.0
+                        similarity = 0.0
 
-                total_similarity += similarity
-                comparisons += 1
+                    # Update cache with lock
+                    with ContentEvaluator._similarity_lock:
+                        # Manage cache size (keep last 10000 results)
+                        if len(ContentEvaluator._similarity_cache) > 10000:
+                            # Simple cleanup: clear half the cache if it gets too big
+                            keys = list(ContentEvaluator._similarity_cache.keys())
+                            for k in keys[:5000]:
+                                del ContentEvaluator._similarity_cache[k]
 
-        if comparisons == 0:
+                        ContentEvaluator._similarity_cache[cache_key] = similarity
+
+                total_similarity += similarity * pairs
+
+        if total_weight == 0:
             return 0.0
 
-        avg_similarity = total_similarity / comparisons
+        avg_similarity = total_similarity / total_weight
         diversity = 1.0 - avg_similarity
 
         return max(0.0, min(1.0, diversity))

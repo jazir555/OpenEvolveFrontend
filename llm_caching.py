@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 import pickle
+import ast
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Callable, Tuple
 from dataclasses import dataclass
@@ -48,6 +49,8 @@ class LRUCache:
         self.cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.lock = Lock()
         self.logger = logging.getLogger(__name__)
+        self._last_cleanup = time.time()
+        self._cleanup_interval = 300  # Clean every 5 minutes
     
     def get(self, key: str) -> Optional[Any]:
         """
@@ -99,8 +102,11 @@ class LRUCache:
                 )
                 return True
 
-            # Clean expired entries if needed
-            self._clean_expired()
+            # Periodic cleanup instead of every set (O(n) mitigation)
+            now = time.time()
+            if now - self._last_cleanup > self._cleanup_interval:
+                self._clean_expired()
+                self._last_cleanup = now
             
             # Remove oldest entry if at max size
             if len(self.cache) >= self.max_size:
@@ -119,9 +125,8 @@ class LRUCache:
     
     def _clean_expired(self):
         """Clean expired entries from cache."""
-        # Note: OrderedDict iteration is O(n), but we only do it on set()
-        # and only if needed. A more aggressive optimization could use a
-        # separate TTL-sorted structure, but for simplicity we keep it here.
+        # LRU order in OrderedDict does NOT match chronological expiration order
+        # due to move_to_end on access. A full scan is necessary.
         expired_keys = [key for key, entry in self.cache.items() if entry.is_expired()]
         for key in expired_keys:
             del self.cache[key]
@@ -155,15 +160,36 @@ class DatabaseCache:
         self.logger = logging.getLogger(__name__)
         self._init_db()
         self.lock = Lock()
+        self._hit_buffer = {}  # key -> count
+        self._buffer_lock = Lock()
     
+    def _get_connection(self):
+        """Get database connection with performance PRAGMAs."""
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA cache_size=-64000")  # 64MB
+        conn.execute("PRAGMA temp_store=MEMORY")
+        return conn
+
     def _init_db(self):
         """Initialize database tables."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
+            # Check if we need to migrate from TEXT to REAL for timestamp
+            cursor = conn.execute("PRAGMA table_info(llm_cache)")
+            columns = cursor.fetchall()
+            if columns:
+                timestamp_col = next((c for c in columns if c[1] == 'timestamp'), None)
+                if timestamp_col and timestamp_col[2].upper() == 'TEXT':
+                    self.logger.info("Migrating llm_cache timestamp from TEXT to REAL")
+                    # Simplified migration: drop and recreate since it's a cache
+                    conn.execute("DROP TABLE llm_cache")
+
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS llm_cache (
                     key TEXT PRIMARY KEY,
                     value BLOB,
-                    timestamp TEXT,
+                    timestamp REAL,
                     ttl INTEGER,
                     hit_count INTEGER DEFAULT 1
                 )
@@ -181,7 +207,7 @@ class DatabaseCache:
         Returns:
             Cached value or None if not found/expired
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             cursor = conn.execute(
                 "SELECT value, timestamp, ttl FROM llm_cache WHERE key = ?",
                 (key,)
@@ -189,26 +215,38 @@ class DatabaseCache:
             row = cursor.fetchone()
             
             if row:
-                value, timestamp_str, ttl = row
-                timestamp = datetime.fromisoformat(timestamp_str)
+                value, timestamp_val, ttl = row
+
+                # Handle both REAL (Unix) and TEXT (ISO) timestamps for backward compatibility
+                if isinstance(timestamp_val, str):
+                    timestamp = datetime.fromisoformat(timestamp_val)
+                else:
+                    timestamp = datetime.fromtimestamp(timestamp_val)
                 
                 if self._is_expired(timestamp, ttl):
                     # Remove expired entry
                     conn.execute("DELETE FROM llm_cache WHERE key = ?", (key,))
                     return None
                 
-                # Update hit count
-                conn.execute(
-                    "UPDATE llm_cache SET hit_count = hit_count + 1 WHERE key = ?",
-                    (key,)
-                )
-                conn.commit()
+                # Buffered hit count update
+                should_flush = False
+                with self._buffer_lock:
+                    self._hit_buffer[key] = self._hit_buffer.get(key, 0) + 1
+                    if len(self._hit_buffer) >= 50:
+                        should_flush = True
                 
+                if should_flush:
+                    self._flush_hit_counts()
+
+                # Fast path for JSON: check for byte markers { or [
+                if value and len(value) > 0 and value[0] in (123, 91):  # { or [
+                    try:
+                        return json.loads(value.decode('utf-8'))
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        pass
+
                 # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
-                    # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
-                    import ast
-                    import json
                     # First try JSON (safer and faster)
                     try:
                         return json.loads(value.decode('utf-8'))
@@ -226,6 +264,25 @@ class DatabaseCache:
                     return None
         
         return None
+
+    def _flush_hit_counts(self):
+        """Flush buffered hit counts to database."""
+        updates = []
+        with self._buffer_lock:
+            if not self._hit_buffer:
+                return
+            updates = list(self._hit_buffer.items())
+            self._hit_buffer.clear()
+
+        with self._get_connection() as conn:
+            try:
+                conn.executemany(
+                    "UPDATE llm_cache SET hit_count = hit_count + ? WHERE key = ?",
+                    [(count, key) for key, count in updates]
+                )
+                conn.commit()
+            except Exception as e:
+                self.logger.error(f"Failed to flush hit counts: {e}")
     
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """
@@ -250,7 +307,7 @@ class DatabaseCache:
             self.logger.error(f"Failed to serialize value for caching: {e}")
             return False
         
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             try:
                 conn.execute("""
                     INSERT OR REPLACE INTO llm_cache 
@@ -259,7 +316,7 @@ class DatabaseCache:
                 """, (
                     key, 
                     serialized_value,
-                    datetime.now().isoformat(),
+                    datetime.now().timestamp(),
                     ttl,
                     1  # New entry starts with hit_count of 1
                 ))
@@ -280,10 +337,10 @@ class DatabaseCache:
         Returns:
             Number of entries removed
         """
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             cursor = conn.execute(
                 "DELETE FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (datetime.now().timestamp(),)
             )
             removed_count = cursor.rowcount
             conn.commit()
@@ -291,7 +348,8 @@ class DatabaseCache:
     
     def get_stats(self) -> Dict[str, Any]:
         """Get database cache statistics."""
-        with sqlite3.connect(self.db_path) as conn:
+        self._flush_hit_counts()
+        with self._get_connection() as conn:
             # Count total entries
             cursor = conn.execute("SELECT COUNT(*) FROM llm_cache")
             total_entries = cursor.fetchone()[0]
@@ -299,7 +357,7 @@ class DatabaseCache:
             # Count expired entries
             cursor = conn.execute(
                 "SELECT COUNT(*) FROM llm_cache WHERE ? - timestamp > ttl",
-                (int(datetime.now().timestamp()),)
+                (datetime.now().timestamp(),)
             )
             expired_entries = cursor.fetchone()[0]
             
@@ -426,12 +484,10 @@ class LLMCacheManager:
         Returns:
             Hash-based cache key
         """
-        cache_input = {
-            'prompt': prompt,
-            'params': model_params
-        }
-        cache_input_json = json.dumps(cache_input, sort_keys=True)
-        return hashlib.sha256(cache_input_json.encode()).hexdigest()
+        # Optimization: Hash prompt and params separately to avoid large string allocation
+        prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()
+        params_hash = hashlib.sha256(json.dumps(model_params, sort_keys=True).encode()).hexdigest()
+        return hashlib.sha256(f"{prompt_hash}:{params_hash}".encode()).hexdigest()
     
     def get_cached_response(self, prompt: str, model_params: Dict[str, Any]) -> Optional[Any]:
         """
@@ -471,6 +527,8 @@ class LLMCacheManager:
         """Clean up expired cache entries (database only)."""
         if hasattr(self.cache, 'db_cache'):
             return self.cache.db_cache.cleanup_expired()
+        elif isinstance(self.cache, DatabaseCache):
+            return self.cache.cleanup_expired()
         return 0
 
 

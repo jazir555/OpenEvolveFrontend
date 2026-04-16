@@ -31,7 +31,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True)
 class CacheEntry:
     """Represents a cached entry with metadata"""
     key: str
@@ -140,35 +140,26 @@ class LLMResponseCache:
     
     def _generate_key(self, content: str, model_params: Dict[str, Any]) -> str:
         """Generate a unique cache key based on content and model parameters"""
-        # Optimization: Use a faster key generation for simple cases
-        if not model_params:
-            return hashlib.sha256(content.encode()).hexdigest()
-
-        cache_input = {
-            'content': content,
-            'model': model_params.get('model', ''),
-            'temperature': model_params.get('temperature', 0.7),
-            'max_tokens': model_params.get('max_tokens', 1000),
-            'top_p': model_params.get('top_p', 1.0),
-        }
-        # Use sort_keys for consistent hashing
-        cache_str = json.dumps(cache_input, sort_keys=True)
-        return hashlib.sha256(cache_str.encode()).hexdigest()
+        # Optimization: Hash content and params separately to avoid large string allocation
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
+        params_hash = hashlib.sha256(json.dumps(model_params, sort_keys=True).encode()).hexdigest()
+        return hashlib.sha256(f"{content_hash}:{params_hash}".encode()).hexdigest()
     
     def get_response(self, content: str, model_params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get cached LLM response if available"""
         key = self._generate_key(content, model_params)
         response = self.cache.get(key)
         
-        with self._lock:
-            if response is not None:
+        if response is not None:
+            with self._lock:
                 self.stats['hits'] += 1
-                logger.debug(f"LLM cache hit for key: {key[:8]}")
-                return response
-            else:
+            logger.debug(f"LLM cache hit for key: {key[:8]}")
+            return response
+        else:
+            with self._lock:
                 self.stats['misses'] += 1
-                logger.debug(f"LLM cache miss for key: {key[:8]}")
-                return None
+            logger.debug(f"LLM cache miss for key: {key[:8]}")
+            return None
     
     def cache_response(self, content: str, model_params: Dict[str, Any], response: Dict[str, Any], ttl: Optional[int] = None) -> None:
         """Cache an LLM response"""
@@ -211,6 +202,8 @@ class DatabaseOptimizer:
         conn.execute("PRAGMA mmap_size=536870912")  # Increased to 512MB memory mapping
         conn.execute("PRAGMA page_size=4096")
         conn.execute("PRAGMA threads=4")
+        conn.execute("PRAGMA journal_size_limit=67108864") # 64MB
+        conn.execute("PRAGMA busy_timeout=5000")
         
         return conn
     
@@ -414,6 +407,7 @@ class PerformanceOptimizer:
             'parallel_tasks_executed': 0,
             'rate_limit_rejections': 0
         }
+        self._stats_lock = threading.Lock()
     
     def cache_llm_response(self, content: str, model_params: Dict[str, Any], response: Dict[str, Any], ttl: Optional[int] = None):
         """Cache an LLM response"""
@@ -422,23 +416,26 @@ class PerformanceOptimizer:
     def get_cached_llm_response(self, content: str, model_params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get a cached LLM response"""
         response = self.llm_cache.get_response(content, model_params)
-        if response:
-            self.stats['cache_hits'] += 1
-        else:
-            self.stats['cache_misses'] += 1
+        with self._stats_lock:
+            if response:
+                self.stats['cache_hits'] += 1
+            else:
+                self.stats['cache_misses'] += 1
         return response
     
     def process_tasks_in_parallel(self, tasks: List[Callable[[], Any]], timeout: Optional[float] = None) -> List[Any]:
         """Process tasks in parallel"""
         results = self.parallel_processor.process_in_parallel(tasks, timeout)
-        self.stats['parallel_tasks_executed'] += len([r for r in results if r is not None])
+        with self._stats_lock:
+            self.stats['parallel_tasks_executed'] += len([r for r in results if r is not None])
         return results
     
     def check_rate_limit(self, identifier: str = "default") -> bool:
         """Check if a request is within rate limits"""
         allowed = self.rate_limiter.is_allowed(identifier)
         if not allowed:
-            self.stats['rate_limit_rejections'] += 1
+            with self._stats_lock:
+                self.stats['rate_limit_rejections'] += 1
         return allowed
     
     def create_db_connection_pool(self, name: str = "default", max_size: int = 10) -> ResourcePool:
