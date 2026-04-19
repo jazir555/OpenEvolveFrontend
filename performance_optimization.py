@@ -206,11 +206,13 @@ class DatabaseOptimizer:
         # Optimize connection settings for performance
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA cache_size=-128000")  # Increased to 128MB cache
-        conn.execute("PRAGMA temp_store=MEMORY")   # Use RAM for temporary storage
-        conn.execute("PRAGMA mmap_size=536870912")  # Increased to 512MB memory mapping
+        conn.execute("PRAGMA cache_size=-128000")  # 128MB cache
+        conn.execute("PRAGMA temp_store=MEMORY")
+        conn.execute("PRAGMA mmap_size=536870912") # 512MB memory mapping
         conn.execute("PRAGMA page_size=4096")
         conn.execute("PRAGMA threads=4")
+        conn.execute("PRAGMA busy_timeout=5000")   # Bolt: prevent Lock errors
+        conn.execute("PRAGMA journal_size_limit=67108864") # Bolt: 64MB journal limit
         
         return conn
     
@@ -361,32 +363,60 @@ class RateLimiter:
 class ParallelProcessor:
     """Parallel processing utilities for independent tasks"""
     
+    # Static shared executor to avoid thread creation/destruction overhead
+    _shared_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+    _ref_count = 0
+    _executor_lock = threading.Lock()
+
     def __init__(self, max_workers: Optional[int] = None):
         self.max_workers = max_workers or min(32, (os.cpu_count() or 1) + 4)
+        with ParallelProcessor._executor_lock:
+            if ParallelProcessor._shared_executor is None:
+                ParallelProcessor._shared_executor = concurrent.futures.ThreadPoolExecutor(
+                    max_workers=self.max_workers,
+                    thread_name_prefix="BoltParallel"
+                )
+            ParallelProcessor._ref_count += 1
     
     def process_in_parallel(self, tasks: List[Callable[[], Any]], timeout: Optional[float] = None) -> List[Any]:
-        """Process multiple tasks in parallel using ThreadPoolExecutor"""
-        results = []
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all tasks
-            future_to_index = {
-                executor.submit(task): i for i, task in enumerate(tasks)
-            }
+        """Process multiple tasks in parallel using a shared ThreadPoolExecutor"""
+        if not tasks:
+            return []
             
-            # Collect results maintaining order
-            temp_results = [None] * len(tasks)
+        executor = ParallelProcessor._shared_executor
+        if executor is None:
+             # Fallback if executor was shut down
+             with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as fallback:
+                 futures = [fallback.submit(t) for t in tasks]
+                 return [f.result() for f in futures]
+
+        # Submit all tasks
+        future_to_index = {
+            executor.submit(task): i for i, task in enumerate(tasks)
+        }
+
+        # Collect results maintaining order
+        temp_results = [None] * len(tasks)
+        try:
             for future in concurrent.futures.as_completed(future_to_index, timeout=timeout):
                 index = future_to_index[future]
                 try:
                     temp_results[index] = future.result()
                 except Exception as e:
                     logger.error(f"Task {index} failed: {e}")
-                    temp_results[index] = None  # Or raise the exception
+                    temp_results[index] = None
+        except Exception as e:
+            logger.error(f"Error during parallel execution: {e}")
             
-            results = temp_results
-        
-        return results
+        return temp_results
+
+    def shutdown(self):
+        """Reference-counted shutdown of shared executor."""
+        with ParallelProcessor._executor_lock:
+            ParallelProcessor._ref_count -= 1
+            if ParallelProcessor._ref_count <= 0 and ParallelProcessor._shared_executor:
+                ParallelProcessor._shared_executor.shutdown(wait=True)
+                ParallelProcessor._shared_executor = None
     
     async def process_in_parallel_async(self, tasks: List[Callable[[], Any]]) -> List[Any]:
         """Process multiple tasks in parallel using asyncio"""

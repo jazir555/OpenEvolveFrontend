@@ -51,7 +51,17 @@ class ParameterSchema:
     
     def __init__(self):
         self.parameters: Dict[str, Parameter] = {}
+        self._category_cache: Dict[str, List[Parameter]] = {} # Bolt: Pre-calculate mappings
         self._initialize_parameters()
+        self._build_category_cache()
+
+    def _build_category_cache(self):
+        """Bolt: Build O(1) lookup cache for categories."""
+        self._category_cache = {}
+        for p in self.parameters.values():
+            if p.category not in self._category_cache:
+                self._category_cache[p.category] = []
+            self._category_cache[p.category].append(p)
 
     def _load_parameters_from_dict(self, parameters_data: Dict[str, Any]):
         """Load parameters from a dictionary structure."""
@@ -799,11 +809,11 @@ class ParameterSchema:
     @functools.lru_cache(maxsize=1)
     def get_categories(self) -> List[str]:
         """Get all parameter categories (memoized)"""
-        return list(set(p.category for p in self.parameters.values()))
+        return list(self._category_cache.keys())
     
     def get_parameters_by_category(self, category: str) -> List[Parameter]:
-        """Get all parameters in a category"""
-        return [p for p in self.parameters.values() if p.category == category]
+        """Get all parameters in a category (Bolt: O(1) lookup)"""
+        return self._category_cache.get(category, [])
 
 
 class ParameterValidator:
