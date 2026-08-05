@@ -291,7 +291,7 @@ If you use OpenEvolve in your research, please cite:
   title = {OpenEvolve: Unified Evolution Engine},
   author = {OpenEvolve Team},
   year = {2026},
-  url = {[https://github.com/your-org/openevolve](https://github.com/algorithmicsuperintelligence/openevolve)}
+  url = {https://github.com/your-org/openevolve](https://github.com/algorithmicsuperintelligence/openevolve}
 }
 ```
 
