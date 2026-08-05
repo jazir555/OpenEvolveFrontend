@@ -301,5 +301,3 @@ If you use OpenEvolve in your research, please cite:
 ```
 
 ---
-
-**⭐ If you find OpenEvolve useful, please consider giving us a star on GitHub!**
