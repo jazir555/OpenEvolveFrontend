@@ -280,11 +280,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Transfer learning across domains
 - [ ] Federated learning support
 - [ ] Advanced explainability features
-
----
-
-**Made with ❤️ by the OpenEvolve team**
-
 ---
 
 ## Citation
