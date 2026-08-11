@@ -14,6 +14,9 @@ lean_workspace\mathlib_project\.lake
 # Git
 .git/
 
+# Dependencies
+node_modules/
+
 # Project Specific
 LoongFlow/pyproject.toml
 rese/lean4/.lake/packages/mathlib
