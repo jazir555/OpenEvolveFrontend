@@ -1,10 +1,12 @@
 # OpenEvolve BubbleLabs Integration - Ultra Complete Specification
 
+> **REALITY CHECK (2026-08-19):** This document describes an *aspirational* integration between the Python "BubbleLab UI" application and the TypeScript "BubbleLabs" UI. It is **not implemented**. The claims of "complete and total control" and "every configuration knob fully accessible" are false: the `@openevolve/bubblelab-components` package is not wired into the BubbleLab app, its `tsc` build is not configured, and the wider repo does not compile (merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken glue-adapter tests). Treat this as a specification, not a status report.
+
 ## Executive Overview
 
-The OpenEvolve BubbleLabs Integration provides **complete and total control** over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration enables comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.
+The OpenEvolve BubbleLabs Integration is *intended* to provide control over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration is *designed* to enable comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.
 
-Every single configuration knob, control element, and parameter available in the main BubbleLab UI UI application (including both sidebar and main area components) is fully accessible, configurable, and controllable from within the BubbleLabs UI. This includes:
+The configuration knobs, control elements, and parameters described below are *planned* to be accessible, configurable, and controllable from within the BubbleLabs UI. This includes:
 
 - **Provider Configuration**: All API provider settings, model selections, and multi-model ensemble configurations
 - **Generation Parameters**: Temperature, top-p, frequency penalty, presence penalty, max tokens, seed, and reasoning effort controls

@@ -1,6 +1,6 @@
 # OpenEvolve-BubbleLab Integration - Complete Status
 
-## ✅ 100% Integration Verification
+## ✅ Component Status (verified 2026-08-19)
 
 ### Core System Components
 
@@ -277,13 +277,22 @@ To verify the integration is working:
 
 ## Summary
 
-The OpenEvolve-BubbleLab integration is **100% complete and fully functional**. All components are properly connected, tested, and documented. The system provides:
+> **REALITY CHECK (2026-08-19):** The component *code* in this package is substantially present, but the "100% complete / ready for production" claim above is not accurate.
+>
+> - **What actually passes:** the in-process logic tests (`src/tests/contract/workflow-orchestrator.test.ts`) — 11/11 — covering the plugin registry, workflow orchestrator, event bus, and monitoring.
+> - **What does NOT work yet:**
+>   - The package ships **no `tsconfig.json`**, so `npm run build` (`tsc`) cannot compile it and there is no type-check gate.
+>   - `src/lib/openevolveApi.test.ts` and `src/tests/contract/openevolve-api.test.ts` fail because they require a **running OpenEvolve API server** (`OPENEVOLVE_API_BASE_URL` / `OPENEVOLVE_API_KEY`) that is not part of this repo; they are live-contract tests, not unit tests.
+>   - This package is **not wired into the BubbleLab app** (`core-projects/BubbleLab/apps/bubble-studio`) — `bubble-studio` does not depend on `@openevolve/bubblelab-components`.
+>   - The wider repo does not build (unresolved merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken contract tests in `glue/adapters/openevolve-adapter/`).
+>
+> Treat the table above as "implemented in code", not "verified end-to-end".
 
-- Complete plugin architecture with registry, adapters, and lifecycle management
-- Full workflow orchestration with templates, validation, and execution
-- Event-driven communication between plugins
-- Comprehensive monitoring and telemetry
-- Production-ready UI components
-- End-to-end testing coverage
+The OpenEvolve-BubbleLab integration components are **implemented but not verified end-to-end and not production-ready**. The system provides:
 
-The integration is ready for production use.
+- A plugin architecture with registry, adapters, and lifecycle management (code present)
+- Workflow orchestration with templates, validation, and execution (code present, logic tests pass)
+- Event-driven communication between plugins (code present)
+- Monitoring and telemetry (code present)
+- UI components (code present, not build-verified)
+- Contract tests for the orchestrator (passing); live API contract tests (require running server)
