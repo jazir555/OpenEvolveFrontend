@@ -169,6 +169,61 @@ async def call_llm(
     return _generate_fallback_response(prompt)
 
 
+def _request_openai_compatible_chat(
+    api_key: str,
+    base_url: str,
+    model: str,
+    messages: List[Dict[str, str]],
+    temperature: float = 0.0,
+    max_tokens: int = 2000,
+    response_format: Optional[Dict[str, Any]] = None,
+    timeout: float = LLM_TIMEOUT,
+) -> Optional[str]:
+    """Synchronous OpenAI-compatible chat completion request.
+
+    Returns the assistant message content as a string. On failure returns a
+    JSON string with default evaluation scores so callers can still parse it.
+    """
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload: Dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if response_format is not None:
+        payload["response_format"] = response_format
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if "choices" in data and len(data["choices"]) > 0:
+                return data["choices"][0]["message"]["content"]
+            return json.dumps({
+                "clarity": 0.5,
+                "effectiveness": 0.5,
+                "conciseness": 0.5,
+                "combined_score": 0.5,
+            })
+    except Exception as e:
+        logger.warning(f"OpenAI-compatible chat request failed: {e}")
+        return json.dumps({
+            "clarity": 0.5,
+            "effectiveness": 0.5,
+            "conciseness": 0.5,
+            "combined_score": 0.5,
+        })
+
+
 def _generate_fallback_response(prompt: str) -> str:
     """
     Generate fallback response when LLM is unavailable.

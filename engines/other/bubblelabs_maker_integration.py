@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 bubblelabs_maker_integration.py - CrewAI Integration
 
