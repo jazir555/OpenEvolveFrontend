@@ -90,6 +90,19 @@ class Program:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Program":
         """Create from dictionary representation"""
+        # old DBs don't have changes_description (backward-compatibility)
+        if "changes_description" not in data:
+            metadata = data.get("metadata") or {}
+            if isinstance(metadata, dict):
+                data = {
+                    **data,
+                    "changes_description": metadata.get("changes_description")
+                    or metadata.get("changes")
+                    or "empty",
+                }
+            else:
+                data = {**data, "changes_description": "empty"}
+
         # Get the valid field names for the Program dataclass
         valid_fields = {f.name for f in fields(cls)}
 
@@ -122,9 +135,7 @@ class ProgramDatabase:
         self.programs: Dict[str, Program] = {}
 
         # Per-island feature grids for MAP-Elites
-        self.island_feature_maps: List[Dict[str, str]] = [
-            {} for _ in range(config.num_islands)
-        ]
+        self.island_feature_maps: List[Dict[str, str]] = [{} for _ in range(config.num_islands)]
 
         # Handle both int and dict types for feature_bins
         if isinstance(config.feature_bins, int):
@@ -207,6 +218,15 @@ class ProgramDatabase:
 
         logger.info(f"Initialized program database with {len(self.programs)} programs")
 
+        # Novelty judge setup
+        from openevolve.embedding import EmbeddingClient
+
+        self.novelty_llm = config.novelty_llm
+        self.embedding_client = (
+            EmbeddingClient(config.embedding_model) if config.embedding_model else None
+        )
+        self.similarity_threshold = config.similarity_threshold
+
     def add(
         self,
         program: Program,
@@ -266,6 +286,13 @@ class ProgramDatabase:
 
         island_idx = island_idx % len(self.islands)  # Ensure valid island
 
+        # Novelty check before adding
+        if not self._is_novel(program.id, island_idx):
+            logger.debug(
+                f"Program {program.id} failed in novelty check and won't be added in the island {island_idx}"
+            )
+            return program.id  # Do not add non-novel program
+
         # Add to island-specific feature map (replacing existing if better)
         feature_key = self._feature_coords_to_key(feature_coords)
         island_feature_map = self.island_feature_maps[island_idx]
@@ -285,6 +312,10 @@ class ProgramDatabase:
                 should_replace = self._is_better(
                     program, self.programs[existing_program_id]
                 )
+
+        # Track a program that gets displaced from its cell so we can remove it
+        # from the population if it ends up orphaned (owning no cell, in no island).
+        replaced_program_id = None
 
         if should_replace:
             # Log significant MAP-Elites events
@@ -337,6 +368,11 @@ class ProgramDatabase:
                         self.archive.discard(existing_program_id)
                         self.archive.add(program.id)
 
+                # Remove replaced program from island set to keep it consistent with feature map
+                # This prevents accumulation of stale/replaced programs in the island
+                self.islands[island_idx].discard(existing_program_id)
+                replaced_program_id = existing_program_id
+
             island_feature_map[feature_key] = program.id
 
         # Add to island
@@ -357,6 +393,19 @@ class ProgramDatabase:
 
         # Update island-specific best program tracking
         self._update_island_best_program(program, island_idx)
+
+        # If a program was displaced from its cell by this addition, it may now be
+        # orphaned - owning no cell and belonging to no island. Such a program is a
+        # "zombie" that consumes a population slot but can never be sampled again, so
+        # remove it. This runs after best-program tracking is updated so the newly
+        # added (better) program is already recorded as best, ensuring we never drop
+        # the current best program here.
+        if (
+            replaced_program_id is not None
+            and replaced_program_id != program.id
+            and replaced_program_id != self.best_program_id
+        ):
+            self._remove_program_if_orphaned(replaced_program_id)
 
         # Save to disk if configured
         if self.config.db_path:
@@ -488,7 +537,8 @@ class ProgramDatabase:
         ]
 
         logger.debug(
-            f"Sampled parent {parent.id} and {len(inspirations)} inspirations from island {island_id}"
+            f"Sampled parent {parent.id} and {len(inspirations)} inspirations from island {island_id} "
+            f"(mode: {sampling_mode}, rand_val: {rand_val:.3f})"
         )
         return parent, inspirations
 
@@ -909,7 +959,20 @@ class ProgramDatabase:
         coords = []
 
         for dim in self.config.feature_dimensions:
-            if dim == "complexity":
+            # PRIORITY 1: Check if this is a custom metric from the evaluator
+            # This allows users to override built-in features with their own implementations
+            if dim in program.metrics:
+                # Use custom metric from evaluator
+                score = program.metrics[dim]
+                # Update stats and scale
+                self._update_feature_stats(dim, score)
+                scaled_value = self._scale_feature_value(dim, score)
+                num_bins = self.feature_bins_per_dim.get(dim, self.feature_bins)
+                bin_idx = int(scaled_value * num_bins)
+                bin_idx = max(0, min(num_bins - 1, bin_idx))
+                coords.append(bin_idx)
+            # PRIORITY 2: Fall back to built-in features if not in metrics
+            elif dim == "complexity":
                 # Use code length as complexity measure
                 complexity = len(program.code)
                 bin_idx = self._calculate_complexity_bin(complexity)
@@ -938,21 +1001,12 @@ class ProgramDatabase:
                     bin_idx = int(scaled_value * num_bins)
                     bin_idx = max(0, min(num_bins - 1, bin_idx))
                 coords.append(bin_idx)
-            elif dim in program.metrics:
-                # Use specific metric
-                score = program.metrics[dim]
-                # Update stats and scale
-                self._update_feature_stats(dim, score)
-                scaled_value = self._scale_feature_value(dim, score)
-                num_bins = self.feature_bins_per_dim.get(dim, self.feature_bins)
-                bin_idx = int(scaled_value * num_bins)
-                bin_idx = max(0, min(num_bins - 1, bin_idx))
-                coords.append(bin_idx)
             else:
                 # Feature not found - this is an error
                 raise ValueError(
                     f"Feature dimension '{dim}' specified in config but not found in program metrics. "
                     f"Available metrics: {list(program.metrics.keys())}. "
+                    f"Built-in features: 'complexity', 'diversity', 'score'. "
                     f"Either remove '{dim}' from feature_dimensions or ensure your evaluator returns it."
                 )
         # Only log coordinates at debug level for troubleshooting
@@ -1032,6 +1086,137 @@ class ProgramDatabase:
             String key
         """
         return "-".join(str(c) for c in coords)
+
+    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+        """
+        Adapted from SakanaAI/ShinkaEvolve (Apache-2.0 License)
+        Original source: https://github.com/SakanaAI/ShinkaEvolve/blob/main/shinka/database/dbase.py#L1452
+
+        Compute cosine similarity between two vectors.
+        """
+        if not vec1 or not vec2 or len(vec1) != len(vec2):
+            return 0.0
+
+        arr1 = np.array(vec1, dtype=np.float32)
+        arr2 = np.array(vec2, dtype=np.float32)
+
+        norm_a = np.linalg.norm(arr1)
+        norm_b = np.linalg.norm(arr2)
+
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+
+        similarity = np.dot(arr1, arr2) / (norm_a * norm_b)
+
+        return float(similarity)
+
+    def _llm_judge_novelty(self, program: Program, similar_program: Program) -> bool:
+        """
+        Use LLM to judge if a program is novel compared to a similar existing program
+        """
+        import asyncio
+        from openevolve.novelty_judge import NOVELTY_SYSTEM_MSG, NOVELTY_USER_MSG
+
+        user_msg = NOVELTY_USER_MSG.format(
+            language=program.language,
+            existing_code=similar_program.code,
+            proposed_code=program.code,
+        )
+
+        try:
+            # Check if we're already in an event loop
+            try:
+                loop = asyncio.get_running_loop()
+                # We're in an async context, need to run in a new thread
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        self.novelty_llm.generate_with_context(
+                            system_message=NOVELTY_SYSTEM_MSG,
+                            messages=[{"role": "user", "content": user_msg}],
+                        ),
+                    )
+                    content: str = future.result()
+            except RuntimeError:
+                # No event loop running, safe to use asyncio.run()
+                content: str = asyncio.run(
+                    self.novelty_llm.generate_with_context(
+                        system_message=NOVELTY_SYSTEM_MSG,
+                        messages=[{"role": "user", "content": user_msg}],
+                    )
+                )
+
+            if content is None or content is None:
+                logger.warning("Novelty LLM returned empty response")
+                return True
+
+            content = content.strip()
+
+            # Parse the response
+            NOVEL_i = content.upper().find("NOVEL")
+            NOT_NOVEL_i = content.upper().find("NOT NOVEL")
+
+            if NOVEL_i == -1 and NOT_NOVEL_i == -1:
+                logger.warning(f"Unexpected novelty LLM response: {content}")
+                return True  # Assume novel if we can't parse
+
+            if NOVEL_i != -1 and NOT_NOVEL_i != -1:
+                # Both found, take the one that appears first
+                is_novel = NOVEL_i < NOT_NOVEL_i
+            elif NOVEL_i != -1:
+                is_novel = True
+            else:
+                is_novel = False
+
+            return is_novel
+
+        except Exception as e:
+            logger.error(f"Error in novelty LLM check: {e}")
+
+        return True
+
+    def _is_novel(self, program_id: int, island_idx: int) -> bool:
+        """
+        Determine if a program is novel based on diversity to existing programs
+
+        Args:
+            program: Program to check
+            island_idx: Island index
+
+        Returns:
+            True if novel, False otherwise
+        """
+        if self.embedding_client is None or self.similarity_threshold <= 0.0:
+            # Novelty checking disabled
+            return True
+
+        program = self.programs[program_id]
+        embd = self.embedding_client.get_embedding(program.code)
+        self.programs[program_id].embedding = embd
+
+        max_smlty = float("-inf")
+        max_smlty_pid = None
+
+        for pid in self.islands[island_idx]:
+            other = self.programs[pid]
+
+            if other.embedding is None:
+                logger.warning(f"Program {other.id} has no embedding, skipping similarity check")
+                continue
+
+            similarity = self._cosine_similarity(embd, other.embedding)
+
+            if similarity >= max(max_smlty, self.similarity_threshold):
+                max_smlty = similarity
+                max_smlty_pid = pid
+
+        if max_smlty_pid is None:
+            # No similar programs found, consider it novel
+            return True
+
+        return self._llm_judge_novelty(program, self.programs[max_smlty_pid])
 
     def _is_better(self, program1: Program, program2: Program) -> bool:
         """
@@ -1245,6 +1430,7 @@ class ProgramDatabase:
                 copy_program = Program(
                     id=str(uuid.uuid4()),
                     code=best_program.code,
+                    changes_description=best_program.changes_description,
                     language=best_program.language,
                     parent_id=best_program.id,
                     generation=best_program.generation,
@@ -1292,6 +1478,7 @@ class ProgramDatabase:
                 copy_program = Program(
                     id=str(uuid.uuid4()),
                     code=best_program.code,
+                    changes_description=best_program.changes_description,
                     language=best_program.language,
                     parent_id=best_program.id,
                     generation=best_program.generation,
@@ -1368,7 +1555,136 @@ class ProgramDatabase:
         program_id = random.choice(list(self.programs.keys()))
         return self.programs[program_id]
 
-    def _sample_inspirations(self, parent: Program, n: int = 5) -> List[Program]:
+    def _sample_from_island_weighted(self, island_id: int) -> Program:
+        """
+        Sample a parent from a specific island using fitness-weighted selection
+
+        Args:
+            island_id: The island to sample from
+
+        Returns:
+            Parent program selected using fitness-weighted sampling
+        """
+        island_id = island_id % len(self.islands)
+        island_programs = list(self.islands[island_id])
+
+        if not island_programs:
+            # Island is empty, fall back to any available program
+            logger.debug(f"Island {island_id} is empty, sampling from all programs")
+            return self._sample_random_parent()
+
+        # Select parent from island programs
+        if len(island_programs) == 1:
+            parent_id = island_programs[0]
+        else:
+            # Use weighted sampling based on program scores
+            island_program_objects = [
+                self.programs[pid] for pid in island_programs if pid in self.programs
+            ]
+
+            if not island_program_objects:
+                # Fallback if programs not found
+                parent_id = random.choice(island_programs)
+            else:
+                # Calculate weights based on fitness scores
+                weights = []
+                for prog in island_program_objects:
+                    fitness = get_fitness_score(prog.metrics, self.config.feature_dimensions)
+                    # Add small epsilon to avoid zero weights
+                    weights.append(max(fitness, 0.001))
+
+                # Normalize weights
+                total_weight = sum(weights)
+                if total_weight > 0:
+                    weights = [w / total_weight for w in weights]
+                else:
+                    weights = [1.0 / len(island_program_objects)] * len(island_program_objects)
+
+                # Sample parent based on weights
+                parent = random.choices(island_program_objects, weights=weights, k=1)[0]
+                parent_id = parent.id
+
+        parent = self.programs.get(parent_id)
+        if not parent:
+            # Should not happen, but handle gracefully
+            logger.error(f"Parent program {parent_id} not found in database")
+            return self._sample_random_parent()
+
+        return parent
+
+    def _sample_from_island_random(self, island_id: int) -> Program:
+        """
+        Sample a completely random parent from a specific island (uniform distribution)
+
+        Args:
+            island_id: The island to sample from
+
+        Returns:
+            Parent program selected uniformly at random
+        """
+        island_id = island_id % len(self.islands)
+        island_programs = list(self.islands[island_id])
+
+        if not island_programs:
+            # Island is empty, fall back to any available program
+            logger.debug(f"Island {island_id} is empty, sampling from all programs")
+            return self._sample_random_parent()
+
+        # Clean up stale references
+        valid_programs = [pid for pid in island_programs if pid in self.programs]
+
+        if not valid_programs:
+            logger.warning(
+                f"Island {island_id} has no valid programs, falling back to random sampling"
+            )
+            return self._sample_random_parent()
+
+        # Uniform random selection
+        parent_id = random.choice(valid_programs)
+        return self.programs[parent_id]
+
+    def _sample_from_archive_for_island(self, island_id: int) -> Program:
+        """
+        Sample a parent from the archive, preferring programs from the specified island
+
+        Args:
+            island_id: The island to prefer programs from
+
+        Returns:
+            Parent program from archive (preferably from the specified island)
+        """
+        if not self.archive:
+            # Fallback to weighted sampling from island
+            logger.debug(f"Archive is empty, falling back to weighted island sampling")
+            return self._sample_from_island_weighted(island_id)
+
+        # Clean up stale references in archive
+        valid_archive = [pid for pid in self.archive if pid in self.programs]
+
+        if not valid_archive:
+            logger.warning(
+                "Archive has no valid programs, falling back to weighted island sampling"
+            )
+            return self._sample_from_island_weighted(island_id)
+
+        island_id = island_id % len(self.islands)
+
+        # Prefer programs from the specified island in archive
+        archive_programs_in_island = [
+            pid for pid in valid_archive if self.programs[pid].metadata.get("island") == island_id
+        ]
+
+        if archive_programs_in_island:
+            parent_id = random.choice(archive_programs_in_island)
+            return self.programs[parent_id]
+        else:
+            # Fall back to any valid archive program if island has none
+            parent_id = random.choice(valid_archive)
+            return self.programs[parent_id]
+
+    def _sample_inspirations(
+        self, parent: Program, n: int = 5, island_id: Optional[int] = None
+    ) -> List[Program]:
         """
         Sample inspiration programs for the next evolution step.
 
@@ -1378,14 +1694,23 @@ class ProgramDatabase:
         Args:
             parent: Parent program
             n: Number of inspirations to sample
+            island_id: Explicit island to sample from. If omitted, use the
+                parent program's island metadata.
 
         Returns:
             List of inspiration programs from the current island
         """
         inspirations = []
 
-        # Get the parent's island (should be current_island)
-        parent_island = parent.metadata.get("island", self.current_island)
+        # Prefer an explicitly requested island. This matters for
+        # sample_from_island(), where archive fallback may return a parent whose
+        # metadata belongs to a different island.
+        if island_id is None:
+            parent_island = parent.metadata.get("island", self.current_island)
+        else:
+            parent_island = island_id
+
+        parent_island %= len(self.islands)
 
         # Get all programs from the current island
         island_program_ids = list(self.islands[parent_island])
@@ -1518,28 +1843,33 @@ class ProgramDatabase:
             f"Population size ({len(self.programs)}) exceeds limit ({self.config.population_size}), removing {num_to_remove} programs"
         )
 
-        # Get programs sorted by fitness (worst first)
+        # Collect all MAP-Elites cell owners across every island. These "elite"
+        # programs represent occupied niches and must be protected from eviction
+        # to preserve diversity - a low-scoring cell owner should only be removed
+        # after every non-owning (homeless) program has already been removed.
+        elite_ids = set()
+        for island_map in self.island_feature_maps:
+            elite_ids.update(island_map.values())
+
+        # Never remove the best program or the excluded (just-added) program
+        protected_ids = {self.best_program_id, exclude_program_id} - {None}
+
         all_programs = list(self.programs.values())
 
-        # Sort by combined_score if available, otherwise by average metric (worst first)
-        sorted_programs = sorted(
-            all_programs,
+        # Split into non-elite (homeless) and elite (cell owners), each sorted by
+        # fitness worst-first. Non-elite programs are removed before elite ones.
+        non_elite = sorted(
+            [p for p in all_programs if p.id not in elite_ids and p.id not in protected_ids],
+            key=lambda p: get_fitness_score(p.metrics, self.config.feature_dimensions),
+        )
+        elite = sorted(
+            [p for p in all_programs if p.id in elite_ids and p.id not in protected_ids],
             key=lambda p: get_fitness_score(p.metrics, self.config.feature_dimensions),
         )
 
-        # Remove worst programs, but never remove the best program or excluded program
-        programs_to_remove = []
-        protected_ids = {self.best_program_id, exclude_program_id} - {None}
-
-        for program in sorted_programs:
-            if len(programs_to_remove) >= num_to_remove:
-                break
-            # Don't remove the best program or excluded program
-            if program.id not in protected_ids:
-                programs_to_remove.append(program)
-
-        # If we still need to remove more and only have protected programs,
-        # remove from the remaining programs anyway (but keep the protected ones)
+        # Remove non-elite programs first; only fall back to evicting elite cell
+        # owners (worst first) if removing all homeless programs is not enough.
+        programs_to_remove = non_elite[:num_to_remove]
         if len(programs_to_remove) < num_to_remove:
             remaining_programs = [
                 p

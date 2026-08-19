@@ -40,9 +40,11 @@ const WebScrapeToolParamsSchema = z.object({
     .url('Must be a valid URL')
     .describe('The URL to scrape content from'),
   format: z
-    .enum(['markdown'])
+    .enum(['markdown', 'html'])
     .default('markdown')
-    .describe('Content format to extract (default: markdown)'),
+    .describe(
+      'Content format to extract (default: markdown), only use html if looking for particular html elements'
+    ),
   onlyMainContent: z
     .boolean()
     .default(true)
@@ -157,6 +159,8 @@ export class WebScrapeTool extends ToolBubble<
 
       if (format === 'markdown' && response.data.markdown) {
         content = response.data.markdown;
+      } else if (format === 'html' && response.data.html) {
+        content = response.data.html;
       } else {
         throw new Error(`No content available in ${format} format`);
       }

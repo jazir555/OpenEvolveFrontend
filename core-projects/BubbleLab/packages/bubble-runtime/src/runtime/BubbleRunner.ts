@@ -2,6 +2,7 @@ import {
   ExecutionResult,
   ParsedBubbleWithInfo,
   CredentialType,
+  type ExecutionMeta,
 } from '@bubblelab/shared-schemas';
 import {
   BubbleFactory,
@@ -42,6 +43,7 @@ export interface BubbleRunnerOptions {
   useWebhookLogger?: boolean;
   pricingTable: Record<string, { unit: string; unitCost: number }>;
   userCredentialMapping?: Map<number, Set<CredentialType>>;
+  executionMeta?: ExecutionMeta;
 }
 
 export class BubbleRunner {
@@ -406,15 +408,20 @@ export class BubbleRunner {
 
       this.bubbleScript.showScript('Prepared script for execution');
 
-      // Create a temporary file with the bubble script code in the project directory
-      // This ensures proper module resolution for @nodex packages
+      // Create a temporary file in node_modules/.cache/bubblelab to ensure:
+      // 1. Proper module resolution for @bubblelab packages (stays within project)
+      // 2. No triggering of file watchers (node_modules is ignored by --watch)
       const projectRoot = this.findProjectRoot();
-      const tempDir = path.join(projectRoot, '.tmp');
+      const tempDir = path.join(
+        projectRoot,
+        'node_modules',
+        '.cache',
+        'bubblelab'
+      );
 
       // Ensure temp directory exists
       try {
         await fs.mkdir(tempDir, { recursive: true });
-        console.log('[BubbleRunner] Ensured tempDir exists');
       } catch (error: unknown) {
         // Directory might already exist, that's okay
         console.warn('[BubbleRunner] mkdir tempDir warning:', error);
@@ -427,13 +434,7 @@ export class BubbleRunner {
       scriptToExecute = sanitizeScript(scriptToExecute);
       // Write the script code to the temporary file
       try {
-        console.log(
-          '[BubbleRunner] About to write script to temp file. Script length:',
-          scriptToExecute?.length
-        );
         await fs.writeFile(tempFilePath, scriptToExecute);
-        const stat = await fs.stat(tempFilePath);
-        console.log('[BubbleRunner] Wrote temp file. Size:', stat.size);
       } catch (writeErr) {
         console.error('[BubbleRunner] Failed to write temp file:', writeErr);
         throw writeErr;
@@ -441,20 +442,13 @@ export class BubbleRunner {
 
       // Convert to file URL for dynamic import
       const moduleUrl = pathToFileURL(tempFilePath).href;
-      console.log('[BubbleRunner] moduleUrl:', moduleUrl);
       try {
-        const exists = await fs
-          .access(tempFilePath)
-          .then(() => true)
-          .catch(() => false);
-        console.log('[BubbleRunner] temp file exists before import:', exists);
+        await fs.access(tempFilePath);
       } catch (accessErr) {
         console.warn('[BubbleRunner] access check failed:', accessErr);
       }
 
       // Dynamically import the module
-
-      console.log('[BubbleRunner] Importing module', moduleUrl);
       let module: Record<string, unknown>;
       try {
         module = await import(moduleUrl);
@@ -471,8 +465,6 @@ export class BubbleRunner {
         );
         throw importErr;
       }
-
-      console.log('[BubbleRunner] Done importing module');
 
       // Find the BubbleFlow class in the module exports
       const FlowClass = this.findBubbleFlowClass(module);
@@ -493,6 +485,11 @@ export class BubbleRunner {
       // Instantiate the flow class with logger
       // Note: We need to determine the constructor parameters from the class
       const flowInstance = this.instantiateFlowClass(FlowClass);
+
+      // Attach execution metadata so generated code can thread it into BubbleContext
+      if (this.options.executionMeta) {
+        (flowInstance as any).__executionMeta__ = this.options.executionMeta;
+      }
 
       // Ensure the logger is set on the flow instance
       if (this.logger) {

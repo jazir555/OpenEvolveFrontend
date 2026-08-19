@@ -16,8 +16,15 @@ import {
   CredentialType,
   getOAuthProvider,
   isOAuthCredential,
+  isBrowserSessionCredential,
+  BROWSER_SESSION_PROVIDERS,
   getScopeDescriptions,
+  CREDENTIAL_TYPE_CONFIG,
+} from '@bubblelab/shared-schemas';
+import type {
   ScopeDescription,
+  CredentialResponse,
+  CreateCredentialRequest,
 } from '@bubblelab/shared-schemas';
 import {
   useCredentials,
@@ -25,231 +32,8 @@ import {
   useUpdateCredential,
   useDeleteCredential,
 } from '../hooks/useCredentials';
-import type {
-  CredentialResponse,
-  CreateCredentialRequest,
-} from '@bubblelab/shared-schemas';
 import { credentialsApi } from '../services/credentialsApi';
 import { resolveLogoByName } from '../lib/integrations';
-
-interface CredentialConfig {
-  label: string;
-  description: string;
-  placeholder: string;
-  namePlaceholder: string;
-  credentialConfigurations: Record<string, unknown>;
-}
-
-const CREDENTIAL_TYPE_CONFIG: Record<CredentialType, CredentialConfig> = {
-  [CredentialType.OPENAI_CRED]: {
-    label: 'OpenAI',
-    description: 'API key for OpenAI services (GPT models, embeddings, etc.)',
-    placeholder: 'sk-...',
-    namePlaceholder: 'My OpenAI API Key',
-    credentialConfigurations: {},
-  },
-  [CredentialType.GOOGLE_GEMINI_CRED]: {
-    label: 'Google Gemini',
-    description: 'API key for Google Gemini AI models',
-    placeholder: 'AIza...',
-    namePlaceholder: 'My Google Gemini Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.ANTHROPIC_CRED]: {
-    label: 'Anthropic',
-    description: 'API key for Anthropic Claude models',
-    placeholder: 'sk-ant-...',
-    namePlaceholder: 'My Anthropic API Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.DATABASE_CRED]: {
-    label: 'Database (PostgreSQL)',
-    description: 'Database connection string for PostgreSQL',
-    placeholder: 'postgresql://user:pass@host:port/dbname',
-    namePlaceholder: 'My PostgreSQL Database',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.FIRECRAWL_API_KEY]: {
-    label: 'Firecrawl',
-    description: 'API key for Firecrawl web scraping and search services',
-    placeholder: 'fc-...',
-    namePlaceholder: 'My Firecrawl API Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.SLACK_CRED]: {
-    label: 'Slack',
-    description: 'OAuth token for Slack workspace integration',
-    placeholder: 'xoxb-...',
-    namePlaceholder: 'My Slack Bot Token',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.RESEND_CRED]: {
-    label: 'Resend',
-    description: 'Your Resend API key for email services',
-    placeholder: 're_...',
-    namePlaceholder: 'My Resend API Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.OPENROUTER_CRED]: {
-    label: 'OpenRouter',
-    description: 'API key for OpenRouter services',
-    placeholder: 'sk-or-...',
-    namePlaceholder: 'My OpenRouter API Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: {
-    label: 'Cloudflare R2 Access Key',
-    description: 'Access key for Cloudflare R2 storage',
-    placeholder: 'Enter your access key',
-    namePlaceholder: 'My R2 Access Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: {
-    label: 'Cloudflare R2 Secret Key',
-    description: 'Secret key for Cloudflare R2 storage',
-    placeholder: 'Enter your secret key',
-    namePlaceholder: 'My R2 Secret Key',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: {
-    label: 'Cloudflare R2 Account ID',
-    description: 'Account ID for Cloudflare R2 storage',
-    placeholder: 'Enter your account ID',
-    namePlaceholder: 'My R2 Account ID',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.APIFY_CRED]: {
-    label: 'Apify',
-    description: 'API token for Apify platform (web scraping, automation)',
-    placeholder: 'apify_api_...',
-    namePlaceholder: 'My Apify API Token',
-    credentialConfigurations: {},
-  },
-  [CredentialType.GOOGLE_DRIVE_CRED]: {
-    label: 'Google Drive',
-    description: 'OAuth connection to Google Drive for file access',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Google Drive Connection',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.GMAIL_CRED]: {
-    label: 'Gmail',
-    description: 'OAuth connection to Gmail for email management',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Gmail Connection',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.GOOGLE_SHEETS_CRED]: {
-    label: 'Google Sheets',
-    description: 'OAuth connection to Google Sheets for spreadsheet management',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Google Sheets Connection',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.GOOGLE_CALENDAR_CRED]: {
-    label: 'Google Calendar',
-    description: 'OAuth connection to Google Calendar for events and schedules',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Google Calendar Connection',
-    credentialConfigurations: {
-      ignoreSSL: false,
-    },
-  },
-  [CredentialType.FUB_CRED]: {
-    label: 'Follow Up Boss',
-    description:
-      'OAuth connection to Follow Up Boss CRM for contacts, tasks, and deals',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Follow Up Boss Connection',
-    credentialConfigurations: {},
-  },
-  [CredentialType.NOTION_OAUTH_TOKEN]: {
-    label: 'Notion',
-    description:
-      'OAuth connection to your Notion workspace (pages, databases, search)',
-    placeholder: '', // Not used for OAuth
-    namePlaceholder: 'My Notion Connection',
-    credentialConfigurations: {},
-  },
-  [CredentialType.GITHUB_TOKEN]: {
-    label: 'GitHub',
-    description:
-      'Personal Access Token for GitHub API (read repos, PRs, issues)',
-    placeholder: 'github_pat...',
-    namePlaceholder: 'My GitHub Token',
-    credentialConfigurations: {},
-  },
-  [CredentialType.ELEVENLABS_API_KEY]: {
-    label: 'Eleven Labs API Key',
-    description: 'Your API key from Eleven Labs',
-    placeholder: 'agent_...',
-    namePlaceholder: 'My Eleven Labs Key',
-    credentialConfigurations: {},
-  },
-  [CredentialType.AGI_API_KEY]: {
-    label: 'AGI Inc API Key',
-    description: 'Your API key from AGI Inc',
-    placeholder: 'api_...',
-    namePlaceholder: 'My AGI Inc Key',
-    credentialConfigurations: {},
-  },
-  [CredentialType.TELEGRAM_BOT_TOKEN]: {
-    label: 'Telegram Bot Token',
-    description: 'Your Telegram bot token',
-    placeholder: 'bot_...',
-    namePlaceholder: 'My Telegram Bot Token',
-    credentialConfigurations: {},
-  },
-  [CredentialType.AIRTABLE_CRED]: {
-    label: 'Airtable',
-    description:
-      'Personal Access Token for Airtable API (manage bases, tables, records)',
-    placeholder: 'pat...',
-    namePlaceholder: 'My Airtable Token',
-    credentialConfigurations: {},
-  },
-  [CredentialType.INSFORGE_BASE_URL]: {
-    label: 'InsForge Base URL',
-    description:
-      'Base URL for your InsForge backend (e.g., https://your-app.region.insforge.app)',
-    placeholder: 'https://your-app.region.insforge.app',
-    namePlaceholder: 'My InsForge Backend URL',
-    credentialConfigurations: {},
-  },
-  [CredentialType.INSFORGE_API_KEY]: {
-    label: 'InsForge API Key',
-    description: 'API key for your InsForge backend',
-    placeholder: 'ik_...',
-    namePlaceholder: 'My InsForge API Key',
-    credentialConfigurations: {},
-  },
-} as const satisfies Record<CredentialType, CredentialConfig>;
 
 // Helper to extract error message from API error
 const getErrorMessage = (error: unknown): string => {
@@ -282,8 +66,10 @@ const getServiceNameForCredentialType = (
     [CredentialType.DATABASE_CRED]: 'Postgres',
     [CredentialType.FIRECRAWL_API_KEY]: 'Firecrawl',
     [CredentialType.SLACK_CRED]: 'Slack',
+    [CredentialType.SLACK_API]: 'Slack',
     [CredentialType.RESEND_CRED]: 'Resend',
     [CredentialType.OPENROUTER_CRED]: 'OpenRouter',
+    [CredentialType.FIREWORKS_CRED]: 'Fireworks AI',
     [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: 'Cloudflare',
     [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: 'Cloudflare',
     [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: 'Cloudflare',
@@ -296,9 +82,45 @@ const getServiceNameForCredentialType = (
     [CredentialType.GITHUB_TOKEN]: 'GitHub',
     [CredentialType.ELEVENLABS_API_KEY]: 'ElevenLabs',
     [CredentialType.AIRTABLE_CRED]: 'Airtable',
+    [CredentialType.AIRTABLE_OAUTH]: 'Airtable',
     [CredentialType.NOTION_OAUTH_TOKEN]: 'Notion',
+    [CredentialType.NOTION_API]: 'Notion',
     [CredentialType.INSFORGE_BASE_URL]: 'InsForge',
     [CredentialType.INSFORGE_API_KEY]: 'InsForge',
+    [CredentialType.CUSTOM_AUTH_KEY]: 'Custom',
+    [CredentialType.AMAZON_CRED]: 'Amazon',
+    [CredentialType.BROWSERBASE_CRED]: 'BrowserBase',
+    [CredentialType.CRUSTDATA_API_KEY]: 'Crustdata',
+    [CredentialType.JIRA_CRED]: 'Jira',
+    [CredentialType.ASHBY_CRED]: 'Ashby',
+    [CredentialType.FULLENRICH_API_KEY]: 'FullEnrich',
+    [CredentialType.LINKEDIN_CRED]: 'LinkedIn',
+    [CredentialType.STRIPE_CRED]: 'Stripe',
+    [CredentialType.CREDENTIAL_WILDCARD]: 'Wiki',
+    [CredentialType.CONFLUENCE_CRED]: 'Confluence',
+    [CredentialType.POSTHOG_API_KEY]: 'PostHog',
+    [CredentialType.SENDSAFELY_CRED]: 'SendSafely',
+    [CredentialType.S3_CRED]: 'Amazon S3',
+    [CredentialType.LINEAR_CRED]: 'Linear',
+    [CredentialType.ATTIO_CRED]: 'Attio',
+    [CredentialType.HUBSPOT_CRED]: 'HubSpot',
+    [CredentialType.SORTLY_API_KEY]: 'Sortly',
+    [CredentialType.ASSEMBLED_CRED]: 'Assembled',
+    [CredentialType.XERO_CRED]: 'Xero',
+    [CredentialType.RAMP_CRED]: 'Ramp',
+    [CredentialType.ZENDESK_CRED]: 'Zendesk',
+    [CredentialType.SLAB_CRED]: 'Slab',
+    [CredentialType.SNOWFLAKE_CRED]: 'Snowflake',
+    [CredentialType.SALESFORCE_CRED]: 'Salesforce',
+    [CredentialType.ASANA_CRED]: 'Asana',
+    [CredentialType.DISCORD_CRED]: 'Discord',
+    [CredentialType.DOCUSIGN_CRED]: 'DocuSign',
+    [CredentialType.METABASE_CRED]: 'Metabase',
+    [CredentialType.CLERK_CRED]: 'Clerk',
+    [CredentialType.CLERK_API_KEY]: 'Clerk',
+    [CredentialType.GRANOLA_API_KEY]: 'Granola',
+    [CredentialType.MEMBERFUL_CRED]: 'Memberful',
+    [CredentialType.ZOOM_CRED]: 'Zoom',
   };
 
   return typeToServiceMap[credentialType] || credentialType;
@@ -340,9 +162,20 @@ export function CreateCredentialModal({
   const [error, setError] = useState<string | null>(null);
   const [isOAuthConnecting, setIsOAuthConnecting] = useState(false);
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(new Set());
+  // Browser session state
+  const [isBrowserSessionConnecting, setIsBrowserSessionConnecting] =
+    useState(false);
+  const [browserSessionState, setBrowserSessionState] = useState<{
+    sessionId: string;
+    debugUrl: string;
+    state: string;
+  } | null>(null);
 
-  // Check if the current credential type is OAuth
+  // Check if the current credential type is OAuth or Browser Session
   const isOAuthCredentialType = isOAuthCredential(
+    formData.credentialType as CredentialType
+  );
+  const isBrowserSessionCredentialType = isBrowserSessionCredential(
     formData.credentialType as CredentialType
   );
 
@@ -374,6 +207,8 @@ export function CreateCredentialModal({
       setError(null);
       setIsOAuthConnecting(false);
       setSelectedScopes(new Set());
+      setIsBrowserSessionConnecting(false);
+      setBrowserSessionState(null);
     }
   }, [isOpen]);
 
@@ -488,6 +323,105 @@ export function CreateCredentialModal({
     }
   };
 
+  // Browser session handlers
+  const handleBrowserSessionConnect = async () => {
+    setIsBrowserSessionConnecting(true);
+    setError(null);
+
+    // Open window immediately to avoid popup blocker (must be in direct user action context)
+    const browserWindow = window.open('about:blank', '_blank');
+
+    try {
+      const result = await credentialsApi.createBrowserbaseSession(
+        formData.credentialType,
+        formData.name
+      );
+
+      setBrowserSessionState({
+        sessionId: result.sessionId,
+        debugUrl: result.debugUrl,
+        state: result.state,
+      });
+
+      // Navigate the already-opened window to the debug URL
+      if (browserWindow) {
+        browserWindow.location.href = result.debugUrl;
+
+        // Poll to detect when popup is closed without completing
+        const pollInterval = setInterval(async () => {
+          if (browserWindow.closed) {
+            clearInterval(pollInterval);
+            // Only close session if user didn't complete (browserSessionState still exists)
+            setBrowserSessionState((currentState) => {
+              if (currentState && currentState.sessionId === result.sessionId) {
+                console.log(
+                  'Browser window closed without completing, releasing session...'
+                );
+                credentialsApi
+                  .closeBrowserbaseSession(result.sessionId)
+                  .catch((err) =>
+                    console.error('Failed to close session:', err)
+                  );
+                setIsBrowserSessionConnecting(false);
+                return null;
+              }
+              return currentState;
+            });
+          }
+        }, 1000);
+      } else {
+        // Fallback: if popup was blocked, show the URL
+        console.warn('Popup blocked. Debug URL:', result.debugUrl);
+      }
+    } catch (error) {
+      // Close the blank window if there was an error
+      if (browserWindow) {
+        browserWindow.close();
+      }
+      setIsBrowserSessionConnecting(false);
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to create browser session'
+      );
+    }
+  };
+
+  const handleBrowserSessionComplete = async () => {
+    if (!browserSessionState) return;
+
+    setError(null);
+
+    try {
+      const result = await credentialsApi.completeBrowserbaseSession(
+        browserSessionState.sessionId,
+        browserSessionState.state,
+        formData.name
+      );
+
+      // Success - refresh credentials and close modal
+      queryClient.invalidateQueries({ queryKey: ['credentials'] });
+
+      if (onSuccess) {
+        onSuccess({
+          id: result.id,
+          credentialType: formData.credentialType,
+          name: formData.name,
+          createdAt: new Date().toISOString(),
+          isBrowserSession: true,
+        } as CredentialResponse);
+      }
+
+      setIsBrowserSessionConnecting(false);
+      setBrowserSessionState(null);
+      onClose();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to capture credentials'
+      );
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -501,6 +435,16 @@ export function CreateCredentialModal({
         return;
       }
       await handleOAuthConnect();
+      return;
+    }
+
+    // For Browser Session credentials, use the browser session flow
+    if (isBrowserSessionCredentialType) {
+      if (!formData.name) {
+        setError('Name is required');
+        return;
+      }
+      await handleBrowserSessionConnect();
       return;
     }
 
@@ -630,7 +574,7 @@ export function CreateCredentialModal({
               </p>
             </div>
 
-            {!isOAuthCredentialType && (
+            {!isOAuthCredentialType && !isBrowserSessionCredentialType && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Value *
@@ -726,6 +670,62 @@ export function CreateCredentialModal({
                 </div>
               </div>
             )}
+
+            {isBrowserSessionCredentialType && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Browser Session Authentication
+                </label>
+                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#30363d]">
+                  {!browserSessionState ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <ArrowTopRightOnSquareIcon className="h-5 w-5 text-purple-400" />
+                        <span className="text-sm text-gray-300">
+                          This will open a browser window for manual login
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                        A remote browser session will open where you can log
+                        into the service. Once you've completed login, click
+                        "Done" to capture and save your session.
+                      </p>
+                      {(() => {
+                        const providerConfig =
+                          BROWSER_SESSION_PROVIDERS.browserbase.credentialTypes[
+                            formData.credentialType as CredentialType
+                          ];
+                        return providerConfig ? (
+                          <p className="text-xs text-purple-400 mt-2">
+                            Target: {providerConfig.targetUrl}
+                          </p>
+                        ) : null;
+                      })()}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-sm text-green-300 font-medium">
+                          Browser Session Active
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                        Complete your login in the browser window, then click
+                        "Done - Capture Credentials" below.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleBrowserSessionComplete}
+                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Done - Capture Credentials
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-[#30363d] flex-shrink-0">
@@ -738,16 +738,27 @@ export function CreateCredentialModal({
             </button>
             <button
               type="submit"
-              disabled={isLoading || isOAuthConnecting}
+              disabled={
+                isLoading ||
+                isOAuthConnecting ||
+                isBrowserSessionConnecting ||
+                !!browserSessionState
+              }
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isOAuthConnecting
                 ? 'Connecting...'
-                : isLoading
-                  ? 'Creating...'
-                  : isOAuthCredentialType
-                    ? 'Connect with OAuth'
-                    : 'Create Credential'}
+                : isBrowserSessionConnecting
+                  ? 'Opening Browser...'
+                  : browserSessionState
+                    ? 'Session Active'
+                    : isLoading
+                      ? 'Creating...'
+                      : isOAuthCredentialType
+                        ? 'Connect with OAuth'
+                        : isBrowserSessionCredentialType
+                          ? 'Authenticate via Browser'
+                          : 'Create Credential'}
             </button>
           </div>
         </form>
@@ -915,6 +926,8 @@ function CredentialCard({
   isDeleting,
   onRefreshOAuth,
   isRefreshing,
+  onReopenBrowserSession,
+  isReopening,
 }: {
   credential: CredentialResponse;
   onEdit: (credential: CredentialResponse) => void;
@@ -922,6 +935,8 @@ function CredentialCard({
   isDeleting: boolean;
   onRefreshOAuth?: (credential: CredentialResponse) => void;
   isRefreshing?: boolean;
+  onReopenBrowserSession?: (credential: CredentialResponse) => void;
+  isReopening?: boolean;
 }) {
   const [logoError, setLogoError] = useState(false);
 
@@ -934,6 +949,9 @@ function CredentialCard({
   const isOAuthCredentialType = isOAuthCredential(
     credential.credentialType as CredentialType
   );
+  const isBrowserSessionCredentialType =
+    credential.isBrowserSession ||
+    isBrowserSessionCredential(credential.credentialType as CredentialType);
   const credentialConfig =
     CREDENTIAL_TYPE_CONFIG[credential.credentialType as CredentialType];
 
@@ -980,11 +998,19 @@ function CredentialCard({
                     </span>
                   </div>
                 )}
+                {isBrowserSessionCredentialType && !isOAuthCredentialType && (
+                  <div className="flex items-center gap-1">
+                    <ArrowTopRightOnSquareIcon className="h-3 w-3 text-purple-400" />
+                    <span className="text-xs px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                      Browser
+                    </span>
+                  </div>
+                )}
               </div>
               <p className="text-xs text-gray-400 mt-1">
                 {credentialConfig?.label || credential.credentialType}
               </p>
-              {isOAuthCredentialType && (
+              {(isOAuthCredentialType || isBrowserSessionCredentialType) && (
                 <div className="flex items-center gap-2 mt-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   <span className="text-xs text-green-400">Connected</span>
@@ -1008,6 +1034,22 @@ function CredentialCard({
               )}
             </button>
           )}
+          {isBrowserSessionCredentialType &&
+            !isOAuthCredentialType &&
+            onReopenBrowserSession && (
+              <button
+                onClick={() => onReopenBrowserSession(credential)}
+                disabled={isReopening}
+                className="text-gray-400 hover:text-purple-400 p-1.5 hover:bg-purple-900/20 rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Open browser session"
+              >
+                {isReopening ? (
+                  <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <ArrowPathIcon className="h-4 w-4" />
+                )}
+              </button>
+            )}
           <button
             onClick={() => onEdit(credential)}
             className="text-gray-400 hover:text-gray-300 p-1.5 hover:bg-[#30363d] rounded transition-all duration-200"
@@ -1066,6 +1108,12 @@ export function CredentialsPage({ apiBaseUrl }: CredentialsPageProps) {
     },
   });
 
+  const reopenBrowserSessionMutation = useMutation({
+    mutationFn: async (credential: CredentialResponse) => {
+      return credentialsApi.reopenBrowserbaseSession(credential.id);
+    },
+  });
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCredential, setEditingCredential] =
@@ -1113,6 +1161,41 @@ export function CredentialsPage({ apiBaseUrl }: CredentialsPageProps) {
       console.log(`OAuth token refreshed for ${credential.name}`);
     } catch (error) {
       console.error('Failed to refresh OAuth token:', error);
+    }
+  };
+
+  const handleReopenBrowserSession = async (credential: CredentialResponse) => {
+    // Open window immediately to avoid popup blocker
+    const browserWindow = window.open('about:blank', '_blank');
+
+    try {
+      const result = await reopenBrowserSessionMutation.mutateAsync(credential);
+      console.log(`Browser session reopened for ${credential.name}`);
+
+      // Navigate the already-opened window to the debug URL
+      if (browserWindow && result.debugUrl) {
+        browserWindow.location.href = result.debugUrl;
+
+        // Poll to detect when popup is closed, then close the session
+        const pollInterval = setInterval(async () => {
+          if (browserWindow.closed) {
+            clearInterval(pollInterval);
+            console.log('Browser window closed, releasing session...');
+            try {
+              await credentialsApi.closeBrowserbaseSession(result.sessionId);
+              console.log('Session closed successfully');
+            } catch (err) {
+              console.error('Failed to close session:', err);
+            }
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      // Close the blank window if there was an error
+      if (browserWindow) {
+        browserWindow.close();
+      }
+      console.error('Failed to reopen browser session:', error);
     }
   };
 
@@ -1196,6 +1279,11 @@ export function CredentialsPage({ apiBaseUrl }: CredentialsPageProps) {
                   isRefreshing={
                     refreshOAuthMutation.isPending &&
                     refreshOAuthMutation.variables?.id === credential.id
+                  }
+                  onReopenBrowserSession={handleReopenBrowserSession}
+                  isReopening={
+                    reopenBrowserSessionMutation.isPending &&
+                    reopenBrowserSessionMutation.variables?.id === credential.id
                   }
                 />
               ))}

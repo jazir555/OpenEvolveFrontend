@@ -3,6 +3,7 @@ OpenEvolve: An open-source implementation of AlphaEvolve
 """
 
 from openevolve._version import __version__
+from openevolve.config import Config
 from openevolve.controller import OpenEvolve
 from openevolve.api import (
     run_evolution,

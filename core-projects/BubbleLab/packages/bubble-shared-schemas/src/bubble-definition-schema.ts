@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@hono/zod-openapi';
 import { CredentialType, BubbleName } from './types';
 
 // Bubble parameter type enum
@@ -30,8 +30,10 @@ export const CREDENTIAL_CONFIGURATION_MAP: Record<
   [CredentialType.ANTHROPIC_CRED]: {},
   [CredentialType.FIRECRAWL_API_KEY]: {},
   [CredentialType.SLACK_CRED]: {},
+  [CredentialType.SLACK_API]: {},
   [CredentialType.RESEND_CRED]: {},
   [CredentialType.OPENROUTER_CRED]: {},
+  [CredentialType.FIREWORKS_CRED]: {},
   [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: {},
   [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: {},
   [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: {},
@@ -43,9 +45,53 @@ export const CREDENTIAL_CONFIGURATION_MAP: Record<
   [CredentialType.GOOGLE_CALENDAR_CRED]: {},
   [CredentialType.GITHUB_TOKEN]: {},
   [CredentialType.AIRTABLE_CRED]: {},
+  [CredentialType.AIRTABLE_OAUTH]: {},
   [CredentialType.NOTION_OAUTH_TOKEN]: {},
+  [CredentialType.NOTION_API]: {},
   [CredentialType.INSFORGE_BASE_URL]: {},
   [CredentialType.INSFORGE_API_KEY]: {},
+  [CredentialType.CUSTOM_AUTH_KEY]: {},
+  [CredentialType.AMAZON_CRED]: {
+    proxyServer: BubbleParameterType.STRING,
+    proxyUsername: BubbleParameterType.STRING,
+    proxyPassword: BubbleParameterType.STRING,
+  },
+  [CredentialType.BROWSERBASE_CRED]: {},
+  [CredentialType.LINKEDIN_CRED]: {
+    proxyServer: BubbleParameterType.STRING,
+    proxyUsername: BubbleParameterType.STRING,
+    proxyPassword: BubbleParameterType.STRING,
+  },
+  [CredentialType.CRUSTDATA_API_KEY]: {},
+  [CredentialType.JIRA_CRED]: {},
+  [CredentialType.ASHBY_CRED]: {},
+  [CredentialType.FULLENRICH_API_KEY]: {},
+  [CredentialType.STRIPE_CRED]: {},
+  [CredentialType.CONFLUENCE_CRED]: {},
+  [CredentialType.POSTHOG_API_KEY]: {},
+  [CredentialType.SENDSAFELY_CRED]: {},
+  [CredentialType.S3_CRED]: {},
+  [CredentialType.LINEAR_CRED]: {},
+  [CredentialType.ATTIO_CRED]: {},
+  [CredentialType.HUBSPOT_CRED]: {},
+  [CredentialType.SORTLY_API_KEY]: {},
+  [CredentialType.ASSEMBLED_CRED]: {},
+  [CredentialType.XERO_CRED]: {},
+  [CredentialType.RAMP_CRED]: {},
+  [CredentialType.ZENDESK_CRED]: {},
+  [CredentialType.SLAB_CRED]: {},
+  [CredentialType.SNOWFLAKE_CRED]: {},
+  [CredentialType.SALESFORCE_CRED]: {},
+  [CredentialType.ASANA_CRED]: {},
+  [CredentialType.DISCORD_CRED]: {},
+  [CredentialType.DOCUSIGN_CRED]: {},
+  [CredentialType.METABASE_CRED]: {},
+  [CredentialType.CLERK_CRED]: {},
+  [CredentialType.CLERK_API_KEY]: {},
+  [CredentialType.GRANOLA_API_KEY]: {},
+  [CredentialType.MEMBERFUL_CRED]: {},
+  [CredentialType.ZOOM_CRED]: {},
+  [CredentialType.CREDENTIAL_WILDCARD]: {}, // Wildcard marker, not a real credential
 };
 
 // Fixed list of bubble names that need context injection

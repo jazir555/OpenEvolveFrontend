@@ -9,7 +9,7 @@ import { CredentialType } from './types.js';
 
 // Constants
 export const COFFEE_MAX_ITERATIONS = 30;
-export const COFFEE_MAX_QUESTIONS = 3;
+export const COFFEE_MAX_QUESTIONS = 5;
 export const COFFEE_DEFAULT_MODEL = 'google/gemini-3-pro-preview' as const;
 
 // ============================================================================
@@ -33,8 +33,7 @@ export const ClarificationQuestionSchema = z.object({
   choices: z
     .array(ClarificationChoiceSchema)
     .min(2)
-    .max(4)
-    .describe('Available choices for the user (2-4 options)'),
+    .describe('Available choices for the user (minimum 2 options)'),
   context: z
     .string()
     .optional()
@@ -54,7 +53,7 @@ export const CoffeeClarificationEventSchema = z.object({
     .array(ClarificationQuestionSchema)
     .min(1)
     .max(COFFEE_MAX_QUESTIONS)
-    .describe('List of clarification questions (1-3)'),
+    .describe(`List of clarification questions (1-${COFFEE_MAX_QUESTIONS})`),
 });
 
 // ============================================================================
@@ -70,9 +69,16 @@ export const CoffeeRequestExternalContextEventSchema = z.object({
   flowCode: z
     .string()
     .describe('Validated BubbleFlow TypeScript code to execute'),
-  requiredCredentials: z
-    .array(z.nativeEnum(CredentialType))
-    .describe('List of credential types needed to run this flow'),
+  credentialRequirements: z
+    .object({
+      required: z
+        .array(z.nativeEnum(CredentialType))
+        .describe('Credential types that must be provided'),
+      optional: z
+        .array(z.nativeEnum(CredentialType))
+        .describe('Credential types that can optionally be provided'),
+    })
+    .describe('Required and optional credentials for this flow'),
   description: z
     .string()
     .describe('User-friendly description of what this flow will do'),
@@ -139,6 +145,12 @@ export const CoffeePlanEventSchema = z.object({
   estimatedBubbles: z
     .array(z.string())
     .describe('All bubbles that will be used in the workflow'),
+  estimatedCapabilities: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Capability IDs to attach to AI agents (from list-capabilities-tool). Only pass the id, never inputs.'
+    ),
 });
 
 // ============================================================================

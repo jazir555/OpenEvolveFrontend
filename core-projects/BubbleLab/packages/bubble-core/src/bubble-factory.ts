@@ -5,6 +5,7 @@ import {
   type BubbleName,
   type BubbleNodeType,
   BUBBLE_CREDENTIAL_OPTIONS,
+  TRIGGER_EVENT_CONFIGS,
 } from '@bubblelab/shared-schemas';
 // Local type to describe detailed dependencies without cross-package type coupling
 type BubbleDependencySpec = {
@@ -177,6 +178,7 @@ export class BubbleFactory {
       'tiktok-tool',
       'twitter-tool',
       'google-maps-tool',
+      'app-rankings-tool',
       'youtube-tool',
       'github',
       'eleven-labs',
@@ -184,7 +186,6 @@ export class BubbleFactory {
       'agi-inc',
       'airtable',
       'notion',
-      'firecrawl',
       'insforge-db',
       'ragbits-ingest',
       'ragbits-search',
@@ -253,6 +254,42 @@ export class BubbleFactory {
       'multi-step-approval-workflow',
       'webhook-repeater-workflow',
     ] as BubbleName[];
+  }
+
+  /**
+   * Get the class names (e.g., 'SlackBubble', 'PostgreSQLBubble') for all bubbles
+   * available for code generation. Used to generate import statements.
+   */
+  listBubbleClassNamesForCodeGenerator(): string[] {
+    const bubbleNames = this.listBubblesForCodeGenerator();
+    const classNames: string[] = [];
+
+    for (const name of bubbleNames) {
+      const bubbleClass = this.registry.get(name);
+      if (bubbleClass && bubbleClass.name) {
+        classNames.push(bubbleClass.name);
+      }
+    }
+
+    return classNames;
+  }
+
+  /**
+   * Get a mapping of bubble names to class names for code generation.
+   * Returns object like { 'slack': 'SlackBubble', 'postgresql': 'PostgreSQLBubble' }
+   */
+  getBubbleNameToClassNameMap(): Record<string, string> {
+    const bubbleNames = this.listBubblesForCodeGenerator();
+    const mapping: Record<string, string> = {};
+
+    for (const name of bubbleNames) {
+      const bubbleClass = this.registry.get(name);
+      if (bubbleClass && bubbleClass.name) {
+        mapping[name] = bubbleClass.name;
+      }
+    }
+
+    return mapping;
   }
 
   async registerDefaults(): Promise<void> {
@@ -596,6 +633,107 @@ export class BubbleFactory {
       OpenEvolveCrewAIBubble as BubbleClassWithMetadata,
       'crewai' as BubbleName
     );
+    const { BrowserBaseBubble } = await import(
+      './bubbles/service-bubble/browserbase/index.js'
+    );
+    const { AmazonShoppingTool } = await import(
+      './bubbles/tool-bubble/amazon-shopping-tool/index.js'
+    );
+    const { CrustdataBubble } = await import(
+      './bubbles/service-bubble/crustdata/index.js'
+    );
+    const { CompanyEnrichmentTool } = await import(
+      './bubbles/tool-bubble/company-enrichment-tool.js'
+    );
+    const { JiraBubble } = await import(
+      './bubbles/service-bubble/jira/index.js'
+    );
+    const { ConfluenceBubble } = await import(
+      './bubbles/service-bubble/confluence/index.js'
+    );
+    const { AshbyBubble } = await import(
+      './bubbles/service-bubble/ashby/index.js'
+    );
+    const { FullEnrichBubble } = await import(
+      './bubbles/service-bubble/fullenrich/index.js'
+    );
+    const {
+      LinkedInConnectionTool,
+      LinkedInSentInvitationsTool,
+      LinkedInReceivedInvitationsTool,
+      LinkedInAcceptInvitationsTool,
+    } = await import('./bubbles/tool-bubble/browser-tools/index.js');
+    const { StripeBubble } = await import(
+      './bubbles/service-bubble/stripe/index.js'
+    );
+    const { SendSafelyBubble } = await import(
+      './bubbles/service-bubble/sendsafely/index.js'
+    );
+    const { YCScraperTool } = await import(
+      './bubbles/tool-bubble/yc-scraper-tool.js'
+    );
+    const { PosthogBubble } = await import(
+      './bubbles/service-bubble/posthog/index.js'
+    );
+    const { LinearBubble } = await import(
+      './bubbles/service-bubble/linear/index.js'
+    );
+    const { AttioBubble } = await import(
+      './bubbles/service-bubble/attio/index.js'
+    );
+    const { HubSpotBubble } = await import(
+      './bubbles/service-bubble/hubspot/index.js'
+    );
+    const { S3Bubble } = await import('./bubbles/service-bubble/s3/index.js');
+    const { AssembledBubble } = await import(
+      './bubbles/service-bubble/assembled/index.js'
+    );
+    const { XeroBubble } = await import(
+      './bubbles/service-bubble/xero/index.js'
+    );
+    const { RampBubble } = await import(
+      './bubbles/service-bubble/ramp/index.js'
+    );
+    const { ZendeskBubble } = await import(
+      './bubbles/service-bubble/zendesk/index.js'
+    );
+    const { SlabBubble } = await import(
+      './bubbles/service-bubble/slab/index.js'
+    );
+    const { SnowflakeBubble } = await import(
+      './bubbles/service-bubble/snowflake/index.js'
+    );
+    const { SalesforceBubble } = await import(
+      './bubbles/service-bubble/salesforce/index.js'
+    );
+    const { AsanaBubble } = await import(
+      './bubbles/service-bubble/asana/index.js'
+    );
+    const { DiscordBubble } = await import(
+      './bubbles/service-bubble/discord/index.js'
+    );
+    const { SortlyBubble } = await import(
+      './bubbles/service-bubble/sortly/index.js'
+    );
+    const { DocuSignBubble } = await import(
+      './bubbles/service-bubble/docusign/index.js'
+    );
+    const { MetabaseBubble } = await import(
+      './bubbles/service-bubble/metabase/index.js'
+    );
+    const { ClerkBubble } = await import(
+      './bubbles/service-bubble/clerk/index.js'
+    );
+    const { GranolaBubble } = await import(
+      './bubbles/service-bubble/granola/index.js'
+    );
+    const { MemberfulBubble } = await import(
+      './bubbles/service-bubble/memberful/index.js'
+    );
+    const { LumaBubble } = await import('./bubbles/service-bubble/luma.js');
+    const { ZoomBubble } = await import(
+      './bubbles/service-bubble/zoom/index.js'
+    );
 
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
@@ -663,8 +801,16 @@ export class BubbleFactory {
       GetBubbleDetailsTool as BubbleClassWithMetadata
     );
     this.register(
+      'get-trigger-detail-tool',
+      GetTriggerDetailTool as BubbleClassWithMetadata
+    );
+    this.register(
       'list-bubbles-tool',
       ListBubblesTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'list-capabilities-tool',
+      ListCapabilitiesTool as BubbleClassWithMetadata
     );
     this.register('sql-query-tool', SQLQueryTool as BubbleClassWithMetadata);
     this.register('chart-js-tool', ChartJSTool as BubbleClassWithMetadata);
@@ -698,6 +844,10 @@ export class BubbleFactory {
       'google-maps-tool',
       GoogleMapsTool as BubbleClassWithMetadata
     );
+    this.register(
+      'app-rankings-tool',
+      AppRankingsTool as BubbleClassWithMetadata
+    );
     this.register('youtube-tool', YouTubeTool as BubbleClassWithMetadata);
     this.register('web-crawl-tool', WebCrawlTool as BubbleClassWithMetadata);
     this.register('eleven-labs', ElevenLabsBubble as BubbleClassWithMetadata);
@@ -705,6 +855,65 @@ export class BubbleFactory {
     this.register('airtable', AirtableBubble as BubbleClassWithMetadata);
     this.register('firecrawl', FirecrawlBubble as BubbleClassWithMetadata);
     this.register('insforge-db', InsForgeDbBubble as BubbleClassWithMetadata);
+    this.register('browserbase', BrowserBaseBubble as BubbleClassWithMetadata);
+    this.register(
+      'people-search-tool',
+      PeopleSearchTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'amazon-shopping-tool',
+      AmazonShoppingTool as BubbleClassWithMetadata
+    );
+    this.register('crustdata', CrustdataBubble as BubbleClassWithMetadata);
+    this.register(
+      'company-enrichment-tool',
+      CompanyEnrichmentTool as BubbleClassWithMetadata
+    );
+    this.register('jira', JiraBubble as BubbleClassWithMetadata);
+    this.register('confluence', ConfluenceBubble as BubbleClassWithMetadata);
+    this.register('ashby', AshbyBubble as BubbleClassWithMetadata);
+    this.register('fullenrich', FullEnrichBubble as BubbleClassWithMetadata);
+    this.register(
+      'linkedin-connection-tool',
+      LinkedInConnectionTool as unknown as BubbleClassWithMetadata
+    );
+    this.register(
+      'linkedin-sent-invitations-tool',
+      LinkedInSentInvitationsTool as unknown as BubbleClassWithMetadata
+    );
+    this.register(
+      'linkedin-received-invitations-tool',
+      LinkedInReceivedInvitationsTool as unknown as BubbleClassWithMetadata
+    );
+    this.register(
+      'linkedin-accept-invitations-tool',
+      LinkedInAcceptInvitationsTool as unknown as BubbleClassWithMetadata
+    );
+    this.register('stripe', StripeBubble as BubbleClassWithMetadata);
+    this.register('sendsafely', SendSafelyBubble as BubbleClassWithMetadata);
+    this.register('yc-scraper-tool', YCScraperTool as BubbleClassWithMetadata);
+    this.register('posthog', PosthogBubble as BubbleClassWithMetadata);
+    this.register('linear', LinearBubble as BubbleClassWithMetadata);
+    this.register('attio', AttioBubble as BubbleClassWithMetadata);
+    this.register('hubspot', HubSpotBubble as BubbleClassWithMetadata);
+    this.register('s3-storage', S3Bubble as BubbleClassWithMetadata);
+    this.register('assembled', AssembledBubble as BubbleClassWithMetadata);
+    this.register('xero', XeroBubble as BubbleClassWithMetadata);
+    this.register('ramp', RampBubble as BubbleClassWithMetadata);
+    this.register('zendesk', ZendeskBubble as BubbleClassWithMetadata);
+    this.register('slab', SlabBubble as BubbleClassWithMetadata);
+    this.register('snowflake', SnowflakeBubble as BubbleClassWithMetadata);
+    this.register('salesforce', SalesforceBubble as BubbleClassWithMetadata);
+    this.register('asana', AsanaBubble as BubbleClassWithMetadata);
+    this.register('discord', DiscordBubble as BubbleClassWithMetadata);
+    this.register('sortly', SortlyBubble as BubbleClassWithMetadata);
+    this.register('docusign', DocuSignBubble as BubbleClassWithMetadata);
+    this.register('metabase', MetabaseBubble as BubbleClassWithMetadata);
+    this.register('clerk', ClerkBubble as BubbleClassWithMetadata);
+    this.register('granola', GranolaBubble as BubbleClassWithMetadata);
+    this.register('memberful', MemberfulBubble as BubbleClassWithMetadata);
+    this.register('luma', LumaBubble as BubbleClassWithMetadata);
+    this.register('zoom', ZoomBubble as BubbleClassWithMetadata);
 
     // Register RAGBits bubbles
     this.register('ragbits-ingest', RAGBitsIngestBubble as BubbleClassWithMetadata);
@@ -1245,48 +1454,45 @@ export class BubbleFactory {
   }
 
   /**
-   * Generate comprehensive BubbleFlow boilerplate template with all imports
-   * This template includes ALL available bubble classes and types
-   * Perfect for AI code generation and testing
+   * Generate minimal BubbleFlow boilerplate template
+   * Use get-trigger-detail-tool to get specific trigger configuration and payload types
    */
   generateBubbleFlowBoilerplate(options?: { className?: string }): string {
     const className = options?.className || 'GeneratedFlow';
 
+    // Generate dynamic trigger list from registry
+    const triggerList = Object.keys(TRIGGER_EVENT_CONFIGS)
+      .map((t) => `'${t}'`)
+      .join(' | ');
+
+    // Dynamically generate bubble imports from registry
+    const nameToClass = this.getBubbleNameToClassNameMap();
+    const serviceBubbles: string[] = [];
+    const toolBubbles: string[] = [];
+
+    for (const [bubbleName, className_] of Object.entries(nameToClass)) {
+      const meta = this.getMetadata(bubbleName as BubbleName);
+      if (!meta) continue;
+      const line = `  ${className_}, // bubble name: '${bubbleName}'`;
+      if (meta.type === 'tool') {
+        toolBubbles.push(line);
+      } else {
+        // service, workflow, and any other types go in the service section
+        serviceBubbles.push(line);
+      }
+    }
+
     return `
-import {z} from 'zod';
+import { z } from 'zod';
 import {
   // Base classes
   BubbleFlow,
 
   // Service Bubbles (Connects to external services)
-  HelloWorldBubble, // bubble name: 'hello-world'
-  AIAgentBubble, // bubble name: 'ai-agent'
-  PostgreSQLBubble, // bubble name: 'postgresql'
-  SlackBubble, // bubble name: 'slack'
-  ResendBubble, // bubble name: 'resend'
-  GoogleDriveBubble, // bubble name: 'google-drive'
-  GoogleSheetsBubble, // bubble name: 'google-sheets'
-  GoogleCalendarBubble, // bubble name: 'google-calendar'
-  GmailBubble, // bubble name: 'gmail'
-  SlackFormatterAgentBubble, // bubble name: 'slack-formatter-agent'
-  HttpBubble, // bubble name: 'http'
-  StorageBubble, // bubble name: 'storage'
-  ApifyBubble, // bubble name: 'apify'
-  ElevenLabsBubble, // bubble name: 'eleven-labs'
-  FollowUpBossBubble, // bubble name: 'followupboss'
+${serviceBubbles.join('\n')}
 
   // Tool Bubbles (Perform useful actions)
-  ResearchAgentTool, // bubble name: 'research-agent-tool'
-  RedditScrapeTool, // bubble name: 'reddit-scrape-tool'
-  WebScrapeTool, // bubble name: 'web-scrape-tool'
-  WebCrawlTool, // bubble name: 'web-crawl-tool'
-  WebSearchTool, // bubble name: 'web-search-tool'
-  InstagramTool, // bubble name: 'instagram-tool'
-  LinkedInTool, // bubble name: 'linkedin-tool'
-  TikTokTool, // bubble name: 'tiktok-tool'
-  TwitterTool, // bubble name: 'twitter-tool'
-  GoogleMapsTool, // bubble name: 'google-maps-tool'
-  YouTubeTool, // bubble name: 'youtube-tool'
+${toolBubbles.join('\n')}
 
   // RAGBits Bubbles (Semantic search and retrieval)
   RAGBitsIngestBubble, // bubble name: 'ragbits-ingest'
@@ -1301,104 +1507,35 @@ import {
   // Event Types (How the workflow is triggered)
   type WebhookEvent,
   type CronEvent,
+  type SlackMentionEvent,
+  type SlackMessageReceivedEvent,
 } from '@bubblelab/bubble-core';
 
-export interface Output {
-  // TODO: Add your output fields here
-  message: string;
-  processed: boolean;
-}
+// AVAILABLE TRIGGERS: ${triggerList}
+// Use get-trigger-detail-tool to get the payload schema and setup instructions for your chosen trigger
 
-// TRIGGER TYPE 1: Webhook HTTP Trigger
-// Define your custom input interface for webhook triggers
-export interface CustomWebhookPayload extends WebhookEvent {
-  // TODO: Add your custom payload fields here
-  input?: string;
+export interface Output {
+  message: string;
+  // Add your output fields here
 }
 
 export class ${className} extends BubbleFlow<'webhook/http'> {
-  
-  // Sanitizes and normalizes raw webhook input by trimming whitespace and converting to uppercase
-  private transformData(input: string | undefined) {
-    // Example: Transform or clean the input data
-    if (!input || input.trim().length === 0) return null;
-    return input.trim().toUpperCase();
-  }
+  async handle(payload: WebhookEvent): Promise<Output> {
+    // Example: instantiate a bubble and call .action() to execute it
+    // const calendar = new GoogleCalendarBubble({
+    //   operation: 'list_events',
+    //   calendar_id: 'primary',
+    //   time_min: '2025-01-01T00:00:00Z',
+    //   time_max: '2025-12-31T23:59:59Z',
+    // });
+    // const result = await calendar.action();
+    // if (!result.success) throw new Error(result.error);
+    // const events = result.data?.events || [];
 
-  // Sends cleaned input to AI agent for natural language processing and response generation
-  // Condition: Only runs when transformedInput is not null and has more than 3 characters
-  private async processWithAI(input: string) {
-    const agent = new AIAgentBubble({
-      model: { model: 'google/gemini-2.5-flash' },
-      systemPrompt: 'You are a helpful assistant.',
-      message: \`Process this input: \${input}\`
-    });
-
-    const result = await agent.action();
-
-    if (!result.success) {
-      throw new Error(\`AI Agent failed: \${result.error}\`);
-    }
-
-    return result.data.response;
-  }
-
-  // Constructs final output payload with either AI-generated response or default fallback message
-  private formatOutput(response: string | null, wasProcessed: boolean) {
-    return {
-      message: response || 'No input provided',
-      processed: wasProcessed,
-    };
-  }
-
-  // Main workflow orchestration
-  // - No Bubbles directly in handle()
-  // - No try/catch in handle() (let errors bubble up)
-  // - Only calls to private methods
-  async handle(payload: CustomWebhookPayload): Promise<Output> {
-    const transformedInput = this.transformData(payload.input);
-
-    // Only process with AI if input meets minimum length requirement
-    let aiResponse: string | null = null;
-    if (transformedInput && transformedInput.length > 3) {
-      aiResponse = await this.processWithAI(transformedInput);
-    }
-
-    return this.formatOutput(aiResponse, aiResponse !== null);
+    // Use get-bubble to learn about each bubble's parameters and operations
+    return { message: 'Hello from BubbleFlow!' };
   }
 }
-
-// TRIGGER TYPE 2: Cron Schedule Trigger
-// For cron-based scheduled workflows, or any workflow that can be benefited from being scheduled, extend BubbleFlow with 'schedule/cron'
-// and define the cronSchedule property with a cron expression
-// Time is in utc timezone, so if you want to schedule for a specific timezone, you need to convert the timezone to utc before writing the cron expression
-/*
-export interface CustomCronPayload extends CronEvent {
-  // TODO: Add your custom payload fields here
-}
-
-export class ${className}Cron extends BubbleFlow<'schedule/cron'> {
-  // Define cron schedule using standard 5-part cron format:
-  // * * * * * = minute hour day-of-month month day-of-week
-  // Examples:
-  //   '0 0 * * *'     = Daily at midnight
-  //   '0 9 * * 1-5'   = Every weekday at 9am
-  //   '*/15 * * * *' = Every 15 minutes
-  //   '0 0 1 * *'     = First day of every month at midnight
-  readonly cronSchedule = '* 3 * * * *'; // Every 3 minutes
-
-  // Performs scheduled database check or external API call to fetch latest data
-  private async performScheduledTask() {
-     // Example: Check a database or API
-     return "Task completed";
-  }
-
-  async handle(payload: CustomCronPayload): Promise<Output> {
-    const result = await this.performScheduledTask();
-
-    return { message: result, processed: true };
-  }
-}
-*/`;
+`;
   }
 }

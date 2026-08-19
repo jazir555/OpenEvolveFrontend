@@ -1,6 +1,6 @@
 import { sqliteTable, text, int, unique, real } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
-import type { DatabaseMetadata } from '@bubblelab/shared-schemas';
+import type { CredentialMetadata } from '@bubblelab/shared-schemas';
 
 export const users = sqliteTable('users', {
   clerkId: text('clerk_id').primaryKey(),
@@ -81,10 +81,31 @@ export const bubbleFlowExecutions = sqliteTable('bubble_flow_executions', {
   status: text('status').notNull(),
   error: text('error'),
   code: text('code'), // Store the original code at execution time
+  executionLogs: text('execution_logs', { mode: 'json' }), // StreamingLogEvent[] from execution
   startedAt: int('started_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
   completedAt: int('completed_at', { mode: 'timestamp' }),
+});
+
+export const bubbleFlowEvaluations = sqliteTable('bubble_flow_evaluations', {
+  id: int().primaryKey({ autoIncrement: true }),
+  executionId: int('execution_id')
+    .notNull()
+    .references(() => bubbleFlowExecutions.id, { onDelete: 'cascade' }),
+  bubbleFlowId: int('bubble_flow_id')
+    .notNull()
+    .references(() => bubbleFlows.id, { onDelete: 'cascade' }),
+  // Evaluation result from Rice agent
+  working: int('working', { mode: 'boolean' }).notNull(), // Whether the workflow is functioning correctly
+  issueType: text('issue_type'), // 'setup' | 'workflow' | 'input' | null
+  summary: text('summary').notNull(), // Brief summary of execution or issue description
+  rating: int('rating').notNull(), // Quality rating 1-10
+  // Metadata
+  modelUsed: text('model_used').notNull(), // Model used for evaluation (e.g., RECOMMENDED_MODELS.FAST)
+  evaluatedAt: int('evaluated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const userCredentials = sqliteTable('user_credentials', {
@@ -95,7 +116,7 @@ export const userCredentials = sqliteTable('user_credentials', {
   credentialType: text('credential_type').notNull(), // e.g., 'OPENAI_CRED', 'SLACK_CRED'
   encryptedValue: text('encrypted_value'), // Encrypted credential value (nullable for OAuth)
   name: text('name'), // Optional user-friendly name for the credential
-  metadata: text('metadata', { mode: 'json' }).$type<DatabaseMetadata>(), // Typed JSON field for database metadata
+  metadata: text('metadata', { mode: 'json' }).$type<CredentialMetadata>(), // Typed JSON field for credential metadata (DatabaseMetadata or JiraOAuthMetadata)
 
   // OAuth-specific fields
   oauthAccessToken: text('oauth_access_token'), // Encrypted OAuth access token
@@ -105,6 +126,20 @@ export const userCredentials = sqliteTable('user_credentials', {
   oauthTokenType: text('oauth_token_type').default('Bearer'), // Token type (usually Bearer)
   oauthProvider: text('oauth_provider'), // Provider name (google, slack, github, etc.)
   isOauth: int('is_oauth', { mode: 'boolean' }).default(false), // Flag to identify OAuth vs API key credentials
+
+  // Browser session-specific fields (for BrowserBase-based authentication)
+  isBrowserSession: int('is_browser_session', { mode: 'boolean' }).default(
+    false
+  ), // Flag for browser session credentials
+  browserbaseContextId: text('browserbase_context_id'), // BrowserBase context ID for session persistence
+  browserbaseCookies: text('browserbase_cookies'), // Encrypted captured cookies JSON
+  browserbaseSessionData: text('browserbase_session_data', {
+    mode: 'json',
+  }).$type<{
+    capturedAt: string;
+    cookieCount: number;
+    domain: string;
+  }>(),
 
   createdAt: int('created_at', { mode: 'timestamp' })
     .notNull()
@@ -166,6 +201,7 @@ export const waitlistedUsers = sqliteTable('waitlisted_users', {
 export const bubbleFlowsRelations = relations(bubbleFlows, ({ many }) => ({
   executions: many(bubbleFlowExecutions),
   webhooks: many(webhooks),
+  evaluations: many(bubbleFlowEvaluations),
 }));
 
 export const webhooksRelations = relations(webhooks, ({ one }) => ({
@@ -177,9 +213,24 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export const bubbleFlowExecutionsRelations = relations(
   bubbleFlowExecutions,
-  ({ one }) => ({
+  ({ one, many }) => ({
     bubbleFlow: one(bubbleFlows, {
       fields: [bubbleFlowExecutions.bubbleFlowId],
+      references: [bubbleFlows.id],
+    }),
+    evaluations: many(bubbleFlowEvaluations),
+  })
+);
+
+export const bubbleFlowEvaluationsRelations = relations(
+  bubbleFlowEvaluations,
+  ({ one }) => ({
+    execution: one(bubbleFlowExecutions, {
+      fields: [bubbleFlowEvaluations.executionId],
+      references: [bubbleFlowExecutions.id],
+    }),
+    bubbleFlow: one(bubbleFlows, {
+      fields: [bubbleFlowEvaluations.bubbleFlowId],
       references: [bubbleFlows.id],
     }),
   })

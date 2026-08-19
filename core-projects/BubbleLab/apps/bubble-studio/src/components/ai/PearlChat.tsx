@@ -118,10 +118,6 @@ export function PearlChat() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isVoiceBusy, setIsVoiceBusy] = useState(false);
-  const [updatedMessageIds, setUpdatedMessageIds] = useState<Set<string>>(
-    new Set()
-  );
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const promptInputRef = useRef<BubblePromptInputRef>(null);
   const { closeSidePanel } = useUIStore();
@@ -138,6 +134,9 @@ export function PearlChat() {
   // Pearl store hook - subscribes to state and provides generation API
   const pearl = usePearlChatStore(selectedFlowId);
   const queryClient = useQueryClient();
+  const pearlStore = selectedFlowId ? getPearlChatStore(selectedFlowId) : null;
+  const appliedMessageIds =
+    pearlStore?.((s) => s.appliedMessageIds) ?? new Set<string>();
 
   // Check if this is an initial generation (flow has prompt but no code)
   const isGenerating =
@@ -412,8 +411,8 @@ export function PearlChat() {
     editor.replaceAllContent(code);
     trackAIAssistant({ action: 'accept_response', message: code || '' });
 
-    // Mark message as updated
-    setUpdatedMessageIds((prev) => new Set(prev).add(messageId));
+    // Mark message as applied in store (persists across remounts)
+    pearlStore?.getState().markMessageApplied(messageId);
 
     // Update all workflow data from Pearl response
     if (bubbleParameters) {
@@ -1013,18 +1012,24 @@ export function PearlChat() {
                         </div>
                       )}
                       {message.code && (
-                        <CodeDiffView
-                          originalCode={editor.getCode() || ''}
-                          modifiedCode={message.code}
-                          isAccepted={updatedMessageIds.has(message.id)}
-                          onAccept={() =>
-                            handleReplace(
-                              message.code!,
-                              message.id,
-                              message.bubbleParameters
-                            )
-                          }
-                        />
+                        <>
+                          <CodeDiffView
+                            originalCode={editor.getCode() || ''}
+                            modifiedCode={message.code}
+                            isAccepted={appliedMessageIds.has(message.id)}
+                            onAccept={() =>
+                              handleReplace(
+                                message.code!,
+                                message.id,
+                                message.bubbleParameters
+                              )
+                            }
+                          />
+                          <p className="text-[11px] text-gray-500 text-center mt-2">
+                            You can always restore previous versions of your run
+                            in the History tab
+                          </p>
+                        </>
                       )}
                     </>
                   ) : (
@@ -1111,7 +1116,7 @@ export function PearlChat() {
             value={pearl.prompt}
             onChange={pearl.setPrompt}
             onSubmit={handleGenerate}
-            placeholder="Get help modifying, debugging, or understanding your workflow..."
+            placeholder="Ask Pearl to modify, debug, or understand your workflow..."
             className="bg-transparent text-gray-100 text-sm w-full placeholder-gray-400 resize-none focus:outline-none focus:ring-0 p-0"
             disabled={pearl.isPending || isGenerating || isVoiceBusy}
             flowId={selectedFlowId}

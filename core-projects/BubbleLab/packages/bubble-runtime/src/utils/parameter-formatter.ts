@@ -5,32 +5,18 @@
 import {
   BubbleParameter,
   ParsedBubbleWithInfo,
+  // Import shared formatting utilities
+  containsFunctionLiteral,
+  formatParameterValue,
+  condenseToSingleLine,
+  stripCommentsOutsideStrings,
 } from '@bubblelab/shared-schemas';
+
+// Re-export shared functions for backwards compatibility
+export { containsFunctionLiteral, formatParameterValue, condenseToSingleLine };
 
 const INVOCATION_KEY_EXPR =
   '__bubbleFlowSelf?.__getInvocationCallSiteKey?.() ?? ""';
-
-/**
- * Patterns that indicate function literals in source code.
- * Used to detect when parameters contain functions that cannot be safely condensed.
- */
-const FUNCTION_LITERAL_PATTERNS = [
-  'func:', // Object property with function value
-  '=>', // Arrow function
-  'function(', // Function expression
-  'function (', // Function expression with space
-  'async(', // Async arrow function
-  'async (', // Async function with space
-] as const;
-
-/**
- * Check if a string contains function literal patterns.
- * When function literals are present, the source code must be preserved as-is
- * because functions cannot be safely serialized or condensed to single-line.
- */
-export function containsFunctionLiteral(value: string): boolean {
-  return FUNCTION_LITERAL_PATTERNS.some((pattern) => value.includes(pattern));
-}
 
 function buildInvocationOverrideReference(
   variableId: number | undefined
@@ -83,28 +69,39 @@ export function buildParametersObject(
       : currentUniqueIdLiteral;
 
   // Handle single variable parameter case (e.g., new GoogleDriveBubble(params))
+  //
+  // Only unwrap when the variable represents the ENTIRE first argument (source
+  // 'first-arg'). When source is 'object-property' the variable was the VALUE
+  // of a single-key object literal — `new X({ url: someVar })` — and we must
+  // preserve the wrapping object, otherwise Zod's top-level object schema sees
+  // a bare string/value and rejects with "Expected object, received X".
   if (parameters.length === 1 && parameters[0].type === 'variable') {
-    const paramValue = formatParameterValue(
-      parameters[0].value,
-      parameters[0].type
-    );
+    const p = parameters[0];
+    const representsEntireFirstArg =
+      p.source === 'first-arg' || (p.source === undefined && p.name === 'arg0');
 
-    if (includeLoggerConfig) {
-      const variableIdExpr =
-        typeof variableId === 'number'
-          ? `(__bubbleFlowSelf?.__computeInvocationVariableId?.(${variableId}) ?? ${variableId})`
-          : 'undefined';
-      const depGraphPart =
-        dependencyGraphExpr !== undefined
-          ? `, dependencyGraph: ${dependencyGraphExpr}`
-          : '';
-      const currentIdPart = `, currentUniqueId: ${currentUniqueIdExpr}`;
-      const invocationKeyPart =
-        ', invocationCallSiteKey: __bubbleFlowSelf?.__getInvocationCallSiteKey?.()';
-      return `${paramValue}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}}`;
+    if (representsEntireFirstArg) {
+      const paramValue = formatParameterValue(p.value, p.type);
+
+      if (includeLoggerConfig) {
+        const variableIdExpr =
+          typeof variableId === 'number'
+            ? `(__bubbleFlowSelf?.__computeInvocationVariableId?.(${variableId}) ?? ${variableId})`
+            : 'undefined';
+        const depGraphPart =
+          dependencyGraphExpr !== undefined
+            ? `, dependencyGraph: ${dependencyGraphExpr}`
+            : '';
+        const currentIdPart = `, currentUniqueId: ${currentUniqueIdExpr}`;
+        const invocationKeyPart =
+          ', invocationCallSiteKey: __bubbleFlowSelf?.__getInvocationCallSiteKey?.()';
+        return `${paramValue}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}, executionMeta: __bubbleFlowSelf?.__executionMeta__}`;
+      }
+
+      return paramValue;
     }
-
-    return paramValue;
+    // Otherwise (object-property source): fall through to the generic builder
+    // below, which correctly re-emits the { name: value } wrapper.
   }
 
   const nonCredentialParams = parameters.filter(
@@ -156,7 +153,7 @@ export function buildParametersObject(
         const currentIdPart = `, currentUniqueId: ${currentUniqueIdExpr}`;
         const invocationKeyPart =
           ', invocationCallSiteKey: __bubbleFlowSelf?.__getInvocationCallSiteKey?.()';
-        return `{...${paramsValue}, credentials: ${credentialsValue}}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}}`;
+        return `{...${paramsValue}, credentials: ${credentialsValue}}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}, executionMeta: __bubbleFlowSelf?.__executionMeta__}`;
       }
 
       return `{...${paramsValue}, credentials: ${credentialsValue}}`;
@@ -199,69 +196,10 @@ export function buildParametersObject(
     const currentIdPart = `, currentUniqueId: ${currentUniqueIdExpr}`;
     const invocationKeyPart =
       ', invocationCallSiteKey: __bubbleFlowSelf?.__getInvocationCallSiteKey?.()';
-    return `${paramsString}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}}`;
+    return `${paramsString}, {logger: __bubbleFlowSelf.logger, variableId: ${variableIdExpr}${depGraphPart}${currentIdPart}${invocationKeyPart}, executionMeta: __bubbleFlowSelf?.__executionMeta__}`;
   }
 
   return paramsString;
-}
-
-/**
- * Format a parameter value based on its type
- */
-export function formatParameterValue(value: unknown, type: string): string {
-  switch (type) {
-    case 'string': {
-      const stringValue = String(value);
-      // If it's a template literal, pass through unchanged
-      if (stringValue.startsWith('`') && stringValue.endsWith('`')) {
-        return stringValue;
-      }
-      // Always properly quote strings, regardless of input format
-      // This ensures consistent quoting that survives condensation
-      const escapedValue = stringValue.replace(/'/g, "\\'");
-      return `'${escapedValue}'`;
-    }
-    case 'number':
-      return String(value);
-    case 'boolean':
-      return String(value);
-    case 'object':
-      // If caller provided a source literal string, keep it as code
-      if (typeof value === 'string') {
-        const trimmed = value.trim();
-        // Preserve source code if it contains function literals
-        if (containsFunctionLiteral(trimmed)) {
-          return value;
-        }
-        if (
-          (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-          trimmed.startsWith('new ')
-        ) {
-          return value;
-        }
-      }
-      return JSON.stringify(value, null, 2);
-    case 'array':
-      if (typeof value === 'string') {
-        const trimmed = value.trim();
-        // Preserve source code if it contains function literals
-        if (containsFunctionLiteral(trimmed)) {
-          return value;
-        }
-        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-          return value;
-        }
-      }
-      return JSON.stringify(value);
-    case 'env':
-      return `process.env.${String(value)}`;
-    case 'variable':
-      return String(value); // Reference to another variable
-    case 'expression':
-      return String(value); // Return expressions unquoted so they can be evaluated
-    default:
-      return JSON.stringify(value);
-  }
 }
 
 /**
@@ -314,134 +252,6 @@ function coerceJsArrayLiteralToJson(input: string): string | null {
 }
 
 /**
- * Strip // line comments and /* block comments *\/ that are outside of string and template literals.
- * This is used before we condense parameters into a single line so inline comments don't swallow code.
- */
-function stripCommentsOutsideStrings(input: string): string {
-  let result = '';
-  let inSingle = false;
-  let inDouble = false;
-  let inTemplate = false;
-  let inLineComment = false;
-  let inBlockComment = false;
-  let escapeNext = false;
-
-  for (let i = 0; i < input.length; i++) {
-    const ch = input[i];
-    const next = i + 1 < input.length ? input[i + 1] : '';
-
-    if (inLineComment) {
-      if (ch === '\n') {
-        inLineComment = false;
-        result += ch;
-      }
-      continue;
-    }
-
-    if (inBlockComment) {
-      if (ch === '*' && next === '/') {
-        inBlockComment = false;
-        i++; // skip '/'
-      }
-      continue;
-    }
-
-    if (inSingle) {
-      if (escapeNext) {
-        result += ch;
-        escapeNext = false;
-        continue;
-      }
-      if (ch === '\\') {
-        result += ch;
-        escapeNext = true;
-        continue;
-      }
-      result += ch;
-      if (ch === "'") inSingle = false;
-      continue;
-    }
-
-    if (inDouble) {
-      if (escapeNext) {
-        result += ch;
-        escapeNext = false;
-        continue;
-      }
-      if (ch === '\\') {
-        result += ch;
-        escapeNext = true;
-        continue;
-      }
-      result += ch;
-      if (ch === '"') inDouble = false;
-      continue;
-    }
-
-    if (inTemplate) {
-      if (escapeNext) {
-        result += ch;
-        escapeNext = false;
-        continue;
-      }
-      if (ch === '\\') {
-        result += ch;
-        escapeNext = true;
-        continue;
-      }
-      result += ch;
-      if (ch === '`') inTemplate = false;
-      continue;
-    }
-
-    // Not in any string/comment
-    if (ch === '/' && next === '/') {
-      inLineComment = true;
-      i++; // skip next '/'
-      continue;
-    }
-    if (ch === '/' && next === '*') {
-      inBlockComment = true;
-      i++; // skip next '*'
-      continue;
-    }
-    if (ch === "'") {
-      inSingle = true;
-      result += ch;
-      continue;
-    }
-    if (ch === '"') {
-      inDouble = true;
-      result += ch;
-      continue;
-    }
-    if (ch === '`') {
-      inTemplate = true;
-      result += ch;
-      continue;
-    }
-
-    result += ch;
-  }
-
-  return result;
-}
-
-/**
- * Condense a parameters string to a single line.
- * Used when parameters don't contain function literals.
- */
-export function condenseToSingleLine(input: string): string {
-  return input
-    .replace(/\s*\n\s*/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/\{\s+/g, '{ ')
-    .replace(/\s+\}/g, ' }')
-    .replace(/\s*,\s*/g, ', ')
-    .trim();
-}
-
-/**
  * Replace lines in an array, handling both single-line and multi-line replacements.
  * Returns the number of lines that were effectively added or removed.
  */
@@ -472,6 +282,34 @@ function replaceLines(
     }
     return -deleteCount;
   }
+}
+
+/**
+ * Extract any trailing characters (comma, semicolon, etc.) that appear after the
+ * bubble instantiation's closing paren/`.action()` on the last line of the bubble.
+ * These must be preserved when the multi-line instantiation is condensed into one line.
+ */
+function getTrailingSuffix(
+  lines: string[],
+  lastLineIndex: number,
+  hasActionCall: boolean
+): string {
+  if (lastLineIndex < 0 || lastLineIndex >= lines.length) return '';
+  const lastLine = lines[lastLineIndex].trimEnd();
+
+  // Find the end of the bubble expression on this line.
+  // If it has .action(), look for content after ".action()"; otherwise after the closing ")".
+  const marker = hasActionCall ? '.action()' : ')';
+  const markerPos = lastLine.lastIndexOf(marker);
+  if (markerPos === -1) return '';
+
+  const afterMarker = lastLine.substring(markerPos + marker.length).trim();
+  // Only preserve simple trailing punctuation (comma, semicolon, closing paren/bracket)
+  // to avoid carrying over unrelated code.
+  if (/^[,;)\]]*$/.test(afterMarker)) {
+    return afterMarker;
+  }
+  return '';
 }
 
 /**
@@ -526,6 +364,15 @@ export function replaceBubbleInstantiation(
     const line = lines[i];
 
     if (line.includes(`new ${className}`)) {
+      // Determine trailing content after the bubble instantiation ends
+      // (e.g., a trailing comma, semicolon, or closing paren on the last line)
+      const lastLineIndex = location.endLine - 1;
+      const trailingSuffix = getTrailingSuffix(
+        lines,
+        lastLineIndex,
+        bubble.hasActionCall
+      );
+
       // Pattern 1: Variable assignment (const foo = new Bubble(...))
       const variableMatch = line.match(
         /^(\s*)(const|let|var)\s+([A-Za-z_$][\w$]*)\s*(?::\s*[^=]+)?=\s*/
@@ -535,7 +382,7 @@ export function replaceBubbleInstantiation(
         const [, indentation, declaration, variableName] = variableMatch;
         const hadAwait = /\bawait\b/.test(line);
         const actionCall = bubble.hasActionCall ? '.action()' : '';
-        const newExpression = `${hadAwait ? 'await ' : ''}${newInstantiationBase}${actionCall}`;
+        const newExpression = `${hadAwait ? 'await ' : ''}${newInstantiationBase}${actionCall}${trailingSuffix}`;
         const replacement = `${indentation}${declaration} ${variableName} = ${newExpression}`;
 
         const linesToDelete = location.endLine - (i + 1);
@@ -549,7 +396,7 @@ export function replaceBubbleInstantiation(
         );
         const hadAwait = /\bawait\b/.test(beforePattern);
         const actionCall = bubble.hasActionCall ? '.action()' : '';
-        const newExpression = `${hadAwait ? 'await ' : ''}${newInstantiationBase}${actionCall}`;
+        const newExpression = `${hadAwait ? 'await ' : ''}${newInstantiationBase}${actionCall}${trailingSuffix}`;
         const beforeClean = beforePattern.replace(/\bawait\s*$/, '');
         const replacement = `${beforeClean}${newExpression}`;
 

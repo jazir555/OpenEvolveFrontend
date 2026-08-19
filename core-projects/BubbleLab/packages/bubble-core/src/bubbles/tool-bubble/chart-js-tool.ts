@@ -1,10 +1,18 @@
 import { z } from 'zod';
-import { ToolBubble } from '../../types/tool-bubble-class.js';
+import {
+  ToolBubble,
+  type LangGraphTool,
+} from '../../types/tool-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import { createCanvas } from '@napi-rs/canvas';
+import { Chart, registerables } from 'chart.js';
+import type { ChartConfiguration } from 'chart.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
+// Register all Chart.js components once at module level
+Chart.register(...registerables);
 
 // Define supported chart types
 const ChartType = z.enum([
@@ -16,6 +24,7 @@ const ChartType = z.enum([
   'scatter',
   'bubble',
   'polarArea',
+  'table',
 ]);
 
 // Define color schemes
@@ -47,6 +56,10 @@ const ChartOptionsSchema = z.object({
     .describe('Maintain aspect ratio'),
   showLegend: z.boolean().default(true).describe('Show chart legend'),
   showTooltips: z.boolean().default(true).describe('Show tooltips on hover'),
+  stacked: z
+    .boolean()
+    .default(false)
+    .describe('Stack datasets on top of each other (for bar/line charts)'),
 });
 
 // Define the parameters schema
@@ -161,6 +174,17 @@ const ChartJSToolResultSchema = z.object({
       generatedAt: z.string(),
     })
     .describe('Metadata about chart generation'),
+  imageBase64: z
+    .string()
+    .optional()
+    .describe('Base64-encoded PNG image of the chart'),
+  tableData: z
+    .object({
+      headers: z.array(z.string()),
+      rows: z.array(z.array(z.string())),
+    })
+    .optional()
+    .describe('Structured table data (when chartType is table)'),
   filePath: z
     .string()
     .optional()
@@ -224,6 +248,39 @@ export class ChartJSTool extends ToolBubble<
     super(params, context);
   }
 
+  /**
+   * Override toolAgent to strip implementation details from the agent-facing schema
+   */
+  static override toolAgent(
+    credentials?: Partial<Record<CredentialType, string>>,
+    config?: Record<string, unknown>,
+    context?: BubbleContext
+  ): LangGraphTool {
+    const tool = super.toolAgent(credentials, config, context);
+
+    // Further strip fields the AI shouldn't see
+    const fieldsToStrip = [
+      'generateFile',
+      'filePath',
+      'fileName',
+      'width',
+      'height',
+      'advancedConfig',
+    ] as const;
+
+    let agentSchema = tool.schema as z.ZodObject<z.ZodRawShape>;
+    for (const field of fieldsToStrip) {
+      if (agentSchema instanceof z.ZodObject && agentSchema.shape?.[field]) {
+        agentSchema = agentSchema.omit({ [field]: true });
+      }
+    }
+
+    return {
+      ...tool,
+      schema: agentSchema,
+    };
+  }
+
   async performAction(context?: BubbleContext): Promise<ChartJSToolResult> {
     void context;
 
@@ -245,6 +302,33 @@ export class ChartJSTool extends ToolBubble<
         options,
         advancedConfig,
       } = this.params;
+
+      // Handle table output type — no chart rendering needed
+      if (chartType === 'table') {
+        const headers = Object.keys(data[0] || {});
+        const rows = data.map((row) =>
+          headers.map((h) => String(row[h] ?? ''))
+        );
+
+        console.log(
+          `✅ [ChartJSTool] Table generated: ${headers.length} columns, ${rows.length} rows`
+        );
+
+        return {
+          chartConfig: {},
+          chartType: 'table',
+          datasetCount: 0,
+          dataPointCount: rows.length,
+          suggestedSize: { width: 800, height: 400 },
+          metadata: {
+            colorScheme: 'default',
+            generatedAt: new Date().toISOString(),
+          },
+          tableData: { headers, rows },
+          success: true,
+          error: '',
+        };
+      }
 
       // Auto-detect columns if not provided
       const detectedColumns = this.detectColumns(data, xColumn, yColumn);
@@ -279,30 +363,45 @@ export class ChartJSTool extends ToolBubble<
       const dataPointCount = this.calculateDataPointCount(chartConfig);
       const suggestedSize = this.getSuggestedSize(chartType, dataPointCount);
 
-      // Generate file if requested
+      // Always render to buffer for base64
+      const parsedParams = ChartJSToolParamsSchema.parse(this.params);
+      const dimensions = {
+        width: parsedParams.width || 800,
+        height: parsedParams.height || 600,
+      };
+
+      let imageBase64: string | undefined;
       let filePath: string | undefined;
       let fileExists: boolean | undefined;
       let fileSize: number | undefined;
 
-      if (this.params.generateFile) {
-        const parsedParams = ChartJSToolParamsSchema.parse(this.params);
-        const dimensions = {
-          width: parsedParams.width,
-          height: parsedParams.height,
-        };
-        const fileResult = await this.generateChartFile(
-          chartConfig,
-          dimensions
+      try {
+        const buffer = await this.renderToBuffer(chartConfig, dimensions);
+        imageBase64 = buffer.toString('base64');
+
+        // Only write to disk when generateFile is true
+        if (this.params.generateFile) {
+          const fileResult = await this.writeChartFile(buffer);
+          filePath = fileResult.filePath;
+          fileExists = fileResult.fileExists;
+          fileSize = fileResult.fileSize;
+        }
+      } catch (renderError) {
+        console.error(
+          `⚠️ [ChartJSTool] Render failed, returning config only:`,
+          renderError
         );
-        filePath = fileResult.filePath;
-        fileExists = fileResult.fileExists;
-        fileSize = fileResult.fileSize;
       }
 
       console.log(`✅ [ChartJSTool] Chart generated successfully:`);
       console.log(`📈 [ChartJSTool] Type: ${chartType}`);
       console.log(`📊 [ChartJSTool] Datasets: ${datasetCount}`);
       console.log(`📍 [ChartJSTool] Data points: ${dataPointCount}`);
+      if (imageBase64) {
+        console.log(
+          `🖼️ [ChartJSTool] Base64 image: ${imageBase64.length} chars`
+        );
+      }
       if (filePath) {
         console.log(
           `💾 [ChartJSTool] File: ${filePath} (${fileSize} bytes, exists: ${fileExists})`
@@ -322,6 +421,7 @@ export class ChartJSTool extends ToolBubble<
           colorScheme: options?.colorScheme || 'default',
           generatedAt: new Date().toISOString(),
         },
+        imageBase64,
         filePath,
         fileExists,
         fileSize,
@@ -452,7 +552,8 @@ export class ChartJSTool extends ToolBubble<
         xColumn,
         yColumn,
         groupByColumn,
-        colors
+        colors,
+        options?.stacked
       );
     } else {
       return this.prepareSingleSeriesData(
@@ -538,7 +639,8 @@ export class ChartJSTool extends ToolBubble<
     xColumn: string | undefined,
     yColumn: string | undefined,
     groupByColumn: string,
-    colors: string[]
+    colors: string[],
+    stacked?: boolean
   ): Record<string, unknown> {
     // Group data by groupByColumn
     const groups = new Map<string, Record<string, unknown>[]>();
@@ -567,7 +669,7 @@ export class ChartJSTool extends ToolBubble<
           backgroundColor: color,
           borderColor: color.replace('0.8', '1'),
           borderWidth: chartType === 'line' ? 2 : 1,
-          fill: chartType === 'line' ? false : true,
+          fill: chartType === 'line' ? (stacked ? true : false) : true,
         };
       }
     );
@@ -604,23 +706,28 @@ export class ChartJSTool extends ToolBubble<
       };
     }
 
-    if (options?.xAxisLabel || options?.yAxisLabel) {
-      chartOptions.scales = {
-        x: {
-          display: true,
-          title: {
-            display: !!options?.xAxisLabel,
-            text: options?.xAxisLabel || '',
-          },
-        },
-        y: {
-          display: true,
-          title: {
-            display: !!options?.yAxisLabel,
-            text: options?.yAxisLabel || '',
-          },
+    if (options?.xAxisLabel || options?.yAxisLabel || options?.stacked) {
+      const xScale: Record<string, unknown> = {
+        display: true,
+        title: {
+          display: !!options?.xAxisLabel,
+          text: options?.xAxisLabel || '',
         },
       };
+      const yScale: Record<string, unknown> = {
+        display: true,
+        title: {
+          display: !!options?.yAxisLabel,
+          text: options?.yAxisLabel || '',
+        },
+      };
+
+      if (options?.stacked) {
+        xScale.stacked = true;
+        yScale.stacked = true;
+      }
+
+      chartOptions.scales = { x: xScale, y: yScale };
     }
 
     return chartOptions;
@@ -716,56 +823,161 @@ export class ChartJSTool extends ToolBubble<
   }
 
   /**
-   * Generate actual chart file using chartjs-node-canvas
+   * Render chart to PNG buffer (no disk I/O)
    */
-  private async generateChartFile(
+  private async renderToBuffer(
     chartConfig: Record<string, unknown>,
     dimensions: { width: number; height: number }
-  ): Promise<{ filePath: string; fileExists: boolean; fileSize: number }> {
+  ): Promise<Buffer> {
     const { width, height } = dimensions;
 
-    // Create chartjs-node-canvas instance
-    const chartJSNodeCanvas = new ChartJSNodeCanvas({
-      width,
-      height,
-      backgroundColour: 'white',
-    });
+    console.log(
+      `🎨 [ChartJSTool] Rendering chart to buffer (${width}x${height})...`
+    );
 
-    try {
-      // Generate the chart buffer
-      console.log(
-        `🎨 [ChartJSTool] Rendering chart to buffer (${width}x${height})...`
-      );
-      const buffer = await chartJSNodeCanvas.renderToBuffer(chartConfig as any);
+    const dpr = 1;
+    const canvas = createCanvas(width * dpr, height * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
 
-      // Determine file path
-      const outputDir = this.params.filePath || '/tmp/charts';
-      const fileName =
-        this.params.fileName ||
-        `chart-${this.params.chartType}-${Date.now()}.png`;
-      const fullPath = path.join(outputDir, fileName);
+    // Scale up default font sizes so text is readable at the larger pixel size
+    const existingOptions = (chartConfig.options ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingPlugins = (existingOptions.plugins ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingTitle = (existingPlugins.title ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingTitleFont = (existingTitle.font ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingLegend = (existingPlugins.legend ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingLegendLabels = (existingLegend.labels ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const existingScales = (existingOptions.scales ?? {}) as Record<
+      string,
+      Record<string, unknown>
+    >;
 
-      // Ensure directory exists
-      await fs.mkdir(outputDir, { recursive: true });
-
-      // Write file
-      await fs.writeFile(fullPath, buffer);
-
-      // Verify file exists and get size
-      const stats = await fs.stat(fullPath);
-
-      console.log(`💾 [ChartJSTool] Chart file generated: ${fullPath}`);
-
-      return {
-        filePath: fullPath,
-        fileExists: true,
-        fileSize: stats.size,
+    // Apply default dark text/grid colors to all scales (axis labels, ticks, gridlines)
+    // Only set defaults — don't override colors the caller explicitly configured.
+    const patchedScales: Record<string, unknown> = {};
+    for (const [axisKey, axisCfg] of Object.entries(existingScales)) {
+      const cfg = (axisCfg ?? {}) as Record<string, unknown>;
+      const ticks = (cfg.ticks ?? {}) as Record<string, unknown>;
+      const grid = (cfg.grid ?? {}) as Record<string, unknown>;
+      const title = (cfg.title ?? {}) as Record<string, unknown>;
+      const titleFont = (title.font ?? {}) as Record<string, unknown>;
+      patchedScales[axisKey] = {
+        ...cfg,
+        ticks: { color: '#374151', ...ticks },
+        grid: { color: 'rgba(0, 0, 0, 0.08)', ...grid },
+        title: {
+          ...title,
+          color: title.color ?? '#374151',
+          font: { size: 14, ...titleFont },
+        },
       };
-    } catch (error) {
-      console.error(`❌ [ChartJSTool] File generation failed:`, error);
-      throw new Error(
-        `Chart file generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
     }
+
+    const chart = new Chart(canvas as unknown as HTMLCanvasElement, {
+      ...(chartConfig as unknown as ChartConfiguration),
+      options: {
+        ...existingOptions,
+        responsive: false,
+        animation: false,
+        color: existingOptions.color ?? '#374151',
+        font: {
+          size: 14,
+          ...((existingOptions.font as Record<string, unknown>) ?? {}),
+        },
+        scales: patchedScales as ChartConfiguration['options'] extends {
+          scales?: infer S;
+        }
+          ? S
+          : never,
+        plugins: {
+          ...existingPlugins,
+          title: {
+            ...existingTitle,
+            color: existingTitle.color ?? '#111827',
+            font: {
+              size: 18,
+              weight: 'bold' as const,
+              ...existingTitleFont,
+            },
+          },
+          legend: {
+            ...existingLegend,
+            labels: {
+              color: '#374151',
+              ...existingLegendLabels,
+              font: {
+                size: 13,
+                ...((existingLegendLabels.font as Record<string, unknown>) ??
+                  {}),
+              },
+            },
+          },
+        },
+      },
+      // Chart.js plugin to paint a white background. Chart.draw() calls clearRect()
+      // which wipes any pre-fill, leaving transparent pixels that become black in JPEG.
+      // This plugin runs after the clear but before chart elements are drawn.
+      plugins: [
+        {
+          id: 'white-background',
+          beforeDraw: (chartInstance: Chart) => {
+            const { ctx: c, width: w, height: h } = chartInstance;
+            c.save();
+            c.fillStyle = '#ffffff';
+            c.fillRect(0, 0, w, h);
+            c.restore();
+          },
+        },
+      ],
+    });
+    chart.draw();
+
+    const jpegBuffer = await canvas.encode('jpeg', 95);
+    chart.destroy();
+
+    return Buffer.from(jpegBuffer);
+  }
+
+  /**
+   * Write a chart buffer to disk (opt-in via generateFile)
+   */
+  private async writeChartFile(
+    buffer: Buffer
+  ): Promise<{ filePath: string; fileExists: boolean; fileSize: number }> {
+    const outputDir = this.params.filePath || '/tmp/charts';
+    const fileName =
+      this.params.fileName ||
+      `chart-${this.params.chartType}-${Date.now()}.png`;
+    const fullPath = path.join(outputDir, fileName);
+
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(fullPath, buffer);
+    const stats = await fs.stat(fullPath);
+
+    console.log(`💾 [ChartJSTool] Chart file generated: ${fullPath}`);
+
+    return {
+      filePath: fullPath,
+      fileExists: true,
+      fileSize: stats.size,
+    };
   }
 }

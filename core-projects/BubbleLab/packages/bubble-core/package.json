@@ -1,6 +1,6 @@
 {
   "name": "@bubblelab/bubble-core",
-  "version": "0.1.11",
+  "version": "0.1.324",
   "type": "module",
   "license": "Apache-2.0",
   "main": "./dist/index.js",
@@ -8,6 +8,7 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "scripts",
     "LICENSE.txt"
   ],
   "repository": {
@@ -54,6 +55,7 @@
     "@sendgrid/mail": "^8.1.5",
     "@types/pg": "^8.15.4",
     "@typescript-eslint/typescript-estree": "8.46.0",
+    "@napi-rs/canvas": "^0.1.68",
     "chart.js": "^4.5.0",
     "chartjs-node-canvas": "^5.0.0",
     "mathjs": "^14.7.0",
@@ -69,6 +71,7 @@
     "@vitest/ui": "^3.2.4",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod-to-json-schema": "^3.24.6"
   }
 }

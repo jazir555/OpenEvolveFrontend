@@ -1,0 +1,399 @@
+import type { BubbleContext } from '../../types/bubble.js';
+import {
+  RECOMMENDED_MODELS,
+  getCanonicalCredentialType,
+  getSiblingCredentialTypes,
+  type CredentialType,
+  type CredentialPoolEntry,
+} from '@bubblelab/shared-schemas';
+import {
+  getCapability,
+  type CapabilityRuntimeContext,
+} from '../../capabilities/index.js';
+import type { AIAgentParamsParsed, AIAgentResult } from './ai-agent.js';
+
+type ResolveCapabilityCredentials = (
+  capDef: {
+    metadata: {
+      requiredCredentials: CredentialType[];
+      optionalCredentials?: CredentialType[];
+    };
+  },
+  capConfig: { credentials?: Record<string, string> }
+) => Partial<Record<CredentialType, string>>;
+
+export async function applyCapabilityPreprocessing(
+  params: AIAgentParamsParsed,
+  bubbleContext: BubbleContext | undefined,
+  resolveCapabilityCredentials: ResolveCapabilityCredentials,
+  credentialPool?: Partial<Record<CredentialType, CredentialPoolEntry[]>>
+): Promise<AIAgentParamsParsed> {
+  const caps = params.capabilities ?? [];
+
+  // Build metadata-only pool (no secrets) for capabilities that need to
+  // disambiguate between multiple credentials of the same type.
+  const credentialPoolMeta = credentialPool
+    ? (Object.fromEntries(
+        Object.entries(credentialPool).map(([type, entries]) => [
+          type,
+          entries.map((e) => ({ id: e.id, name: e.name })),
+        ])
+      ) as Partial<Record<CredentialType, Array<{ id: number; name: string }>>>)
+    : undefined;
+
+  const isSubAgent = params.name?.startsWith('Capability Agent: ');
+
+  if (isSubAgent) {
+    // Sub-agent (spawned by use-capability): check inheritParentModel first.
+    // If any capability opts in and the parent supplied a model via
+    // executionMeta._pearlChatModelOverride, use that instead of the Gemini
+    // Flash default + capability's modelConfigOverride.{model,reasoningEffort}.
+    const execMeta = bubbleContext?.executionMeta as
+      | Record<string, unknown>
+      | undefined;
+    const parentModel = execMeta?._pearlChatModelOverride as string | undefined;
+    const parentReasoning = execMeta?._pearlReasoningEffort as
+      | 'low'
+      | 'medium'
+      | 'high'
+      | undefined;
+    const inheritFromParent = caps.some(
+      (c) => getCapability(c.id)?.metadata.inheritParentModel === true
+    );
+
+    if (inheritFromParent && parentModel) {
+      params.model.model = parentModel as typeof params.model.model;
+      params.model.reasoningEffort = parentReasoning;
+    } else {
+      // Default sub-agent model: Gemini 3 Flash + low thinking.
+      params.model.model =
+        RECOMMENDED_MODELS.GOOGLE_FLAGSHIP as typeof params.model.model;
+      params.model.reasoningEffort = 'low';
+    }
+
+    // Apply capability modelConfigOverride on top.
+    // When inheriting parent model, skip model/reasoningEffort fields so the
+    // parent's choice wins; still apply maxTokens/maxIterations.
+    for (const capConfig of caps) {
+      const capDef = getCapability(capConfig.id);
+      const override = capDef?.metadata.modelConfigOverride;
+      if (!override) continue;
+      const skipModelFields =
+        capDef?.metadata.inheritParentModel === true && !!parentModel;
+      if (override.model && !skipModelFields)
+        params.model.model = override.model as typeof params.model.model;
+      if (override.reasoningEffort !== undefined && !skipModelFields)
+        params.model.reasoningEffort =
+          override.reasoningEffort === 'none'
+            ? undefined
+            : override.reasoningEffort;
+      if (override.maxTokens)
+        params.model.maxTokens = Math.max(
+          params.model.maxTokens ?? 0,
+          override.maxTokens
+        );
+      if (override.maxIterations) params.maxIterations = override.maxIterations;
+    }
+  } else if (caps.length > 1) {
+    // Multi-capability master. Gated on the positive _isFlowMaster marker so
+    // only top-level flow master agents (Pearl chat / Slack-bot flows) drive
+    // the model override — internal utility agents spawned inside the same
+    // execution keep their configured model.
+    const meta = bubbleContext?.executionMeta as
+      | Record<string, unknown>
+      | undefined;
+    const isFlowMaster = meta?._isFlowMaster === true;
+    if (isFlowMaster) {
+      const overrideModel = meta?._pearlChatModelOverride as string | undefined;
+      const overrideReasoning = meta?._pearlReasoningEffort as
+        | 'low'
+        | 'medium'
+        | 'high'
+        | undefined;
+      const effort = meta?._pearlEffort;
+
+      if (overrideModel) {
+        params.model.model = overrideModel as typeof params.model.model;
+        params.model.reasoningEffort = overrideReasoning ?? 'medium';
+      } else if (effort === 'thorough') {
+        params.model.model = RECOMMENDED_MODELS.CHAT
+          .THOROUGH as typeof params.model.model;
+        params.model.reasoningEffort = 'high';
+      } else {
+        params.model.model = RECOMMENDED_MODELS.CHAT
+          .FAST as typeof params.model.model;
+        params.model.reasoningEffort = 'medium';
+      }
+    }
+  }
+  // Single-capability master: preserve user's configured model — no override.
+
+  // Inject capability system prompts
+  if (caps.length >= 1 && !isSubAgent) {
+    // Master agent delegation: summaries with tool names + delegation hints — sub-agents get full prompts
+    const summaries = (
+      await Promise.all(
+        caps.map(async (c, idx) => {
+          const def = getCapability(c.id);
+          if (!def) return null;
+          let summary = `${idx + 1}. "${def.metadata.name}" (id: ${c.id})\n   Purpose: ${def.metadata.description}`;
+
+          // Resolve async delegation hint (mirrors systemPrompt pattern)
+          let hint: string | undefined;
+          if (def.createDelegationHint) {
+            try {
+              const ctx: CapabilityRuntimeContext = {
+                credentials: resolveCapabilityCredentials(def, c),
+                credentialPoolMeta,
+                inputs: c.inputs ?? {},
+                bubbleContext,
+              };
+              hint = await def.createDelegationHint(ctx);
+            } catch {
+              // Fall through to static metadata hint
+            }
+          }
+          hint ??= def.metadata.delegationHint;
+          if (hint) summary += `\n   When to use: ${hint}`;
+
+          // Show credential status for each credential type the capability uses
+          const resolvedCreds = resolveCapabilityCredentials(def, c);
+          const allCredTypes = [
+            ...def.metadata.requiredCredentials,
+            ...(def.metadata.optionalCredentials ?? []),
+          ];
+          if (allCredTypes.length > 0) {
+            const declaredSet = new Set<CredentialType>(allCredTypes);
+            const credLines: string[] = [];
+            for (const credType of allCredTypes) {
+              const isSet = !!resolvedCreds[credType];
+              const pool = credentialPool?.[credType];
+
+              if (!isSet) {
+                // Sibling-aware suppression: when this cap declared a paired
+                // sibling type (e.g. AIRTABLE_OAUTH + AIRTABLE_CRED) and the
+                // other one is set, omit this redundant "✗ NOT SET" row.
+                // When neither sibling is set, emit only the canonical row
+                // so the master sees one entry instead of two.
+                const otherSiblings = getSiblingCredentialTypes(
+                  credType
+                ).filter((s) => s !== credType && declaredSet.has(s));
+                if (otherSiblings.length > 0) {
+                  if (otherSiblings.some((s) => !!resolvedCreds[s])) continue;
+                  const canonical = getCanonicalCredentialType(credType);
+                  if (credType !== canonical && declaredSet.has(canonical))
+                    continue;
+                }
+                credLines.push(
+                  `${credType}: ✗ NOT SET — use initiate-credential-creation to connect`
+                );
+                continue;
+              }
+
+              const formatEntry = (
+                e: CredentialPoolEntry,
+                maxNameLen: number
+              ): string => {
+                const safeName = e.name
+                  .replace(/[\n\r]/g, ' ')
+                  .slice(0, maxNameLen);
+                const defaultTag = e.isDefault ? ' (default)' : '';
+                const attrPairs = e.attributes
+                  ? Object.entries(e.attributes)
+                      .map(([k, v]) => `${k}=${v}`)
+                      .join(', ')
+                  : '';
+                const attrTag = attrPairs ? ` [${attrPairs}]` : '';
+                return `"${safeName}"${defaultTag}${attrTag}`;
+              };
+
+              if (pool && pool.length > 1) {
+                // Multiple accounts available — list them
+                const names = pool.map((e) => formatEntry(e, 100)).join(', ');
+                credLines.push(
+                  `${credType}: ✓ SET (${pool.length} accounts: ${names})`
+                );
+              } else {
+                const entry = pool?.[0];
+                credLines.push(
+                  `${credType}: ✓ SET${entry ? ` (${formatEntry(entry, 80)})` : ''}`
+                );
+              }
+            }
+            summary += `\n   Credentials: ${credLines.join(', ')}`;
+          }
+
+          // Include user-configured context (workspace-specific instructions)
+          if (c.context) {
+            summary += `\n   User context: ${c.context}`;
+          }
+
+          return summary;
+        })
+      )
+    ).filter((summary): summary is string => Boolean(summary));
+
+    const capHeader =
+      caps.length === 1
+        ? "A specialized capability is available. You MUST delegate to it using the 'use-capability' tool."
+        : "Multiple specialized capabilities are available. You MUST delegate to them using the 'use-capability' tool.";
+
+    // Pearl flows inject get_capabilities / manage_capability via executionMeta.
+    // Only include rules referencing those tools when they actually exist.
+    const hasManagementTools = !!(
+      bubbleContext?.executionMeta as Record<string, unknown> | undefined
+    )?.capabilityTools;
+
+    const managementRules = hasManagementTools
+      ? `\n- If a user requests a task that none of your active capabilities handle, you MUST call get_capabilities (with no id) to check for unattached capabilities before responding. NEVER tell the user you can't do something without checking first.` +
+        `\n- CAPABILITY QUESTIONS: When a user asks whether a capability supports a specific feature, what tools are available, or what parameters a tool accepts, you MUST call get_capabilities with the capability id before answering. Tool names alone do not describe what tools can do — you need the full signatures. NEVER answer capability questions from memory alone. NEVER claim a capability cannot do something without checking first.`
+      : '';
+
+    params.systemPrompt += `\n\n---\nSYSTEM CAPABILITY EXTENSIONS:\n${capHeader}\n\nAvailable Capabilities:\n${summaries.join('\n\n')}\n\nDELEGATION RULES:\n- Use 'use-capability' tool to delegate tasks to the appropriate capability\n- Do NOT attempt to handle capability tasks yourself\n- Include full context when delegating, including all known user details and preferences from context (especially timezone)\n- Can chain multiple capabilities if needed\n- Only respond directly for: greetings, clarifications, or general knowledge questions${managementRules}\n- IMPORTANT: The user CANNOT see tool results from delegate agents. You MUST re-present all information, data, tables, and results returned by delegates in your own response. Never say "as shown above" or assume the user saw the delegate's output.\n- PRESERVE ALL LINKS: When a delegate returns URLs or clickable links (e.g., HubSpot record links, Jira ticket links, document URLs), you MUST include them in your response. Never drop links when reformatting tables — links are critical for the user to navigate to the source. If a table has too many rows to include all links, include links for at least the top/highlighted records.\n- When a delegate returns image or photo URLs, include them directly in your response on their own line as a bare URL (no markdown formatting). The chat client will automatically render the image inline from the URL. NEVER call read_image on URLs returned by delegates.\n- Before asking the user for information you don't have, check if any connected capability could help you find or look up that information first. Prefer proactive discovery over asking.\n- MULTIPLE ACCOUNTS: Each delegate can only access ONE credential at a time. When a capability has multiple accounts, make SEPARATE use-capability calls — one per account, each with the account name in the 'credentials' field. NEVER ask a single delegate to "check all accounts" — it cannot switch credentials and will silently return results from only one account.\n- CREDENTIAL FALLBACK: When a delegate reports a credential/scope/token problem (phrases like "MISSING_USER_TOKEN", "missing scope", "credential lacks", "insufficient permissions", or any signal that the failure is specific to the credential rather than the request itself) AND the capability has multiple accounts, retry the same request with each remaining account (each in a fresh use-capability call with the alternate account name in 'credentials') BEFORE telling the user to reconnect or fix the integration. Only after every account has been tried should you surface a reconnect/setup ask to the user.\n---\n\nYour role is to understand the user's request and delegate to the appropriate capability or respond directly when appropriate.`;
+  } else if (isSubAgent) {
+    // Sub-agent: eager-load capability system prompt directly
+    for (const capConfig of caps) {
+      const capDef = getCapability(capConfig.id);
+      if (!capDef) continue;
+
+      const ctx: CapabilityRuntimeContext = {
+        credentials: resolveCapabilityCredentials(capDef, capConfig),
+        credentialPoolMeta,
+        inputs: capConfig.inputs ?? {},
+        bubbleContext,
+        context: capConfig.context,
+      };
+
+      const addition =
+        (await capDef.createSystemPrompt?.(ctx)) ??
+        capDef.metadata.systemPromptAddition;
+
+      if (addition || capConfig.context) {
+        let capPrompt = `${params.systemPrompt}\n\n---\nSYSTEM CAPABILITY EXTENSION:\nThe following capability has been added to enhance your functionality:\n\n[${capDef.metadata.name}]`;
+        if (addition) {
+          capPrompt += `\n${addition}`;
+        }
+        if (capConfig.context) {
+          capPrompt += `\n\n**Workspace Context:**\n${capConfig.context}`;
+        }
+        capPrompt += `\n---\n\nYour primary objective is to fulfill the user's request using both your base capabilities and the extended capability above.\nAlways use the user's timezone for all time-related operations. If the user's timezone is known from context (conversation history, user profile), apply it consistently. If unknown, ask before making time-sensitive decisions.`;
+        params.systemPrompt = capPrompt;
+      }
+    }
+  }
+
+  return params;
+}
+
+export async function applyCapabilityPostprocessing(
+  result: AIAgentResult,
+  params: AIAgentParamsParsed,
+  bubbleContext: BubbleContext | undefined,
+  resolveCapabilityCredentials: ResolveCapabilityCredentials
+): Promise<AIAgentResult> {
+  let updated = result;
+  updated = await applyCapabilityResponseAppend(
+    updated,
+    params,
+    bubbleContext,
+    resolveCapabilityCredentials
+  );
+  updated = applyConversationHistoryNotice(updated, params, bubbleContext);
+  return updated;
+}
+
+async function applyCapabilityResponseAppend(
+  result: AIAgentResult,
+  params: AIAgentParamsParsed,
+  bubbleContext: BubbleContext | undefined,
+  resolveCapabilityCredentials: ResolveCapabilityCredentials
+): Promise<AIAgentResult> {
+  const caps = params.capabilities ?? [];
+  const isMasterWithCaps =
+    caps.length >= 1 && !params.name?.startsWith('Capability Agent: ');
+  // Master agent delegates — sub-agents handle their own responseAppend
+  if (isMasterWithCaps) return result;
+
+  const appendParts: string[] = [];
+  for (const capConfig of caps) {
+    const capDef = getCapability(capConfig.id);
+    if (!capDef?.createResponseAppend) continue;
+
+    const ctx: CapabilityRuntimeContext = {
+      credentials: resolveCapabilityCredentials(capDef, capConfig),
+      inputs: capConfig.inputs ?? {},
+      bubbleContext,
+    };
+
+    const text = await capDef.createResponseAppend(ctx);
+    if (text) appendParts.push(text);
+  }
+
+  if (appendParts.length > 0) {
+    return {
+      ...result,
+      response: `${result.response}\n\n${appendParts.join('\n\n')}`,
+    };
+  }
+  return result;
+}
+
+/**
+ * Detects conversation history that wasn't properly enhanced (e.g. Slack thread
+ * history fell back to raw user IDs instead of display names due to rate limits).
+ * Pattern: first user message starts with a Slack user ID like "U0831C0BXEX:"
+ */
+function hasUnenhancedConversationHistory(
+  history: AIAgentParamsParsed['conversationHistory']
+): boolean {
+  if (!history || history.length === 0) return false;
+  const firstUserMsg = history.find((m) => m.role === 'user');
+  if (!firstUserMsg) return false;
+  const name = firstUserMsg.content.split(':')[0]?.trim();
+  if (!name) return false;
+  return /^U[A-Z0-9]{8,12}$/.test(name);
+}
+
+function applyConversationHistoryNotice(
+  result: AIAgentResult,
+  params: AIAgentParamsParsed,
+  bubbleContext: BubbleContext | undefined
+): AIAgentResult {
+  // Only relevant for Slack bot flows
+  if (!bubbleContext?.executionMeta?._isSlackBot) {
+    return result;
+  }
+  const caps = params.capabilities ?? [];
+  // Show for any capability-enabled main agent, not delegated sub-agents
+  if (caps.length === 0 || params.name?.startsWith('Capability Agent: ')) {
+    return result;
+  }
+
+  const hasHistory =
+    params.conversationHistory && params.conversationHistory.length > 0;
+
+  let notice: string | null = null;
+
+  if (
+    hasHistory &&
+    hasUnenhancedConversationHistory(params.conversationHistory)
+  ) {
+    notice =
+      '---\n⚠️ **Conversation History Temporarily Unavailable**\n\n' +
+      "I couldn't remember your past conversation at the moment due to a rate limit. " +
+      'Please contact the Bubble Lab team if this issue persists.';
+  } else if (!hasHistory) {
+    notice =
+      '---\n💡 **Conversation History Not Available**\n\n' +
+      "I don't have access to our previous conversation at the moment, so I might ask you to repeat some information. " +
+      'This may be due to a temporary issue with Slack. Please try again in a few minutes.';
+  }
+
+  if (!notice) return result;
+
+  const separator = result.response?.trim().length ? '\n\n' : '';
+  return {
+    ...result,
+    response: `${result.response}${separator}${notice}`,
+  };
+}

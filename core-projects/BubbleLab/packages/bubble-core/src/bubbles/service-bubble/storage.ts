@@ -106,7 +106,11 @@ const StorageParamsSchema = z.discriminatedUnion('operation', [
 
   // Update file operation
   z.object({
-    operation: z.literal('updateFile').describe('Update/replace file content'),
+    operation: z
+      .literal('updateFile')
+      .describe(
+        'Upload or replace file content. Returns a presigned fileUrl for the uploaded file (default 7-day expiry).'
+      ),
     bucketName: z
       .string()
       .min(1, 'Bucket name is required')
@@ -124,6 +128,13 @@ const StorageParamsSchema = z.discriminatedUnion('operation', [
       .optional()
       .default('auto')
       .describe('AWS region for R2 storage (defaults to auto)'),
+    expirationMinutes: z
+      .number()
+      .optional()
+      .default(10080)
+      .describe(
+        'Presigned fileUrl expiration in minutes (default 10080 = 7 days, max 7 days for R2)'
+      ),
     contentType: z.string().optional().describe('Content type for uploads'),
     fileContent: z
       .string()
@@ -227,7 +238,13 @@ const StorageResultSchema = z.discriminatedUnion('operation', [
       .string()
       .optional()
       .describe(
-        'Secure filename for the updated file (different from the original filename)'
+        'Secure filename for the updated file (different from the original filename). Use this key with getFile to generate new download URLs.'
+      ),
+    fileUrl: z
+      .string()
+      .optional()
+      .describe(
+        'Presigned download URL for the uploaded file. Expires after expirationMinutes (default 7 days). Do NOT construct URLs manually — always use this field.'
       ),
     updated: z
       .boolean()
@@ -307,9 +324,10 @@ export class StorageBubble<
       bucketName: 'my-bucket',
       fileName: 'example.txt',
     } as T,
-    context?: BubbleContext
+    context?: BubbleContext,
+    instanceId?: string
   ) {
-    super(params, context);
+    super(params, context, instanceId);
   }
 
   protected chooseCredential(): string | undefined {
@@ -553,12 +571,14 @@ export class StorageBubble<
       fileName: params.fileName,
       contentType: params.contentType,
     });
-    // Generate secure filename with timestamp and optional userId for isolation
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    // Generate secure filename with short random prefix (16 hex chars = 64-bit entropy)
+    const randomPrefix = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
     const fileExtension = params.fileName.split('.').pop() || 'bin';
     const baseName = params.fileName.replace(/\.[^/.]+$/, ''); // Remove extension
     const sanitizedBaseName = baseName.replace(/[^a-zA-Z0-9-_]/g, '_');
-    const secureFileName = `${timestamp}-${crypto.randomUUID()}-${sanitizedBaseName}.${fileExtension}`;
+    const secureFileName = `${randomPrefix}-${sanitizedBaseName}.${fileExtension}`;
 
     // Handle base64 encoded content
     let bodyContent: Buffer | string;
@@ -585,10 +605,21 @@ export class StorageBubble<
 
     await this.s3Client.send(command);
 
+    // Generate a presigned download URL for the uploaded file
+    const getCommand = new GetObjectCommand({
+      Bucket: params.bucketName,
+      Key: secureFileName,
+    });
+    const expirationSeconds = (params.expirationMinutes ?? 10080) * 60; // default 7 days
+    const fileUrl = await getSignedUrl(this.s3Client, getCommand, {
+      expiresIn: expirationSeconds,
+    });
+
     return {
       operation: 'updateFile',
       success: true,
       fileName: secureFileName,
+      fileUrl,
       updated: true,
       contentType: params.contentType,
       error: '',

@@ -81,6 +81,14 @@ export const PRICING_TABLE: PricingTable = {
   },
   [getPricingKey(
     CredentialType.APIFY_CRED,
+    'apimaestro/linkedin-profile-detail',
+    'per_result'
+  )]: {
+    unit: 'per_result',
+    unitCost: 0.00525, // $0.00525 per result ($5 for 1000 results with 1.05x markup)
+  },
+  [getPricingKey(
+    CredentialType.APIFY_CRED,
     'apify/instagram-scraper',
     'per_result'
   )]: {
@@ -158,6 +166,14 @@ export const PRICING_TABLE: PricingTable = {
   )]: {
     unit: 'per_result',
     unitCost: 0.00525, // $0.00525 per result ($5 for 1000 results with 1.05x markup)
+  },
+  [getPricingKey(
+    CredentialType.APIFY_CRED,
+    'michael.g/y-combinator-scraper',
+    'per_result'
+  )]: {
+    unit: 'per_result',
+    unitCost: 0.0105, // $0.0105 per result ($10.00 for 1000 results with 1.05x markup)
   },
 
   // AI Services - Google Gemini with subServices and Input/Output tokens
@@ -503,6 +519,54 @@ export const PRICING_TABLE: PricingTable = {
   )]: {
     unit: 'output_tokens',
     unitCost: (12.0 * 1.05) / 1_000_000, // $12.00 per 1M tokens * 1.05 markup = $12.60 per 1M tokens (for prompts ≤200K tokens, includes thinking tokens)
+  },
+
+  // Crustdata Services - Company Enrichment and People Search
+  [getPricingKey(CredentialType.CRUSTDATA_API_KEY, 'identify', 'per_result')]: {
+    unit: 'per_result',
+    unitCost: 0.01 * 1.05, // $0.01 per company identification with 1.05x markup
+  },
+  [getPricingKey(CredentialType.CRUSTDATA_API_KEY, 'enrich', 'per_company')]: {
+    unit: 'per_company',
+    unitCost: 0.1 * 1.05, // $0.10 per company enrichment with 1.05x markup
+  },
+  [getPricingKey(
+    CredentialType.CRUSTDATA_API_KEY,
+    'person_search_db',
+    'per_result'
+  )]: {
+    unit: 'per_result',
+    unitCost: 0.03 * 1.05, // $0.03 per result with 1.05x markup (3 credits per 100 results)
+  },
+
+  // BrowserBase Services - Browser Session Duration
+  // Note: Using AMAZON_CRED as service type with subService 'browserbase' as workaround
+  // TODO: Consider adding BROWSERBASE_CRED as a new CredentialType for proper tracking
+  // Pricing based on BrowserBase Developer plan: $0.12/browser hour = $0.002/minute
+  // With 1.05x markup: $0.0021 per minute
+  [getPricingKey(CredentialType.AMAZON_CRED, 'browserbase', 'per_minute')]: {
+    unit: 'per_minute',
+    unitCost: 0.0021, // $0.002 per minute (BrowserBase Developer plan rate) with 1.05x markup
+  },
+
+  // OpenRouter Deep Research Models - Direct cost passthrough with markup
+  // These models return total cost directly (includes tokens + web search)
+  // We apply 1.05x markup to the total cost
+  [getPricingKey(
+    CredentialType.OPENROUTER_CRED,
+    'openrouter/openai/o3-deep-research',
+    'total_cost_usd'
+  )]: {
+    unit: 'total_cost_usd',
+    unitCost: 1.05, // 1.05x markup on the total cost from OpenRouter
+  },
+  [getPricingKey(
+    CredentialType.OPENROUTER_CRED,
+    'openrouter/openai/o4-mini-deep-research',
+    'total_cost_usd'
+  )]: {
+    unit: 'total_cost_usd',
+    unitCost: 1.05, // 1.05x markup on the total cost from OpenRouter
   },
 
   // Legacy entries for services without subService (fallback pricing)

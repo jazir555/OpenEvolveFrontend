@@ -14,6 +14,7 @@ import {
   BubbleExecutionError,
 } from './bubble-errors.js';
 import { sanitizeParams } from '@bubblelab/shared-schemas';
+import { formatSchemaExpectedVsActual } from '../utils/schema-comparison.js';
 
 /**
  * Abstract base class for all bubble types
@@ -73,15 +74,6 @@ export abstract class BaseBubble<
       ) {
         const next = this.computeChildContext(normalizedContext);
         this.context = next;
-        console.debug(
-          '[BaseBubble] Computed child context unique id:',
-          this.context?.currentUniqueId
-        );
-        //Prnt the var id of the computed child context
-        console.debug(
-          '[BaseBubble] Computed child context variable id:',
-          this.context?.variableId
-        );
       } else {
         this.context = normalizedContext;
       }
@@ -124,9 +116,6 @@ export abstract class BaseBubble<
       return null;
     };
 
-    console.log('Current ID:', this.name);
-    console.log('Current varid:', this.context?.variableId);
-    console.log('Finding parent node by uniqueId:', currentId);
     const parentNode = currentId ? findByUniqueId(graph, currentId) : graph;
 
     // If the current bubble matches the node at currentUniqueId, don't advance; keep IDs from that node
@@ -169,18 +158,10 @@ export abstract class BaseBubble<
     let matchingChild = children.find(
       (c) => c.variableName === this.instanceId
     );
-    console.log(
-      `[BaseBubble] ${this.name}.computeChildContext: Matching child by variableName:`,
-      matchingChild
-    );
     // if no match is found fallback to || c.uniqueId === childUniqueId || c.name === this.name
     if (!matchingChild) {
       matchingChild = children.find(
         (c) => c.uniqueId === childUniqueId || c.name === this.name
-      );
-      console.log(
-        `[BaseBubble] ${this.name}.computeChildContext: Matching child by uniqueId:`,
-        matchingChild
       );
     }
     const childVariableId =
@@ -220,10 +201,24 @@ export abstract class BaseBubble<
   }
 
   /**
+   * Hook called before action execution. Subclasses can override to
+   * transform params (e.g., inject memory, conversation history).
+   * Runs BEFORE parameter logging so the logged params reflect overrides.
+   */
+  protected async beforeAction(): Promise<void> {
+    // No-op by default — subclasses override as needed
+  }
+
+  /**
    * Execute the bubble - just runs the action
    */
   async action(): Promise<BubbleResult<TResult>> {
     const logger = this.context?.logger;
+
+    // Run pre-action hook (e.g., AI agent injects memory/conversation)
+    await this.beforeAction();
+
+    // Log params AFTER beforeAction so overrides are captured
     logger?.logBubbleExecution(
       this.context?.variableId ?? -999,
       this.name,
@@ -311,6 +306,27 @@ export abstract class BaseBubble<
           validationError instanceof z.ZodError
             ? `Result schema validation failed: ${validationError.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
             : `Result validation failed: ${validationError instanceof Error ? validationError.message : 'Unknown validation error'}`;
+
+        // Generate schema comparison for detailed debugging
+        const diffReport = formatSchemaExpectedVsActual(
+          this.resultSchema,
+          result
+        );
+        const detailedError = `${errorMessage}\n\n${diffReport}`;
+
+        // Log the validation error before throwing
+        logger?.logBubbleExecutionComplete(
+          this.context?.variableId ?? -999,
+          this.name,
+          this.name,
+          {
+            success: false,
+            error: detailedError,
+            executionId: randomUUID(),
+            timestamp: new Date(),
+          }
+        );
+        logger?.error(`[${this.name}] ${detailedError}`);
 
         throw new BubbleValidationError(errorMessage, {
           variableId: this.context?.variableId,

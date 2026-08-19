@@ -180,9 +180,17 @@ export const ExecutionSummarySchema = z
 
 export type ExecutionSummary = z.infer<typeof ExecutionSummarySchema>;
 
+// Max length for user-assigned execution labels. Shared between the PATCH
+// request schema, the DB-agnostic response schema, and the frontend input
+// maxLength attribute so the three sides can't drift apart.
+export const MAX_EXECUTION_NAME_LENGTH = 120;
+
 // BubbleFlow execution history item schema
 export const bubbleFlowExecutionSchema = z.object({
   id: z.number().openapi({ description: 'Execution ID' }),
+  name: z.string().nullable().optional().openapi({
+    description: 'User-assigned label for this execution (checkpoint name)',
+  }),
   status: z
     .enum(['running', 'success', 'error'])
     .openapi({ description: 'Execution status' }),
@@ -194,28 +202,57 @@ export const bubbleFlowExecutionSchema = z.object({
     .string()
     .optional()
     .openapi({ description: 'Error message if failed' }),
+  source: z.string().optional().openapi({
+    description:
+      'Which surface triggered this execution (mcp, manual, web-pearl, slack-pearl, cron, resume, webhook).',
+  }),
+  originExecutionId: z.number().optional().openapi({
+    description:
+      'For resumes: the ID of the execution that originally requested the approval.',
+  }),
   startedAt: z.string().openapi({ description: 'Execution start timestamp' }),
   webhook_url: z.string().openapi({ description: 'Webhook URL' }),
   completedAt: z
     .string()
     .optional()
     .openapi({ description: 'Execution completion timestamp' }),
-  code: z
-    .string()
-    .optional()
-    .openapi({
-      description:
-        'The code that was executed (snapshot of the code at execution time)',
-    }),
+  code: z.string().optional().openapi({
+    description:
+      'The code that was executed (snapshot of the code at execution time)',
+  }),
+  totalCost: z.number().optional().openapi({
+    description: 'Total cost of the execution in credits',
+  }),
 });
 
 // GET /bubble-flow/:id/executions - List BubbleFlow executions response
 export const listBubbleFlowExecutionsResponseSchema = z
-  .array(bubbleFlowExecutionSchema)
+  .object({
+    items: z.array(bubbleFlowExecutionSchema).openapi({
+      description: 'Array of execution records for the current page',
+    }),
+    total: z.number().openapi({
+      description: 'Total number of executions for this flow',
+      example: 42,
+    }),
+  })
   .openapi('ListBubbleFlowExecutionsResponse');
 
 export type ListBubbleFlowExecutionsResponse = z.infer<
   typeof listBubbleFlowExecutionsResponseSchema
+>;
+
+// GET /bubble-flow/:id/executions/:executionId - Single execution with logs
+export const bubbleFlowExecutionDetailSchema = bubbleFlowExecutionSchema.extend(
+  {
+    executionLogs: z.array(z.any()).optional().openapi({
+      description: 'Array of streaming log events from the execution',
+    }),
+  }
+);
+
+export type BubbleFlowExecutionDetail = z.infer<
+  typeof bubbleFlowExecutionDetailSchema
 >;
 
 export const executeBubbleFlowResponseSchema = z
@@ -281,17 +318,21 @@ export const validateBubbleFlowCodeSchema = z.object({
     example: 123,
   }),
   credentials: z
-    .record(z.string(), z.record(z.string(), z.number()))
+    .record(
+      z.string(),
+      z.record(z.string(), z.union([z.number(), z.array(z.number())]))
+    )
     .optional()
     .openapi({
       description:
-        'Optional credentials mapping: bubble name -> credential type -> credential ID',
+        'Optional credentials mapping: bubble name -> credential type -> credential ID or array of IDs',
       example: {
         'slack-sender': {
           SLACK_CRED: 123,
         },
         'ai-agent': {
           OPENAI_CRED: 456,
+          CONFLUENCE_CRED: [789, 790],
         },
       },
     }),
@@ -347,6 +388,13 @@ export const validateBubbleFlowCodeResponseSchema = z.object({
     .optional()
     .openapi({
       description: 'Required credentials for the bubbles in the code',
+    }),
+  optionalCredentials: z
+    .record(z.string(), z.array(z.string()))
+    .optional()
+    .openapi({
+      description:
+        'Optional credentials keyed by bubble name (from wildcard bubbles, OPTIONAL_CREDENTIALS set, and capability optionalCredentials)',
     }),
   metadata: z
     .object({

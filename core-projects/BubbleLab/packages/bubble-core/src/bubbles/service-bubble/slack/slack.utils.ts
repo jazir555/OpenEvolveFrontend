@@ -1,0 +1,1417 @@
+/**
+ * Utility functions for Slack bubble
+ * Handles markdown to Slack blocks conversion and mrkdwn formatting
+ */
+
+/**
+ * Slack block types for rich message formatting
+ */
+export interface SlackTextObject {
+  type: 'plain_text' | 'mrkdwn';
+  text: string;
+  emoji?: boolean;
+  verbatim?: boolean;
+}
+
+export interface SlackSectionBlock {
+  type: 'section';
+  text: SlackTextObject;
+}
+
+export interface SlackDividerBlock {
+  type: 'divider';
+}
+
+export interface SlackHeaderBlock {
+  type: 'header';
+  text: SlackTextObject;
+}
+
+export interface SlackContextBlock {
+  type: 'context';
+  elements: SlackTextObject[];
+}
+
+export interface SlackTableCellRawText {
+  type: 'raw_text';
+  text: string;
+}
+
+export interface SlackTableCellRichText {
+  type: 'rich_text';
+  elements: unknown[];
+}
+
+export type SlackTableCell = SlackTableCellRawText | SlackTableCellRichText;
+
+export interface SlackTableColumnSetting {
+  align?: 'left' | 'center' | 'right';
+  is_wrapped?: boolean;
+}
+
+export interface SlackTableBlock {
+  type: 'table';
+  rows: SlackTableCell[][];
+  column_settings?: SlackTableColumnSetting[];
+  block_id?: string;
+}
+
+export interface SlackImageBlock {
+  type: 'image';
+  image_url: string;
+  alt_text: string;
+  title?: SlackTextObject;
+  block_id?: string;
+}
+
+export type SlackBlock =
+  | SlackSectionBlock
+  | SlackDividerBlock
+  | SlackHeaderBlock
+  | SlackContextBlock
+  | SlackTableBlock
+  | SlackImageBlock;
+
+/**
+ * Options for markdown to blocks conversion
+ */
+export interface MarkdownToBlocksOptions {
+  /**
+   * Whether to convert headers to header blocks (true) or bold section blocks (false)
+   * Header blocks have larger text but limited formatting
+   * @default false
+   */
+  useHeaderBlocks?: boolean;
+
+  /**
+   * Whether to add dividers after headers
+   * @default false
+   */
+  addDividersAfterHeaders?: boolean;
+
+  /**
+   * Whether to preserve line breaks within paragraphs
+   * @default true
+   */
+  preserveLineBreaks?: boolean;
+}
+
+/**
+ * Converts standard markdown text formatting to Slack mrkdwn format.
+ *
+ * Conversions:
+ * - **bold** or __bold__ → *bold*
+ * - *italic* (when not **) or _italic_ (when not __) → _italic_
+ * - ~~strikethrough~~ → ~strikethrough~
+ * - `code` → `code` (unchanged)
+ * - [text](url) → <url|text>
+ * - > blockquote → > blockquote (unchanged, Slack supports this)
+ *
+ * @param markdown - Standard markdown text
+ * @returns Slack mrkdwn formatted text
+ */
+export function markdownToMrkdwn(markdown: string): string {
+  if (!markdown || typeof markdown !== 'string') {
+    return '';
+  }
+
+  let result = markdown;
+
+  // Convert image links: ![alt](url) → <url|alt>
+  // Must be done BEFORE regular links so ![...] isn't partially matched
+  // Uses nested-paren-aware pattern to handle URLs containing parentheses
+  result = result.replace(
+    /!\[([^\]]*)\]\(((?:[^()]*|\([^()]*\))*)\)/g,
+    '<$2|$1>'
+  );
+
+  // Convert links: [text](url) → <url|text>
+  // Must be done first to preserve link text formatting
+  // Uses nested-paren-aware pattern to handle URLs containing parentheses
+  result = result.replace(
+    /\[([^\]]+)\]\(((?:[^()]*|\([^()]*\))*)\)/g,
+    '<$2|$1>'
+  );
+
+  // Convert bullet lists: - item or * item → • item
+  // Must be done BEFORE italic/bold to avoid * being treated as formatting
+  result = result.replace(/^(\s*)[-]\s+/gm, '$1• ');
+  result = result.replace(/^(\s*)\*\s+/gm, '$1• ');
+
+  // Use placeholder tokens to safely convert bold before italic
+  // This prevents **text** from being partially matched by *text* pattern
+  const BOLD_PLACEHOLDER = '\u0000BOLD\u0000';
+
+  // Convert headers for inline display: # Header → BOLD placeholder
+  // Using placeholder so it doesn't get converted by italic regex
+  result = result.replace(
+    /^#{1,6}\s+(.+)$/gm,
+    `${BOLD_PLACEHOLDER}$1${BOLD_PLACEHOLDER}`
+  );
+
+  // Convert bold: **text** → placeholder
+  result = result.replace(
+    /\*\*([^*]+)\*\*/g,
+    `${BOLD_PLACEHOLDER}$1${BOLD_PLACEHOLDER}`
+  );
+
+  // Convert bold: __text__ → placeholder
+  result = result.replace(
+    /__([^_]+)__/g,
+    `${BOLD_PLACEHOLDER}$1${BOLD_PLACEHOLDER}`
+  );
+
+  // Convert italic: *text* (single asterisk) → _text_
+  // Now safe because ** and headers have been converted to placeholder
+  result = result.replace(/\*([^*]+)\*/g, '_$1_');
+
+  // Convert italic: _text_ (single underscore, not double) → _text_ (unchanged for Slack)
+  // Already correct format for Slack mrkdwn
+
+  // Replace bold placeholders with Slack bold syntax
+  result = result.replace(new RegExp(BOLD_PLACEHOLDER, 'g'), '*');
+
+  // Convert strikethrough: ~~text~~ → ~text~
+  result = result.replace(/~~([^~]+)~~/g, '~$1~');
+
+  return result;
+}
+
+/**
+ * Parses markdown content and identifies different block types.
+ * Returns an array of parsed blocks with their types and content.
+ */
+/**
+ * Image hosting domains whose URLs should render as Slack image blocks
+ * instead of raw URL text.
+ */
+const IMAGE_URL_HOSTS = [
+  'quickchart.io',
+  'i.imgur.com',
+  'imgur.com',
+  'r2.cloudflarestorage.com',
+];
+const IMAGE_URL_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+
+/**
+ * Checks if a URL points to an image that should be rendered as an image block.
+ */
+function isImageUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (IMAGE_URL_HOSTS.some((h) => parsed.hostname.endsWith(h))) return true;
+    const path = parsed.pathname.toLowerCase();
+    return IMAGE_URL_EXTENSIONS.some((ext) => path.endsWith(ext));
+  } catch {
+    return false;
+  }
+}
+
+interface ParsedBlock {
+  type:
+    | 'header'
+    | 'paragraph'
+    | 'code'
+    | 'divider'
+    | 'quote'
+    | 'list'
+    | 'table'
+    | 'image';
+  content: string;
+  level?: number; // For headers (1-6)
+  language?: string; // For code blocks
+  tableHeaders?: string[]; // For table blocks
+  tableRows?: string[][]; // For table blocks
+  tableRawHeaders?: string[]; // Un-stripped headers (for mrkdwn fallback when links detected)
+  tableRawRows?: string[][]; // Un-stripped rows (for mrkdwn fallback when links detected)
+}
+
+/**
+ * Normalizes markdown text by ensuring block-level elements start on new lines.
+ * This handles cases where markdown is pasted without proper line breaks.
+ */
+function normalizeMarkdownNewlines(markdown: string): string {
+  let result = markdown;
+
+  // Protect markdown links and images from normalization.
+  // URLs can contain ___, --- etc. which would be falsely detected as
+  // horizontal rules or formatting. Replace them with placeholders first.
+  const LINK_SENTINEL = '<<__LINK_PLACEHOLDER_';
+  const LINK_SENTINEL_END = '__>>';
+  const linkPlaceholders: string[] = [];
+  result = result.replace(/!?\[[^\]]*\]\([^)]*\)/g, (match) => {
+    const idx = linkPlaceholders.length;
+    linkPlaceholders.push(match);
+    return `${LINK_SENTINEL}${idx}${LINK_SENTINEL_END}`;
+  });
+
+  // Protect table rows (lines starting with |) from normalization.
+  // Table cells can contain # which looks like a heading to the header regex.
+  const TABLE_SENTINEL = '<<__TABLE_ROW_';
+  const TABLE_SENTINEL_END = '__>>';
+  const tableRowPlaceholders: string[] = [];
+  result = result.replace(/^(\|.+)$/gm, (match) => {
+    const idx = tableRowPlaceholders.length;
+    tableRowPlaceholders.push(match);
+    return `${TABLE_SENTINEL}${idx}${TABLE_SENTINEL_END}`;
+  });
+
+  // Add newlines before headers (### Header) if not already at line start
+  // Exclude # so multi-hash headers like ### don't get split into # + \n##
+  result = result.replace(/([^\n#])(#{1,6}\s+\S)/g, '$1\n$2');
+
+  // Add newlines before horizontal rules (--- or ***)
+  // Exclude table separator rows (preceded by | or : as in |:---|)
+  // Also exclude - and _ so table separators like |--------|------| aren't broken
+  result = result.replace(
+    /([^\n\s|:\-_])\s*(---+|___+|\*\*\*+)\s*(?=\S|$)/g,
+    '$1\n$2\n'
+  );
+
+  // Add newlines before list items (- ** or * **) that appear after sentence endings
+  // This catches patterns like "...text. * **Item:**" or "...documentation. - **Item:**"
+  result = result.replace(/([.!?:])(\s+)([-*])\s+(\*\*)/g, '$1\n$3 $4');
+
+  // Add newlines before standalone list items (lines starting with - or * followed by space and text)
+  // But only after sentence-ending punctuation to avoid false positives
+  result = result.replace(/([.!?])(\s+)([-*]\s+)(?!\*)/g, '$1\n$3');
+
+  // Restore link placeholders in the main text
+  result = result.replace(
+    /<<__LINK_PLACEHOLDER_(\d+)__>>/g,
+    (_, idx) => linkPlaceholders[Number(idx)]
+  );
+
+  // Restore table row placeholders, also restoring any link placeholders within them
+  result = result.replace(/<<__TABLE_ROW_(\d+)__>>/g, (_, idx) => {
+    let row = tableRowPlaceholders[Number(idx)];
+    row = row.replace(
+      /<<__LINK_PLACEHOLDER_(\d+)__>>/g,
+      (__, linkIdx) => linkPlaceholders[Number(linkIdx)]
+    );
+    return row;
+  });
+
+  return result;
+}
+
+/**
+ * Splits a markdown table row on `|` delimiters, but ignores `|` inside
+ * angle-bracket expressions like `<mailto:x@y.com|x@y.com>` or `<url|label>`,
+ * and treats backslash-escaped pipes (`\|`) as literal pipe characters.
+ */
+function splitTableRow(line: string): string[] {
+  // Strip leading/trailing |
+  const inner = line.replace(/^\|/, '').replace(/\|$/, '');
+  const cells: string[] = [];
+  let current = '';
+  let angleBracketDepth = 0;
+
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+    if (ch === '\\' && i + 1 < inner.length && inner[i + 1] === '|') {
+      // Escaped pipe — treat as literal pipe character
+      current += '|';
+      i++; // skip the next '|'
+    } else if (ch === '<') {
+      angleBracketDepth++;
+      current += ch;
+    } else if (ch === '>' && angleBracketDepth > 0) {
+      angleBracketDepth--;
+      current += ch;
+    } else if (ch === '|' && angleBracketDepth === 0) {
+      cells.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+/**
+ * Strips markdown formatting from text, leaving only the plain content.
+ * Used for contexts where formatting can't be rendered (e.g. Slack raw_text table cells).
+ */
+function stripMarkdownFormatting(text: string): string {
+  // Protect emoji shortcodes (e.g. :white_check_mark:) from underscore stripping
+  const emojiPlaceholders: string[] = [];
+  let result = text.replace(/:[a-z0-9_+-]+:/g, (match) => {
+    emojiPlaceholders.push(match);
+    return `\u00ABE${emojiPlaceholders.length - 1}\u00BB`;
+  });
+
+  result = result
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // **bold**
+    .replace(/__([^_]+)__/g, '$1') // __bold__
+    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '$1') // *italic*
+    .replace(/(?<!_)_([^_]+)_(?!_)/g, '$1') // _italic_
+    .replace(/~~([^~]+)~~/g, '$1') // ~~strike~~
+    .replace(/`([^`]+)`/g, '$1') // `code`
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') // [text](url)
+    .replace(/<[^|>]+\|([^>]+)>/g, '$1') // <mailto:x|y> or <url|label> → display text
+    .replace(/<((?:mailto:|https?:\/\/)[^>]+)>/g, '$1'); // <mailto:x> or <url> with no display text
+
+  // Restore emoji shortcodes
+  return result.replace(
+    /\u00ABE(\d+)\u00BB/g,
+    (_, idx) => emojiPlaceholders[parseInt(idx)]
+  );
+}
+
+/** Checks if any cell contains a markdown link `[text](url)` or an unrestored link placeholder */
+function tableHasLinks(rows: string[][]): boolean {
+  const linkPattern = /\[[^\]]+\]\([^)]+\)/;
+  const linkPlaceholderPattern = /<<__LINK_PLACEHOLDER_\d+__>>/;
+  return rows.some((row) =>
+    row.some(
+      (cell) => linkPattern.test(cell) || linkPlaceholderPattern.test(cell)
+    )
+  );
+}
+
+/**
+ * Renders a table as mrkdwn section blocks with key-value rows.
+ * Each data row becomes: *Col1:* val1 · *Col2:* val2 · *Col3:* <url|text>
+ * Used when cells contain links (Slack table blocks only support raw_text).
+ */
+function createTableMrkdwnFallback(
+  rawHeaders: string[],
+  rawRows: string[][]
+): SlackBlock[] {
+  const blocks: SlackBlock[] = [];
+  for (const row of rawRows) {
+    const parts = rawHeaders.map((h, i) => {
+      const header = stripMarkdownFormatting(h.trim());
+      const cell = markdownToMrkdwn((row[i] ?? '').trim());
+      return `*${header}:* ${cell}`;
+    });
+    const rowText = parts.join(' · ');
+    blocks.push({
+      type: 'section',
+      text: { type: 'mrkdwn' as const, text: rowText },
+    });
+  }
+  return blocks;
+}
+
+function parseMarkdownBlocks(markdown: string): ParsedBlock[] {
+  const blocks: ParsedBlock[] = [];
+  // Normalize markdown to ensure block elements are on their own lines
+  const normalizedMarkdown = normalizeMarkdownNewlines(markdown);
+  const lines = normalizedMarkdown.split('\n');
+  let currentBlock: ParsedBlock | null = null;
+  let inCodeBlock = false;
+  let codeBlockContent: string[] = [];
+  let codeBlockLanguage = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Check for code block start/end
+    if (line.startsWith('```')) {
+      if (!inCodeBlock) {
+        // Start of code block
+        if (currentBlock) {
+          blocks.push(currentBlock);
+          currentBlock = null;
+        }
+        inCodeBlock = true;
+        codeBlockLanguage = line.slice(3).trim();
+        codeBlockContent = [];
+      } else {
+        // End of code block
+        blocks.push({
+          type: 'code',
+          content: codeBlockContent.join('\n'),
+          language: codeBlockLanguage,
+        });
+        inCodeBlock = false;
+        codeBlockContent = [];
+        codeBlockLanguage = '';
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeBlockContent.push(line);
+      continue;
+    }
+
+    // Check for markdown image syntax: ![alt](url) on its own line
+    const trimmedLine = line.trim();
+    const imageMarkdownMatch = trimmedLine.match(/^!\[([^\]]*)\]\((.+)\)$/);
+    if (imageMarkdownMatch) {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+        currentBlock = null;
+      }
+      blocks.push({ type: 'image', content: imageMarkdownMatch[2] });
+      continue;
+    }
+
+    // Check for bare URL on its own line (image URLs become image blocks)
+    if (/^https?:\/\/\S+$/.test(trimmedLine)) {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+        currentBlock = null;
+      }
+      if (isImageUrl(trimmedLine)) {
+        blocks.push({ type: 'image', content: trimmedLine });
+      } else {
+        // Non-image URL: keep as paragraph, markdownToMrkdwn will leave it as-is
+        // Slack auto-unfurls URLs, so just pass through
+        blocks.push({ type: 'paragraph', content: trimmedLine });
+      }
+      continue;
+    }
+
+    // Check for table row (lines starting with |) — must come before divider detection
+    if (line.trimStart().startsWith('|')) {
+      if (currentBlock?.type !== 'table') {
+        if (currentBlock) {
+          blocks.push(currentBlock);
+        }
+        currentBlock = { type: 'table', content: line };
+      } else {
+        currentBlock.content += '\n' + line;
+      }
+      continue;
+    }
+
+    // Check for horizontal rule / divider
+    if (/^[-*_]{3,}\s*$/.test(line)) {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+        currentBlock = null;
+      }
+      blocks.push({ type: 'divider', content: '' });
+      continue;
+    }
+
+    // Check for header
+    const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (headerMatch) {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+        currentBlock = null;
+      }
+      blocks.push({
+        type: 'header',
+        content: headerMatch[2],
+        level: headerMatch[1].length,
+      });
+      continue;
+    }
+
+    // Check for blockquote
+    if (line.startsWith('>')) {
+      const quoteContent = line.replace(/^>\s*/, '');
+      if (currentBlock?.type === 'quote') {
+        currentBlock.content += '\n' + quoteContent;
+      } else {
+        if (currentBlock) {
+          blocks.push(currentBlock);
+        }
+        currentBlock = { type: 'quote', content: quoteContent };
+      }
+      continue;
+    }
+
+    // Check for list item
+    if (/^[\s]*[-*]\s+/.test(line) || /^[\s]*\d+\.\s+/.test(line)) {
+      const listContent = line
+        .replace(/^[\s]*[-*]\s+/, '• ')
+        .replace(/^[\s]*\d+\.\s+/, (match) => match); // Keep numbered lists as-is
+      if (currentBlock?.type === 'list') {
+        currentBlock.content += '\n' + listContent;
+      } else {
+        if (currentBlock) {
+          blocks.push(currentBlock);
+        }
+        currentBlock = { type: 'list', content: listContent };
+      }
+      continue;
+    }
+
+    // Empty line - end current block
+    if (line.trim() === '') {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+        currentBlock = null;
+      }
+      continue;
+    }
+
+    // Regular paragraph
+    if (currentBlock?.type === 'paragraph') {
+      currentBlock.content += '\n' + line;
+    } else {
+      if (currentBlock) {
+        blocks.push(currentBlock);
+      }
+      currentBlock = { type: 'paragraph', content: line };
+    }
+  }
+
+  // Don't forget the last block
+  if (currentBlock) {
+    blocks.push(currentBlock);
+  }
+
+  // Handle unclosed code block
+  if (inCodeBlock && codeBlockContent.length > 0) {
+    blocks.push({
+      type: 'code',
+      content: codeBlockContent.join('\n'),
+      language: codeBlockLanguage,
+    });
+  }
+
+  // Post-process table blocks: parse |..| lines into headers and rows
+  for (const block of blocks) {
+    if (block.type !== 'table') continue;
+    const tableLines = block.content.split('\n');
+    const parsedRows: string[][] = [];
+    const rawRows: string[][] = [];
+    for (const tl of tableLines) {
+      const trimmed = tl.trim();
+      // Skip separator rows like |---|---|
+      if (/^\|[\s\-:|]+\|$/.test(trimmed)) continue;
+      // Use smart split that ignores | inside angle brackets (e.g. <mailto:x|y>, <url|text>)
+      const rawCells = splitTableRow(trimmed).map((c) => c.trim());
+      rawRows.push(rawCells);
+      // Strip markdown since table cells use raw_text
+      const cells = rawCells.map((c) => stripMarkdownFormatting(c));
+      parsedRows.push(cells);
+    }
+    if (parsedRows.length > 0) {
+      block.tableHeaders = parsedRows[0];
+      block.tableRows = parsedRows.slice(1);
+      // If any cell contains a markdown link, store raw cells for mrkdwn fallback
+      if (tableHasLinks(rawRows)) {
+        block.tableRawHeaders = rawRows[0];
+        block.tableRawRows = rawRows.slice(1);
+      }
+    }
+  }
+
+  return blocks;
+}
+
+/**
+ * Converts markdown text to an array of Slack blocks for rich message formatting.
+ *
+ * This function parses markdown and creates appropriate Slack block types:
+ * - Headers → header blocks or bold section blocks
+ * - Paragraphs → section blocks with mrkdwn
+ * - Code blocks → section blocks with code formatting
+ * - Horizontal rules → divider blocks
+ * - Block quotes → section blocks with quote formatting
+ * - Lists → section blocks with bullet formatting
+ *
+ * @param markdown - Standard markdown text
+ * @param options - Conversion options
+ * @returns Array of Slack blocks
+ *
+ * @example
+ * ```typescript
+ * const blocks = markdownToBlocks(`
+ * # Welcome
+ *
+ * This is **bold** and _italic_ text.
+ *
+ * - Item 1
+ * - Item 2
+ *
+ * \`\`\`javascript
+ * const x = 1;
+ * \`\`\`
+ * `);
+ *
+ * // Returns:
+ * // [
+ * //   { type: 'section', text: { type: 'mrkdwn', text: '*Welcome*' } },
+ * //   { type: 'section', text: { type: 'mrkdwn', text: 'This is *bold* and _italic_ text.' } },
+ * //   { type: 'section', text: { type: 'mrkdwn', text: '• Item 1\n• Item 2' } },
+ * //   { type: 'section', text: { type: 'mrkdwn', text: '```const x = 1;```' } }
+ * // ]
+ * ```
+ */
+export function markdownToBlocks(
+  markdown: string,
+  options: MarkdownToBlocksOptions = {}
+): SlackBlock[] {
+  const {
+    useHeaderBlocks = false,
+    addDividersAfterHeaders = false,
+    preserveLineBreaks = true,
+  } = options;
+
+  if (!markdown || typeof markdown !== 'string') {
+    return [];
+  }
+
+  const parsedBlocks = parseMarkdownBlocks(markdown.trim());
+  const slackBlocks: SlackBlock[] = [];
+
+  for (const block of parsedBlocks) {
+    switch (block.type) {
+      case 'header':
+        {
+          if (useHeaderBlocks) {
+            // Header blocks only support plain_text and have a 150 char limit
+            slackBlocks.push({
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: block.content.slice(0, 150),
+                emoji: true,
+              },
+            });
+          } else {
+            // Strip markdown bold markers since the entire header will be wrapped in bold
+            // This prevents nested/mismatched asterisks like *1. *TanStack Start**
+            let headerContent = block.content
+              .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove **bold**
+              .replace(/__([^_]+)__/g, '$1'); // Remove __bold__
+
+            // Convert other formatting (links, italics, etc.)
+            headerContent = markdownToMrkdwn(headerContent);
+
+            // Use section with bold mrkdwn for more formatting flexibility
+            slackBlocks.push({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${headerContent}*`,
+              },
+            });
+          }
+        }
+        if (addDividersAfterHeaders) {
+          slackBlocks.push({ type: 'divider' });
+        }
+        break;
+
+      case 'divider':
+        slackBlocks.push({ type: 'divider' });
+        break;
+
+      case 'code':
+        // Slack code blocks in mrkdwn
+        slackBlocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '```' + block.content + '```',
+          },
+        });
+        break;
+
+      case 'quote': {
+        // Slack supports > for quotes in mrkdwn
+        const quoteLines = block.content.split('\n').map((line) => `> ${line}`);
+        slackBlocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: quoteLines.join('\n'),
+          },
+        });
+        break;
+      }
+
+      case 'list':
+        slackBlocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: markdownToMrkdwn(block.content),
+          },
+        });
+        break;
+
+      case 'table': {
+        if (
+          block.tableHeaders &&
+          block.tableHeaders.length > 0 &&
+          block.tableRows &&
+          block.tableRows.length > 0
+        ) {
+          // If cells contain markdown links, fall back to mrkdwn key-value rows
+          // so links remain clickable (table blocks only support raw_text)
+          if (block.tableRawHeaders && block.tableRawRows) {
+            slackBlocks.push(
+              ...createTableMrkdwnFallback(
+                block.tableRawHeaders,
+                block.tableRawRows
+              )
+            );
+          } else {
+            const result = createTableBlock(
+              block.tableHeaders,
+              block.tableRows
+            );
+            if (result.overflowChunks) {
+              const firstChunkEnd = result.overflowChunks[0].rowStart - 1;
+              slackBlocks.push({
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn' as const,
+                    text: `Rows 1–${firstChunkEnd} of ${result.totalDataRows}`,
+                  },
+                ],
+              });
+            }
+            slackBlocks.push(result.tableBlock);
+            if (result.overflowChunks) {
+              for (let ci = 0; ci < result.overflowChunks.length; ci++) {
+                const chunk = result.overflowChunks[ci];
+                const isLast = ci === result.overflowChunks.length - 1;
+                let label = `Continued · Rows ${chunk.rowStart}–${chunk.rowEnd} of ${result.totalDataRows}`;
+                if (isLast && result.wasTruncated) {
+                  label += ` (${result.originalRowCount - result.totalDataRows} omitted)`;
+                }
+                slackBlocks.push({
+                  type: 'context',
+                  elements: [
+                    {
+                      type: 'mrkdwn' as const,
+                      text: label,
+                    },
+                  ],
+                });
+                slackBlocks.push(chunk.block);
+              }
+            } else if (result.wasTruncated) {
+              slackBlocks.push({
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn' as const,
+                    text: `Showing ${SLACK_TABLE_MAX_ROWS - 1} of ${result.originalRowCount} rows`,
+                  },
+                ],
+              });
+            }
+          }
+        } else {
+          // Failed to parse table: render as code block
+          slackBlocks.push({
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '```' + block.content + '```',
+            },
+          });
+        }
+        break;
+      }
+
+      case 'image': {
+        // Extract a readable title from the URL
+        let altText = 'Image';
+        try {
+          const parsed = new URL(block.content);
+          // Use title param or path-based label
+          const titleParam =
+            parsed.searchParams.get('title') || parsed.searchParams.get('text');
+          if (titleParam) {
+            altText = titleParam;
+          } else {
+            altText = `Chart from ${parsed.hostname}`;
+          }
+        } catch {
+          // keep default
+        }
+        slackBlocks.push({
+          type: 'image',
+          image_url: block.content,
+          alt_text: altText,
+        });
+        break;
+      }
+
+      case 'paragraph':
+      default: {
+        let content = markdownToMrkdwn(block.content);
+        if (!preserveLineBreaks) {
+          content = content.replace(/\n/g, ' ');
+        }
+        slackBlocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: content,
+          },
+        });
+        break;
+      }
+    }
+  }
+
+  // Split any blocks that exceed Slack's text character limit
+  return splitLongBlocks(slackBlocks);
+}
+
+/**
+ * Creates a simple text message with optional markdown formatting.
+ * Use this for simple messages that don't need complex block structure.
+ *
+ * @param text - Text to send (supports markdown)
+ * @param useMrkdwn - Whether to convert markdown to Slack mrkdwn format
+ * @returns A single section block with the formatted text
+ */
+export function createTextBlock(
+  text: string,
+  useMrkdwn: boolean = true
+): SlackSectionBlock {
+  return {
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: useMrkdwn ? markdownToMrkdwn(text) : text,
+    },
+  };
+}
+
+/**
+ * Creates a divider block for visual separation
+ */
+export function createDividerBlock(): SlackDividerBlock {
+  return { type: 'divider' };
+}
+
+/**
+ * Creates a header block with plain text
+ * Note: Header blocks have a 150 character limit
+ *
+ * @param text - Header text (will be truncated to 150 chars)
+ */
+export function createHeaderBlock(text: string): SlackHeaderBlock {
+  return {
+    type: 'header',
+    text: {
+      type: 'plain_text',
+      text: text.slice(0, 150),
+      emoji: true,
+    },
+  };
+}
+
+/**
+ * Creates a context block for secondary information
+ * Context blocks display smaller text, useful for timestamps, metadata, etc.
+ *
+ * @param texts - Array of text strings to display
+ */
+export function createContextBlock(texts: string[]): SlackContextBlock {
+  return {
+    type: 'context',
+    elements: texts.map((text) => ({
+      type: 'mrkdwn' as const,
+      text: markdownToMrkdwn(text),
+    })),
+  };
+}
+
+/**
+ * Slack table block constraints
+ */
+export const SLACK_TABLE_MAX_ROWS = 1000;
+export const SLACK_TABLE_MAX_COLUMNS = 20;
+
+export interface TableChunkInfo {
+  block: SlackTableBlock;
+  /** 1-based start row (data rows, not counting header) */
+  rowStart: number;
+  /** 1-based end row (inclusive) */
+  rowEnd: number;
+}
+
+export interface CreateTableBlockResult {
+  tableBlock: SlackTableBlock;
+  /** Additional table chunks when a single table exceeds Slack's character limit */
+  overflowChunks?: TableChunkInfo[];
+  /** Total data row count across all chunks */
+  totalDataRows: number;
+  overflowCsv?: string;
+  wasTruncated: boolean;
+  originalRowCount: number;
+}
+
+/**
+ * Slack's maximum character count for a single table block.
+ */
+const SLACK_TABLE_MAX_CHARS = 10000;
+
+/**
+ * Common Slack emoji shortcodes mapped to Unicode.
+ * raw_text table cells don't render shortcodes, so we convert to Unicode.
+ */
+const EMOJI_SHORTCODE_MAP: Record<string, string> = {
+  ':white_check_mark:': '\u2705',
+  ':heavy_check_mark:': '\u2714\uFE0F',
+  ':x:': '\u274C',
+  ':warning:': '\u26A0\uFE0F',
+  ':rotating_light:': '\uD83D\uDEA8',
+  ':red_circle:': '\uD83D\uDD34',
+  ':large_blue_circle:': '\uD83D\uDD35',
+  ':large_purple_circle:': '\uD83D\uDFE3',
+  ':green_circle:': '\uD83D\uDFE2',
+  ':yellow_circle:': '\uD83D\uDFE1',
+  ':orange_circle:': '\uD83D\uDFE0',
+  ':white_circle:': '\u26AA',
+  ':black_circle:': '\u26AB',
+  ':star:': '\u2B50',
+  ':fire:': '\uD83D\uDD25',
+  ':rocket:': '\uD83D\uDE80',
+  ':chart_with_upwards_trend:': '\uD83D\uDCC8',
+  ':chart_with_downwards_trend:': '\uD83D\uDCC9',
+  ':bar_chart:': '\uD83D\uDCCA',
+  ':check:': '\u2713',
+  ':heavy_minus_sign:': '\u2796',
+  ':heavy_plus_sign:': '\u2795',
+  ':thumbsup:': '\uD83D\uDC4D',
+  ':thumbsdown:': '\uD83D\uDC4E',
+  ':coffee:': '\u2615',
+  ':ocean:': '\uD83C\uDF0A',
+  ':tada:': '\uD83C\uDF89',
+  ':sparkles:': '\u2728',
+  ':boom:': '\uD83D\uDCA5',
+  ':zap:': '\u26A1',
+  ':bug:': '\uD83D\uDC1B',
+  ':memo:': '\uD83D\uDCDD',
+  ':gear:': '\u2699\uFE0F',
+  ':lock:': '\uD83D\uDD12',
+  ':unlock:': '\uD83D\uDD13',
+  ':bell:': '\uD83D\uDD14',
+  ':clock1:': '\uD83D\uDD50',
+  ':hourglass:': '\u231B',
+  ':arrows_counterclockwise:': '\uD83D\uDD04',
+  ':arrow_up:': '\u2B06\uFE0F',
+  ':arrow_down:': '\u2B07\uFE0F',
+  ':information_source:': '\u2139\uFE0F',
+  ':exclamation:': '\u2757',
+  ':question:': '\u2753',
+};
+
+/**
+ * Replaces Slack emoji shortcodes with Unicode equivalents.
+ * Used for raw_text table cells which don't render shortcodes.
+ */
+function replaceEmojiShortcodes(text: string): string {
+  return text.replace(/:[a-z0-9_+-]+:/g, (match) => {
+    return EMOJI_SHORTCODE_MAP[match] ?? match;
+  });
+}
+
+function escapeCsvValue(value: string): string {
+  if (
+    value.includes(',') ||
+    value.includes('"') ||
+    value.includes('\n') ||
+    value.includes('\r')
+  ) {
+    return '"' + value.replace(/"/g, '""') + '"';
+  }
+  return value;
+}
+
+function generateCsv(headers: string[], rows: string[][]): string {
+  const lines: string[] = [];
+  lines.push(headers.map(escapeCsvValue).join(','));
+  for (const row of rows) {
+    lines.push(row.map(escapeCsvValue).join(','));
+  }
+  return lines.join('\n');
+}
+
+/**
+ * Creates a Slack table block from headers and rows.
+ * Truncates to fit Slack's limits (100 rows including header, 20 columns).
+ * If rows exceed the limit, generates a CSV containing all data.
+ *
+ * @param headers - Column header strings
+ * @param rows - 2D array of cell values
+ * @param columnSettings - Optional column alignment/wrapping settings
+ * @returns Table block, optional CSV overflow, and truncation info
+ */
+export function createTableBlock(
+  headers: string[],
+  rows: string[][],
+  columnSettings?: SlackTableColumnSetting[]
+): CreateTableBlockResult {
+  const originalRowCount = rows.length;
+  const maxDataRows = SLACK_TABLE_MAX_ROWS - 1; // 1 row reserved for header
+
+  // Truncate columns if needed
+  const colCount = Math.min(headers.length, SLACK_TABLE_MAX_COLUMNS);
+  const truncatedHeaders = headers.slice(0, colCount);
+
+  // Truncate rows if needed
+  const wasTruncated = originalRowCount > maxDataRows;
+  const truncatedRows = rows.slice(0, maxDataRows);
+
+  // Build header row cells (convert emoji shortcodes, pad empty cells)
+  const headerRowCells: SlackTableCellRawText[] = truncatedHeaders.map((h) => ({
+    type: 'raw_text' as const,
+    text: replaceEmojiShortcodes(String(h)) || ' ',
+  }));
+
+  // Build data row cells, padding short rows with empty cells
+  const dataRowCells: SlackTableCellRawText[][] = truncatedRows.map((row) => {
+    const cells: SlackTableCellRawText[] = [];
+    for (let i = 0; i < colCount; i++) {
+      const value = i < row.length ? String(row[i]) : '';
+      cells.push({
+        type: 'raw_text' as const,
+        text: replaceEmojiShortcodes(value) || ' ',
+      });
+    }
+    return cells;
+  });
+
+  // Build column settings
+  let settings: SlackTableColumnSetting[] | undefined;
+  if (columnSettings) {
+    settings = columnSettings.slice(0, colCount);
+    // Pad with defaults if fewer settings than columns
+    while (settings.length < colCount) {
+      settings.push({});
+    }
+  }
+
+  // Estimate character count for a set of rows (including header)
+  const estimateChars = (rowSet: SlackTableCellRawText[][]): number =>
+    rowSet.reduce(
+      (sum, row) => sum + row.reduce((s, cell) => s + cell.text.length, 0),
+      0
+    );
+
+  const allRows = [headerRowCells, ...dataRowCells];
+  const totalChars = estimateChars(allRows);
+
+  let tableBlock: SlackTableBlock;
+  let overflowChunks: TableChunkInfo[] | undefined;
+  const totalDataRows = dataRowCells.length;
+
+  if (totalChars > SLACK_TABLE_MAX_CHARS) {
+    // Split rows into chunks that fit within the character limit.
+    // Each chunk gets the header row prepended.
+    const headerChars = estimateChars([headerRowCells]);
+    const charBudget = SLACK_TABLE_MAX_CHARS - headerChars;
+    const chunks: SlackTableCellRawText[][][] = [];
+    let currentChunk: SlackTableCellRawText[][] = [];
+    let currentChars = 0;
+
+    for (const row of dataRowCells) {
+      const rowChars = row.reduce((s, cell) => s + cell.text.length, 0);
+      if (currentChunk.length > 0 && currentChars + rowChars > charBudget) {
+        chunks.push(currentChunk);
+        currentChunk = [];
+        currentChars = 0;
+      }
+      currentChunk.push(row);
+      currentChars += rowChars;
+    }
+    if (currentChunk.length > 0) chunks.push(currentChunk);
+
+    // First chunk becomes the main table block
+    tableBlock = {
+      type: 'table',
+      rows: [headerRowCells, ...chunks[0]],
+      ...(settings ? { column_settings: settings } : {}),
+    };
+
+    // Remaining chunks become overflow chunks with row range info
+    if (chunks.length > 1) {
+      let rowOffset = chunks[0].length;
+      overflowChunks = chunks.slice(1).map((chunk) => {
+        const info: TableChunkInfo = {
+          block: {
+            type: 'table',
+            rows: [headerRowCells, ...chunk],
+            ...(settings ? { column_settings: settings } : {}),
+          },
+          rowStart: rowOffset + 1,
+          rowEnd: rowOffset + chunk.length,
+        };
+        rowOffset += chunk.length;
+        return info;
+      });
+    }
+  } else {
+    tableBlock = {
+      type: 'table',
+      rows: allRows,
+      ...(settings ? { column_settings: settings } : {}),
+    };
+  }
+
+  // Generate CSV for overflow
+  let overflowCsv: string | undefined;
+  if (wasTruncated) {
+    overflowCsv = generateCsv(headers, rows);
+  }
+
+  return {
+    tableBlock,
+    overflowChunks,
+    totalDataRows,
+    overflowCsv,
+    wasTruncated,
+    originalRowCount,
+  };
+}
+
+/**
+ * Slack's maximum character limit for text in a single block
+ */
+const SLACK_MAX_BLOCK_TEXT_LENGTH = 3000;
+
+/**
+ * Splits long text into chunks that fit within Slack's block text limit.
+ * Attempts to split at paragraph boundaries first, then at sentence boundaries,
+ * and finally at word boundaries if necessary.
+ *
+ * @param text - Text to split
+ * @param maxLength - Maximum length per chunk (default: 3000)
+ * @returns Array of text chunks, each within the limit
+ */
+export function splitLongText(
+  text: string,
+  maxLength: number = SLACK_MAX_BLOCK_TEXT_LENGTH
+): string[] {
+  if (!text || text.length <= maxLength) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLength) {
+      chunks.push(remaining);
+      break;
+    }
+
+    // Find the best split point within maxLength
+    let splitPoint = maxLength;
+
+    // Try to split at a double newline (paragraph boundary)
+    const paragraphBreak = remaining.lastIndexOf('\n\n', maxLength);
+    if (paragraphBreak > maxLength * 0.5) {
+      splitPoint = paragraphBreak;
+    } else {
+      // Try to split at a single newline
+      const lineBreak = remaining.lastIndexOf('\n', maxLength);
+      if (lineBreak > maxLength * 0.5) {
+        splitPoint = lineBreak;
+      } else {
+        // Try to split at a sentence boundary (. ! ?)
+        const sentenceEnd = Math.max(
+          remaining.lastIndexOf('. ', maxLength),
+          remaining.lastIndexOf('! ', maxLength),
+          remaining.lastIndexOf('? ', maxLength)
+        );
+        if (sentenceEnd > maxLength * 0.5) {
+          splitPoint = sentenceEnd + 1; // Include the punctuation
+        } else {
+          // Fall back to splitting at a word boundary
+          const wordBreak = remaining.lastIndexOf(' ', maxLength);
+          if (wordBreak > maxLength * 0.3) {
+            splitPoint = wordBreak;
+          }
+          // If no good break point, just split at maxLength
+        }
+      }
+    }
+
+    chunks.push(remaining.slice(0, splitPoint).trim());
+    remaining = remaining.slice(splitPoint).trim();
+  }
+
+  return chunks.filter((chunk) => chunk.length > 0);
+}
+
+/**
+ * Splits a SlackBlock into multiple blocks if its text exceeds the character limit.
+ * Only splits section blocks; other block types are returned as-is.
+ *
+ * @param block - The block to potentially split
+ * @returns Array of blocks (1 if no split needed, multiple if text was too long)
+ */
+function splitLongBlock(block: SlackBlock): SlackBlock[] {
+  // Only split section blocks with text
+  if (block.type !== 'section' || !block.text) {
+    return [block];
+  }
+
+  const textContent = block.text.text;
+  if (textContent.length <= SLACK_MAX_BLOCK_TEXT_LENGTH) {
+    return [block];
+  }
+
+  // Split the text and create multiple section blocks
+  const textChunks = splitLongText(textContent, SLACK_MAX_BLOCK_TEXT_LENGTH);
+
+  return textChunks.map((chunk) => ({
+    type: 'section' as const,
+    text: {
+      type: block.text.type,
+      text: chunk,
+    },
+  }));
+}
+
+/**
+ * Processes an array of Slack blocks, splitting any that exceed the text limit.
+ *
+ * @param blocks - Array of Slack blocks
+ * @returns Array of blocks with long texts split into multiple blocks
+ */
+export function splitLongBlocks(blocks: SlackBlock[]): SlackBlock[] {
+  return blocks.flatMap(splitLongBlock);
+}
+
+/**
+ * Splits an array of Slack blocks into chunks so that each chunk contains
+ * at most one table block. Slack only allows a single table block per message,
+ * so this lets the caller send each chunk as a separate message.
+ *
+ * Non-table blocks are grouped with the nearest following table. If there are
+ * no subsequent tables, trailing blocks stay in the last chunk.
+ *
+ * @returns The original array wrapped in a single-element array if there are
+ *          0 or 1 table blocks; otherwise an array of chunk arrays.
+ */
+export function splitBlocksByTable(blocks: SlackBlock[]): SlackBlock[][] {
+  const tableIndices = blocks
+    .map((b, i) => (b.type === 'table' ? i : -1))
+    .filter((i) => i !== -1);
+
+  // 0 or 1 table — nothing to split
+  if (tableIndices.length <= 1) {
+    return [blocks];
+  }
+
+  const chunks: SlackBlock[][] = [];
+
+  // Walk through table indices and create a chunk boundary just before each
+  // table (except the first one that appears).
+  // The first chunk runs from the start up to (and including) the first table
+  // plus any non-table blocks until the next table.
+  let chunkStart = 0;
+  for (let t = 1; t < tableIndices.length; t++) {
+    // Find the split point: the first non-table block after the previous table
+    // that contextually belongs to the next table. We split right before the
+    // divider or section header that precedes the next table.
+    const nextTableIdx = tableIndices[t];
+
+    // Look backwards from the next table to find the natural break point.
+    // A divider or header/section right before a table is part of the next chunk.
+    let splitAt = nextTableIdx;
+    while (splitAt > chunkStart) {
+      const prev = blocks[splitAt - 1];
+      if (
+        prev.type === 'divider' ||
+        prev.type === 'header' ||
+        prev.type === 'context' ||
+        (prev.type === 'section' &&
+          prev.text.text.length < 200 &&
+          !prev.text.text.startsWith('```'))
+      ) {
+        splitAt--;
+      } else {
+        break;
+      }
+    }
+
+    // Don't create empty first chunk
+    if (splitAt > chunkStart) {
+      chunks.push(blocks.slice(chunkStart, splitAt));
+      chunkStart = splitAt;
+    }
+  }
+
+  // Push the remaining blocks as the last chunk
+  if (chunkStart < blocks.length) {
+    chunks.push(blocks.slice(chunkStart));
+  }
+
+  return chunks;
+}
+
+/**
+ * Detects if a string contains markdown formatting.
+ * Checks for common markdown patterns like headers, bold, italic, code blocks, lists, etc.
+ *
+ * @param text - Text to check for markdown
+ * @returns True if markdown patterns are detected
+ */
+export function containsMarkdown(text: string): boolean {
+  if (!text || typeof text !== 'string') {
+    return false;
+  }
+
+  // Check for headers (# Header)
+  if (/^#{1,6}\s+.+$/m.test(text)) {
+    return true;
+  }
+
+  // Check for bold (**text** or __text__)
+  if (/\*\*[^*]+\*\*/.test(text) || /__[^_]+__/.test(text)) {
+    return true;
+  }
+
+  // Check for italic (*text* or _text_ - but not ** or __)
+  if (/(?<!\*)\*[^*]+\*(?!\*)/.test(text) || /(?<!_)_[^_]+_(?!_)/.test(text)) {
+    return true;
+  }
+
+  // Check for code blocks (```code```)
+  if (/```[\s\S]*?```/.test(text)) {
+    return true;
+  }
+
+  // Check for inline code (`code`)
+  if (/`[^`]+`/.test(text)) {
+    return true;
+  }
+
+  // Check for lists (- item or * item or 1. item)
+  if (/^[\s]*[-*]\s+/m.test(text) || /^[\s]*\d+\.\s+/m.test(text)) {
+    return true;
+  }
+
+  // Check for links [text](url)
+  if (/\[([^\]]+)\]\(([^)]+)\)/.test(text)) {
+    return true;
+  }
+
+  // Check for blockquotes (> text)
+  if (/^>\s+/m.test(text)) {
+    return true;
+  }
+
+  // Check for horizontal rules (--- or ***)
+  if (/^[-*_]{3,}\s*$/m.test(text)) {
+    return true;
+  }
+
+  // Check for strikethrough (~~text~~)
+  if (/~~[^~]+~~/.test(text)) {
+    return true;
+  }
+
+  // Check for tables (| col1 | col2 |)
+  if (/^\|.+\|$/m.test(text)) {
+    return true;
+  }
+
+  return false;
+}

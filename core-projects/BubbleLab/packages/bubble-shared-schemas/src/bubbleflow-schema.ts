@@ -7,6 +7,7 @@ import {
 } from './bubble-definition-schema.js';
 import { CredentialType } from './types.js';
 import type { BubbleName } from './types.js';
+import { flowRoleSchema } from './permission-schema.js';
 // POST /bubble-flow - Create new BubbleFlow schema (with code)
 export const createBubbleFlowSchema = z
   .object({
@@ -52,6 +53,10 @@ export const createBubbleFlowSchema = z
         description:
           'Optional pre-parsed bubble parameters with descriptions (from AI generation). If provided, will be used instead of re-parsing the code.',
       }),
+    triggerCredentialId: z.number().nullable().optional().openapi({
+      description:
+        'ID of credential for trigger authentication (e.g., Slack OAuth)',
+    }),
   })
   .openapi('CreateBubbleFlowRequest');
 
@@ -88,6 +93,10 @@ export const createEmptyBubbleFlowSchema = z
     webhookActive: z.boolean().default(false).optional().openapi({
       description: 'Whether the webhook should be active immediately',
       example: true,
+    }),
+    triggerCredentialId: z.number().nullable().optional().openapi({
+      description:
+        'ID of credential for trigger authentication (e.g., Slack OAuth)',
     }),
   })
   .openapi('CreateEmptyBubbleFlowRequest');
@@ -153,16 +162,28 @@ export const createBubbleFlowResponseSchema = z
       .optional()
       .openapi({
         description:
-          'Mapping of bubble names to their required credential types',
+          'Mapping of bubble names to their required credential types. Uses CREDENTIAL_WILDCARD ("*") for bubbles accepting any credential.',
         example: {
           'database-connection': [CredentialType.DATABASE_CRED],
           'slack-notification': [CredentialType.SLACK_CRED],
           'ai-analysis': [CredentialType.GOOGLE_GEMINI_CRED],
+          'http-request': [CredentialType.CREDENTIAL_WILDCARD],
         },
+      }),
+    optionalCredentials: z
+      .record(z.string(), z.array(z.nativeEnum(CredentialType)))
+      .optional()
+      .openapi({
+        description:
+          'Mapping of bubble names to their optional credential types (from capability optionalCredentials). Shown in UI but do not block execution.',
       }),
     eventType: z.string().min(1).openapi({
       description: 'Event type this BubbleFlow responds to',
       example: 'webhook/http',
+    }),
+    triggerCredentialId: z.number().nullable().optional().openapi({
+      description:
+        'ID of credential for trigger authentication (e.g., Slack OAuth)',
     }),
     webhook: z
       .object({
@@ -223,6 +244,34 @@ export const createEmptyBubbleFlowResponseSchema = z
   })
   .openapi('CreateEmptyBubbleFlowResponse');
 
+// Used credential schema for credential visibility in shared workflows
+export const usedCredentialSchema = z
+  .object({
+    id: z.number().openapi({
+      description: 'Credential ID',
+      example: 123,
+    }),
+    name: z.string().openapi({
+      description: 'Credential name',
+      example: 'My OpenAI Key',
+    }),
+    type: z.nativeEnum(CredentialType).openapi({
+      description: 'Credential type',
+      example: CredentialType.OPENAI_CRED,
+    }),
+    ownerId: z.string().openapi({
+      description: 'User ID of the credential owner',
+      example: 'user_abc',
+    }),
+    isMine: z.boolean().openapi({
+      description: 'Whether this credential belongs to the current user',
+      example: true,
+    }),
+  })
+  .openapi('UsedCredential');
+
+export type UsedCredential = z.infer<typeof usedCredentialSchema>;
+
 // GET /bubble-flow/:id - Get BubbleFlow details response
 export const bubbleFlowDetailsResponseSchema = z
   .object({
@@ -260,9 +309,24 @@ export const bubbleFlowDetailsResponseSchema = z
     isActive: z
       .boolean()
       .openapi({ description: 'Whether the BubbleFlow is active' }),
+    organizationId: z.number().optional().openapi({
+      description: 'Organization ID this flow belongs to',
+      example: 123,
+    }),
     requiredCredentials: z
       .record(z.string(), z.array(z.nativeEnum(CredentialType)))
       .openapi({ description: 'Required credentials by bubble' }),
+    optionalCredentials: z
+      .record(z.string(), z.array(z.nativeEnum(CredentialType)))
+      .optional()
+      .openapi({
+        description:
+          'Optional credentials by bubble (from capability optionalCredentials)',
+      }),
+    usedCredentials: z.array(usedCredentialSchema).optional().openapi({
+      description:
+        'Credentials used in this flow with metadata (for shared workflow visibility)',
+    }),
     displayedBubbleParameters: z
       .record(
         z.string(),
@@ -295,11 +359,39 @@ export const bubbleFlowDetailsResponseSchema = z
       description:
         'Flow metadata including conversation messages from generation',
     }),
+    permission: z
+      .enum(['owner', 'editor', 'runner', 'viewer'])
+      .optional()
+      .openapi({
+        description: 'Current user permission level for this flow',
+        example: 'owner',
+      }),
+    triggerCredentialId: z.number().nullable().optional().openapi({
+      description: 'Credential ID for trigger authentication',
+    }),
+    triggerCredential: usedCredentialSchema.nullable().optional().openapi({
+      description:
+        'Trigger credential metadata with owner info (for shared workflow visibility)',
+    }),
     createdAt: z.string().openapi({ description: 'Creation timestamp' }),
     updatedAt: z.string().openapi({ description: 'Update timestamp' }),
     webhook_url: z
       .string()
       .openapi({ description: 'Webhook URL for this bubble flow' }),
+    webhookAuthConfig: z
+      .object({
+        authType: z.string().openapi({
+          description: 'Auth type for incoming webhook verification',
+        }),
+        authHeader: z.string().optional().openapi({
+          description: 'Custom header name for auth verification',
+        }),
+      })
+      .nullable()
+      .optional()
+      .openapi({
+        description: 'Webhook auth configuration (null if no auth)',
+      }),
   })
   .openapi('BubbleFlowDetailsResponse');
 
@@ -336,8 +428,41 @@ export const bubbleFlowListItemSchema = z.object({
     )
     .optional()
     .openapi({ description: 'List of bubbles used in this flow' }),
+  permission: flowRoleSchema.optional().openapi({
+    description: 'User permission level for this flow',
+    example: 'owner',
+  }),
+  organizationId: z.number().optional().openapi({
+    description: 'Organization ID this flow belongs to',
+    example: 123,
+  }),
+  ownerId: z.string().openapi({
+    description: 'User ID of the flow owner',
+    example: 'user_abc123',
+  }),
+  triggerCredentialId: z.number().nullable().optional().openapi({
+    description: 'Credential ID for trigger authentication',
+  }),
   createdAt: z.string().openapi({ description: 'Creation timestamp' }),
   updatedAt: z.string().openapi({ description: 'Update timestamp' }),
+  lastExecution: z
+    .object({
+      status: z.enum(['running', 'success', 'error']),
+      startedAt: z.string(),
+      completedAt: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional()
+    .openapi({ description: 'Most recent execution summary' }),
+  ownerInfo: z
+    .object({
+      userId: z.string(),
+      email: z.string(),
+      name: z.string().nullable(),
+    })
+    .nullable()
+    .optional()
+    .openapi({ description: 'Flow owner display info' }),
 });
 
 // GET /bubble-flow - List BubbleFlows response with user info

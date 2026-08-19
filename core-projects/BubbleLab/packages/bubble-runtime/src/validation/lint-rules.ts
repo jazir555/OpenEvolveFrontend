@@ -19,6 +19,8 @@ export interface LintRuleContext {
   handleMethod: ts.MethodDeclaration | null;
   handleMethodBody: ts.Block | null;
   importedBubbleClasses: Set<string>;
+  /** The trigger type extracted from BubbleFlow<'trigger-type'> generic parameter */
+  bubbleFlowTriggerType: string | null;
 }
 
 /**
@@ -78,6 +80,7 @@ export class LintRuleRegistry {
 function parseLintRuleContext(sourceFile: ts.SourceFile): LintRuleContext {
   let bubbleFlowClass: ts.ClassDeclaration | null = null;
   let handleMethod: ts.MethodDeclaration | null = null;
+  let bubbleFlowTriggerType: string | null = null;
   const importedBubbleClasses = new Set<string>();
 
   // Single AST traversal to collect all needed information
@@ -91,6 +94,18 @@ function parseLintRuleContext(sourceFile: ts.SourceFile): LintRuleContext {
               if (ts.isIdentifier(type.expression)) {
                 if (type.expression.text === 'BubbleFlow') {
                   bubbleFlowClass = node;
+
+                  // Extract trigger type from BubbleFlow<'trigger-type'> generic parameter
+                  if (type.typeArguments && type.typeArguments.length > 0) {
+                    const firstArg = type.typeArguments[0];
+                    if (
+                      ts.isLiteralTypeNode(firstArg) &&
+                      ts.isStringLiteral(firstArg.literal)
+                    ) {
+                      bubbleFlowTriggerType = firstArg.literal.text;
+                    }
+                  }
+
                   // Find handle method in this class
                   if (node.members) {
                     for (const member of node.members) {
@@ -162,6 +177,7 @@ function parseLintRuleContext(sourceFile: ts.SourceFile): LintRuleContext {
     handleMethod,
     handleMethodBody,
     importedBubbleClasses,
+    bubbleFlowTriggerType,
   };
 }
 
@@ -1009,6 +1025,606 @@ export const singleBubbleFlowClassRule: LintRule = {
 };
 
 /**
+ * Mapping of trigger types to their expected payload type names
+ * Used by the enforce-payload-type lint rule
+ */
+const TRIGGER_PAYLOAD_TYPE_MAP: Record<string, string> = {
+  'slack/bot_mentioned': 'SlackMentionEvent',
+  'slack/message_received': 'SlackMessageReceivedEvent',
+  'slack/reaction_added': 'SlackReactionAddedEvent',
+  'schedule/cron': 'CronEvent',
+  'webhook/http': 'WebhookEvent',
+};
+
+/**
+ * Set of all base trigger event type names.
+ * Used to detect when a user uses the wrong base type (e.g., CronEvent for a Slack trigger).
+ */
+const BASE_TRIGGER_EVENT_TYPES = new Set(
+  Object.values(TRIGGER_PAYLOAD_TYPE_MAP)
+);
+
+/**
+ * Lint rule that enforces proper payload typing for BubbleFlow<TriggerType>
+ *
+ * When a class extends BubbleFlow<'slack/bot_mentioned'>, the handle() method's
+ * payload parameter must be typed with the correct event type (e.g., SlackMentionEvent)
+ * from BubbleTriggerEventRegistry, not 'any' or an incompatible type.
+ *
+ * This is a blocking error - mismatched types will prevent the flow from being saved.
+ */
+export const enforcePayloadTypeRule: LintRule = {
+  name: 'enforce-payload-type',
+  validate(context: LintRuleContext): LintError[] {
+    const errors: LintError[] = [];
+
+    // Skip if no BubbleFlow class or handle method found
+    if (!context.bubbleFlowClass || !context.handleMethod) {
+      return errors;
+    }
+
+    // Skip if no trigger type extracted
+    if (!context.bubbleFlowTriggerType) {
+      return errors;
+    }
+
+    // Get the expected payload type for this trigger
+    const expectedTypeName =
+      TRIGGER_PAYLOAD_TYPE_MAP[context.bubbleFlowTriggerType];
+    if (!expectedTypeName) {
+      // Unknown trigger type, skip validation
+      return errors;
+    }
+
+    // Check the handle method's first parameter
+    const parameters = context.handleMethod.parameters;
+    if (parameters.length === 0) {
+      const { line } = context.sourceFile.getLineAndCharacterOfPosition(
+        context.handleMethod.getStart(context.sourceFile)
+      );
+      errors.push({
+        line: line + 1,
+        message: `handle() method must have a payload parameter typed as '${expectedTypeName}' for trigger type '${context.bubbleFlowTriggerType}'.`,
+      });
+      return errors;
+    }
+
+    const firstParam = parameters[0];
+    const typeAnnotation = firstParam.type;
+
+    // Check if parameter has no type annotation
+    if (!typeAnnotation) {
+      const { line } = context.sourceFile.getLineAndCharacterOfPosition(
+        firstParam.getStart(context.sourceFile)
+      );
+      errors.push({
+        line: line + 1,
+        message: `Payload parameter must be typed as '${expectedTypeName}' for trigger type '${context.bubbleFlowTriggerType}'. Add explicit type annotation.`,
+      });
+      return errors;
+    }
+
+    // Check for 'any' type
+    if (typeAnnotation.kind === ts.SyntaxKind.AnyKeyword) {
+      const { line } = context.sourceFile.getLineAndCharacterOfPosition(
+        typeAnnotation.getStart(context.sourceFile)
+      );
+      errors.push({
+        line: line + 1,
+        message: `Payload type 'any' is not allowed. Use '${expectedTypeName}' for trigger type '${context.bubbleFlowTriggerType}'.`,
+      });
+      return errors;
+    }
+
+    // Check if the type is a reference type and matches expected
+    if (ts.isTypeReferenceNode(typeAnnotation)) {
+      const typeName = typeAnnotation.typeName;
+      let actualTypeName: string | null = null;
+
+      if (ts.isIdentifier(typeName)) {
+        actualTypeName = typeName.text;
+      } else if (ts.isQualifiedName(typeName)) {
+        // Handle qualified names like Namespace.Type
+        actualTypeName = typeName.right.text;
+      }
+
+      if (actualTypeName && actualTypeName !== expectedTypeName) {
+        // Allow custom interfaces that extend the base trigger event.
+        // We only error if the type is a DIFFERENT base trigger event type.
+        // e.g., using CronEvent for a Slack trigger is an error,
+        // but using MyCustomSlackPayload (which extends SlackMentionEvent) is allowed.
+        if (BASE_TRIGGER_EVENT_TYPES.has(actualTypeName)) {
+          // Using a different base trigger event type - this is an error
+          const { line } = context.sourceFile.getLineAndCharacterOfPosition(
+            typeAnnotation.getStart(context.sourceFile)
+          );
+          errors.push({
+            line: line + 1,
+            message: `Payload type mismatch: expected '${expectedTypeName}' (or a custom interface extending it) for trigger type '${context.bubbleFlowTriggerType}', but found '${actualTypeName}'.`,
+          });
+        }
+        // Otherwise, it's a custom interface - allow it (parser will handle extraction)
+      }
+    }
+
+    // Check for indexed access type: BubbleTriggerEventRegistry['slack/bot_mentioned']
+    if (ts.isIndexedAccessTypeNode(typeAnnotation)) {
+      const objectType = typeAnnotation.objectType;
+      const indexType = typeAnnotation.indexType;
+
+      // Verify it's BubbleTriggerEventRegistry
+      if (
+        ts.isTypeReferenceNode(objectType) &&
+        ts.isIdentifier(objectType.typeName) &&
+        objectType.typeName.text === 'BubbleTriggerEventRegistry'
+      ) {
+        // Verify the index matches the trigger type
+        if (
+          ts.isLiteralTypeNode(indexType) &&
+          ts.isStringLiteral(indexType.literal)
+        ) {
+          const indexValue = indexType.literal.text;
+          if (indexValue !== context.bubbleFlowTriggerType) {
+            const { line } = context.sourceFile.getLineAndCharacterOfPosition(
+              typeAnnotation.getStart(context.sourceFile)
+            );
+            errors.push({
+              line: line + 1,
+              message: `Payload type mismatch: indexed access uses '${indexValue}' but BubbleFlow extends '${context.bubbleFlowTriggerType}'.`,
+            });
+          }
+        }
+      }
+    }
+
+    return errors;
+  },
+};
+
+/**
+ * Lint rule that bans casting the payload parameter to a different type inside handle().
+ *
+ * This pattern defeats the type system and prevents the parser from extracting custom fields:
+ *
+ * BAD:
+ * ```typescript
+ * interface MyPayload extends SlackMentionEvent { customField: string; }
+ * async handle(payload: SlackMentionEvent) {
+ *   const { customField } = payload as MyPayload; // Cast inside - BAD!
+ * }
+ * ```
+ *
+ * GOOD:
+ * ```typescript
+ * interface MyPayload extends SlackMentionEvent { customField: string; }
+ * async handle(payload: MyPayload) { // Use custom type directly
+ *   const { customField } = payload; // No cast needed
+ * }
+ * ```
+ */
+export const noCastPayloadInHandleRule: LintRule = {
+  name: 'no-cast-payload-in-handle',
+  validate(context: LintRuleContext): LintError[] {
+    const errors: LintError[] = [];
+
+    // Skip if no handle method or body
+    if (!context.handleMethod || !context.handleMethodBody) {
+      return errors;
+    }
+
+    // Get the payload parameter name
+    const parameters = context.handleMethod.parameters;
+    if (parameters.length === 0) {
+      return errors;
+    }
+
+    const firstParam = parameters[0];
+    let payloadParamName: string | null = null;
+
+    if (ts.isIdentifier(firstParam.name)) {
+      payloadParamName = firstParam.name.text;
+    }
+
+    if (!payloadParamName) {
+      return errors;
+    }
+
+    // Get the declared type of the payload parameter
+    const paramType = firstParam.type;
+    let declaredTypeName: string | null = null;
+
+    if (paramType && ts.isTypeReferenceNode(paramType)) {
+      if (ts.isIdentifier(paramType.typeName)) {
+        declaredTypeName = paramType.typeName.text;
+      }
+    }
+
+    // Unwrap nested `as` expressions to get the innermost expression.
+    // e.g. `payload.body as unknown as FlowInputs` → `payload.body`
+    const unwrapAsExpressions = (node: ts.Expression): ts.Expression => {
+      while (ts.isAsExpression(node)) {
+        node = node.expression;
+      }
+      return node;
+    };
+
+    // Check if an expression references the payload parameter (directly or via property access).
+    // Matches: `payload`, `payload.body`, `payload.something`
+    const referencesPayload = (expr: ts.Expression): boolean => {
+      if (ts.isIdentifier(expr) && expr.text === payloadParamName) {
+        return true;
+      }
+      if (
+        ts.isPropertyAccessExpression(expr) &&
+        ts.isIdentifier(expr.expression) &&
+        expr.expression.text === payloadParamName
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    // Walk the handle method body looking for 'as' expressions on the payload
+    const findPayloadCasts = (node: ts.Node): void => {
+      // Check for type assertion: payload as SomeType or payload.body as unknown as SomeType
+      if (ts.isAsExpression(node)) {
+        const targetType = node.type;
+        const innerExpr = unwrapAsExpressions(node);
+
+        // Check if the innermost expression references the payload parameter
+        if (referencesPayload(innerExpr)) {
+          // Get the outermost target type name
+          let targetTypeName: string | null = null;
+          if (ts.isTypeReferenceNode(targetType)) {
+            if (ts.isIdentifier(targetType.typeName)) {
+              targetTypeName = targetType.typeName.text;
+            }
+          }
+
+          // If casting to a different type than declared, report error
+          if (targetTypeName && targetTypeName !== declaredTypeName) {
+            const { line, character } =
+              context.sourceFile.getLineAndCharacterOfPosition(
+                node.getStart(context.sourceFile)
+              );
+
+            // Tailor the message for payload.body casts vs direct payload casts
+            const isBodyAccess =
+              ts.isPropertyAccessExpression(innerExpr) &&
+              innerExpr.name.text === 'body';
+            const fixHint = isBodyAccess
+              ? `Do not access payload.body and cast it. Instead, declare your input fields by extending the trigger event type: 'export interface ${targetTypeName} extends ${declaredTypeName ?? 'WebhookEvent'} { ... }' and use it as the parameter type: handle(payload: ${targetTypeName}).`
+              : `Do not cast payload to '${targetTypeName}' inside handle(). Instead, use '${targetTypeName}' as the parameter type directly: handle(payload: ${targetTypeName}).`;
+
+            errors.push({
+              line: line + 1,
+              column: character + 1,
+              message: `${fixHint} This allows the parser to extract custom fields from your payload interface.`,
+            });
+          }
+        }
+      }
+
+      ts.forEachChild(node, findPayloadCasts);
+    };
+
+    findPayloadCasts(context.handleMethodBody);
+
+    return errors;
+  },
+};
+
+/**
+ * Property names that accept Zod schemas for structured output.
+ * - expectedOutputSchema: Used by AIAgentBubble
+ * - expectedResultSchema: Used by ResearchAgentTool
+ */
+const SCHEMA_PROPERTY_NAMES = [
+  'expectedOutputSchema',
+  'expectedResultSchema',
+] as const;
+
+/**
+ * Lint rule that prevents calling .toString() on Zod schemas for expectedOutputSchema/expectedResultSchema.
+ *
+ * Calling .toString() on a Zod schema returns a useless string like "ZodObject"
+ * instead of the actual JSON schema. This causes the AI to not follow the expected
+ * output structure.
+ *
+ * BAD:
+ * ```typescript
+ * expectedOutputSchema: z.object({ companies: z.array(...) }).toString()
+ * expectedResultSchema: z.object({ result: z.string() }).toString()
+ * ```
+ *
+ * GOOD:
+ * ```typescript
+ * expectedOutputSchema: z.object({ companies: z.array(...) })
+ * expectedResultSchema: z.object({ result: z.string() })
+ * ```
+ */
+export const noToStringOnExpectedOutputSchemaRule: LintRule = {
+  name: 'no-tostring-on-expected-output-schema',
+  validate(context: LintRuleContext): LintError[] {
+    const errors: LintError[] = [];
+
+    const visit = (node: ts.Node): void => {
+      // Look for property assignments: expectedOutputSchema/expectedResultSchema: <value>
+      if (ts.isPropertyAssignment(node)) {
+        const propName = node.name;
+        let matchedPropName: string | null = null;
+
+        if (ts.isIdentifier(propName)) {
+          if (
+            SCHEMA_PROPERTY_NAMES.includes(
+              propName.text as (typeof SCHEMA_PROPERTY_NAMES)[number]
+            )
+          ) {
+            matchedPropName = propName.text;
+          }
+        } else if (ts.isStringLiteral(propName)) {
+          if (
+            SCHEMA_PROPERTY_NAMES.includes(
+              propName.text as (typeof SCHEMA_PROPERTY_NAMES)[number]
+            )
+          ) {
+            matchedPropName = propName.text;
+          }
+        }
+
+        if (matchedPropName) {
+          // Check if the value is a call expression ending with .toString()
+          const value = node.initializer;
+          if (ts.isCallExpression(value)) {
+            const callee = value.expression;
+            if (
+              ts.isPropertyAccessExpression(callee) &&
+              callee.name.text === 'toString'
+            ) {
+              const { line, character } =
+                context.sourceFile.getLineAndCharacterOfPosition(
+                  value.getStart(context.sourceFile)
+                );
+              errors.push({
+                line: line + 1,
+                column: character + 1,
+                message: `Do not call .toString() on Zod schemas for ${matchedPropName}. Pass the Zod schema directly: ${matchedPropName}: z.object({ ... })`,
+              });
+            }
+          }
+        }
+      }
+
+      ts.forEachChild(node, visit);
+    };
+
+    visit(context.sourceFile);
+    return errors;
+  },
+};
+
+/**
+ * Lint rule that prevents calling JSON.stringify() on Zod schemas for expectedOutputSchema/expectedResultSchema.
+ *
+ * JSON.stringify() on a Zod schema returns unusable JSON representation of the schema object
+ * instead of the actual JSON schema format needed for AI structured output.
+ *
+ * BAD:
+ * ```typescript
+ * expectedOutputSchema: JSON.stringify(z.object({ ... }))
+ * expectedResultSchema: JSON.stringify(z.object({ ... }))
+ * ```
+ *
+ * GOOD:
+ * ```typescript
+ * expectedOutputSchema: z.object({ ... })
+ * expectedResultSchema: z.object({ ... })
+ * ```
+ */
+export const noJsonStringifyOnExpectedOutputSchemaRule: LintRule = {
+  name: 'no-json-stringify-on-expected-output-schema',
+  validate(context: LintRuleContext): LintError[] {
+    const errors: LintError[] = [];
+
+    const visit = (node: ts.Node): void => {
+      // Look for property assignments: expectedOutputSchema/expectedResultSchema: <value>
+      if (ts.isPropertyAssignment(node)) {
+        const propName = node.name;
+        let matchedPropName: string | null = null;
+
+        if (ts.isIdentifier(propName)) {
+          if (
+            SCHEMA_PROPERTY_NAMES.includes(
+              propName.text as (typeof SCHEMA_PROPERTY_NAMES)[number]
+            )
+          ) {
+            matchedPropName = propName.text;
+          }
+        } else if (ts.isStringLiteral(propName)) {
+          if (
+            SCHEMA_PROPERTY_NAMES.includes(
+              propName.text as (typeof SCHEMA_PROPERTY_NAMES)[number]
+            )
+          ) {
+            matchedPropName = propName.text;
+          }
+        }
+
+        if (matchedPropName) {
+          // Check if the value is JSON.stringify(...)
+          const value = node.initializer;
+          if (ts.isCallExpression(value)) {
+            const callee = value.expression;
+            if (
+              ts.isPropertyAccessExpression(callee) &&
+              ts.isIdentifier(callee.expression) &&
+              callee.expression.text === 'JSON' &&
+              callee.name.text === 'stringify'
+            ) {
+              const { line, character } =
+                context.sourceFile.getLineAndCharacterOfPosition(
+                  value.getStart(context.sourceFile)
+                );
+              errors.push({
+                line: line + 1,
+                column: character + 1,
+                message: `Do not call JSON.stringify() on Zod schemas for ${matchedPropName}. Pass the Zod schema directly: ${matchedPropName}: z.object({ ... })`,
+              });
+            }
+          }
+        }
+      }
+
+      ts.forEachChild(node, visit);
+    };
+
+    visit(context.sourceFile);
+    return errors;
+  },
+};
+
+/**
+ * Lint rule that prevents capabilities from having inline `inputs`.
+ *
+ * Capability inputs should be configured by the user via the Capabilities UI,
+ * not hardcoded in the flow code. The runtime injects input values at execution time.
+ *
+ * BAD:
+ * ```typescript
+ * capabilities: [{ id: 'knowledge-base', inputs: { sources: [`google-doc:${docId}:edit`] } }]
+ * ```
+ *
+ * GOOD:
+ * ```typescript
+ * capabilities: [{ id: 'knowledge-base' }]
+ * ```
+ */
+export const noCapabilityInputsRule: LintRule = {
+  name: 'no-capability-inputs',
+  validate(context: LintRuleContext): LintError[] {
+    const errors: LintError[] = [];
+
+    const visit = (node: ts.Node): void => {
+      // Look for property assignments named 'capabilities'
+      if (ts.isPropertyAssignment(node)) {
+        const propName = node.name;
+        const isCapabilities =
+          (ts.isIdentifier(propName) && propName.text === 'capabilities') ||
+          (ts.isStringLiteral(propName) && propName.text === 'capabilities');
+
+        if (isCapabilities) {
+          // Check if the value is an array literal
+          const value = node.initializer;
+          if (ts.isArrayLiteralExpression(value)) {
+            for (const element of value.elements) {
+              checkCapabilityObjectForInputs(
+                element,
+                context.sourceFile,
+                errors
+              );
+            }
+          }
+        }
+      }
+
+      ts.forEachChild(node, visit);
+    };
+
+    visit(context.sourceFile);
+    return errors;
+  },
+};
+
+/**
+ * Checks whether a node is a pure constant expression (no variable references).
+ * Allows: string/number/boolean literals, object literals with constant values,
+ * array literals with constant values, template literals without expressions.
+ * Disallows: identifiers (variables), template expressions, call expressions, etc.
+ */
+function isConstantExpression(node: ts.Node): boolean {
+  if (
+    ts.isStringLiteral(node) ||
+    ts.isNumericLiteral(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node) ||
+    node.kind === ts.SyntaxKind.TrueKeyword ||
+    node.kind === ts.SyntaxKind.FalseKeyword ||
+    node.kind === ts.SyntaxKind.NullKeyword
+  ) {
+    return true;
+  }
+
+  if (ts.isArrayLiteralExpression(node)) {
+    return node.elements.every((el) => isConstantExpression(el));
+  }
+
+  if (ts.isObjectLiteralExpression(node)) {
+    return node.properties.every((prop) => {
+      if (ts.isPropertyAssignment(prop)) {
+        return isConstantExpression(prop.initializer);
+      }
+      // Spread, shorthand, etc. are not constant
+      return false;
+    });
+  }
+
+  return false;
+}
+
+/**
+ * Checks if a capability object literal contains an 'inputs' property
+ * that references variables. Constant/literal inputs are allowed.
+ */
+function checkCapabilityObjectForInputs(
+  node: ts.Expression,
+  sourceFile: ts.SourceFile,
+  errors: LintError[]
+): void {
+  if (!ts.isObjectLiteralExpression(node)) return;
+
+  // Verify this looks like a capability object (has an 'id' property)
+  let hasIdProperty = false;
+  for (const prop of node.properties) {
+    if (ts.isPropertyAssignment(prop)) {
+      const name = prop.name;
+      if (
+        (ts.isIdentifier(name) && name.text === 'id') ||
+        (ts.isStringLiteral(name) && name.text === 'id')
+      ) {
+        hasIdProperty = true;
+        break;
+      }
+    }
+  }
+
+  if (!hasIdProperty) return;
+
+  // Now check for 'inputs' property — only flag if the value contains variables
+  for (const prop of node.properties) {
+    if (ts.isPropertyAssignment(prop)) {
+      const name = prop.name;
+      if (
+        (ts.isIdentifier(name) && name.text === 'inputs') ||
+        (ts.isStringLiteral(name) && name.text === 'inputs')
+      ) {
+        // Allow constant/literal inputs — only flag variable references
+        if (isConstantExpression(prop.initializer)) {
+          continue;
+        }
+
+        const { line } = sourceFile.getLineAndCharacterOfPosition(
+          prop.getStart(sourceFile)
+        );
+        errors.push({
+          line: line + 1,
+          message:
+            "Capability 'inputs' should not reference variables in code. Use constant values only, or remove the inputs property and configure capability inputs in the Capabilities panel. Also remove all references of this variable if it is only used for the agent (commonly flow input).",
+        });
+      }
+    }
+  }
+}
+
+/**
  * Default registry instance with all rules registered
  */
 export const defaultLintRuleRegistry = new LintRuleRegistry();
@@ -1021,3 +1637,8 @@ defaultLintRuleRegistry.register(noMethodCallingMethodRule);
 defaultLintRuleRegistry.register(noTryCatchInHandleRule);
 defaultLintRuleRegistry.register(noAnyTypeRule);
 defaultLintRuleRegistry.register(singleBubbleFlowClassRule);
+defaultLintRuleRegistry.register(enforcePayloadTypeRule);
+defaultLintRuleRegistry.register(noCastPayloadInHandleRule);
+defaultLintRuleRegistry.register(noToStringOnExpectedOutputSchemaRule);
+defaultLintRuleRegistry.register(noJsonStringifyOnExpectedOutputSchemaRule);
+defaultLintRuleRegistry.register(noCapabilityInputsRule);

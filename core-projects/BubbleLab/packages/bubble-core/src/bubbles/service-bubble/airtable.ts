@@ -141,16 +141,20 @@ const AirtableParamsSchema = z.discriminatedUnion('operation', [
       .optional()
       .default('json')
       .describe(
-        'Format for cell values: json (structured) or string (formatted)'
+        'Format for cell values: json (structured) or string (formatted). When using "string", timeZone and userLocale are required by the Airtable API (defaults to UTC/en-US if omitted)'
       ),
     timeZone: z
       .string()
       .optional()
-      .describe('Time zone for date/time fields (e.g., "America/Los_Angeles")'),
+      .describe(
+        'Time zone for date/time fields (e.g., "America/Los_Angeles"). Required when cellFormat is "string", defaults to "UTC"'
+      ),
     userLocale: z
       .string()
       .optional()
-      .describe('Locale for formatting (e.g., "en-US")'),
+      .describe(
+        'Locale for formatting (e.g., "en-US"). Required when cellFormat is "string", defaults to "en-US"'
+      ),
     offset: z
       .string()
       .optional()
@@ -734,22 +738,20 @@ export class AirtableBubble<
     //
     // The best we can do is verify the token format is valid.
     // Actual access will be validated when the user makes their first API call.
-    try {
-      const credential = this.chooseCredential();
-      if (!credential) {
-        return false;
-      }
-
-      // Verify the token format looks like an Airtable PAT
-      // Format: patXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      if (!credential.startsWith('pat') || credential.length < 50) {
-        return false;
-      }
-
-      return true;
-    } catch {
-      return false;
+    const credential = this.chooseCredential();
+    if (!credential) {
+      throw new Error('Airtable credential is required');
     }
+
+    // Verify the token format looks like an Airtable PAT
+    // Format: patXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    if (!credential.startsWith('pat') || credential.length < 50) {
+      throw new Error(
+        'Invalid Airtable PAT format. Expected format: patXXXX.XXXX (at least 50 characters)'
+      );
+    }
+
+    return true;
   }
 
   static readonly type = 'service' as const;
@@ -849,6 +851,10 @@ export class AirtableBubble<
   ): Promise<Extract<AirtableResult, { operation: 'list_records' }>> {
     // Parse params to apply defaults
     const parsed = AirtableParamsSchema.parse(params);
+    const listParams = parsed as Extract<
+      AirtableParamsParsed,
+      { operation: 'list_records' }
+    >;
     const {
       baseId,
       tableIdOrName,
@@ -859,10 +865,14 @@ export class AirtableBubble<
       sort,
       view,
       cellFormat,
-      timeZone,
-      userLocale,
       offset,
-    } = parsed as Extract<AirtableParamsParsed, { operation: 'list_records' }>;
+    } = listParams;
+
+    // Airtable API requires timeZone and userLocale when cellFormat is 'string'
+    const timeZone =
+      listParams.timeZone ?? (cellFormat === 'string' ? 'UTC' : undefined);
+    const userLocale =
+      listParams.userLocale ?? (cellFormat === 'string' ? 'en-US' : undefined);
 
     const queryParams = new URLSearchParams();
 
@@ -1505,7 +1515,11 @@ export class AirtableBubble<
       throw new Error('No Airtable credentials provided');
     }
 
-    return credentials[CredentialType.AIRTABLE_CRED];
+    // Prefer OAuth credential, fall back to PAT
+    return (
+      credentials[CredentialType.AIRTABLE_OAUTH] ??
+      credentials[CredentialType.AIRTABLE_CRED]
+    );
   }
 
   private async makeAirtableApiCall(

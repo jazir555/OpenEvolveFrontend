@@ -2,6 +2,26 @@ import { z } from 'zod';
 import { ToolBubble } from '../../types/tool-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType, type BubbleName } from '@bubblelab/shared-schemas';
+import { HttpBubble } from '../service-bubble/http.js';
+
+// Raw Reddit API post shape — subset of fields we read.
+interface RedditApiPost {
+  title?: string;
+  url?: string;
+  author?: string;
+  score?: number;
+  num_comments?: number;
+  created_utc?: number;
+  permalink?: string;
+  selftext?: string;
+  selftext_html?: string;
+  is_self?: boolean;
+  subreddit?: string;
+  post_hint?: string;
+  thumbnail?: string;
+  domain?: string;
+  link_flair_text?: string;
+}
 
 // Reddit post structure schema
 const RedditPostSchema = z.object({
@@ -303,7 +323,8 @@ export class RedditScrapeTool extends ToolBubble<
         }
 
         // Get the 'after' parameter for next page
-        after = redditData?.data?.after || null;
+        const listing = redditData as { data?: { after?: string } } | undefined;
+        after = listing?.data?.after ?? null;
 
         // If no more posts available, break
         if (!after || posts.length === 0) {
@@ -352,69 +373,50 @@ export class RedditScrapeTool extends ToolBubble<
   }
 
   /**
-   * Fetch data from Reddit's JSON API
+   * Fetch data from Reddit's JSON API via HttpBubble (wall-clock timeout via AbortController).
    */
-  private async fetchRedditData(url: string): Promise<any> {
-    const https = await import('https');
-
-    return new Promise((resolve, reject) => {
-      const request = https.get(
+  private async fetchRedditData(url: string): Promise<unknown> {
+    const reddit_http = await new HttpBubble(
+      {
         url,
-        {
-          headers: {
-            'User-Agent': this.getRandomUserAgent(),
-          },
+        method: 'GET',
+        headers: {
+          'User-Agent': this.getRandomUserAgent(),
         },
-        (response) => {
-          let data = '';
+        timeout: 15000,
+        followRedirects: true,
+      },
+      this.context
+    ).action();
 
-          response.on('data', (chunk) => {
-            data += chunk;
-          });
-
-          response.on('end', () => {
-            if (response.statusCode === 200) {
-              try {
-                const jsonData = JSON.parse(data);
-                resolve(jsonData);
-              } catch (parseError) {
-                reject(
-                  new Error(
-                    `Failed to parse Reddit JSON response: ${parseError}`
-                  )
-                );
-              }
-            } else {
-              reject(
-                new Error(
-                  `Reddit API returned status ${response.statusCode}: ${response.statusMessage}`
-                )
-              );
-            }
-          });
-        }
+    if (!reddit_http.success || !reddit_http.data) {
+      throw new Error(
+        `Network error: ${reddit_http.error ?? 'HttpBubble returned no data'}`
       );
+    }
 
-      request.on('error', (error) => {
-        reject(new Error(`Network error: ${error.message}`));
-      });
+    const { status, statusText, json, body } = reddit_http.data;
+    if (status !== 200) {
+      throw new Error(`Reddit API returned status ${status}: ${statusText}`);
+    }
 
-      request.setTimeout(15000, () => {
-        request.destroy();
-        reject(
-          new Error(
-            'Request timeout - Reddit API did not respond within 15 seconds'
-          )
-        );
-      });
-    });
+    if (json !== undefined) return json;
+
+    try {
+      return JSON.parse(body);
+    } catch (parseError) {
+      throw new Error(`Failed to parse Reddit JSON response: ${parseError}`);
+    }
   }
 
   /**
    * Parse Reddit JSON response into standardized post objects
    */
-  private parseRedditResponse(data: any): RedditPost[] {
+  private parseRedditResponse(raw: unknown): RedditPost[] {
     const posts: RedditPost[] = [];
+    const data = raw as
+      | { data?: { children?: Array<{ data?: RedditApiPost }> } }
+      | undefined;
 
     try {
       if (data?.data?.children) {

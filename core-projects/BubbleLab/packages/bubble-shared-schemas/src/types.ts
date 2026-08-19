@@ -1,24 +1,34 @@
 // Define CredentialType enum here to avoid circular dependencies
 
 export enum CredentialType {
+  /**
+   * Wildcard marker that indicates a bubble accepts any credential type.
+   * Used in BUBBLE_CREDENTIAL_OPTIONS to allow users to plug in any credential.
+   */
+  CREDENTIAL_WILDCARD = '*',
+
   // AI Credentials
   OPENAI_CRED = 'OPENAI_CRED',
   GOOGLE_GEMINI_CRED = 'GOOGLE_GEMINI_CRED',
   ANTHROPIC_CRED = 'ANTHROPIC_CRED',
   OPENROUTER_CRED = 'OPENROUTER_CRED',
+  FIREWORKS_CRED = 'FIREWORKS_CRED',
   // Search Credentials
   FIRECRAWL_API_KEY = 'FIRECRAWL_API_KEY',
   // Database Credentials
   DATABASE_CRED = 'DATABASE_CRED',
   // Communication Credentials
   SLACK_CRED = 'SLACK_CRED',
+  SLACK_API = 'SLACK_API',
   TELEGRAM_BOT_TOKEN = 'TELEGRAM_BOT_TOKEN',
+  DISCORD_CRED = 'DISCORD_CRED',
   // Email Credentials
   RESEND_CRED = 'RESEND_CRED',
   // Storage Credentials
   CLOUDFLARE_R2_ACCESS_KEY = 'CLOUDFLARE_R2_ACCESS_KEY',
   CLOUDFLARE_R2_SECRET_KEY = 'CLOUDFLARE_R2_SECRET_KEY',
   CLOUDFLARE_R2_ACCOUNT_ID = 'CLOUDFLARE_R2_ACCOUNT_ID',
+  S3_CRED = 'S3_CRED',
   // Scraping Credentials
   APIFY_CRED = 'APIFY_CRED',
 
@@ -32,6 +42,8 @@ export enum CredentialType {
   GOOGLE_CALENDAR_CRED = 'GOOGLE_CALENDAR_CRED',
   FUB_CRED = 'FUB_CRED',
   NOTION_OAUTH_TOKEN = 'NOTION_OAUTH_TOKEN',
+  NOTION_API = 'NOTION_API',
+  AIRTABLE_OAUTH = 'AIRTABLE_OAUTH',
 
   // Development Platform Credentials
   GITHUB_TOKEN = 'GITHUB_TOKEN',
@@ -45,6 +57,92 @@ export enum CredentialType {
   // InsForge Credentials
   INSFORGE_BASE_URL = 'INSFORGE_BASE_URL',
   INSFORGE_API_KEY = 'INSFORGE_API_KEY',
+
+  // Custom Authentication Credentials
+  CUSTOM_AUTH_KEY = 'CUSTOM_AUTH_KEY',
+
+  // Browser Session Credentials (BrowserBase-powered)
+  AMAZON_CRED = 'AMAZON_CRED',
+  LINKEDIN_CRED = 'LINKEDIN_CRED',
+  BROWSERBASE_CRED = 'BROWSERBASE_CRED', // Usage tracking for BrowserBase browser minutes
+  // Crustdata Credentials
+  CRUSTDATA_API_KEY = 'CRUSTDATA_API_KEY',
+
+  // Jira Credentials
+  JIRA_CRED = 'JIRA_CRED',
+
+  // Ashby Credentials
+  ASHBY_CRED = 'ASHBY_CRED',
+
+  // FullEnrich Credentials
+  FULLENRICH_API_KEY = 'FULLENRICH_API_KEY',
+
+  // Stripe Credentials
+  STRIPE_CRED = 'STRIPE_CRED',
+
+  // Confluence Credentials
+  CONFLUENCE_CRED = 'CONFLUENCE_CRED',
+
+  // PostHog Credentials
+  POSTHOG_API_KEY = 'POSTHOG_API_KEY',
+
+  // SendSafely Credentials
+  SENDSAFELY_CRED = 'SENDSAFELY_CRED',
+
+  // Linear Credentials
+  LINEAR_CRED = 'LINEAR_CRED',
+
+  // Attio Credentials
+  ATTIO_CRED = 'ATTIO_CRED',
+
+  // HubSpot Credentials
+  HUBSPOT_CRED = 'HUBSPOT_CRED',
+
+  // Sortly Credentials
+  SORTLY_API_KEY = 'SORTLY_API_KEY',
+
+  // Assembled Credentials
+  ASSEMBLED_CRED = 'ASSEMBLED_CRED',
+
+  // Xero Credentials
+  XERO_CRED = 'XERO_CRED',
+
+  // Ramp Credentials
+  RAMP_CRED = 'RAMP_CRED',
+
+  // Zendesk Credentials
+  ZENDESK_CRED = 'ZENDESK_CRED',
+
+  // Slab Credentials
+  SLAB_CRED = 'SLAB_CRED',
+
+  // Snowflake Credentials
+  SNOWFLAKE_CRED = 'SNOWFLAKE_CRED',
+
+  // Salesforce Credentials
+  SALESFORCE_CRED = 'SALESFORCE_CRED',
+
+  // Asana Credentials
+  ASANA_CRED = 'ASANA_CRED',
+
+  // DocuSign Credentials
+  DOCUSIGN_CRED = 'DOCUSIGN_CRED',
+
+  // Metabase Credentials
+  METABASE_CRED = 'METABASE_CRED',
+
+  // Clerk Credentials
+  CLERK_CRED = 'CLERK_CRED',
+  CLERK_API_KEY = 'CLERK_API_KEY',
+
+  // Granola Credentials
+  GRANOLA_API_KEY = 'GRANOLA_API_KEY',
+
+  // Memberful Credentials
+  MEMBERFUL_CRED = 'MEMBERFUL_CRED',
+
+  // Zoom Credentials
+  ZOOM_CRED = 'ZOOM_CRED',
 }
 
 // Define all bubble names as a union type for type safety
@@ -59,7 +157,9 @@ export type BubbleName =
   | 'database-analyzer'
   | 'slack-notifier'
   | 'get-bubble-details-tool'
+  | 'get-trigger-detail-tool'
   | 'list-bubbles-tool'
+  | 'list-capabilities-tool'
   | 'sql-query-tool'
   | 'chart-js-tool'
   | 'web-search-tool'
@@ -78,6 +178,7 @@ export type BubbleName =
   | 'bubbleflow-validation-tool'
   | 'code-edit-tool'
   | 'storage'
+  | 's3-storage'
   | 'google-drive'
   | 'gmail'
   | 'google-sheets'
@@ -88,6 +189,7 @@ export type BubbleName =
   | 'tiktok-tool'
   | 'twitter-tool'
   | 'google-maps-tool'
+  | 'app-rankings-tool'
   | 'youtube-tool'
   | 'github'
   | 'eleven-labs'
@@ -97,4 +199,41 @@ export type BubbleName =
   | 'airtable'
   | 'notion'
   | 'firecrawl'
-  | 'insforge-db';
+  | 'insforge-db'
+  | 'browserbase'
+  | 'amazon-shopping-tool'
+  | 'crustdata'
+  | 'company-enrichment-tool'
+  | 'people-search-tool'
+  | 'jira'
+  | 'ashby'
+  | 'fullenrich'
+  | 'linkedin-connection-tool'
+  | 'linkedin-sent-invitations-tool'
+  | 'linkedin-received-invitations-tool'
+  | 'linkedin-accept-invitations-tool'
+  | 'stripe'
+  | 'confluence'
+  | 'sendsafely'
+  | 'yc-scraper-tool'
+  | 'posthog'
+  | 'linear'
+  | 'attio'
+  | 'hubspot'
+  | 'assembled'
+  | 'xero'
+  | 'ramp'
+  | 'zendesk'
+  | 'slab'
+  | 'snowflake'
+  | 'salesforce'
+  | 'asana'
+  | 'discord'
+  | 'sortly'
+  | 'docusign'
+  | 'metabase'
+  | 'clerk'
+  | 'granola'
+  | 'memberful'
+  | 'luma'
+  | 'zoom';

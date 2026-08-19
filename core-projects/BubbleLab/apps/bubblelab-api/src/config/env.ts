@@ -18,14 +18,12 @@ let loaded = false;
 for (const path of envPaths) {
   if (existsSync(path)) {
     config({ path });
-    console.log(`✅ Loaded .env from: ${path}`);
     loaded = true;
     break;
   }
 }
 
 if (!loaded) {
-  console.log('⚠️  No .env file found, using system environment variables');
   // Still call config() to load from system env or process.env
   config();
 }
@@ -70,6 +68,7 @@ export const env = {
   GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   DATABASE_URL: process.env.DATABASE_URL!,
   PYTHON_PATH: process.env.PYTHON_PATH,
   BUBBLE_ENV: process.env.BUBBLE_ENV || 'dev',
@@ -82,6 +81,10 @@ export const env = {
   FUB_OAUTH_CLIENT_SECRET: process.env.FUB_OAUTH_CLIENT_SECRET,
   NOTION_OAUTH_CLIENT_ID: process.env.NOTION_OAUTH_CLIENT_ID,
   NOTION_OAUTH_CLIENT_SECRET: process.env.NOTION_OAUTH_CLIENT_SECRET,
+  JIRA_OAUTH_CLIENT_ID: process.env.JIRA_OAUTH_CLIENT_ID,
+  JIRA_OAUTH_CLIENT_SECRET: process.env.JIRA_OAUTH_CLIENT_SECRET,
+  STRIPE_OAUTH_CLIENT_ID: process.env.STRIPE_OAUTH_CLIENT_ID,
+  STRIPE_OAUTH_CLIENT_SECRET: process.env.STRIPE_OAUTH_CLIENT_SECRET,
   FUB_SYSTEM_NAME: process.env.FUB_SYSTEM_NAME,
   FUB_SYSTEM_KEY: process.env.FUB_SYSTEM_KEY,
   POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
@@ -89,49 +92,10 @@ export const env = {
   POSTHOG_ENABLED: process.env.POSTHOG_ENABLED === 'true',
   WISPR_API_KEY: process.env.WISPR_API_KEY,
   HACKATHON_COUPON_CODES: process.env.HACKATHON_COUPON_CODES || '',
+  // BrowserBase credentials (system-level)
+  BROWSERBASE_API_KEY: process.env.BROWSERBASE_API_KEY,
+  BROWSERBASE_PROJECT_ID: process.env.BROWSERBASE_PROJECT_ID,
   isDev:
     process.env.BUBBLE_ENV?.toLowerCase() === 'dev' ||
     process.env.BUBBLE_ENV?.toLowerCase() === 'test',
 } as const;
-
-// Log database configuration
-const envType = process.env.DATABASE_URL?.includes('test.db')
-  ? 'TEST'
-  : env.BUBBLE_ENV.toUpperCase();
-console.log(`📦 Using ${envType} database:`, env.DATABASE_URL);
-
-// Log which env vars are loaded (without showing values for security)
-console.log('🔧 Environment variables loaded:', {
-  GOOGLE_API_KEY: env.GOOGLE_API_KEY ? '✅ Set' : '❌ Missing',
-  OPENAI_API_KEY: env.OPENAI_API_KEY ? '✅ Set' : '❌ Missing',
-  OPENROUTER_API_KEY: env.OPENROUTER_API_KEY ? '✅ Set' : '❌ Missing',
-  DATABASE_URL: env.DATABASE_URL ? '✅ Set' : '❌ Missing',
-  NODEX_API_URL: env.NODEX_API_URL,
-  PYTHON_PATH: env.PYTHON_PATH,
-  FIRE_CRAWL_API_KEY: env.FIRE_CRAWL_API_KEY ? '✅ Set' : '❌ Missing',
-  SLACK_REMINDER_CHANNEL: env.SLACK_REMINDER_CHANNEL ? '✅ Set' : '❌ Missing',
-  SLACK_BOT_TOKEN: env.SLACK_BOT_TOKEN ? '✅ Set' : '❌ Missing',
-  PORT: env.PORT,
-  isDev: env.isDev,
-  GOOGLE_OAUTH_CLIENT_ID: env.GOOGLE_OAUTH_CLIENT_ID ? '✅ Set' : '❌ Missing',
-  GOOGLE_OAUTH_CLIENT_SECRET: env.GOOGLE_OAUTH_CLIENT_SECRET
-    ? '✅ Set'
-    : '❌ Missing',
-  FUB_OAUTH_CLIENT_ID: env.FUB_OAUTH_CLIENT_ID ? '✅ Set' : '❌ Missing',
-  FUB_OAUTH_CLIENT_SECRET: env.FUB_OAUTH_CLIENT_SECRET
-    ? '✅ Set'
-    : '❌ Missing',
-  NOTION_OAUTH_CLIENT_ID: env.NOTION_OAUTH_CLIENT_ID ? '✅ Set' : '❌ Missing',
-  NOTION_OAUTH_CLIENT_SECRET: env.NOTION_OAUTH_CLIENT_SECRET
-    ? '✅ Set'
-    : '❌ Missing',
-  FUB_SYSTEM_NAME: env.FUB_SYSTEM_NAME ? '✅ Set' : '❌ Missing',
-  FUB_SYSTEM_KEY: env.FUB_SYSTEM_KEY ? '✅ Set' : '❌ Missing',
-  POSTHOG_API_KEY: env.POSTHOG_API_KEY ? '✅ Set' : '❌ Missing',
-  POSTHOG_HOST: env.POSTHOG_HOST,
-  POSTHOG_ENABLED: env.POSTHOG_ENABLED ? '✅ Enabled' : '❌ Disabled',
-  WISPR_API_KEY: env.WISPR_API_KEY ? '✅ Set' : '❌ Missing',
-  HACKATHON_COUPON_CODES: env.HACKATHON_COUPON_CODES
-    ? '✅ Set'
-    : '❌ Not configured',
-});

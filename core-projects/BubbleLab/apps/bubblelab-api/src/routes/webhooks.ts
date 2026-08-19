@@ -22,7 +22,10 @@ import {
   setupErrorHandler,
   validationErrorHook,
 } from '../utils/error-handler.js';
-import { transformWebhookPayload } from '../utils/payload-transformer.js';
+import {
+  transformWebhookPayload,
+  shouldSkipSlackEvent,
+} from '../utils/payload-transformer.js';
 
 const app = new OpenAPIHono({
   defaultHook: validationErrorHook,
@@ -53,8 +56,6 @@ app.openapi(webhookRoute, async (c) => {
   // Check if this is a Slack URL verification request
   const urlVerification = slackUrlVerificationSchema.safeParse(requestBody);
   if (urlVerification.success) {
-    console.log(`🔗 Slack URL verification for webhook: ${userId}/${path}`);
-
     // Activate the webhook if it exists but isn't active
     const webhookForActivation = await db.query.webhooks.findFirst({
       where: (webhooks, { eq, and }) =>
@@ -62,7 +63,6 @@ app.openapi(webhookRoute, async (c) => {
     });
 
     if (webhookForActivation && !webhookForActivation.isActive) {
-      console.log(`🟢 Activating webhook: ${userId}/${path}`);
       await db
         .update(webhooks)
         .set({ isActive: true })
@@ -106,7 +106,7 @@ app.openapi(webhookRoute, async (c) => {
   }
 
   // Transform the webhook payload into the appropriate event structure
-  const webhookPayload = transformWebhookPayload(
+  const transformedPayload = transformWebhookPayload(
     webhook.bubbleFlow.eventType as keyof BubbleTriggerEventRegistry,
     requestBody,
     `/webhook/${userId}/${path}`,
@@ -114,32 +114,38 @@ app.openapi(webhookRoute, async (c) => {
     c.req.header()
   );
 
-  console.log(
-    `🔗 Webhook triggered: ${userId}/${path} -> BubbleFlow ID ${webhook.bubbleFlowId}`
-  );
-  console.log(`📦 Event type: ${webhook.bubbleFlow.eventType}`);
-  console.log(`📦 Original body keys: ${Object.keys(requestBody).join(', ')}`);
-  console.log(
-    `📦 Transformed payload keys: ${Object.keys(webhookPayload).join(', ')}`
-  );
-  console.log(
-    `📦 Transformed payload: ${JSON.stringify(webhookPayload, null, 2)}`
-  );
+  // Merge defaultInputs from the flow (similar to cron behavior)
+  // Default values are overridden by incoming payload values
+  const defaultInputs = (webhook.bubbleFlow.defaultInputs || {}) as Record<
+    string,
+    unknown
+  >;
+  const webhookPayload = {
+    ...defaultInputs,
+    ...transformedPayload,
+  };
 
   // For Slack events, return 200 immediately and process asynchronously
   const isSlackEvent = webhook.bubbleFlow.eventType.startsWith('slack/');
 
   if (isSlackEvent) {
+    // Skip bot messages and system messages to prevent infinite loops
+    if (
+      shouldSkipSlackEvent(
+        webhook.bubbleFlow.eventType as keyof BubbleTriggerEventRegistry,
+        requestBody
+      )
+    ) {
+      return c.json({}, 200);
+    }
+
     // Execute the flow asynchronously (don't await)
     executeBubbleFlowViaWebhook(webhook.bubbleFlowId, webhookPayload, {
       userId,
       pricingTable: getPricingTable(),
     })
-      .then((result) => {
-        console.log(
-          `✅ Slack event processed asynchronously for ${userId}/${path}:`,
-          result.success ? 'Success' : `Failed - ${result.error}`
-        );
+      .then(() => {
+        // Slack event processed asynchronously
       })
       .catch((error) => {
         console.error(

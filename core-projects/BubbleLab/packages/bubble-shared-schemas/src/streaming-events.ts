@@ -29,7 +29,11 @@ export interface StreamingLogEvent {
     | 'tool_call_start' // New event for AI agent tool call start
     | 'tool_call_complete' // New event for AI agent tool call completion
     | 'function_call_start' // New event for transformation function call start
-    | 'function_call_complete'; // New event for transformation function call completion
+    | 'function_call_complete' // New event for transformation function call completion
+    | 'start_evaluating' // Evaluation by Rice agent started
+    | 'end_evaluating' // Evaluation by Rice agent complete with result
+    | 'browser_session_start' // BrowserBase session started with live debug URL
+    | 'browser_session_end'; // BrowserBase session ended
   timestamp: string;
   lineNumber?: number;
   variableId?: number;
@@ -68,6 +72,16 @@ export interface StreamingLogEvent {
     outputTokens: number;
     totalTokens: number;
   };
+  // For evaluation events (start_evaluating, end_evaluating)
+  evaluationResult?: {
+    working: boolean;
+    issueType: 'setup' | 'workflow' | 'input' | null;
+    summary: string;
+    rating: number;
+  };
+  // For browser_session_start and browser_session_end events
+  browserSessionUrl?: string; // The debug URL for live browser viewing
+  browserSessionId?: string; // The BrowserBase session ID
 }
 // Define streaming event types for real-time AI agent feedback
 export type StreamingEvent =
@@ -79,6 +93,17 @@ export type StreamingEvent =
   | { type: 'token'; data: { content: string; messageId: string } }
   | { type: 'think'; data: { content: string; messageId: string } }
   | {
+      /**
+       * Emitted when an intermediate LLM turn finalizes a text content block
+       * alongside tool_use blocks. These blocks are otherwise invisible to the
+       * frontend — raw tokens are dropped as noisy, and `agent_response` only
+       * carries the final turn's text. Emit one event per text block so the
+       * UI can render each as its own assistant message between tool cards.
+       */
+      type: 'text_block_complete';
+      data: { content: string; messageId: string };
+    }
+  | {
       type: 'llm_complete';
       data: {
         messageId: string;
@@ -87,19 +112,29 @@ export type StreamingEvent =
       };
     }
   | {
-      type: 'tool_start';
-      data: { tool: string; input: unknown; callId: string };
-    }
-  | {
-      type: 'tool_complete';
+      type: 'tool_call_start';
       data: {
         tool: string;
-        input: {
-          input: string;
-        };
+        input: unknown;
+        callId: string;
+        variableId?: number;
+        /** Name of the agent that emitted the call. Empty/undefined for the
+         * master agent; "Capability Agent: <id>" for subagents. */
+        agentName?: string;
+      };
+    }
+  | {
+      type: 'tool_call_complete';
+      data: {
+        tool: string;
+        input: unknown;
         output: unknown;
         duration: number;
         callId: string;
+        variableId?: number;
+        /** Name of the agent that emitted the call. Empty/undefined for the
+         * master agent; "Capability Agent: <id>" for subagents. */
+        agentName?: string;
       };
     }
   | { type: 'iteration_start'; data: { iteration: number } }

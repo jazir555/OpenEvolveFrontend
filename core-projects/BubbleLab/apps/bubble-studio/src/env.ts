@@ -39,4 +39,15 @@ export const POSTHOG_HOST: string =
 export const ANALYTICS_ENABLED: boolean =
   import.meta.env.VITE_ANALYTICS_ENABLED !== 'false'; // Enabled by default unless explicitly disabled
 
+// Google Picker API Configuration
+export const GOOGLE_API_KEY: string | undefined = import.meta.env
+  .VITE_GOOGLE_API_KEY;
+export const GOOGLE_OAUTH_CLIENT_ID: string | undefined = import.meta.env
+  .VITE_GOOGLE_OAUTH_CLIENT_ID;
+
+// Debug mode - enables extra developer features (copy buttons, etc.)
+// Defaults to true in dev mode (import.meta.env.DEV), can be overridden via env var
+export const DEBUG_MODE: boolean =
+  import.meta.env.VITE_DEBUG_MODE === 'true' || import.meta.env.DEV;
+
 console.log('DISABLE_AUTH', DISABLE_AUTH);

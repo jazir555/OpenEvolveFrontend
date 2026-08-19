@@ -4,7 +4,7 @@ import { eq, and, inArray } from 'drizzle-orm';
 import { CredentialEncryption } from '../utils/encryption.js';
 // CredentialType imported for future use in credential validation
 import type { ParsedBubble } from '@bubblelab/shared-schemas';
-import type { DatabaseMetadata } from '@bubblelab/shared-schemas';
+import type { CredentialMetadata } from '@bubblelab/shared-schemas';
 import { oauthService } from './oauth-service.js';
 
 export interface UserCredentialMapping {
@@ -12,7 +12,9 @@ export interface UserCredentialMapping {
   secret: string;
   credentialType: string; // The credential type from the database (e.g., 'OPENAI_CRED', 'SLACK_CRED')
   credentialId: number;
-  metadata?: DatabaseMetadata; // Database metadata for DATABASE_CRED types
+  metadata?: CredentialMetadata; // Credential metadata (DatabaseMetadata or JiraOAuthMetadata)
+  /** User-assigned credential name (used for credential pool metadata) */
+  name?: string;
 }
 
 /**
@@ -44,11 +46,14 @@ export class CredentialHelper {
         try {
           // Parse the credentials object: { CredentialType -> credentialId }
           const credentialsObj = this.parseCredentialsObject(
-            credentialsParam.value as Record<string, number>
+            credentialsParam.value as Record<string, number | number[]>
           );
 
-          for (const [, credentialId] of Object.entries(credentialsObj)) {
-            if (typeof credentialId === 'number') {
+          for (const [, credentialIdOrIds] of Object.entries(credentialsObj)) {
+            const ids = Array.isArray(credentialIdOrIds)
+              ? credentialIdOrIds
+              : [credentialIdOrIds];
+            for (const credentialId of ids) {
               if (!credentialIds.includes(credentialId)) {
                 credentialIds.push(credentialId);
               }
@@ -88,10 +93,10 @@ export class CredentialHelper {
 
         if (encryptedCred.isOauth) {
           // Prefer using OAuth service to auto-refresh and return a valid token
-          resolvedSecret = await oauthService.getValidToken(encryptedCred.id);
+          const oauthToken = await oauthService.getValidToken(encryptedCred.id);
 
           // Fallback: attempt to decrypt stored access token if service returned null
-          if (!resolvedSecret && encryptedCred.oauthAccessToken) {
+          if (!oauthToken && encryptedCred.oauthAccessToken) {
             try {
               resolvedSecret = await CredentialEncryption.decrypt(
                 encryptedCred.oauthAccessToken
@@ -99,6 +104,64 @@ export class CredentialHelper {
             } catch (e) {
               // Ignore and let it fall through to skip
             }
+          } else if (oauthToken) {
+            // Special handling for Jira OAuth - encode token + cloudId as base64 JSON
+            // Base64 encoding avoids JSON escaping issues when injecting into generated code
+            if (
+              encryptedCred.credentialType === 'JIRA_CRED' &&
+              encryptedCred.metadata
+            ) {
+              const jiraMetadata = encryptedCred.metadata as unknown as {
+                cloudId?: string;
+                siteUrl?: string;
+                siteName?: string;
+              };
+              if (jiraMetadata.cloudId) {
+                // Encode Jira credential as base64-encoded JSON with token and cloudId
+                const jsonPayload = JSON.stringify({
+                  accessToken: oauthToken,
+                  cloudId: jiraMetadata.cloudId,
+                  siteUrl: jiraMetadata.siteUrl,
+                });
+                resolvedSecret = Buffer.from(jsonPayload).toString('base64');
+                console.log(
+                  '[CredentialHelper] Encoded Jira OAuth credential (base64) with cloudId:',
+                  jiraMetadata.cloudId
+                );
+              } else {
+                console.error(
+                  '[CredentialHelper] Jira credential missing cloudId in metadata'
+                );
+                resolvedSecret = oauthToken;
+              }
+            } else {
+              resolvedSecret = oauthToken;
+            }
+          }
+        } else if (encryptedCred.isBrowserSession) {
+          // Browser session credential - build base64-encoded JSON with contextId and decrypted cookies
+          // Base64 encoding avoids JSON escaping issues when injecting into generated code
+          if (encryptedCred.browserbaseContextId) {
+            let cookies: unknown[] = [];
+            if (encryptedCred.browserbaseCookies) {
+              try {
+                const decryptedCookies = await CredentialEncryption.decrypt(
+                  encryptedCred.browserbaseCookies
+                );
+                cookies = JSON.parse(decryptedCookies);
+              } catch (e) {
+                console.warn(
+                  `Failed to decrypt cookies for credential ${encryptedCred.id}:`,
+                  e
+                );
+              }
+            }
+            // Build the session data payload as base64-encoded JSON
+            const jsonPayload = JSON.stringify({
+              contextId: encryptedCred.browserbaseContextId,
+              cookies,
+            });
+            resolvedSecret = Buffer.from(jsonPayload).toString('base64');
           }
         } else if (encryptedCred.encryptedValue) {
           resolvedSecret = await CredentialEncryption.decrypt(
@@ -120,6 +183,7 @@ export class CredentialHelper {
               credentialType: encryptedCred.credentialType,
               credentialId: encryptedCred.id,
               metadata: encryptedCred.metadata || undefined,
+              name: encryptedCred.name || undefined,
             });
           }
         }
@@ -142,13 +206,18 @@ export class CredentialHelper {
    * @returns Object mapping credential types to credential IDs
    */
   private static parseCredentialsObject(
-    credentialsValue: Record<string, number>
-  ): Record<string, number> {
-    // Validate that all values are numbers (credential IDs)
-    const result: Record<string, number> = {};
+    credentialsValue: Record<string, number | number[]>
+  ): Record<string, number | number[]> {
+    // Validate that all values are numbers or arrays of numbers (credential IDs)
+    const result: Record<string, number | number[]> = {};
     for (const [key, value] of Object.entries(credentialsValue)) {
       if (typeof value === 'number' && Number.isInteger(value)) {
         result[key] = value;
+      } else if (Array.isArray(value)) {
+        const validIds = value.filter(
+          (v) => typeof v === 'number' && Number.isInteger(v)
+        );
+        if (validIds.length > 0) result[key] = validIds;
       } else {
         console.warn(`Skipping invalid credential ID for ${key}: ${value}`);
       }

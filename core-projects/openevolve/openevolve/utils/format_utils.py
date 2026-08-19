@@ -20,8 +20,10 @@ def format_metrics_safe(metrics: Dict[str, Any]) -> str:
 
     formatted_parts = []
     for name, value in metrics.items():
-        # Check if value is numeric (int, float)
-        if isinstance(value, (int, float)):
+        # bool is a subclass of int, but logging it as 1.0000/0.0000 is confusing.
+        if isinstance(value, bool):
+            formatted_parts.append(f"{name}={value}")
+        elif isinstance(value, (int, float)):
             try:
                 # Only apply float formatting to numeric values
                 formatted_parts.append(f"{name}={value:.4f}")

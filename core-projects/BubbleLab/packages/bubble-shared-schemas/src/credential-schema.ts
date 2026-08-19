@@ -1,6 +1,770 @@
 import { BubbleName, CredentialType } from './types.js';
 import { z } from '@hono/zod-openapi';
-import { databaseMetadataSchema } from './database-definition-schema.js';
+import {
+  databaseMetadataSchema,
+  jiraOAuthMetadataSchema,
+  slackOAuthMetadataSchema,
+  airtableOAuthMetadataSchema,
+  googleOAuthMetadataSchema,
+  notionOAuthMetadataSchema,
+  confluenceOAuthMetadataSchema,
+  stripeOAuthMetadataSchema,
+  linearOAuthMetadataSchema,
+  asanaOAuthMetadataSchema,
+  credentialPreferencesSchema,
+  browserSessionMetadataSchema,
+} from './database-definition-schema.js';
+
+/**
+ * Structured credential requirements separating required from optional credentials.
+ * Used by BubbleInjector.findCredentials() and propagated through validation/execution layers.
+ */
+export interface CredentialRequirements {
+  required: Record<string, CredentialType[]>;
+  optional: Record<string, CredentialType[]>;
+}
+
+/**
+ * A single entry in a credential pool — contains metadata and decrypted value.
+ * Used by AI agent master to present credential choices and resolve selections.
+ */
+export interface CredentialPoolEntry {
+  id: number;
+  name: string;
+  value: string;
+  /** True when the user marked this credential as the default for its type. */
+  isDefault?: boolean;
+  /**
+   * Per-credential-type display hints surfaced to the master agent's prompt
+   * (e.g. `{ workspace: "Bubble Lab", authMethod: "oauth", hasUserToken: "yes" }`).
+   * Populated by an extractor in Pro that reads `userCredentials.metadata`.
+   * Display-only — capability runtime code should not branch on these.
+   */
+  attributes?: Record<string, string>;
+}
+
+/**
+ * A single field within a multi-field credential.
+ * When a credential type has `fields`, the UI renders multiple labeled inputs
+ * and stores them as a single JSON-encoded `value`.
+ */
+export interface CredentialField {
+  key: string;
+  label: string;
+  placeholder: string;
+  type?: 'text' | 'password'; // default 'password'
+  required?: boolean; // default true
+}
+
+/**
+ * Configuration for a credential type displayed in the UI
+ */
+export interface CredentialConfig {
+  label: string;
+  description: string;
+  placeholder: string;
+  namePlaceholder: string;
+  credentialConfigurations: Record<string, unknown>;
+  fields?: CredentialField[]; // multi-field credentials (stored as JSON value)
+}
+
+/**
+ * Base64-encode a JSON credential payload for safe injection into generated code.
+ * Structured credentials (multi-field, OAuth+metadata, browser sessions) contain JSON
+ * with quotes that get corrupted by BubbleInjector.escapeString(). Base64 avoids this.
+ */
+export function encodeCredentialPayload(jsonPayload: string): string {
+  return Buffer.from(jsonPayload).toString('base64');
+}
+
+/**
+ * Decode a credential payload that may be base64-encoded or raw JSON.
+ * Handles both formats:
+ * - **base64** (normal execution): credential-helper base64-encodes before injection
+ * - **raw JSON/string** (validator path): credential-validator passes decrypted value directly
+ *
+ * Used by any bubble that receives structured credential data:
+ * multi-field credentials (SendSafely), OAuth+metadata (Jira/Confluence),
+ * browser sessions (BrowserBase/Amazon/LinkedIn).
+ */
+export function decodeCredentialPayload<T = Record<string, unknown>>(
+  value: string
+): T {
+  let json: string;
+  try {
+    json = Buffer.from(value, 'base64').toString('utf-8');
+    JSON.parse(json); // validate it's JSON after decoding
+  } catch {
+    json = value; // already raw JSON (validator path)
+  }
+  return JSON.parse(json) as T;
+}
+
+/**
+ * Configuration for all credential types - used by Credentials page and AI agents
+ */
+export const CREDENTIAL_TYPE_CONFIG: Record<CredentialType, CredentialConfig> =
+  {
+    [CredentialType.OPENAI_CRED]: {
+      label: 'OpenAI',
+      description: 'API key for OpenAI services (GPT models, embeddings, etc.)',
+      placeholder: 'sk-...',
+      namePlaceholder: 'My OpenAI API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.GOOGLE_GEMINI_CRED]: {
+      label: 'Google Gemini',
+      description: 'API key for Google Gemini AI models',
+      placeholder: 'AIza...',
+      namePlaceholder: 'My Google Gemini Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.ANTHROPIC_CRED]: {
+      label: 'Anthropic',
+      description: 'API key for Anthropic Claude models',
+      placeholder: 'sk-ant-...',
+      namePlaceholder: 'My Anthropic API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.DATABASE_CRED]: {
+      label: 'Database (PostgreSQL)',
+      description: 'Database connection string for PostgreSQL',
+      placeholder: 'postgresql://user:pass@host:port/dbname',
+      namePlaceholder: 'My PostgreSQL Database',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.FIRECRAWL_API_KEY]: {
+      label: 'Firecrawl',
+      description: 'API key for Firecrawl web scraping and search services',
+      placeholder: 'fc-...',
+      namePlaceholder: 'My Firecrawl API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.SLACK_CRED]: {
+      label: 'Slack (OAuth)',
+      description: 'OAuth connection to Slack workspace',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Slack Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.SLACK_API]: {
+      label: 'Slack',
+      description:
+        'Slack Bot token (xoxb-) or User token (xoxp-) from api.slack.com/apps',
+      placeholder: 'xoxb-... or xoxp-...',
+      namePlaceholder: 'My Slack Bot Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.RESEND_CRED]: {
+      label: 'Resend',
+      description: 'Your Resend API key for email services',
+      placeholder: 're_...',
+      namePlaceholder: 'My Resend API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.OPENROUTER_CRED]: {
+      label: 'OpenRouter',
+      description: 'API key for OpenRouter services',
+      placeholder: 'sk-or-...',
+      namePlaceholder: 'My OpenRouter API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.FIREWORKS_CRED]: {
+      label: 'Fireworks AI',
+      description: 'API key for Fireworks AI inference services',
+      placeholder: 'fw_...',
+      namePlaceholder: 'My Fireworks API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: {
+      label: 'Cloudflare R2 Access Key',
+      description: 'Access key for Cloudflare R2 storage',
+      placeholder: 'Enter your access key',
+      namePlaceholder: 'My R2 Access Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: {
+      label: 'Cloudflare R2 Secret Key',
+      description: 'Secret key for Cloudflare R2 storage',
+      placeholder: 'Enter your secret key',
+      namePlaceholder: 'My R2 Secret Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: {
+      label: 'Cloudflare R2 Account ID',
+      description: 'Account ID for Cloudflare R2 storage',
+      placeholder: 'Enter your account ID',
+      namePlaceholder: 'My R2 Account ID',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.APIFY_CRED]: {
+      label: 'Apify',
+      description: 'API token for Apify platform (web scraping, automation)',
+      placeholder: 'apify_api_...',
+      namePlaceholder: 'My Apify API Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.GOOGLE_DRIVE_CRED]: {
+      label: 'Google Drive',
+      description: 'OAuth connection to Google Drive for file access',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Google Drive Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.GMAIL_CRED]: {
+      label: 'Gmail',
+      description: 'OAuth connection to Gmail for email management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Gmail Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.GOOGLE_SHEETS_CRED]: {
+      label: 'Google Sheets',
+      description:
+        'OAuth connection to Google Sheets for spreadsheet management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Google Sheets Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.GOOGLE_CALENDAR_CRED]: {
+      label: 'Google Calendar',
+      description:
+        'OAuth connection to Google Calendar for events and schedules',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Google Calendar Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.FUB_CRED]: {
+      label: 'Follow Up Boss',
+      description:
+        'OAuth connection to Follow Up Boss CRM for contacts, tasks, and deals',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Follow Up Boss Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.NOTION_OAUTH_TOKEN]: {
+      label: 'Notion (OAuth)',
+      description:
+        'OAuth connection to your Notion workspace (pages, databases, search)',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Notion Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.NOTION_API]: {
+      label: 'Notion (API Key)',
+      description: 'Internal Integration Token for Notion API access',
+      placeholder: 'ntn_...',
+      namePlaceholder: 'My Notion API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.GITHUB_TOKEN]: {
+      label: 'GitHub',
+      description:
+        'Personal Access Token for GitHub API (read repos, PRs, issues)',
+      placeholder: 'github_pat...',
+      namePlaceholder: 'My GitHub Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ELEVENLABS_API_KEY]: {
+      label: 'Eleven Labs API Key',
+      description: 'Your API key from Eleven Labs',
+      placeholder: 'agent_...',
+      namePlaceholder: 'My Eleven Labs Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.AGI_API_KEY]: {
+      label: 'AGI Inc API Key',
+      description: 'Your API key from AGI Inc',
+      placeholder: 'api_...',
+      namePlaceholder: 'My AGI Inc Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.TELEGRAM_BOT_TOKEN]: {
+      label: 'Telegram Bot Token',
+      description: 'Your Telegram bot token',
+      placeholder: 'bot_...',
+      namePlaceholder: 'My Telegram Bot Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.AIRTABLE_CRED]: {
+      label: 'Airtable',
+      description:
+        'Personal Access Token for Airtable API (manage bases, tables, records)',
+      placeholder: 'pat...',
+      namePlaceholder: 'My Airtable Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.AIRTABLE_OAUTH]: {
+      label: 'Airtable (OAuth)',
+      description:
+        'OAuth connection to Airtable for full API access including webhooks',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Airtable Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.INSFORGE_BASE_URL]: {
+      label: 'InsForge Base URL',
+      description:
+        'Base URL for your InsForge backend (e.g., https://your-app.region.insforge.app)',
+      placeholder: 'https://your-app.region.insforge.app',
+      namePlaceholder: 'My InsForge Backend URL',
+      credentialConfigurations: {},
+    },
+    [CredentialType.INSFORGE_API_KEY]: {
+      label: 'InsForge API Key',
+      description: 'API key for your InsForge backend',
+      placeholder: 'ik_...',
+      namePlaceholder: 'My InsForge API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.CRUSTDATA_API_KEY]: {
+      label: 'Crustdata API Key',
+      description: 'API key for your Crustdata backend',
+      placeholder: 'crust_...',
+      namePlaceholder: 'My Crustdata API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.CUSTOM_AUTH_KEY]: {
+      label: 'Custom Authentication Key',
+      description:
+        'Custom API key or authentication token for HTTP requests (Bearer, Basic, X-API-Key, etc.)',
+      placeholder: 'Enter your API key or token...',
+      namePlaceholder: 'My Custom Auth Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.AMAZON_CRED]: {
+      label: 'Amazon',
+      description:
+        'Browser session authentication for Amazon shopping (cart, orders, purchases). Authenticate by logging into your Amazon account in a secure browser session.',
+      placeholder: '', // Not used for browser session auth
+      namePlaceholder: 'My Amazon Account',
+      credentialConfigurations: {
+        proxy: { server: '', username: '', password: '' },
+      },
+    },
+    [CredentialType.BROWSERBASE_CRED]: {
+      label: 'BrowserBase',
+      description:
+        'Usage tracking for BrowserBase browser automation (billed per minute of browser session time). Used internally for billing; credentials are AMAZON_CRED/LINKEDIN_CRED.',
+      placeholder: '',
+      namePlaceholder: 'BrowserBase Usage',
+      credentialConfigurations: {},
+    },
+    [CredentialType.LINKEDIN_CRED]: {
+      label: 'LinkedIn',
+      description:
+        'Browser session authentication for LinkedIn automation (connections, messaging). Authenticate by logging into your LinkedIn account in a secure browser session.',
+      placeholder: '', // Not used for browser session auth
+      namePlaceholder: 'My LinkedIn Account',
+      credentialConfigurations: {
+        proxy: { server: '', username: '', password: '' },
+      },
+    },
+    [CredentialType.JIRA_CRED]: {
+      label: 'Jira',
+      description:
+        'OAuth connection to Jira Cloud for issue tracking and project management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Jira Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ASHBY_CRED]: {
+      label: 'Ashby',
+      description:
+        'API key for Ashby ATS (Applicant Tracking System) for candidate management',
+      placeholder: 'Enter your Ashby API key...',
+      namePlaceholder: 'My Ashby API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.FULLENRICH_API_KEY]: {
+      label: 'FullEnrich',
+      description:
+        'API key for FullEnrich B2B contact enrichment (emails, phones, LinkedIn data)',
+      placeholder: 'Enter your FullEnrich API key...',
+      namePlaceholder: 'My FullEnrich API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.STRIPE_CRED]: {
+      label: 'Stripe',
+      description:
+        'Stripe API secret key for payment processing (sk_live_... or sk_test_...)',
+      placeholder: 'sk_...',
+      namePlaceholder: 'My Stripe API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.CONFLUENCE_CRED]: {
+      label: 'Confluence',
+      description:
+        'OAuth connection to Confluence Cloud for wiki and content management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Confluence Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.POSTHOG_API_KEY]: {
+      label: 'PostHog',
+      description:
+        'Personal API Key for PostHog product analytics (events, persons, insights, HogQL queries)',
+      placeholder: 'phx_...',
+      namePlaceholder: 'My PostHog API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.SORTLY_API_KEY]: {
+      label: 'Sortly',
+      description:
+        'API key for Sortly inventory management (Enterprise plan required)',
+      placeholder: 'Your Sortly API key',
+      namePlaceholder: 'My Sortly API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.SENDSAFELY_CRED]: {
+      label: 'SendSafely',
+      description: 'SendSafely API credentials for encrypted file transfer',
+      placeholder: '',
+      namePlaceholder: 'My SendSafely Credentials',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'host',
+          label: 'Host URL',
+          placeholder: 'https://app.sendsafely.com',
+          type: 'text',
+        },
+        {
+          key: 'apiKey',
+          label: 'API Key',
+          placeholder: 'Your API key from Profile > API Keys',
+          type: 'password',
+        },
+        {
+          key: 'apiSecret',
+          label: 'API Secret',
+          placeholder: 'Your API secret from Profile > API Keys',
+          type: 'password',
+        },
+      ],
+    },
+    [CredentialType.S3_CRED]: {
+      label: 'Amazon S3',
+      description:
+        'S3-compatible storage credentials (AWS S3, MinIO, DigitalOcean Spaces, etc.)',
+      placeholder: '',
+      namePlaceholder: 'My S3 Storage',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'accessKeyId',
+          label: 'Access Key ID',
+          placeholder: 'AKIA...',
+          type: 'password',
+        },
+        {
+          key: 'secretAccessKey',
+          label: 'Secret Access Key',
+          placeholder: 'Your secret access key',
+          type: 'password',
+        },
+        {
+          key: 'endpoint',
+          label: 'Endpoint',
+          placeholder:
+            'https://s3.us-east-1.amazonaws.com (leave empty for AWS)',
+          type: 'text',
+          required: false,
+        },
+        {
+          key: 'region',
+          label: 'Region',
+          placeholder: 'us-east-1',
+          type: 'text',
+          required: false,
+        },
+      ],
+    },
+    [CredentialType.LINEAR_CRED]: {
+      label: 'Linear',
+      description:
+        'OAuth connection to Linear for issue tracking and project management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Linear Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.HUBSPOT_CRED]: {
+      label: 'HubSpot',
+      description:
+        'OAuth connection to HubSpot CRM for managing contacts, companies, deals, and tickets',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My HubSpot Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ATTIO_CRED]: {
+      label: 'Attio',
+      description:
+        'OAuth connection to Attio CRM for managing records, notes, tasks, and lists',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Attio Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ASSEMBLED_CRED]: {
+      label: 'Assembled',
+      description:
+        'API key for Assembled workforce management (schedules, agents, time off)',
+      placeholder: 'sk_live_...',
+      namePlaceholder: 'My Assembled API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.XERO_CRED]: {
+      label: 'Xero',
+      description:
+        'OAuth connection to Xero for accounting, invoicing, and financial management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Xero Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.RAMP_CRED]: {
+      label: 'Ramp',
+      description:
+        'OAuth connection to Ramp for corporate expense and spend management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Ramp Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ZENDESK_CRED]: {
+      label: 'Zendesk',
+      description:
+        'OAuth connection to Zendesk for tickets, users, and help center',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Zendesk Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.MEMBERFUL_CRED]: {
+      label: 'Memberful',
+      description:
+        'Credentials for Memberful — site-wide access to members, subscriptions, plans, and orders via the GraphQL API (subdomain + API key)',
+      placeholder: '',
+      namePlaceholder: 'My Memberful Connection',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'subdomain',
+          label: 'Memberful Subdomain',
+          placeholder: 'mysite (from mysite.memberful.com)',
+          type: 'text',
+        },
+        {
+          key: 'apiKey',
+          label: 'API Key',
+          placeholder: 'Your Memberful API key',
+          type: 'password',
+        },
+      ],
+    },
+    [CredentialType.SALESFORCE_CRED]: {
+      label: 'Salesforce',
+      description:
+        'OAuth connection to Salesforce for managing accounts, contacts, opportunities, and records',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Salesforce Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ASANA_CRED]: {
+      label: 'Asana',
+      description: 'OAuth connection to Asana for project and task management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Asana Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.DISCORD_CRED]: {
+      label: 'Discord',
+      description:
+        'OAuth connection to Discord for server messaging and bot management',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Discord Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.SLAB_CRED]: {
+      label: 'Slab',
+      description:
+        'API token for Slab knowledge management (search, read, and update posts)',
+      placeholder: 'Your Slab API token',
+      namePlaceholder: 'My Slab API Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.SNOWFLAKE_CRED]: {
+      label: 'Snowflake',
+      description:
+        'Key-pair credentials for Snowflake data warehouse (account, username, RSA private key)',
+      placeholder: '',
+      namePlaceholder: 'My Snowflake Connection',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'account',
+          label: 'Account Identifier',
+          placeholder: 'ORGNAME-ACCOUNTNAME (from your Snowflake URL)',
+          type: 'text',
+        },
+        {
+          key: 'username',
+          label: 'Username',
+          placeholder: 'Your Snowflake login username',
+          type: 'text',
+        },
+        {
+          key: 'privateKey',
+          label: 'Private Key (RSA PEM)',
+          placeholder:
+            '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----',
+          type: 'password',
+        },
+        {
+          key: 'privateKeyPassword',
+          label: 'Private Key Password',
+          placeholder: 'Leave empty if key is not encrypted',
+          type: 'password',
+          required: false,
+        },
+        {
+          key: 'warehouse',
+          label: 'Warehouse',
+          placeholder: 'COMPUTE_WH (optional default warehouse)',
+          type: 'text',
+          required: false,
+        },
+        {
+          key: 'database',
+          label: 'Database',
+          placeholder: 'Optional default database',
+          type: 'text',
+          required: false,
+        },
+        {
+          key: 'schema',
+          label: 'Schema',
+          placeholder: 'Optional default schema',
+          type: 'text',
+          required: false,
+        },
+        {
+          key: 'role',
+          label: 'Role',
+          placeholder: 'Optional default role',
+          type: 'text',
+          required: false,
+        },
+      ],
+    },
+    [CredentialType.DOCUSIGN_CRED]: {
+      label: 'DocuSign',
+      description: 'OAuth connection to DocuSign for eSignature operations',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My DocuSign Account',
+      credentialConfigurations: {},
+    },
+    [CredentialType.METABASE_CRED]: {
+      label: 'Metabase',
+      description:
+        'Credentials for Metabase analytics and reporting (instance URL + API key)',
+      placeholder: '',
+      namePlaceholder: 'My Metabase Connection',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'url',
+          label: 'Metabase URL',
+          placeholder: 'https://metabase.example.com',
+          type: 'text',
+        },
+        {
+          key: 'apiKey',
+          label: 'API Key',
+          placeholder: 'Your Metabase API key',
+          type: 'password',
+        },
+      ],
+    },
+    [CredentialType.CLERK_CRED]: {
+      label: 'Clerk',
+      description:
+        'Clerk Secret Key for user management, organizations, and billing',
+      placeholder: 'sk_test_... or sk_live_...',
+      namePlaceholder: 'My Clerk Secret Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.CLERK_API_KEY]: {
+      label: 'Clerk (Alt)',
+      description: 'Alternate Clerk credential type',
+      placeholder: 'sk_test_... or sk_live_...',
+      namePlaceholder: 'My Clerk Secret Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.GRANOLA_API_KEY]: {
+      label: 'Granola',
+      description:
+        'API key for Granola meeting notes (requires Business or Enterprise plan)',
+      placeholder: 'Enter your Granola API key...',
+      namePlaceholder: 'My Granola API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ZOOM_CRED]: {
+      label: 'Zoom',
+      description:
+        'OAuth connection to Zoom for meetings, cloud recordings, transcripts, and users',
+      placeholder: '', // Not used for OAuth
+      namePlaceholder: 'My Zoom Connection',
+      credentialConfigurations: {},
+    },
+    [CredentialType.CREDENTIAL_WILDCARD]: {
+      label: 'Any Credential',
+      description:
+        'Wildcard marker - this is not a real credential type, used internally to indicate any credential is accepted',
+      placeholder: '',
+      namePlaceholder: '',
+      credentialConfigurations: {},
+    },
+  } as const satisfies Record<CredentialType, CredentialConfig>;
+
+/**
+ * Generate a human-readable summary of available credentials for AI agents
+ */
+export function generateCredentialsSummary(): string {
+  const lines: string[] = ['Available credentials that users can configure:'];
+
+  for (const [credType, config] of Object.entries(CREDENTIAL_TYPE_CONFIG)) {
+    lines.push(`- ${config.label} (${credType}): ${config.description}`);
+  }
+
+  return lines.join('\n');
+}
 
 /**
  * Maps credential types to their environment variable names (for backend only!!!!)
@@ -12,9 +776,11 @@ export const CREDENTIAL_ENV_MAP: Record<CredentialType, string> = {
   [CredentialType.FIRECRAWL_API_KEY]: 'FIRE_CRAWL_API_KEY',
   [CredentialType.DATABASE_CRED]: 'BUBBLE_CONNECTING_STRING_URL',
   [CredentialType.SLACK_CRED]: 'SLACK_TOKEN',
+  [CredentialType.SLACK_API]: 'SLACK_BOT_TOKEN',
   [CredentialType.TELEGRAM_BOT_TOKEN]: 'TELEGRAM_BOT_TOKEN',
   [CredentialType.RESEND_CRED]: 'RESEND_API_KEY',
   [CredentialType.OPENROUTER_CRED]: 'OPENROUTER_API_KEY',
+  [CredentialType.FIREWORKS_CRED]: 'FIREWORKS_API_KEY',
   [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: 'CLOUDFLARE_R2_ACCESS_KEY',
   [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: 'CLOUDFLARE_R2_SECRET_KEY',
   [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: 'CLOUDFLARE_R2_ACCOUNT_ID',
@@ -28,9 +794,45 @@ export const CREDENTIAL_ENV_MAP: Record<CredentialType, string> = {
   [CredentialType.GITHUB_TOKEN]: 'GITHUB_TOKEN',
   [CredentialType.AGI_API_KEY]: 'AGI_API_KEY',
   [CredentialType.AIRTABLE_CRED]: 'AIRTABLE_API_KEY',
+  [CredentialType.AIRTABLE_OAUTH]: '', // OAuth credential, no env var
   [CredentialType.NOTION_OAUTH_TOKEN]: '',
+  [CredentialType.NOTION_API]: 'NOTION_API_KEY',
   [CredentialType.INSFORGE_BASE_URL]: 'INSFORGE_BASE_URL',
   [CredentialType.INSFORGE_API_KEY]: 'INSFORGE_API_KEY',
+  [CredentialType.CUSTOM_AUTH_KEY]: '', // User-provided, no env var
+  [CredentialType.AMAZON_CRED]: '', // Browser session credential, no env var
+  [CredentialType.BROWSERBASE_CRED]: '', // Usage tracking only, no env var
+  [CredentialType.LINKEDIN_CRED]: '', // Browser session credential, no env var
+  [CredentialType.CRUSTDATA_API_KEY]: 'CRUSTDATA_API_KEY',
+  [CredentialType.JIRA_CRED]: '', // OAuth credential, no env var
+  [CredentialType.ASHBY_CRED]: 'ASHBY_API_KEY',
+  [CredentialType.FULLENRICH_API_KEY]: 'FULLENRICH_API_KEY',
+  [CredentialType.STRIPE_CRED]: 'STRIPE_SECRET_KEY',
+  [CredentialType.CONFLUENCE_CRED]: '', // OAuth credential, no env var
+  [CredentialType.POSTHOG_API_KEY]: 'POSTHOG_API_KEY',
+  [CredentialType.SENDSAFELY_CRED]: '', // Multi-field credential (host + apiKey + apiSecret), no single env var
+  [CredentialType.S3_CRED]: '', // Multi-field credential (accessKeyId + secretAccessKey + endpoint + region), no single env var
+  [CredentialType.LINEAR_CRED]: '', // OAuth credential, no env var
+  [CredentialType.HUBSPOT_CRED]: '', // OAuth credential, no env var
+  [CredentialType.ATTIO_CRED]: '', // OAuth credential, no env var
+  [CredentialType.SORTLY_API_KEY]: 'SORTLY_API_KEY',
+  [CredentialType.ASSEMBLED_CRED]: 'ASSEMBLED_API_KEY',
+  [CredentialType.XERO_CRED]: '', // OAuth credential, no env var
+  [CredentialType.RAMP_CRED]: '', // OAuth credential, no env var
+  [CredentialType.ZENDESK_CRED]: '', // OAuth credential, no env var
+  [CredentialType.SLAB_CRED]: 'SLAB_API_TOKEN',
+  [CredentialType.SNOWFLAKE_CRED]: '', // Multi-field credential (account + username + privateKey + optional fields), no single env var
+  [CredentialType.SALESFORCE_CRED]: '', // OAuth credential, no env var
+  [CredentialType.ASANA_CRED]: '', // OAuth credential, no env var
+  [CredentialType.DISCORD_CRED]: '', // OAuth credential, no env var
+  [CredentialType.DOCUSIGN_CRED]: '', // OAuth credential, no env var
+  [CredentialType.METABASE_CRED]: '', // Multi-field credential (url + apiKey), no single env var
+  [CredentialType.CLERK_CRED]: '', // OAuth credential, no env var
+  [CredentialType.CLERK_API_KEY]: '', // User-provided Secret Key, no env var
+  [CredentialType.GRANOLA_API_KEY]: 'GRANOLA_API_KEY',
+  [CredentialType.MEMBERFUL_CRED]: '', // Multi-field credential (subdomain + apiKey), no single env var
+  [CredentialType.ZOOM_CRED]: '', // OAuth credential, no env var
+  [CredentialType.CREDENTIAL_WILDCARD]: '', // Wildcard marker, not a real credential
 };
 
 /** Used by bubblelab studio */
@@ -41,18 +843,49 @@ export const SYSTEM_CREDENTIALS = new Set<CredentialType>([
   CredentialType.ANTHROPIC_CRED,
   CredentialType.RESEND_CRED,
   CredentialType.OPENROUTER_CRED,
+  CredentialType.FIREWORKS_CRED,
   // Cloudflare R2 Storage credentials
   CredentialType.CLOUDFLARE_R2_ACCESS_KEY,
   CredentialType.CLOUDFLARE_R2_SECRET_KEY,
   CredentialType.CLOUDFLARE_R2_ACCOUNT_ID,
   // Scraping credentials
   CredentialType.APIFY_CRED,
+  CredentialType.CRUSTDATA_API_KEY,
+  // Enrichment credentials
+  CredentialType.FULLENRICH_API_KEY,
+]);
+
+/**
+ * Credentials that are optional (not required) for their associated bubbles.
+ * These will not show as "missing" in the UI when not selected.
+ */
+export const OPTIONAL_CREDENTIALS = new Set<CredentialType>([
+  CredentialType.CUSTOM_AUTH_KEY,
+  CredentialType.FULLENRICH_API_KEY,
+  CredentialType.CREDENTIAL_WILDCARD, // Wildcard means any credential is accepted, so it's always optional
 ]);
 
 /**
  * OAuth provider names - type-safe provider identifiers
  */
-export type OAuthProvider = 'google' | 'followupboss' | 'notion';
+export type OAuthProvider =
+  | 'google'
+  | 'followupboss'
+  | 'notion'
+  | 'jira'
+  | 'slack'
+  | 'airtable'
+  | 'linear'
+  | 'attio'
+  | 'hubspot'
+  | 'xero'
+  | 'ramp'
+  | 'zendesk'
+  | 'salesforce'
+  | 'asana'
+  | 'discord'
+  | 'docusign'
+  | 'zoom';
 
 /**
  * Scope description mapping - maps OAuth scope URLs to human-readable descriptions
@@ -68,7 +901,17 @@ export interface ScopeDescription {
  */
 export interface OAuthCredentialConfig {
   displayName: string; // User-facing name
-  defaultScopes: string[]; // OAuth scopes for this credential type
+  defaultScopes: string[]; // OAuth scopes for this credential type (non-admin, safe for any user)
+  adminScopes?: string[]; // OAuth scopes that require admin approval (optional)
+  /**
+   * User-token scopes (currently Slack only).
+   * For providers like Slack where a single OAuth install grants BOTH a bot token (xoxb)
+   * and a user token (xoxp) in one consent flow, `userScopes` are requested via the
+   * `user_scope=` URL parameter alongside bot `scope=`. The callback returns both tokens.
+   */
+  userScopes?: string[];
+  /** User-token scopes that require workspace admin approval (e.g. admin.users:write). */
+  adminUserScopes?: string[];
   description: string; // Description of what this credential provides access to
   scopeDescriptions?: ScopeDescription[]; // Optional: descriptions for each scope
 }
@@ -105,7 +948,7 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
           {
             scope: 'https://www.googleapis.com/auth/drive.file',
             description:
-              'View and manage Google Drive files and folders that you have created with Bubble Lab',
+              'View and manage Google Drive files and folders that you have created with Bubble Lab or selected w/ file picker',
             defaultEnabled: true,
           },
           {
@@ -119,10 +962,10 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
             defaultEnabled: true,
           },
           {
-            scope: 'https://www.googleapis.com/auth/drive',
+            scope: 'https://www.googleapis.com/auth/drive.readonly',
             description:
-              'View and manage all ofyour Google Drive files and folders (will see a warning about an "untrusted app" during authentication. Choose only if you need extra permissions)',
-            defaultEnabled: false,
+              'View and manage all of your Google Drive files and folders',
+            defaultEnabled: true,
           },
         ],
       },
@@ -141,9 +984,8 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
           },
           {
             scope: 'https://www.googleapis.com/auth/gmail.modify',
-            description:
-              'View and manage all of your Gmail emails and labels (might see a warning about an "untrusted app" during authentication. Choose only if you need extra permissions)',
-            defaultEnabled: false,
+            description: 'View and manage all of your Gmail emails and labels',
+            defaultEnabled: true,
           },
         ],
       },
@@ -205,6 +1047,1671 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
           'Authorize access to your Notion workspace for searching and reading pages/databases',
       },
     },
+    authorizationParams: {
+      owner: 'user',
+    },
+  },
+  jira: {
+    name: 'jira',
+    displayName: 'Jira',
+    credentialTypes: {
+      [CredentialType.JIRA_CRED]: {
+        displayName: 'Jira Cloud',
+        defaultScopes: [
+          'read:jira-user',
+          'read:jira-work',
+          'write:jira-work',
+          'offline_access', // Required for refresh tokens
+        ],
+        description:
+          'Access Jira Cloud for issue tracking and project management',
+        scopeDescriptions: [
+          {
+            scope: 'read:jira-user',
+            description: 'View user information and search for users',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:jira-work',
+            description: 'View issues, projects, and workflows',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write:jira-work',
+            description: 'Create and update issues, comments, and transitions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'offline_access',
+            description:
+              'Maintain access when you are not actively using the app',
+            defaultEnabled: true,
+          },
+        ],
+      },
+      [CredentialType.CONFLUENCE_CRED]: {
+        displayName: 'Confluence Cloud',
+        defaultScopes: [
+          // Granular scopes for v2 API
+          'read:page:confluence',
+          'write:page:confluence',
+          'delete:page:confluence',
+          'read:space:confluence',
+          'read:comment:confluence',
+          'write:comment:confluence',
+          'read:content-details:confluence',
+          // Classic scopes for v1 API (CQL search)
+          'read:confluence-content.all',
+          'write:confluence-content',
+          'search:confluence',
+          'read:confluence-space.summary',
+          'offline_access', // Required for refresh tokens
+        ],
+        description:
+          'Access Confluence Cloud for wiki pages, spaces, and content management',
+        scopeDescriptions: [
+          {
+            scope: 'read:page:confluence',
+            description: 'View page content (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write:page:confluence',
+            description: 'Create and update pages (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'delete:page:confluence',
+            description: 'Delete pages (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:space:confluence',
+            description: 'View space details (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:comment:confluence',
+            description: 'View comments on pages (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write:comment:confluence',
+            description: 'Create comments on pages (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:content-details:confluence',
+            description: 'View content details (v2 API)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:confluence-content.all',
+            description: 'View all Confluence content (classic)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write:confluence-content',
+            description:
+              'Create, update, and delete pages and comments (classic)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'search:confluence',
+            description: 'Search Confluence content using CQL',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'read:confluence-space.summary',
+            description: 'View space summaries and metadata',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'offline_access',
+            description:
+              'Maintain access when you are not actively using the app',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      audience: 'api.atlassian.com',
+      prompt: 'consent',
+    },
+  },
+  slack: {
+    name: 'slack',
+    displayName: 'Slack',
+    credentialTypes: {
+      [CredentialType.SLACK_CRED]: {
+        displayName: 'Slack Workspace',
+        defaultScopes: [
+          // Messaging - Read
+          'app_mentions:read',
+          'channels:history',
+          'groups:history',
+          'im:history',
+          'mpim:history',
+          // Messaging - Write
+          'chat:write',
+          'chat:write.public',
+          'chat:write.customize',
+          // Channels & Conversations - Read
+          'channels:read',
+          'groups:read',
+          'im:read',
+          'mpim:read',
+          // Channels & Conversations - Write
+          'channels:join',
+          'im:write',
+          'im:write.topic',
+          'mpim:write',
+          'mpim:write.topic',
+          // Users & Team (read-only)
+          'users:read',
+          'users:read.email',
+          'users.profile:read',
+          'team:read',
+          'usergroups:read',
+          'dnd:read',
+          // Reactions
+          'reactions:read',
+          'reactions:write',
+          // Files
+          'files:read',
+          'files:write',
+          // Pins & Bookmarks (read-only)
+          'pins:read',
+          'bookmarks:read',
+          // Reminders
+          'reminders:read',
+          'reminders:write',
+          // Commands
+          'commands',
+          // Metadata & Emoji
+          'metadata.message:read',
+          'emoji:read',
+        ],
+        adminScopes: [
+          // Channel management (requires admin)
+          'channels:manage',
+          'channels:write.invites',
+          'channels:write.topic',
+          // Private channel management (requires admin)
+          'groups:write',
+          'groups:write.invites',
+          'groups:write.topic',
+          // User management (requires admin)
+          'users:write',
+          'usergroups:write',
+          // Pins & Bookmarks write (requires admin)
+          'pins:write',
+          'bookmarks:write',
+          // Links (requires admin)
+          'links:read',
+          'links:write',
+          'links.embed:write',
+          // Canvases & Lists (requires admin)
+          'canvases:read',
+          'canvases:write',
+          'lists:read',
+          'lists:write',
+          // Calls (requires admin)
+          'calls:read',
+          'calls:write',
+          // Slack Connect (requires admin)
+          'conversations.connect:read',
+          'conversations.connect:write',
+          'conversations.connect:manage',
+          // Remote files (requires admin)
+          'remote_files:read',
+          'remote_files:write',
+          'remote_files:share',
+          // Assistant (requires admin)
+          'assistant:write',
+          // Team Preferences (requires admin)
+          'team.preferences:read',
+        ],
+        userScopes: [
+          // Mirror the bot-token scopes that exist as user-token scopes (Slack rejects the 6 bot-only ones).
+          'channels:history',
+          'groups:history',
+          'im:history',
+          'mpim:history',
+          'chat:write',
+          'channels:read',
+          'groups:read',
+          'im:read',
+          'mpim:read',
+          'channels:write.invites',
+          'channels:write.topic',
+          'groups:write',
+          'groups:write.invites',
+          'groups:write.topic',
+          'im:write',
+          'im:write.topic',
+          'mpim:write',
+          'mpim:write.topic',
+          'users:read',
+          'users:read.email',
+          'users.profile:read',
+          'users:write',
+          'team:read',
+          'team.preferences:read',
+          'usergroups:read',
+          'usergroups:write',
+          'dnd:read',
+          'reactions:read',
+          'reactions:write',
+          'files:read',
+          'files:write',
+          'pins:read',
+          'pins:write',
+          'bookmarks:read',
+          'bookmarks:write',
+          'reminders:read',
+          'reminders:write',
+          // User-only
+          'search:read',
+          // Richer surfaces
+          'canvases:read',
+          'canvases:write',
+          'lists:read',
+          'lists:write',
+          'calls:read',
+          'calls:write',
+          'links:read',
+          'links:write',
+          'remote_files:read',
+          'remote_files:share',
+          'emoji:read',
+        ],
+        adminUserScopes: [
+          // Business+/Enterprise admin user-scopes — only granted when installer is a workspace admin.
+          'admin',
+          'admin.analytics:read',
+          'admin.apps:read',
+          'admin.apps:write',
+          'admin.barriers:read',
+          'admin.barriers:write',
+          'admin.conversations:read',
+          'admin.conversations:write',
+          'admin.invites:read',
+          'admin.invites:write',
+          'admin.roles:read',
+          'admin.roles:write',
+          'admin.teams:read',
+          'admin.teams:write',
+          'admin.usergroups:read',
+          'admin.usergroups:write',
+          'admin.users:read',
+          'admin.users:write',
+          'admin.workflows:read',
+          'admin.workflows:write',
+          'auditlogs:read',
+        ],
+        description:
+          'Connect to your Slack workspace for full messaging, file sharing, and workflow automation capabilities',
+        scopeDescriptions: [
+          // Messaging - Read
+          {
+            scope: 'app_mentions:read',
+            description: 'Receive @mentions of the bot',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'channels:history',
+            description: 'Read messages in public channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'groups:history',
+            description: 'Read messages in private channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'im:history',
+            description: 'Read direct messages with the bot',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'mpim:history',
+            description: 'Read group DMs with the bot',
+            defaultEnabled: true,
+          },
+          // Messaging - Write
+          {
+            scope: 'chat:write',
+            description: 'Send messages to channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'chat:write.public',
+            description: 'Send messages to any public channel',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'chat:write.customize',
+            description: 'Customize bot username and avatar',
+            defaultEnabled: true,
+          },
+          // Channels - Read
+          {
+            scope: 'channels:read',
+            description: 'View public channels list',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'groups:read',
+            description: 'View private channels list',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'im:read',
+            description: 'View direct messages list',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'mpim:read',
+            description: 'View group DMs list',
+            defaultEnabled: true,
+          },
+          // Channels - Write
+          {
+            scope: 'channels:join',
+            description: 'Join public channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'channels:manage',
+            description: 'Create and archive public channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'channels:write.invites',
+            description: 'Invite users to public channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'channels:write.topic',
+            description: 'Set public channel topics',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'groups:write',
+            description: 'Create and archive private channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'groups:write.invites',
+            description: 'Invite users to private channels',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'groups:write.topic',
+            description: 'Set private channel topics',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'im:write',
+            description: 'Start DM conversations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'im:write.topic',
+            description: 'Set DM topics',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'mpim:write',
+            description: 'Start group DM conversations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'mpim:write.topic',
+            description: 'Set group DM topics',
+            defaultEnabled: true,
+          },
+          // Users & Team
+          {
+            scope: 'users:read',
+            description: 'View user information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'users:read.email',
+            description: 'View user emails',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'users:write',
+            description: 'Set bot presence status',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'users.profile:read',
+            description: 'View detailed user profiles',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'team:read',
+            description: 'View workspace info',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'usergroups:read',
+            description: 'View user groups',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'usergroups:write',
+            description: 'Manage user groups',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'dnd:read',
+            description: 'View Do Not Disturb status',
+            defaultEnabled: true,
+          },
+          // Reactions
+          {
+            scope: 'reactions:read',
+            description: 'View emoji reactions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'reactions:write',
+            description: 'Add emoji reactions',
+            defaultEnabled: true,
+          },
+          // Files
+          {
+            scope: 'files:read',
+            description: 'View shared files',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'files:write',
+            description: 'Upload files',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'remote_files:read',
+            description: 'View remote files',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'remote_files:write',
+            description: 'Manage remote files',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'remote_files:share',
+            description: 'Share remote files',
+            defaultEnabled: true,
+          },
+          // Pins & Bookmarks
+          {
+            scope: 'pins:read',
+            description: 'View pinned messages',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'pins:write',
+            description: 'Pin messages',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'bookmarks:read',
+            description: 'View bookmarks',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'bookmarks:write',
+            description: 'Add bookmarks',
+            defaultEnabled: true,
+          },
+          // Links
+          {
+            scope: 'links:read',
+            description: 'View link metadata',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'links:write',
+            description: 'Unfurl links',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'links.embed:write',
+            description: 'Embed video players',
+            defaultEnabled: true,
+          },
+          // Canvases & Lists
+          {
+            scope: 'canvases:read',
+            description: 'Read Slack canvases',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'canvases:write',
+            description: 'Create and edit canvases',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'lists:read',
+            description: 'Read Slack lists',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'lists:write',
+            description: 'Manage Slack lists',
+            defaultEnabled: true,
+          },
+          // Calls
+          {
+            scope: 'calls:read',
+            description: 'View call information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'calls:write',
+            description: 'Start and manage calls',
+            defaultEnabled: true,
+          },
+          // Reminders
+          {
+            scope: 'reminders:read',
+            description: 'View reminders',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'reminders:write',
+            description: 'Create reminders',
+            defaultEnabled: true,
+          },
+          // Slack Connect
+          {
+            scope: 'conversations.connect:read',
+            description: 'View Slack Connect events',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'conversations.connect:write',
+            description: 'Create Slack Connect invites',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'conversations.connect:manage',
+            description: 'Manage Slack Connect channels',
+            defaultEnabled: true,
+          },
+          // Commands
+          {
+            scope: 'commands',
+            description: 'Use slash commands',
+            defaultEnabled: true,
+          },
+          // Metadata & Emoji
+          {
+            scope: 'metadata.message:read',
+            description: 'Read message metadata',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'emoji:read',
+            description: 'View custom emoji',
+            defaultEnabled: true,
+          },
+          // Assistant
+          {
+            scope: 'assistant:write',
+            description: 'Respond in Slack AI threads',
+            defaultEnabled: true,
+          },
+          // Team Preferences
+          {
+            scope: 'team.preferences:read',
+            description: 'Read workspace preferences',
+            defaultEnabled: true,
+          },
+          // User-token only (Slack does not offer this as a bot scope)
+          {
+            scope: 'search:read',
+            description: "Search the user's messages and files",
+            defaultEnabled: false,
+          },
+          // Workspace admin (adminUserScopes) — only granted when the installer is a workspace admin.
+          {
+            scope: 'admin',
+            description: 'Workspace admin access',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.analytics:read',
+            description: 'Read workspace analytics',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.apps:read',
+            description: 'Read installed apps',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.apps:write',
+            description: 'Approve, restrict, or remove apps',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.barriers:read',
+            description: 'Read information barriers',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.barriers:write',
+            description: 'Manage information barriers',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.conversations:read',
+            description: 'Read workspace conversations as admin',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.conversations:write',
+            description: 'Manage workspace conversations as admin',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.invites:read',
+            description: 'Read workspace invite requests',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.invites:write',
+            description: 'Approve or deny workspace invite requests',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.roles:read',
+            description: 'Read admin role assignments',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.roles:write',
+            description: 'Assign or revoke admin roles',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.teams:read',
+            description: 'Read workspace list',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.teams:write',
+            description: 'Create or manage workspaces',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.usergroups:read',
+            description: 'Read user groups as admin',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.usergroups:write',
+            description: 'Manage user groups as admin',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.users:read',
+            description: 'Read workspace member list as admin',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.users:write',
+            description: 'Invite, remove, or modify workspace members',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.workflows:read',
+            description: 'Read workspace workflows',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'admin.workflows:write',
+            description: 'Manage workspace workflows',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'auditlogs:read',
+            description: 'Read Enterprise Grid audit logs',
+            defaultEnabled: false,
+          },
+        ],
+      },
+    },
+  },
+  airtable: {
+    name: 'airtable',
+    displayName: 'Airtable',
+    credentialTypes: {
+      [CredentialType.AIRTABLE_OAUTH]: {
+        displayName: 'Airtable (OAuth)',
+        defaultScopes: [
+          'data.records:read',
+          'data.records:write',
+          'data.recordComments:read',
+          'data.recordComments:write',
+          'schema.bases:read',
+          'schema.bases:write',
+          'user.email:read',
+          'webhook:manage',
+        ],
+        description:
+          'Connect to Airtable with OAuth for full API access including webhooks',
+        scopeDescriptions: [
+          {
+            scope: 'data.records:read',
+            description: 'See the data in records',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'data.records:write',
+            description: 'Create, edit, and delete records',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'data.recordComments:read',
+            description: 'See comments in records',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'data.recordComments:write',
+            description: 'Create, edit, and delete record comments',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'schema.bases:read',
+            description:
+              'See the structure of a base, like table names or field types',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'schema.bases:write',
+            description:
+              'Edit the structure of a base, like adding new fields or tables',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'user.email:read',
+            description: "See the user's email address",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'webhook:manage',
+            description:
+              'View, create, delete webhooks for a base, as well as fetch webhook payloads',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+  },
+  linear: {
+    name: 'linear',
+    displayName: 'Linear',
+    credentialTypes: {
+      [CredentialType.LINEAR_CRED]: {
+        displayName: 'Linear',
+        defaultScopes: ['read', 'write', 'issues:create', 'comments:create'],
+        description: 'Access Linear for issue tracking and project management',
+        scopeDescriptions: [
+          {
+            scope: 'read',
+            description: 'Read access to your Linear workspace data',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write',
+            description:
+              'Write access to create and update issues, comments, and projects',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'issues:create',
+            description: 'Create new issues',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'comments:create',
+            description: 'Create comments on issues',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      prompt: 'consent',
+    },
+  },
+  attio: {
+    name: 'attio',
+    displayName: 'Attio',
+    credentialTypes: {
+      [CredentialType.ATTIO_CRED]: {
+        displayName: 'Attio CRM',
+        defaultScopes: [
+          'record_permission:read',
+          'record_permission:read-write',
+          'object_configuration:read',
+          'note:read-write',
+          'task:read-write',
+          'list_entry:read',
+          'list_entry:read-write',
+          'list_configuration:read',
+          'user_management:read',
+        ],
+        description:
+          'Access Attio CRM for managing records, notes, tasks, and lists',
+        scopeDescriptions: [
+          {
+            scope: 'record_permission:read',
+            description: 'View records (people, companies, custom objects)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'record_permission:read-write',
+            description: 'Create, update, and delete records',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'object_configuration:read',
+            description: 'View object and attribute configurations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'note:read-write',
+            description: 'Create, view, and manage notes on records',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'task:read-write',
+            description: 'Create, view, update, and delete tasks',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'list_entry:read',
+            description: 'View list entries and pipeline data',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'list_entry:read-write',
+            description: 'Add and modify list entries',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'list_configuration:read',
+            description: 'View list configurations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'user_management:read',
+            description: 'View workspace member information',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      prompt: 'consent',
+    },
+  },
+  hubspot: {
+    name: 'hubspot',
+    displayName: 'HubSpot',
+    credentialTypes: {
+      [CredentialType.HUBSPOT_CRED]: {
+        displayName: 'HubSpot CRM',
+        defaultScopes: [
+          'crm.objects.contacts.read',
+          'crm.objects.contacts.write',
+          'crm.objects.companies.read',
+          'crm.objects.companies.write',
+          'crm.objects.deals.read',
+          'crm.objects.deals.write',
+          'crm.objects.custom.read',
+          'crm.objects.custom.write',
+          'crm.objects.owners.read',
+          'settings.users.read',
+          'settings.users.write',
+          'settings.users.teams.read',
+          'settings.users.teams.write',
+          'crm.objects.line_items.read',
+          'crm.objects.line_items.write',
+          'crm.schemas.contacts.read',
+          'crm.schemas.companies.read',
+          'crm.schemas.deals.read',
+          'tickets',
+        ],
+        description:
+          'Access HubSpot CRM for managing contacts, companies, deals, and tickets',
+        scopeDescriptions: [
+          {
+            scope: 'crm.objects.contacts.read',
+            description: 'View contacts and their properties',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.contacts.write',
+            description: 'Create, update, and delete contacts',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.companies.read',
+            description: 'View companies and their properties',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.companies.write',
+            description: 'Create, update, and delete companies',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.deals.read',
+            description: 'View deals and their properties',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.deals.write',
+            description: 'Create, update, and delete deals',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.custom.read',
+            description: 'View custom objects including tickets',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.custom.write',
+            description: 'Create, update, and delete custom objects',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.owners.read',
+            description: 'View account owners and their details',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'settings.users.read',
+            description: 'View user account settings',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'settings.users.write',
+            description: 'Modify user account settings',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'settings.users.teams.read',
+            description: 'View team assignments and structure',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'settings.users.teams.write',
+            description: 'Modify team assignments',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'crm.objects.line_items.read',
+            description: 'View line items on deals',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.objects.line_items.write',
+            description: 'Create, update, and delete line items',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.schemas.contacts.read',
+            description: 'View contact property definitions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.schemas.companies.read',
+            description: 'View company property definitions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'crm.schemas.deals.read',
+            description: 'View deal property definitions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'tickets',
+            description: 'Manage support tickets',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      prompt: 'consent',
+    },
+  },
+  ramp: {
+    name: 'ramp',
+    displayName: 'Ramp',
+    credentialTypes: {
+      [CredentialType.RAMP_CRED]: {
+        displayName: 'Ramp',
+        defaultScopes: [
+          'transactions:read',
+          'users:read',
+          'cards:read',
+          'departments:read',
+          'locations:read',
+          'spend_programs:read',
+          'limits:read',
+          'reimbursements:read',
+          'bills:read',
+          'receipts:read',
+          'vendors:read',
+          'business:read',
+          'statements:read',
+        ],
+        description: 'Access Ramp for corporate expense and spend management',
+        scopeDescriptions: [
+          {
+            scope: 'transactions:read',
+            description: 'View spending activity across cards and funds',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'users:read',
+            description: 'View employees and their information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cards:read',
+            description: 'View corporate cards',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'departments:read',
+            description: 'View departments',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'locations:read',
+            description: 'View locations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'spend_programs:read',
+            description: 'View spend programs',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'limits:read',
+            description: 'View spend limits and funds',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'reimbursements:read',
+            description: 'View reimbursements',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'bills:read',
+            description: 'View bills',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'receipts:read',
+            description: 'View receipts',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'vendors:read',
+            description: 'View vendors',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'business:read',
+            description: 'View business information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'statements:read',
+            description: 'View statements',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+  },
+  xero: {
+    name: 'xero',
+    displayName: 'Xero',
+    credentialTypes: {
+      [CredentialType.XERO_CRED]: {
+        displayName: 'Xero',
+        defaultScopes: [
+          'openid',
+          'offline_access',
+          'accounting.invoices',
+          'accounting.contacts',
+          'accounting.settings',
+          'accounting.reports.balancesheet.read',
+          'accounting.reports.profitandloss.read',
+          'accounting.reports.trialbalance.read',
+          'accounting.reports.banksummary.read',
+          'accounting.reports.executivesummary.read',
+          'accounting.reports.budgetsummary.read',
+          'accounting.reports.aged.read',
+        ],
+        description:
+          'Access Xero for accounting, invoicing, and financial management',
+        scopeDescriptions: [
+          {
+            scope: 'accounting.invoices',
+            description:
+              'View and create invoices, bills, and other transactions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.contacts',
+            description: 'View and manage customers and suppliers',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.settings',
+            description: 'View accounting settings and chart of accounts',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.balancesheet.read',
+            description: 'View Balance Sheet reports',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.profitandloss.read',
+            description: 'View Profit & Loss reports',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.trialbalance.read',
+            description: 'View Trial Balance reports',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.banksummary.read',
+            description: 'View Bank Summary (cash balances and movements)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.executivesummary.read',
+            description: 'View Executive Summary (business KPIs and ratios)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.budgetsummary.read',
+            description: 'View Budget Summary (budget vs actual)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'accounting.reports.aged.read',
+            description: 'View Aged Receivables and Aged Payables reports',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'offline_access',
+            description:
+              'Maintain access when you are not actively using the app',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+  },
+  zendesk: {
+    name: 'zendesk',
+    displayName: 'Zendesk',
+    credentialTypes: {
+      [CredentialType.ZENDESK_CRED]: {
+        displayName: 'Zendesk',
+        defaultScopes: ['read', 'write'],
+        description:
+          'Access Zendesk for ticket management, users, organizations, and help center',
+        scopeDescriptions: [
+          {
+            scope: 'read',
+            description:
+              'Read access to all Zendesk resources (tickets, users, organizations, help center)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'write',
+            description:
+              'Create and update tickets, users, organizations, and articles',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+  },
+  salesforce: {
+    name: 'salesforce',
+    displayName: 'Salesforce',
+    credentialTypes: {
+      [CredentialType.SALESFORCE_CRED]: {
+        displayName: 'Salesforce',
+        defaultScopes: ['full', 'refresh_token', 'openid'],
+        description:
+          'Access Salesforce for managing accounts, contacts, opportunities, and records via REST API',
+        scopeDescriptions: [
+          {
+            scope: 'full',
+            description:
+              'Full access to all permitted Salesforce resources and features',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'refresh_token',
+            description:
+              'Obtain a refresh token for maintaining access without re-authorization',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'openid',
+            description:
+              'Access unique user identifiers and profile information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'api',
+            description:
+              'Access Salesforce REST API for reading and writing data (accounts, contacts, opportunities, etc.)',
+            defaultEnabled: false,
+          },
+          {
+            scope: 'chatter_api',
+            description: 'Access Chatter feeds and social features',
+            defaultEnabled: false,
+          },
+        ],
+      },
+    },
+    authorizationParams: {},
+  },
+  asana: {
+    name: 'asana',
+    displayName: 'Asana',
+    credentialTypes: {
+      [CredentialType.ASANA_CRED]: {
+        displayName: 'Asana',
+        defaultScopes: [
+          // OpenID scopes
+          'openid',
+          'email',
+          'profile',
+          // Base scopes — must be requested explicitly
+          'tasks:read',
+          'tasks:write',
+          'tasks:delete',
+          'projects:read',
+          'projects:write',
+          'projects:delete',
+          'workspaces:read',
+          'users:read',
+          'teams:read',
+          'team_memberships:read',
+          'tags:read',
+          'tags:write',
+          'stories:read',
+          'stories:write',
+          'attachments:read',
+          'attachments:write',
+          'attachments:delete',
+          'custom_fields:read',
+          'custom_fields:write',
+          'portfolios:read',
+          'portfolios:write',
+          'goals:read',
+          'jobs:read',
+          'webhooks:read',
+          'webhooks:write',
+          'webhooks:delete',
+        ],
+        description:
+          'Access Asana for managing projects, tasks, and workspaces',
+        scopeDescriptions: [
+          // Base scopes
+          {
+            scope: 'tasks:read',
+            description:
+              'Read tasks including title, description, and assignee',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'tasks:write',
+            description: 'Create and update tasks',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'tasks:delete',
+            description: 'Delete tasks permanently',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'projects:read',
+            description: 'Read project information and status updates',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'projects:write',
+            description: 'Create and update projects',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'projects:delete',
+            description: 'Delete projects permanently',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'workspaces:read',
+            description: 'Read workspace information',
+            defaultEnabled: true,
+          },
+          // Users & Teams
+          {
+            scope: 'users:read',
+            description: 'Read user profiles, names, and emails',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'teams:read',
+            description: 'Read team information and members',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'team_memberships:read',
+            description: 'Read team membership details',
+            defaultEnabled: true,
+          },
+          // Tags
+          {
+            scope: 'tags:read',
+            description: 'Read tags in workspaces',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'tags:write',
+            description: 'Create tags and tag/untag tasks',
+            defaultEnabled: true,
+          },
+          // Stories (comments)
+          {
+            scope: 'stories:read',
+            description: 'Read task comments and activity',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'stories:write',
+            description: 'Post comments on tasks',
+            defaultEnabled: true,
+          },
+          // Attachments
+          {
+            scope: 'attachments:read',
+            description: 'Read task attachments',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'attachments:write',
+            description: 'Upload attachments to tasks',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'attachments:delete',
+            description: 'Delete task attachments',
+            defaultEnabled: true,
+          },
+          // Custom fields
+          {
+            scope: 'custom_fields:read',
+            description: 'Read custom field definitions and values',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'custom_fields:write',
+            description: 'Create and update custom fields',
+            defaultEnabled: true,
+          },
+          // Portfolios & Goals
+          {
+            scope: 'portfolios:read',
+            description: 'Read portfolio information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'portfolios:write',
+            description: 'Create and update portfolios',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'goals:read',
+            description: 'Read goal information and metrics',
+            defaultEnabled: true,
+          },
+          // Jobs & Webhooks
+          {
+            scope: 'jobs:read',
+            description: 'Read async job status',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'webhooks:read',
+            description: 'Read webhook configurations',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'webhooks:write',
+            description: 'Create and update webhooks',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'webhooks:delete',
+            description: 'Delete webhooks',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+  },
+  discord: {
+    name: 'discord',
+    displayName: 'Discord',
+    credentialTypes: {
+      [CredentialType.DISCORD_CRED]: {
+        displayName: 'Discord',
+        defaultScopes: [
+          'identify',
+          'email',
+          'guilds',
+          'guilds.members.read',
+          'bot',
+          'messages.read',
+        ],
+        description:
+          'Connect to Discord for server messaging, channel management, and bot interactions',
+        scopeDescriptions: [
+          {
+            scope: 'identify',
+            description: 'Read your user profile information',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'email',
+            description: 'Read your email address',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'guilds',
+            description: 'List the servers you are a member of',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'guilds.members.read',
+            description: 'Read member information in your servers',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'bot',
+            description:
+              'Add the bot to your server with configured permissions',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'messages.read',
+            description: 'Read messages in channels the bot has access to',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      // Bot permissions integer: Manage Channels, View Channels, Send Messages,
+      // Create Public/Private Threads, Send Messages in Threads, Manage Messages,
+      // Embed Links, Attach Files, Read Message History, Mention Everyone,
+      // Use External Emojis/Stickers, Add Reactions, Manage Webhooks,
+      // Manage Threads, Create Polls
+      permissions: '563483066756176',
+    },
+  },
+  docusign: {
+    name: 'docusign',
+    displayName: 'DocuSign',
+    credentialTypes: {
+      [CredentialType.DOCUSIGN_CRED]: {
+        displayName: 'DocuSign eSignature',
+        defaultScopes: ['signature'],
+        description:
+          'Access DocuSign eSignature for creating, sending, and managing envelopes',
+        scopeDescriptions: [
+          {
+            scope: 'signature',
+            description: 'Full access to the DocuSign eSignature REST API',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {
+      prompt: 'login',
+    },
+  },
+  zoom: {
+    name: 'zoom',
+    displayName: 'Zoom',
+    credentialTypes: {
+      [CredentialType.ZOOM_CRED]: {
+        displayName: 'Zoom',
+        defaultScopes: [
+          'meeting:write:meeting',
+          'meeting:read:meeting',
+          'meeting:read:summary',
+          'meeting:read:past_meeting',
+          'meeting:read:list_past_instances',
+          'meeting:read:list_meetings',
+          'cloud_recording:read:list_user_recordings',
+          'cloud_recording:read:content',
+          'cloud_recording:read:list_recording_files',
+          'cloud_recording:read:recording',
+          'cloud_recording:read:meeting_transcript',
+          'user:read:email',
+          'user:read:user',
+          'zoomapp:inmeeting',
+        ],
+        description:
+          'Access Zoom for managing meetings, cloud recordings, transcripts, and users',
+        scopeDescriptions: [
+          {
+            scope: 'meeting:write:meeting',
+            description: 'Create, update, and delete meetings',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'meeting:read:meeting',
+            description: 'Read details of a single meeting',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'meeting:read:summary',
+            description: "Read a meeting's AI Companion summary",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'meeting:read:past_meeting',
+            description: 'Read details of a past meeting',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'meeting:read:list_past_instances',
+            description: 'List past instances of a recurring meeting',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'meeting:read:list_meetings',
+            description: "List a user's meetings",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cloud_recording:read:list_user_recordings',
+            description: "List a user's cloud recordings",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cloud_recording:read:content',
+            description: 'Read cloud recording file content (download)',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cloud_recording:read:list_recording_files',
+            description: "Return all of a meeting's recording files",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cloud_recording:read:recording',
+            description: 'Read details of a single cloud recording',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'cloud_recording:read:meeting_transcript',
+            description: "Read a meeting's transcript",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'user:read:email',
+            description: "Verify a user's email",
+            defaultEnabled: true,
+          },
+          {
+            scope: 'user:read:user',
+            description: 'Read the authenticated user profile',
+            defaultEnabled: true,
+          },
+          {
+            scope: 'zoomapp:inmeeting',
+            description:
+              'Required dependency from other scopes (no API access used)',
+            defaultEnabled: true,
+          },
+        ],
+      },
+    },
+    authorizationParams: {},
   },
 };
 
@@ -260,28 +2767,163 @@ export function getScopeDescriptions(
 }
 
 /**
+ * Get default (non-admin) scopes for a specific credential type
+ * Returns only the scopes that don't require admin approval
+ */
+export function getDefaultScopes(credentialType: CredentialType): string[] {
+  const provider = getOAuthProvider(credentialType);
+  if (!provider) {
+    return [];
+  }
+
+  const providerConfig = OAUTH_PROVIDERS[provider];
+  const credentialConfig = providerConfig?.credentialTypes[credentialType];
+
+  return credentialConfig?.defaultScopes || [];
+}
+
+/**
+ * Get admin scopes for a specific credential type
+ * Returns only the scopes that require admin/workspace admin approval
+ */
+export function getAdminScopes(credentialType: CredentialType): string[] {
+  const provider = getOAuthProvider(credentialType);
+  if (!provider) {
+    return [];
+  }
+
+  const providerConfig = OAUTH_PROVIDERS[provider];
+  const credentialConfig = providerConfig?.credentialTypes[credentialType];
+
+  return credentialConfig?.adminScopes || [];
+}
+
+/**
+ * Browser session provider name - for BrowserBase-powered authentication
+ */
+export type BrowserSessionProvider = 'browserbase';
+
+/**
+ * Browser session credential type configuration
+ */
+export interface BrowserSessionCredentialConfig {
+  displayName: string;
+  description: string;
+  targetUrl: string; // URL to navigate to for authentication
+  cookieDomain: string; // Domain filter for captured cookies
+}
+
+/**
+ * Browser session provider configuration
+ */
+export interface BrowserSessionProviderConfig {
+  name: BrowserSessionProvider;
+  displayName: string;
+  credentialTypes: Partial<
+    Record<CredentialType, BrowserSessionCredentialConfig>
+  >;
+}
+
+/**
+ * Browser session provider configurations - for credentials that use BrowserBase
+ * browser sessions instead of OAuth or API keys
+ */
+export const BROWSER_SESSION_PROVIDERS: Record<
+  BrowserSessionProvider,
+  BrowserSessionProviderConfig
+> = {
+  browserbase: {
+    name: 'browserbase',
+    displayName: 'BrowserBase',
+    credentialTypes: {
+      [CredentialType.AMAZON_CRED]: {
+        displayName: 'Amazon Account',
+        description:
+          'Log into Amazon to enable cart, order, and purchase automation',
+        targetUrl: 'https://www.amazon.com',
+        cookieDomain: 'amazon',
+      },
+      [CredentialType.LINKEDIN_CRED]: {
+        displayName: 'LinkedIn Account',
+        description:
+          'Log into LinkedIn to enable connection requests and messaging automation',
+        targetUrl: 'https://www.linkedin.com',
+        cookieDomain: 'linkedin',
+      },
+    },
+  },
+};
+
+/**
+ * Get the browser session provider for a specific credential type
+ */
+export function getBrowserSessionProvider(
+  credentialType: CredentialType
+): BrowserSessionProvider | null {
+  for (const [providerName, config] of Object.entries(
+    BROWSER_SESSION_PROVIDERS
+  )) {
+    if (config.credentialTypes[credentialType]) {
+      return providerName as BrowserSessionProvider;
+    }
+  }
+  return null;
+}
+
+/**
+ * Check if a credential type uses browser session authentication (BrowserBase)
+ */
+export function isBrowserSessionCredential(
+  credentialType: CredentialType
+): boolean {
+  return getBrowserSessionProvider(credentialType) !== null;
+}
+
+/**
  * Maps bubble names to their accepted credential types
  */
 export type CredentialOptions = Partial<Record<CredentialType, string>>;
 
 /**
+ * Credential options for a bubble - array of credential types.
+ * Use CredentialType.CREDENTIAL_WILDCARD to indicate the bubble accepts any credential.
+ */
+export type BubbleCredentialOption = CredentialType[];
+
+/**
+ * Optional credentials shared by all BrowserBase tools (R2 for session storage).
+ * Add to any tool that uses BrowserBase to avoid repeating per-tool.
+ */
+export const BROWSERBASE_OPTIONAL_CREDENTIALS: CredentialType[] = [
+  CredentialType.CLOUDFLARE_R2_ACCESS_KEY,
+  CredentialType.CLOUDFLARE_R2_SECRET_KEY,
+  CredentialType.CLOUDFLARE_R2_ACCOUNT_ID,
+  CredentialType.GOOGLE_GEMINI_CRED,
+];
+
+/**
  * Collection of credential options for all bubbles
  */
-export const BUBBLE_CREDENTIAL_OPTIONS: Record<BubbleName, CredentialType[]> = {
+export const BUBBLE_CREDENTIAL_OPTIONS: Record<
+  BubbleName,
+  BubbleCredentialOption
+> = {
   'ai-agent': [
     CredentialType.OPENAI_CRED,
     CredentialType.GOOGLE_GEMINI_CRED,
     CredentialType.ANTHROPIC_CRED,
     CredentialType.FIRECRAWL_API_KEY,
     CredentialType.OPENROUTER_CRED,
+    CredentialType.FIREWORKS_CRED,
   ],
   postgresql: [CredentialType.DATABASE_CRED],
-  slack: [CredentialType.SLACK_CRED],
+  slack: [CredentialType.SLACK_CRED, CredentialType.SLACK_API],
   telegram: [CredentialType.TELEGRAM_BOT_TOKEN],
   resend: [CredentialType.RESEND_CRED],
   'database-analyzer': [CredentialType.DATABASE_CRED],
   'slack-notifier': [
     CredentialType.SLACK_CRED,
+    CredentialType.SLACK_API,
     CredentialType.OPENAI_CRED,
     CredentialType.GOOGLE_GEMINI_CRED,
     CredentialType.ANTHROPIC_CRED,
@@ -294,18 +2936,21 @@ export const BUBBLE_CREDENTIAL_OPTIONS: Record<BubbleName, CredentialType[]> = {
   'slack-data-assistant': [
     CredentialType.DATABASE_CRED,
     CredentialType.SLACK_CRED,
+    CredentialType.SLACK_API,
     CredentialType.OPENAI_CRED,
     CredentialType.GOOGLE_GEMINI_CRED,
     CredentialType.ANTHROPIC_CRED,
   ],
   'hello-world': [],
-  http: [],
+  http: [CredentialType.CREDENTIAL_WILDCARD], // Accepts any credential type for flexible API integrations
   'get-bubble-details-tool': [],
+  'get-trigger-detail-tool': [],
   'list-bubbles-tool': [],
+  'list-capabilities-tool': [],
   'sql-query-tool': [CredentialType.DATABASE_CRED],
   'chart-js-tool': [],
   'bubbleflow-validation-tool': [],
-  'code-edit-tool': [CredentialType.OPENROUTER_CRED],
+  'code-edit-tool': [],
   'web-search-tool': [CredentialType.FIRECRAWL_API_KEY],
   'web-scrape-tool': [CredentialType.FIRECRAWL_API_KEY],
   'web-crawl-tool': [
@@ -316,6 +2961,10 @@ export const BUBBLE_CREDENTIAL_OPTIONS: Record<BubbleName, CredentialType[]> = {
   'research-agent-tool': [
     CredentialType.FIRECRAWL_API_KEY,
     CredentialType.GOOGLE_GEMINI_CRED,
+    CredentialType.OPENAI_CRED,
+    CredentialType.ANTHROPIC_CRED,
+    CredentialType.OPENROUTER_CRED,
+    CredentialType.APIFY_CRED,
   ],
   'reddit-scrape-tool': [],
   'bubbleflow-code-generator': [],
@@ -365,19 +3014,128 @@ export const BUBBLE_CREDENTIAL_OPTIONS: Record<BubbleName, CredentialType[]> = {
   'tiktok-tool': [CredentialType.APIFY_CRED],
   'twitter-tool': [CredentialType.APIFY_CRED],
   'google-maps-tool': [CredentialType.APIFY_CRED],
+  'app-rankings-tool': [CredentialType.APIFY_CRED],
   'youtube-tool': [CredentialType.APIFY_CRED],
   github: [CredentialType.GITHUB_TOKEN],
   'eleven-labs': [CredentialType.ELEVENLABS_API_KEY],
   followupboss: [CredentialType.FUB_CRED],
   'agi-inc': [CredentialType.AGI_API_KEY],
-  airtable: [CredentialType.AIRTABLE_CRED],
-  notion: [CredentialType.NOTION_OAUTH_TOKEN],
+  airtable: [CredentialType.AIRTABLE_CRED, CredentialType.AIRTABLE_OAUTH],
+  notion: [CredentialType.NOTION_OAUTH_TOKEN, CredentialType.NOTION_API],
   firecrawl: [CredentialType.FIRECRAWL_API_KEY],
   'insforge-db': [
     CredentialType.INSFORGE_BASE_URL,
     CredentialType.INSFORGE_API_KEY,
   ],
+  browserbase: [
+    CredentialType.AMAZON_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  'amazon-shopping-tool': [
+    CredentialType.AMAZON_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  crustdata: [CredentialType.CRUSTDATA_API_KEY],
+  'company-enrichment-tool': [
+    CredentialType.CRUSTDATA_API_KEY,
+    CredentialType.FULLENRICH_API_KEY,
+  ],
+  'people-search-tool': [
+    CredentialType.CRUSTDATA_API_KEY,
+    CredentialType.FULLENRICH_API_KEY,
+  ],
+  jira: [CredentialType.JIRA_CRED],
+  ashby: [CredentialType.ASHBY_CRED],
+  fullenrich: [CredentialType.FULLENRICH_API_KEY],
+  'linkedin-connection-tool': [
+    CredentialType.LINKEDIN_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  'linkedin-sent-invitations-tool': [
+    CredentialType.LINKEDIN_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  'linkedin-received-invitations-tool': [
+    CredentialType.LINKEDIN_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  'linkedin-accept-invitations-tool': [
+    CredentialType.LINKEDIN_CRED,
+    ...BROWSERBASE_OPTIONAL_CREDENTIALS,
+  ],
+  stripe: [CredentialType.STRIPE_CRED],
+  confluence: [CredentialType.CONFLUENCE_CRED],
+  sendsafely: [CredentialType.SENDSAFELY_CRED],
+  's3-storage': [CredentialType.S3_CRED],
+  'yc-scraper-tool': [CredentialType.APIFY_CRED],
+  posthog: [CredentialType.POSTHOG_API_KEY],
+  linear: [CredentialType.LINEAR_CRED],
+  attio: [CredentialType.ATTIO_CRED],
+  hubspot: [CredentialType.HUBSPOT_CRED],
+  assembled: [CredentialType.ASSEMBLED_CRED],
+  xero: [CredentialType.XERO_CRED],
+  ramp: [CredentialType.RAMP_CRED],
+  zendesk: [CredentialType.ZENDESK_CRED],
+  slab: [CredentialType.SLAB_CRED],
+  snowflake: [CredentialType.SNOWFLAKE_CRED],
+  salesforce: [CredentialType.SALESFORCE_CRED],
+  asana: [CredentialType.ASANA_CRED],
+  discord: [CredentialType.DISCORD_CRED],
+  sortly: [CredentialType.SORTLY_API_KEY],
+  docusign: [CredentialType.DOCUSIGN_CRED],
+  metabase: [CredentialType.METABASE_CRED],
+  clerk: [CredentialType.CLERK_CRED],
+  granola: [CredentialType.GRANOLA_API_KEY],
+  memberful: [CredentialType.MEMBERFUL_CRED],
+  luma: [],
+  zoom: [CredentialType.ZOOM_CRED],
 };
+
+export interface CredentialSiblingEntry {
+  oauthType: CredentialType;
+  apiType: CredentialType;
+  canonicalType: CredentialType;
+}
+
+/** Auto-derived sibling map: for OAuth-provider bubbles with exactly 2 cred types
+ *  (one OAuth + one API key), maps both types to their sibling pair. */
+export const CREDENTIAL_TYPE_SIBLINGS: Partial<
+  Record<CredentialType, CredentialSiblingEntry>
+> = (() => {
+  const oauthProviderNames = new Set(Object.keys(OAUTH_PROVIDERS));
+  const map: Partial<Record<CredentialType, CredentialSiblingEntry>> = {};
+  for (const [bubbleName, credTypes] of Object.entries(
+    BUBBLE_CREDENTIAL_OPTIONS
+  )) {
+    if (!oauthProviderNames.has(bubbleName) || credTypes.length !== 2) continue;
+    const oauthType = credTypes.find((ct) => isOAuthCredential(ct));
+    const apiType = credTypes.find((ct) => !isOAuthCredential(ct));
+    if (!oauthType || !apiType) continue;
+    const entry: CredentialSiblingEntry = {
+      oauthType,
+      apiType,
+      canonicalType: oauthType,
+    };
+    map[oauthType] = entry;
+    map[apiType] = entry;
+  }
+  return map;
+})();
+
+/** Get all sibling types for a credential (both OAuth and API), or just itself if no siblings. */
+export function getSiblingCredentialTypes(
+  credType: CredentialType
+): CredentialType[] {
+  const sibling = CREDENTIAL_TYPE_SIBLINGS[credType];
+  return sibling ? [sibling.oauthType, sibling.apiType] : [credType];
+}
+
+/** Collapse sibling types to canonical (OAuth) type. */
+export function getCanonicalCredentialType(
+  credType: CredentialType
+): CredentialType {
+  return CREDENTIAL_TYPE_SIBLINGS[credType]?.canonicalType || credType;
+}
 
 // POST /credentials - Create credential schema
 export const createCredentialSchema = z
@@ -478,9 +3236,26 @@ export const credentialResponseSchema = z
     id: z.number().openapi({ description: 'Credential ID' }),
     credentialType: z.string().openapi({ description: 'Type of credential' }),
     name: z.string().optional().openapi({ description: 'Credential name' }),
-    metadata: databaseMetadataSchema
+    metadata: z
+      .union([
+        databaseMetadataSchema,
+        jiraOAuthMetadataSchema,
+        slackOAuthMetadataSchema,
+        airtableOAuthMetadataSchema,
+        googleOAuthMetadataSchema,
+        notionOAuthMetadataSchema,
+        confluenceOAuthMetadataSchema,
+        stripeOAuthMetadataSchema,
+        linearOAuthMetadataSchema,
+        asanaOAuthMetadataSchema,
+        browserSessionMetadataSchema,
+        credentialPreferencesSchema,
+      ])
       .optional()
-      .openapi({ description: 'Credential metadata' }),
+      .openapi({
+        description:
+          'Credential metadata (DatabaseMetadata, JiraOAuthMetadata, SlackOAuthMetadata, AirtableOAuthMetadata, GoogleOAuthMetadata, NotionOAuthMetadata, ConfluenceOAuthMetadata, StripeOAuthMetadata, LinearOAuthMetadata, or CredentialPreferences)',
+      }),
     createdAt: z.string().openapi({ description: 'Creation timestamp' }),
 
     // OAuth-specific fields
@@ -504,6 +3279,26 @@ export const credentialResponseSchema = z
       .enum(['active', 'expired', 'needs_refresh'])
       .optional()
       .openapi({ description: 'OAuth token status' }),
+
+    // Browser session-specific fields
+    isBrowserSession: z
+      .boolean()
+      .optional()
+      .openapi({ description: 'Whether this is a browser session credential' }),
+    browserbaseSessionData: z
+      .object({
+        capturedAt: z.string(),
+        cookieCount: z.number(),
+        domain: z.string(),
+      })
+      .optional()
+      .openapi({ description: 'Browser session metadata' }),
+
+    // Master/Child credential relationship (for Slack OAuth)
+    masterCredentialId: z.number().optional().openapi({
+      description:
+        'ID of the master credential this credential uses for tokens (null means this is a master)',
+    }),
   })
   .openapi('CredentialResponse');
 
@@ -530,6 +3325,115 @@ export const successMessageResponseSchema = z
   })
   .openapi('SuccessMessageResponse');
 
+// BrowserBase session schemas
+export const browserbaseSessionCreateRequestSchema = z
+  .object({
+    credentialType: z.nativeEnum(CredentialType).openapi({
+      description: 'Type of credential requiring browser authentication',
+      example: CredentialType.AMAZON_CRED,
+    }),
+    name: z.string().optional().openapi({
+      description: 'User-friendly name for the credential',
+      example: 'My Amazon Account',
+    }),
+    proxy: z
+      .object({
+        server: z.string().describe('Proxy server URL'),
+        username: z
+          .string()
+          .optional()
+          .describe('Proxy authentication username'),
+        password: z
+          .string()
+          .optional()
+          .describe('Proxy authentication password'),
+      })
+      .optional()
+      .openapi({
+        description:
+          'Optional proxy to attach to the session (login browser will use it)',
+      }),
+  })
+  .openapi('BrowserbaseSessionCreateRequest');
+
+export const browserbaseSessionCreateResponseSchema = z
+  .object({
+    sessionId: z.string().openapi({
+      description: 'BrowserBase session ID',
+    }),
+    debugUrl: z.string().openapi({
+      description: 'URL to open for manual browser interaction',
+    }),
+    contextId: z.string().openapi({
+      description: 'BrowserBase context ID for session persistence',
+    }),
+    state: z.string().openapi({
+      description: 'State token for CSRF protection',
+    }),
+  })
+  .openapi('BrowserbaseSessionCreateResponse');
+
+export const browserbaseSessionCompleteRequestSchema = z
+  .object({
+    sessionId: z.string().openapi({
+      description: 'BrowserBase session ID to complete',
+    }),
+    state: z.string().openapi({
+      description: 'State token for verification',
+    }),
+    name: z.string().optional().openapi({
+      description: 'User-friendly name for the credential',
+    }),
+    proxy: z
+      .object({
+        server: z.string().describe('Proxy server URL'),
+        username: z
+          .string()
+          .optional()
+          .describe('Proxy authentication username'),
+        password: z
+          .string()
+          .optional()
+          .describe('Proxy authentication password'),
+      })
+      .optional()
+      .openapi({
+        description:
+          'Optional proxy configuration to embed in the session credential',
+      }),
+  })
+  .openapi('BrowserbaseSessionCompleteRequest');
+
+export const browserbaseSessionCompleteResponseSchema = z
+  .object({
+    id: z.number().openapi({
+      description: 'Created credential ID',
+    }),
+    message: z.string().openapi({
+      description: 'Success message',
+    }),
+  })
+  .openapi('BrowserbaseSessionCompleteResponse');
+
+export const browserbaseSessionReopenRequestSchema = z
+  .object({
+    credentialId: z.number().openapi({
+      description: 'ID of the credential to reopen session for',
+    }),
+  })
+  .openapi('BrowserbaseSessionReopenRequest');
+
+export const browserbaseSessionReopenResponseSchema = z
+  .object({
+    sessionId: z.string().openapi({
+      description: 'BrowserBase session ID',
+    }),
+    debugUrl: z.string().openapi({
+      description: 'URL to open for manual browser interaction',
+    }),
+  })
+  .openapi('BrowserbaseSessionReopenResponse');
+
 export type CreateCredentialRequest = z.infer<typeof createCredentialSchema>;
 export type UpdateCredentialRequest = z.infer<typeof updateCredentialSchema>;
 export type CredentialResponse = z.infer<typeof credentialResponseSchema>;
@@ -538,4 +3442,22 @@ export type CreateCredentialResponse = z.infer<
 >;
 export type UpdateCredentialResponse = z.infer<
   typeof updateCredentialResponseSchema
+>;
+export type BrowserbaseSessionCreateRequest = z.infer<
+  typeof browserbaseSessionCreateRequestSchema
+>;
+export type BrowserbaseSessionCreateResponse = z.infer<
+  typeof browserbaseSessionCreateResponseSchema
+>;
+export type BrowserbaseSessionCompleteRequest = z.infer<
+  typeof browserbaseSessionCompleteRequestSchema
+>;
+export type BrowserbaseSessionCompleteResponse = z.infer<
+  typeof browserbaseSessionCompleteResponseSchema
+>;
+export type BrowserbaseSessionReopenRequest = z.infer<
+  typeof browserbaseSessionReopenRequestSchema
+>;
+export type BrowserbaseSessionReopenResponse = z.infer<
+  typeof browserbaseSessionReopenResponseSchema
 >;

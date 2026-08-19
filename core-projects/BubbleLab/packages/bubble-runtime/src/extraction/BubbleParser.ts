@@ -3,7 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/typescript-estree';
 import type { Scope, ScopeManager } from '@bubblelab/ts-scope-manager';
 import {
   BubbleFactory,
-  BubbleTriggerEventRegistry,
+  getCapabilityMetadataById,
 } from '@bubblelab/bubble-core';
 import type { MethodInvocationInfo } from '../parse/BubbleScript';
 import { buildClassNameLookup } from '../utils/bubble-helper';
@@ -29,8 +29,67 @@ import {
   BubbleParameterType,
   hashToVariableId,
   buildCallSiteKey,
+  getTriggerEventConfig,
+  isValidBubbleTriggerEvent,
+  getTriggerEventTypeFromInterfaceName,
 } from '@bubblelab/shared-schemas';
 import { parseToolsParamValue } from '../utils/parameter-formatter';
+
+/**
+ * Represents a capability tool to be added as a synthetic child in the dependency graph.
+ */
+interface CapabilityToolInfo {
+  /** The tool name (e.g., 'read-knowledge-base') */
+  toolName: string;
+  /** The capability ID that defines this tool (e.g., 'google-doc-knowledge-base') */
+  capabilityId: string;
+  /** Bubble names used internally by this tool (e.g., ['google-drive']) */
+  internalBubbles?: BubbleName[];
+}
+
+/**
+ * Parses the `capabilities` parameter value from an AI agent bubble
+ * and returns the individual tool names from each capability's metadata.
+ */
+function parseCapabilityToolNames(
+  capParam: { value: unknown } | undefined
+): CapabilityToolInfo[] {
+  if (!capParam || typeof capParam.value !== 'string') return [];
+
+  try {
+    let capsArray: Array<{ id: string; [key: string]: unknown }>;
+
+    try {
+      const safeEval = new Function('return ' + capParam.value);
+      const evaluated = safeEval();
+      capsArray = Array.isArray(evaluated) ? evaluated : [evaluated];
+    } catch {
+      if ((capParam.value as string).startsWith('[')) {
+        capsArray = JSON.parse(capParam.value as string);
+      } else {
+        capsArray = [JSON.parse(capParam.value as string)];
+      }
+    }
+
+    const result: CapabilityToolInfo[] = [];
+    for (const cap of capsArray) {
+      if (!cap.id || typeof cap.id !== 'string') continue;
+      const meta = getCapabilityMetadataById(cap.id);
+      if (meta) {
+        for (const tool of meta.tools) {
+          result.push({
+            toolName: tool.name,
+            capabilityId: cap.id,
+            internalBubbles: tool.internalBubbles,
+          });
+        }
+      }
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Information about a custom tool's func property for tracking bubble containment
@@ -170,6 +229,7 @@ export class BubbleParser {
 
       // If this node is an ai-agent, extract tools for graph inclusion at the root level
       let rootAIAgentTools: BubbleName[] | undefined;
+      let rootAIAgentCapabilityTools: CapabilityToolInfo[] | undefined;
       if (bubble.bubbleName === 'ai-agent') {
         const toolsParam = bubble.parameters.find((p) => p.name === 'tools');
         const tools = toolsParam
@@ -179,6 +239,15 @@ export class BubbleParser {
           rootAIAgentTools = tools
             .map((t) => t?.name)
             .filter((n): n is string => typeof n === 'string') as BubbleName[];
+        }
+
+        // Extract capability tool names from the capabilities parameter
+        const capParam = bubble.parameters.find(
+          (p) => p.name === 'capabilities'
+        );
+        const capTools = parseCapabilityToolNames(capParam);
+        if (capTools.length > 0) {
+          rootAIAgentCapabilityTools = capTools;
         }
       }
 
@@ -194,7 +263,8 @@ export class BubbleParser {
         usedVariableIds,
         bubble.variableId, // Root variable id mirrors the parsed bubble's variable id
         true, // suppress adding self segment for root
-        bubble.variableName
+        bubble.variableName,
+        rootAIAgentCapabilityTools
       );
 
       // Add functionCallChildren for ai-agent bubbles with custom tools
@@ -371,7 +441,8 @@ export class BubbleParser {
     usedVariableIds: Set<number> = new Set<number>(),
     explicitVariableId?: number,
     suppressSelfSegment: boolean = false,
-    instanceVariableName?: string
+    instanceVariableName?: string,
+    capabilityToolsForThisNode?: CapabilityToolInfo[]
   ): DependencyGraphNode {
     // Compute this node's uniqueId and variableId FIRST so even cycle hits have IDs
     const countKey = `${parentUniqueId}|${bubbleName}`;
@@ -517,6 +588,53 @@ export class BubbleParser {
         );
       }
     }
+
+    // Include capability tool dependencies as children of ai-agent,
+    // with internal bubbles as sub-dependencies under each tool
+    if (
+      bubbleName === 'ai-agent' &&
+      Array.isArray(capabilityToolsForThisNode)
+    ) {
+      for (const capTool of capabilityToolsForThisNode) {
+        const capToolName = capTool.toolName as BubbleName;
+        const countKeyCapTool = `${uniqueId}|${capToolName}`;
+        const capOrdinal = (ordinalCounters.get(countKeyCapTool) || 0) + 1;
+        ordinalCounters.set(countKeyCapTool, capOrdinal);
+        const capToolUniqueId = `${uniqueId}.${capToolName}#${capOrdinal}`;
+        const capToolVariableId = hashToVariableId(capToolUniqueId);
+
+        // Build sub-dependency nodes for internal bubbles
+        const internalChildren: DependencyGraphNode[] = [];
+        if (capTool.internalBubbles) {
+          for (const internalBubbleName of capTool.internalBubbles) {
+            internalChildren.push(
+              this.buildDependencyGraph(
+                internalBubbleName as BubbleName,
+                bubbleFactory,
+                nextSeen,
+                undefined,
+                capToolUniqueId,
+                ordinalCounters,
+                usedVariableIds,
+                undefined,
+                false,
+                internalBubbleName
+              )
+            );
+          }
+        }
+
+        children.push({
+          name: capToolName,
+          uniqueId: capToolUniqueId,
+          variableId: capToolVariableId,
+          variableName: capToolName,
+          nodeType: 'tool',
+          dependencies: internalChildren,
+        });
+      }
+    }
+
     const nodeObj = {
       name: bubbleName,
       uniqueId,
@@ -531,7 +649,9 @@ export class BubbleParser {
   /**
    * Build a JSON Schema object for the payload parameter of the top-level `handle` entrypoint.
    * Supports primitives, arrays, unions (anyOf), intersections (allOf), type literals, and
-   * same-file interfaces/type aliases. Interface `extends` are ignored for now.
+   * same-file interfaces/type aliases. When an interface extends a known trigger event type
+   * (e.g., SlackMentionEvent), the schema includes an `extendsEvent` field and only contains
+   * the additional custom properties defined in the interface.
    */
   public getPayloadJsonSchema(
     ast: TSESTree.Program
@@ -854,12 +974,12 @@ export class BubbleParser {
           obj.typeName.name === 'BubbleTriggerEventRegistry' &&
           idx.type === 'TSLiteralType' &&
           idx.literal.type === 'Literal' &&
-          typeof idx.literal.value === 'string'
+          typeof idx.literal.value === 'string' &&
+          isValidBubbleTriggerEvent(idx.literal.value)
         ) {
-          const schema = this.eventKeyToSchema(
-            idx.literal.value as keyof BubbleTriggerEventRegistry
-          );
-          if (schema) return schema;
+          const config = getTriggerEventConfig(idx.literal.value);
+          if (config?.payloadSchema)
+            return config.payloadSchema as unknown as Record<string, unknown>;
         }
         return {};
       }
@@ -906,6 +1026,10 @@ export class BubbleParser {
       if (jsDocInfo.canBeFile !== undefined) {
         propSchema.canBeFile = jsDocInfo.canBeFile;
       }
+      // Add canBeGoogleFile flag to schema if explicitly specified in JSDoc
+      if (jsDocInfo.canBeGoogleFile !== undefined) {
+        propSchema.canBeGoogleFile = jsDocInfo.canBeGoogleFile;
+      }
 
       properties[keyName] = propSchema;
       if (!m.optional) required.push(keyName);
@@ -915,57 +1039,6 @@ export class BubbleParser {
     return schema;
   }
 
-  // Minimal mapping for known trigger event keys to JSON Schema shapes
-  // Used for the input schema in the BubbleFlow editor if defined as BubbleTriggerEventRegistry[eventType]
-  private eventKeyToSchema(
-    eventKey: keyof BubbleTriggerEventRegistry
-  ): Record<string, unknown> | null {
-    if (eventKey === 'slack/bot_mentioned') {
-      return {
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          channel: { type: 'string' },
-          thread_ts: { type: 'string' },
-          user: { type: 'string' },
-          slack_event: { type: 'object' },
-          // Allow additional field used in flows
-          monthlyLimitError: {},
-        },
-        required: ['text', 'channel', 'user', 'slack_event'],
-      };
-    }
-    if (eventKey === 'webhook/http') {
-      return {
-        type: 'object',
-        properties: {
-          body: { type: 'object' },
-        },
-      };
-    }
-    if (eventKey === 'schedule/cron') {
-      return {
-        type: 'object',
-        properties: {
-          body: { type: 'object' },
-        },
-      };
-    }
-    if (eventKey === 'slack/message_received') {
-      return {
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          channel: { type: 'string' },
-          user: { type: 'string' },
-          channel_type: { type: 'string' },
-          slack_event: { type: 'object' },
-        },
-        required: ['text', 'channel', 'user', 'slack_event'],
-      };
-    }
-    return null;
-  }
   /** Resolve in-file interface/type alias by name to JSON Schema */
   private resolveTypeNameToJson(
     name: string,
@@ -973,7 +1046,7 @@ export class BubbleParser {
   ): Record<string, unknown> | null {
     for (const stmt of ast.body) {
       if (stmt.type === 'TSInterfaceDeclaration' && stmt.id.name === name) {
-        return this.objectTypeToJsonSchema(stmt.body, ast);
+        return this.resolveInterfaceToJsonSchema(stmt, ast);
       }
       if (stmt.type === 'TSTypeAliasDeclaration' && stmt.id.name === name) {
         return this.tsTypeToJsonSchema(stmt.typeAnnotation, ast) || {};
@@ -983,7 +1056,7 @@ export class BubbleParser {
         stmt.declaration?.type === 'TSInterfaceDeclaration' &&
         stmt.declaration.id.name === name
       ) {
-        return this.objectTypeToJsonSchema(stmt.declaration.body, ast);
+        return this.resolveInterfaceToJsonSchema(stmt.declaration, ast);
       }
       if (
         stmt.type === 'ExportNamedDeclaration' &&
@@ -996,6 +1069,50 @@ export class BubbleParser {
       }
     }
     return null;
+  }
+
+  /**
+   * Resolve an interface declaration to JSON Schema, handling extends clauses.
+   * If the interface extends a known trigger event type, the schema will include
+   * an `extendsEvent` field indicating the base trigger type, and `properties`
+   * will only contain the additional custom properties.
+   */
+  private resolveInterfaceToJsonSchema(
+    interfaceDecl: TSESTree.TSInterfaceDeclaration,
+    ast: TSESTree.Program
+  ): Record<string, unknown> {
+    // Check if this interface extends a known trigger event type
+    if (interfaceDecl.extends && interfaceDecl.extends.length > 0) {
+      for (const heritage of interfaceDecl.extends) {
+        // Get the extended interface name
+        let extendedName: string | null = null;
+        if (heritage.expression.type === 'Identifier') {
+          extendedName = heritage.expression.name;
+        }
+
+        if (extendedName) {
+          // Check if it's a known trigger event interface
+          const triggerEventType =
+            getTriggerEventTypeFromInterfaceName(extendedName);
+          if (triggerEventType) {
+            // Extract only the additional properties from this interface
+            const additionalSchema = this.objectTypeToJsonSchema(
+              interfaceDecl.body,
+              ast
+            );
+
+            // Return schema with extendsEvent marker for the UI to handle
+            return {
+              ...additionalSchema,
+              extendsEvent: triggerEventType,
+            };
+          }
+        }
+      }
+    }
+
+    // No trigger event extension found, use normal processing
+    return this.objectTypeToJsonSchema(interfaceDecl.body, ast);
   }
 
   /**
@@ -1907,7 +2024,11 @@ export class BubbleParser {
 
     const parameters: BubbleParameter[] = [];
     if (newExpr.arguments && newExpr.arguments.length > 0) {
-      const firstArg = newExpr.arguments[0];
+      let firstArg = newExpr.arguments[0];
+      // Unwrap TSAsExpression to get the underlying expression (e.g., { ... } as any)
+      if (firstArg.type === 'TSAsExpression') {
+        firstArg = (firstArg as TSESTree.TSAsExpression).expression;
+      }
       if (firstArg.type === 'ObjectExpression') {
         for (const prop of firstArg.properties) {
           if (prop.type === 'Property') {
@@ -2266,9 +2387,20 @@ export class BubbleParser {
   private markBubblesInsideCustomTools(
     nodes: Record<number, ParsedBubbleWithInfo>
   ): void {
+    // Collect all parent ai-agent variableIds that own custom tools
+    const parentAgentVariableIds = new Set(
+      this.customToolFuncs.map((tf) => tf.parentBubbleVariableId)
+    );
+
     for (const bubble of Object.values(nodes)) {
-      // Skip ai-agent bubbles themselves
-      if (bubble.bubbleName === 'ai-agent') continue;
+      // Skip ai-agent bubbles that are PARENTS of custom tools (they own the customTools, not inside them)
+      // But DO NOT skip nested ai-agent bubbles that are INSIDE custom tool funcs
+      if (
+        bubble.bubbleName === 'ai-agent' &&
+        parentAgentVariableIds.has(bubble.variableId)
+      ) {
+        continue;
+      }
 
       // Check if this bubble's location falls inside any custom tool func
       for (const toolFunc of this.customToolFuncs) {
@@ -2386,12 +2518,14 @@ export class BubbleParser {
   }
 
   /**
-   * Extract JSDoc info including description and @canBeFile tag from a node's preceding comments.
+   * Extract JSDoc info including description, @canBeFile, and @canBeGoogleFile tags from a node's preceding comments.
    * The @canBeFile tag controls whether file upload is enabled for string fields in the UI.
+   * The @canBeGoogleFile tag enables Google Picker UI for Google Drive file/folder ID fields.
    */
   private extractJSDocForNode(node: TSESTree.Node): {
     description?: string;
     canBeFile?: boolean;
+    canBeGoogleFile?: boolean;
   } {
     // Get the line number where this node starts
     const nodeLine = node.loc?.start.line;
@@ -2450,11 +2584,20 @@ export class BubbleParser {
 
     const fullComment = commentLines.join('\n');
     let canBeFile: boolean | undefined;
+    let canBeGoogleFile: boolean | undefined;
 
     // Parse @canBeFile tag from the raw comment
     const canBeFileMatch = fullComment.match(/@canBeFile\s+(true|false)/i);
     if (canBeFileMatch) {
       canBeFile = canBeFileMatch[1].toLowerCase() === 'true';
+    }
+
+    // Parse @canBeGoogleFile tag from the raw comment
+    const canBeGoogleFileMatch = fullComment.match(
+      /@canBeGoogleFile\s+(true|false)/i
+    );
+    if (canBeGoogleFileMatch) {
+      canBeGoogleFile = canBeGoogleFileMatch[1].toLowerCase() === 'true';
     }
 
     let description: string | undefined;
@@ -2465,14 +2608,24 @@ export class BubbleParser {
         .replace(/\s*\*\/\s*$/, '')
         .split('\n')
         .map((line) => line.replace(/^\s*\*\s?/, '').trim())
-        .filter((line) => line.length > 0 && !line.startsWith('@canBeFile'))
+        .filter(
+          (line) =>
+            line.length > 0 &&
+            !line.startsWith('@canBeFile') &&
+            !line.startsWith('@canBeGoogleFile')
+        )
         .join(' ')
         .trim();
     } else {
       description = fullComment
         .split('\n')
         .map((line) => line.replace(/^\/\/\s?/, '').trim())
-        .filter((line) => line.length > 0 && !line.startsWith('@canBeFile'))
+        .filter(
+          (line) =>
+            line.length > 0 &&
+            !line.startsWith('@canBeFile') &&
+            !line.startsWith('@canBeGoogleFile')
+        )
         .join(' ')
         .trim();
     }
@@ -2480,6 +2633,7 @@ export class BubbleParser {
     return {
       description: description || undefined,
       canBeFile,
+      canBeGoogleFile,
     };
   }
 

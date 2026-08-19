@@ -4,6 +4,9 @@ export * from '@bubblelab/shared-schemas';
 export * from './types/credentials.js';
 export * from './types/available-tools.js';
 
+// Export capabilities framework
+export * from './capabilities/index.js';
+
 // Export error classes
 export {
   BubbleError,
@@ -32,10 +35,20 @@ export {
   type ConversationMessage,
 } from './bubbles/service-bubble/ai-agent.js';
 export { PostgreSQLBubble } from './bubbles/service-bubble/postgresql.js';
-export { SlackBubble } from './bubbles/service-bubble/slack.js';
+export { SlackBubble } from './bubbles/service-bubble/slack/index.js';
 export { TelegramBubble } from './bubbles/service-bubble/telegram.js';
 export { ResendBubble } from './bubbles/service-bubble/resend.js';
 export { HttpBubble } from './bubbles/service-bubble/http.js';
+export {
+  LumaBubble,
+  LumaParamsSchema,
+  LumaResultSchema,
+  LumaEventSchema,
+  type LumaParams,
+  type LumaParamsInput,
+  type LumaResult,
+  type LumaEvent,
+} from './bubbles/service-bubble/luma.js';
 export { SlackFormatterAgentBubble } from './bubbles/workflow-bubble/slack-formatter-agent.js';
 export { StorageBubble } from './bubbles/service-bubble/storage.js';
 export { GoogleDriveBubble } from './bubbles/service-bubble/google-drive.js';
@@ -63,6 +76,7 @@ export { OpenEvolveGauntletTestingBubble } from './bubbles/service-bubble/openev
 export { TwitterTool } from './bubbles/tool-bubble/twitter-tool.js';
 export { TikTokTool } from './bubbles/tool-bubble/tiktok-tool.js';
 export { GoogleMapsTool } from './bubbles/tool-bubble/google-maps-tool.js';
+export { AppRankingsTool } from './bubbles/tool-bubble/app-rankings-tool.js';
 export type {
   ApifyParamsInput,
   ApifyActorInput,
@@ -86,10 +100,143 @@ export type { AGIIncParamsInput } from './bubbles/service-bubble/agi-inc.js';
 export { AirtableBubble } from './bubbles/service-bubble/airtable.js';
 export type { AirtableParamsInput } from './bubbles/service-bubble/airtable.js';
 export { NotionBubble } from './bubbles/service-bubble/notion/notion.js';
+export { JiraBubble } from './bubbles/service-bubble/jira/index.js';
+export type { JiraParamsInput } from './bubbles/service-bubble/jira/index.js';
+export { LinearBubble } from './bubbles/service-bubble/linear/index.js';
+export type { LinearParamsInput } from './bubbles/service-bubble/linear/index.js';
+export { AttioBubble } from './bubbles/service-bubble/attio/index.js';
+export type { AttioParamsInput } from './bubbles/service-bubble/attio/index.js';
+export { HubSpotBubble } from './bubbles/service-bubble/hubspot/index.js';
+export type { HubSpotParamsInput } from './bubbles/service-bubble/hubspot/index.js';
+export { XeroBubble } from './bubbles/service-bubble/xero/index.js';
+export type { XeroParamsInput } from './bubbles/service-bubble/xero/index.js';
+export { RampBubble } from './bubbles/service-bubble/ramp/index.js';
+export type { RampParamsInput } from './bubbles/service-bubble/ramp/index.js';
+export { ZendeskBubble } from './bubbles/service-bubble/zendesk/index.js';
+export type { ZendeskParamsInput } from './bubbles/service-bubble/zendesk/index.js';
+export { SlabBubble } from './bubbles/service-bubble/slab/index.js';
+export type { SlabParamsInput } from './bubbles/service-bubble/slab/index.js';
+export { SnowflakeBubble } from './bubbles/service-bubble/snowflake/index.js';
+export type { SnowflakeParamsInput } from './bubbles/service-bubble/snowflake/index.js';
+export { SalesforceBubble } from './bubbles/service-bubble/salesforce/index.js';
+export type { SalesforceParamsInput } from './bubbles/service-bubble/salesforce/index.js';
+export { AsanaBubble } from './bubbles/service-bubble/asana/index.js';
+export type { AsanaParamsInput } from './bubbles/service-bubble/asana/index.js';
+export { DiscordBubble } from './bubbles/service-bubble/discord/index.js';
+export type { DiscordParamsInput } from './bubbles/service-bubble/discord/index.js';
+export { SortlyBubble } from './bubbles/service-bubble/sortly/index.js';
+export type { SortlyParamsInput } from './bubbles/service-bubble/sortly/index.js';
+export { DocuSignBubble } from './bubbles/service-bubble/docusign/index.js';
+export type { DocuSignParamsInput } from './bubbles/service-bubble/docusign/index.js';
+export {
+  MetabaseBubble,
+  MetabaseParamsSchema,
+  MetabaseResultSchema,
+  type MetabaseParams,
+  type MetabaseParamsInput,
+  type MetabaseResult,
+} from './bubbles/service-bubble/metabase/index.js';
+export {
+  ClerkBubble,
+  ClerkParamsSchema,
+  ClerkResultSchema,
+  type ClerkParams,
+  type ClerkParamsInput,
+  type ClerkResult,
+} from './bubbles/service-bubble/clerk/index.js';
+export {
+  GranolaBubble,
+  GranolaParamsSchema,
+  GranolaResultSchema,
+  type GranolaParams,
+  type GranolaParamsInput,
+  type GranolaResult,
+  type GranolaNoteSummary,
+  type GranolaNoteFields,
+  type GranolaSection,
+} from './bubbles/service-bubble/granola/index.js';
+export {
+  MemberfulBubble,
+  MemberfulParamsSchema,
+  MemberfulResultSchema,
+  type MemberfulParams,
+  type MemberfulParamsInput,
+  type MemberfulResult,
+} from './bubbles/service-bubble/memberful/index.js';
+export {
+  ZoomBubble,
+  ZoomParamsSchema,
+  ZoomResultSchema,
+  type ZoomParams,
+  type ZoomParamsInput,
+  type ZoomResult,
+} from './bubbles/service-bubble/zoom/index.js';
+export { ConfluenceBubble } from './bubbles/service-bubble/confluence/index.js';
+export type { ConfluenceParamsInput } from './bubbles/service-bubble/confluence/index.js';
+export { AshbyBubble } from './bubbles/service-bubble/ashby/index.js';
+export type {
+  AshbyParamsInput,
+  AshbyEnrichedCandidate,
+} from './bubbles/service-bubble/ashby/index.js';
+export { FullEnrichBubble } from './bubbles/service-bubble/fullenrich/index.js';
+export type { FullEnrichParamsInput } from './bubbles/service-bubble/fullenrich/index.js';
+export {
+  StripeBubble,
+  StripeParamsSchema,
+  StripeResultSchema,
+  type StripeParams,
+  type StripeParamsInput,
+  type StripeResult,
+} from './bubbles/service-bubble/stripe/index.js';
+export {
+  SendSafelyBubble,
+  SendSafelyParamsSchema,
+  SendSafelyResultSchema,
+  type SendSafelyParams,
+  type SendSafelyParamsInput,
+  type SendSafelyResult,
+} from './bubbles/service-bubble/sendsafely/index.js';
+export {
+  S3Bubble,
+  S3ParamsSchema,
+  S3ResultSchema,
+  type S3Params,
+  type S3ParamsInput,
+  type S3Result,
+  type S3OperationResult,
+} from './bubbles/service-bubble/s3/index.js';
 export type { FirecrawlParamsInput } from './bubbles/service-bubble/firecrawl.js';
 export { FirecrawlBubble } from './bubbles/service-bubble/firecrawl.js';
 export { InsForgeDbBubble } from './bubbles/service-bubble/insforge-db.js';
 export type { InsForgeDbParamsInput } from './bubbles/service-bubble/insforge-db.js';
+export {
+  BrowserBaseBubble,
+  BrowserBaseParamsSchema,
+  BrowserBaseResultSchema,
+  type BrowserBaseParams,
+  type BrowserBaseParamsInput,
+  type BrowserBaseResult,
+  type CDPCookie,
+  type BrowserSessionData,
+} from './bubbles/service-bubble/browserbase/index.js';
+export { CrustdataBubble } from './bubbles/service-bubble/crustdata/index.js';
+export { PosthogBubble } from './bubbles/service-bubble/posthog/index.js';
+export type { PosthogParamsInput } from './bubbles/service-bubble/posthog/index.js';
+export {
+  AssembledBubble,
+  AssembledParamsSchema,
+  AssembledResultSchema,
+  type AssembledParams,
+  type AssembledParamsInput,
+  type AssembledResult,
+} from './bubbles/service-bubble/assembled/index.js';
+export type {
+  CrustdataParams,
+  CrustdataParamsInput,
+  CrustdataResult,
+  PersonProfile,
+  CompanyInfo,
+} from './bubbles/service-bubble/crustdata/index.js';
 
 // Export workflow bubbles
 export { DatabaseAnalyzerWorkflowBubble } from './bubbles/workflow-bubble/database-analyzer.workflow.js';
@@ -102,10 +249,18 @@ export { ParseDocumentWorkflow } from './bubbles/workflow-bubble/parse-document.
 
 // Export tool bubbles
 export { ListBubblesTool } from './bubbles/tool-bubble/list-bubbles-tool.js';
+export { ListCapabilitiesTool } from './bubbles/tool-bubble/list-capabilities-tool.js';
 export { GetBubbleDetailsTool } from './bubbles/tool-bubble/get-bubble-details-tool.js';
+export { GetTriggerDetailTool } from './bubbles/tool-bubble/get-trigger-detail-tool.js';
+export { ListAirtableBasesTool } from './bubbles/tool-bubble/list-airtable-bases-tool.js';
+export { ListAirtableTablesTool } from './bubbles/tool-bubble/list-airtable-tables-tool.js';
 export { SQLQueryTool } from './bubbles/tool-bubble/sql-query-tool.js';
 export { BubbleFlowValidationTool } from './bubbles/tool-bubble/bubbleflow-validation-tool.js';
-export { EditBubbleFlowTool } from './bubbles/tool-bubble/code-edit-tool.js';
+export {
+  EditBubbleFlowTool,
+  applyCodeEdit,
+  type CodeEditResult,
+} from './bubbles/tool-bubble/code-edit-tool.js';
 export { WebSearchTool } from './bubbles/tool-bubble/web-search-tool.js';
 export { WebScrapeTool } from './bubbles/tool-bubble/web-scrape-tool.js';
 export { WebCrawlTool } from './bubbles/tool-bubble/web-crawl-tool.js';
@@ -113,6 +268,7 @@ export { WebExtractTool } from './bubbles/tool-bubble/web-extract-tool.js';
 export { ResearchAgentTool } from './bubbles/tool-bubble/research-agent-tool.js';
 export { RedditScrapeTool } from './bubbles/tool-bubble/reddit-scrape-tool.js';
 export { InstagramTool } from './bubbles/tool-bubble/instagram-tool.js';
+export { PeopleSearchTool } from './bubbles/tool-bubble/people-search-tool.js';
 export type {
   InstagramPost,
   InstagramProfile,
@@ -128,6 +284,65 @@ export type {
   YouTubeVideo,
   YouTubeTranscriptSegment,
 } from './bubbles/tool-bubble/youtube-tool.js';
+export {
+  AmazonShoppingTool,
+  AmazonShoppingToolParamsSchema,
+  AmazonShoppingToolResultSchema,
+  type AmazonShoppingToolParams,
+  type AmazonShoppingToolParamsInput,
+  type AmazonShoppingToolResult,
+  type CartItem,
+  type SearchResult,
+  type ProductDetails,
+} from './bubbles/tool-bubble/amazon-shopping-tool/index.js';
+export {
+  LinkedInConnectionTool,
+  LinkedInConnectionToolParamsSchema,
+  LinkedInConnectionToolResultSchema,
+  type LinkedInConnectionToolParams,
+  type LinkedInConnectionToolParamsInput,
+  type LinkedInConnectionToolResult,
+  type ProfileInfo,
+} from './bubbles/tool-bubble/browser-tools/linkedin-connection/index.js';
+export {
+  LinkedInSentInvitationsTool,
+  LinkedInSentInvitationsToolParamsSchema,
+  LinkedInSentInvitationsToolResultSchema,
+  SentInvitationInfoSchema,
+  type LinkedInSentInvitationsToolParamsInput,
+  type LinkedInSentInvitationsToolResult,
+  type SentInvitationInfo,
+} from './bubbles/tool-bubble/browser-tools/linkedin-sent-invitations/index.js';
+export {
+  LinkedInReceivedInvitationsTool,
+  LinkedInReceivedInvitationsToolParamsSchema,
+  LinkedInReceivedInvitationsToolResultSchema,
+  ReceivedInvitationInfoSchema,
+  type LinkedInReceivedInvitationsToolParamsInput,
+  type LinkedInReceivedInvitationsToolResult,
+  type ReceivedInvitationInfo,
+} from './bubbles/tool-bubble/browser-tools/linkedin-received-invitations/index.js';
+export {
+  LinkedInAcceptInvitationsTool,
+  LinkedInAcceptInvitationsToolParamsSchema,
+  LinkedInAcceptInvitationsToolResultSchema,
+  AcceptedInvitationInfoSchema,
+  type LinkedInAcceptInvitationsToolParamsInput,
+  type LinkedInAcceptInvitationsToolResult,
+  type AcceptedInvitationInfo,
+} from './bubbles/tool-bubble/browser-tools/linkedin-accept-invitations/index.js';
+export { CompanyEnrichmentTool } from './bubbles/tool-bubble/company-enrichment-tool.js';
+export type {
+  Contact,
+  CompanyEnrichmentResult,
+} from './bubbles/tool-bubble/company-enrichment-tool.js';
+export { YCScraperTool } from './bubbles/tool-bubble/yc-scraper-tool.js';
+export type {
+  YCPerson,
+  YCCompany,
+  YCFounder,
+} from './bubbles/tool-bubble/yc-scraper-tool.js';
+export { ChartJSTool } from './bubbles/tool-bubble/chart-js-tool.js';
 
 // Export factory (this is the main way to access bubbles)
 export {
@@ -150,6 +365,14 @@ export { WebhookStreamLogger } from './logging/WebhookStreamLogger.js';
 export { MockDataGenerator } from '@bubblelab/shared-schemas';
 
 // Re-export langchain message types for use in API and other packages
-export { HumanMessage, AIMessage, ToolMessage } from '@langchain/core/messages';
+export {
+  HumanMessage,
+  AIMessage,
+  ToolMessage,
+  mapChatMessagesToStoredMessages,
+} from '@langchain/core/messages';
 export type { BaseMessage } from '@langchain/core/messages';
-export { parseJsonWithFallbacks } from './utils/json-parsing.js';
+export {
+  parseJsonWithFallbacks,
+  unwrapSchemaStyleResponse,
+} from './utils/json-parsing.js';

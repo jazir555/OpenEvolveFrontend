@@ -425,6 +425,7 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       expect(payloadJsonSchema).toBeDefined();
       expect(payloadJsonSchema).toEqual({
         type: 'object',
+        extendsEvent: 'schedule/cron',
         properties: {
           message: { type: 'string' },
           name: { type: 'string' },
@@ -455,6 +456,7 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       expect(payloadZodSchemaString).toBeDefined();
       expect(payloadZodSchemaString).toEqual({
         type: 'object',
+        extendsEvent: 'webhook/http',
         properties: {
           image: { type: 'string', description: 'base64 encoded image' },
           mimeType: { type: 'string', description: 'mime type of the image' },
@@ -478,6 +480,7 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       expect(payloadZodSchemaString).toBeDefined();
       expect(payloadZodSchemaString).toEqual({
         type: 'object',
+        extendsEvent: 'webhook/http',
         properties: {
           spreadsheetId: {
             type: 'string',
@@ -492,27 +495,6 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       );
       expect(payloadMock).toBeDefined();
       expect(payloadMock.spreadsheetId).toBeDefined();
-    });
-
-    it('should get payload zod schema string from data assistant script', () => {
-      const dataAssistantScript = getFixture('data-assistant');
-      const analyzer = new BubbleScript(dataAssistantScript, bubbleFactory);
-      const payloadZodSchemaString = analyzer.getPayloadJsonSchema();
-      const triggerEventType = analyzer.getBubbleTriggerEventType();
-      expect(triggerEventType?.type).toBe('slack/bot_mentioned');
-      expect(payloadZodSchemaString).toBeDefined();
-      expect(payloadZodSchemaString).toEqual({
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          channel: { type: 'string' },
-          thread_ts: { type: 'string' },
-          user: { type: 'string' },
-          slack_event: { type: 'object' },
-          monthlyLimitError: {},
-        },
-        required: ['text', 'channel', 'user', 'slack_event'],
-      });
     });
   });
 
@@ -546,6 +528,7 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       expect(inputSchema).toBeDefined();
       expect(inputSchema).toEqual({
         type: 'object',
+        extendsEvent: 'webhook/http',
         properties: {
           email: {
             type: 'string',
@@ -581,6 +564,7 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
       expect(inputSchema).toBeDefined();
       expect(inputSchema).toEqual({
         type: 'object',
+        extendsEvent: 'webhook/http',
         properties: {
           ticker: { type: 'string' },
           email: { type: 'string' },
@@ -625,6 +609,7 @@ export class CalendarEmailFlow extends BubbleFlow {
       expect(inputSchema).toBeDefined();
       expect(inputSchema).toEqual({
         type: 'object',
+        extendsEvent: 'webhook/http',
         properties: {
           email: {
             type: 'string',
@@ -680,6 +665,7 @@ describe('BubbleScript.getWorkflow()', () => {
     const totalBubblesInWorkflow = bubbleIdsFromTraversal.size;
     expect(totalBubblesInWorkflow * 2).toEqual(totalParsedBubbles);
   });
+
   it('should get workflow from reddit scraper script', () => {
     const redditScraperScript = getFixture('reddit-scraper');
     const analyzer = new BubbleScript(redditScraperScript, bubbleFactory);

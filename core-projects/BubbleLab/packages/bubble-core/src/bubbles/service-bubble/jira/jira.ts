@@ -1,0 +1,1112 @@
+import { ServiceBubble } from '../../../types/service-bubble-class.js';
+import type { BubbleContext } from '../../../types/bubble.js';
+import {
+  CredentialType,
+  decodeCredentialPayload,
+} from '@bubblelab/shared-schemas';
+import {
+  JiraParamsSchema,
+  JiraResultSchema,
+  type JiraParams,
+  type JiraParamsInput,
+  type JiraResult,
+  type JiraSearchParams,
+  type JiraGetParams,
+  type JiraCreateParams,
+  type JiraUpdateParams,
+  type JiraTransitionParams,
+  type JiraListTransitionsParams,
+  type JiraListProjectsParams,
+  type JiraListIssueTypesParams,
+  type JiraGetCreateFieldsParams,
+  type JiraAddCommentParams,
+  type JiraGetCommentsParams,
+  type JiraIssue,
+} from './jira.schema.js';
+import {
+  textToADF,
+  adfToText,
+  enhanceErrorMessage,
+  normalizeDate,
+  findTransitionByStatus,
+} from './jira.utils.js';
+
+/**
+ * Jira Service Bubble
+ *
+ * Agent-friendly Jira integration with minimal required parameters and smart defaults.
+ *
+ * Core Operations:
+ * - search: Find issues using JQL queries
+ * - get: Get details for a specific issue
+ * - create: Create new issues with automatic ADF conversion
+ * - update: Modify existing issues with flexible label operations
+ * - transition: Change issue status by name (no ID lookup needed)
+ *
+ * Supporting Operations:
+ * - list_transitions: Get available status transitions
+ * - list_projects: Discover available projects
+ * - list_issue_types: Get issue types for a project
+ * - add_comment: Add a comment to an issue
+ * - get_comments: Retrieve comments for an issue
+ *
+ * Features:
+ * - Markdown or plain text descriptions/comments auto-converted to Atlassian Document Format (ADF)
+ * - Supports markdown: **bold**, *italic*, `code`, [links](url), # headings, lists, > blockquotes, ``` code blocks ```, ~~strikethrough~~
+ * - Status transitions by name (e.g., "Done") instead of IDs
+ * - Flexible label operations (add/remove/set)
+ * - Smart defaults for 90% of use cases
+ *
+ * Security Features:
+ * - API token authentication via Jira Cloud
+ * - Secure credential injection at runtime
+ */
+export class JiraBubble<
+  T extends JiraParamsInput = JiraParamsInput,
+> extends ServiceBubble<T, Extract<JiraResult, { operation: T['operation'] }>> {
+  static readonly type = 'service' as const;
+  static readonly service = 'jira';
+  static readonly authType = 'oauth' as const;
+  static readonly bubbleName = 'jira';
+  static readonly schema = JiraParamsSchema;
+  static readonly resultSchema = JiraResultSchema;
+  static readonly shortDescription =
+    'Jira integration for issue tracking and project management';
+  static readonly longDescription = `
+    Agent-friendly Jira integration with minimal required parameters and smart defaults.
+
+    Core Operations:
+    - search: Find issues using JQL queries
+    - get: Get details for a specific issue
+    - create: Create new issues with automatic ADF conversion
+    - update: Modify existing issues with flexible label operations
+    - transition: Change issue status by name (no ID lookup needed)
+
+    Supporting Operations:
+    - list_transitions: Get available status transitions
+    - list_projects: Discover available projects
+    - list_issue_types: Get issue types for a project
+    - add_comment: Add a comment to an issue
+    - get_comments: Retrieve comments for an issue
+
+    Features:
+    - Markdown or plain text descriptions/comments auto-converted to Atlassian Document Format (ADF)
+    - Status transitions by name (e.g., "Done") instead of IDs
+    - Flexible label operations (add/remove/set)
+    - Smart defaults for 90% of use cases
+
+    Authentication:
+    - OAuth 2.0 (recommended): Connect via Atlassian OAuth for secure access
+    - API token (legacy): Use email + API token for Basic auth
+    - Secure credential injection at runtime
+  `;
+  static readonly alias = 'jira';
+
+  constructor(params: T, context?: BubbleContext) {
+    super(params, context);
+  }
+
+  public async testCredential(): Promise<boolean> {
+    const apiToken = this.chooseCredential();
+    if (!apiToken) {
+      throw new Error('Jira credentials are required');
+    }
+
+    // Test credentials by fetching user info
+    const response = await this.makeJiraApiRequest('/rest/api/3/myself', 'GET');
+    if (!response?.accountId) {
+      throw new Error('Jira API returned no account data');
+    }
+    return true;
+  }
+
+  /**
+   * Jira credential types:
+   * 1. OAuth (recommended): { accessToken, cloudId, siteUrl } - Uses Bearer auth with Atlassian Cloud API
+   * 2. API Token (legacy): { accessToken, baseUrl, email } - Uses Basic auth with Jira instance
+   */
+  private parseCredentials(): {
+    accessToken: string;
+    baseUrl: string;
+  } | null {
+    const { credentials } = this.params as {
+      credentials?: Record<string, string>;
+    };
+
+    if (!credentials || typeof credentials !== 'object') {
+      return null;
+    }
+
+    const jiraCredRaw = credentials[CredentialType.JIRA_CRED];
+    if (!jiraCredRaw) {
+      return null;
+    }
+
+    try {
+      const parsed = decodeCredentialPayload<{
+        accessToken?: string;
+        cloudId?: string;
+        siteUrl?: string;
+      }>(jiraCredRaw);
+
+      if (parsed.accessToken && parsed.cloudId) {
+        return {
+          accessToken: parsed.accessToken,
+          baseUrl: `https://api.atlassian.com/ex/jira/${parsed.cloudId}`,
+        };
+      }
+    } catch {
+      // Invalid credential format
+    }
+
+    return null;
+  }
+
+  private async makeJiraApiRequest(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+    body?: unknown
+  ): Promise<Record<string, unknown>> {
+    const creds = this.parseCredentials();
+    if (!creds) {
+      throw new Error(
+        'Invalid Jira credentials. Expected base64-encoded JSON with { accessToken, cloudId }.'
+      );
+    }
+
+    const url = `${creds.baseUrl}${endpoint}`;
+
+    const requestHeaders: Record<string, string> = {
+      Authorization: `Bearer ${creds.accessToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    const requestInit: RequestInit = {
+      method,
+      headers: requestHeaders,
+    };
+
+    if (body && method !== 'GET') {
+      requestInit.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, requestInit);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      const enhancedError = enhanceErrorMessage(
+        errorText,
+        response.status,
+        response.statusText
+      );
+      throw new Error(enhancedError);
+    }
+
+    // Handle empty responses (204 No Content)
+    if (response.status === 204) {
+      return {};
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return (await response.json()) as Record<string, unknown>;
+    }
+
+    return {};
+  }
+
+  /**
+   * Resolves an assignee (email or accountId) to a Jira accountId.
+   * If the assignee contains '@', it's treated as an email and looked up via the Jira API.
+   * Otherwise, it's assumed to be an accountId and returned as-is.
+   *
+   * @param assignee - Email address or accountId
+   * @returns The resolved accountId
+   * @throws Error if assignee is an email but no user is found
+   */
+  /**
+   * Check whether a string looks like a Jira accountId.
+   * Account IDs are typically long alphanumeric strings like
+   * "712020:66367503-6f4e-473d-953e-f63339075775" or "5f3b2c1a8e9d4f0012345678".
+   */
+  private isAccountId(value: string): boolean {
+    return /^[0-9a-f]{24}$/.test(value) || /^\d+:[0-9a-f-]+$/.test(value);
+  }
+
+  /**
+   * Resolve an assignee string (display name, email, or accountId) to a Jira accountId.
+   * - If it looks like an accountId already, return as-is
+   * - If it contains '@', search by email
+   * - Otherwise, search by display name
+   */
+  private async resolveAssigneeAccountId(assignee: string): Promise<string> {
+    // Special values that Jira handles natively
+    if (assignee === 'currentUser()') return assignee;
+
+    // If it already looks like an accountId, return as-is
+    if (this.isAccountId(assignee)) {
+      return assignee;
+    }
+
+    // Search Jira for the user (works for both email and display name)
+    const queryParams = new URLSearchParams({
+      query: assignee,
+    });
+
+    try {
+      const response = await this.makeJiraApiRequest(
+        `/rest/api/3/user/search?${queryParams.toString()}`,
+        'GET'
+      );
+
+      const usersArray = Array.isArray(response)
+        ? response
+        : (response as unknown as { values?: unknown[] }).values;
+
+      if (!Array.isArray(usersArray) || usersArray.length === 0) {
+        throw new Error(
+          `No user found matching "${assignee}". Please verify the name, email, or use an accountId instead.`
+        );
+      }
+
+      const users = usersArray as Array<{
+        accountId: string;
+        emailAddress?: string;
+        displayName?: string;
+      }>;
+
+      // Try exact email match first (case-insensitive)
+      if (assignee.includes('@')) {
+        const emailMatch = users.find(
+          (user) => user.emailAddress?.toLowerCase() === assignee.toLowerCase()
+        );
+        if (emailMatch?.accountId) return emailMatch.accountId;
+      }
+
+      // Try exact display name match (case-insensitive)
+      const nameMatch = users.find(
+        (user) => user.displayName?.toLowerCase() === assignee.toLowerCase()
+      );
+      if (nameMatch?.accountId) return nameMatch.accountId;
+
+      // Fall back to first result if only one user returned
+      if (users.length === 1 && users[0].accountId) {
+        return users[0].accountId;
+      }
+
+      // Multiple ambiguous results
+      const userList = users
+        .slice(0, 5)
+        .map((u) => `"${u.displayName}" (${u.emailAddress ?? u.accountId})`)
+        .join(', ');
+      throw new Error(
+        `Multiple users match "${assignee}": ${userList}. Please use a more specific name, email, or accountId.`
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`Failed to lookup user "${assignee}": ${String(error)}`);
+    }
+  }
+
+  /**
+   * Pre-process a JQL string to resolve display names in assignee/reporter clauses
+   * to account IDs. Jira Cloud GDPR changes require accountIds in JQL.
+   *
+   * Handles: assignee = "Display Name", reporter = "Display Name"
+   */
+  private async resolveJqlUserReferences(jql: string): Promise<string> {
+    // Match patterns like: assignee = "Some Name" or reporter = "Some Name"
+    // Also handles: assignee = 'Some Name' (single quotes)
+    const userFieldPattern = /\b(assignee|reporter)\s*=\s*["']([^"']+)["']/gi;
+
+    let resolvedJql = jql;
+    const matches = [...jql.matchAll(userFieldPattern)];
+
+    for (const match of matches) {
+      const [fullMatch, field, value] = match;
+      // Skip special JQL functions and values that look like accountIds
+      if (
+        value === 'currentUser()' ||
+        value === 'EMPTY' ||
+        value === 'empty' ||
+        this.isAccountId(value)
+      ) {
+        continue;
+      }
+
+      try {
+        const accountId = await this.resolveAssigneeAccountId(value);
+        if (accountId !== value) {
+          resolvedJql = resolvedJql.replace(
+            fullMatch,
+            `${field} = "${accountId}"`
+          );
+        }
+      } catch {
+        // If resolution fails, leave the original JQL — Jira will return its own error
+      }
+    }
+
+    return resolvedJql;
+  }
+
+  protected async performAction(
+    context?: BubbleContext
+  ): Promise<Extract<JiraResult, { operation: T['operation'] }>> {
+    void context;
+
+    const { operation } = this.params;
+
+    try {
+      const result = await (async (): Promise<JiraResult> => {
+        const parsedParams = this.params as JiraParams;
+
+        switch (operation) {
+          case 'search':
+            return await this.search(parsedParams as JiraSearchParams);
+          case 'get':
+            return await this.get(parsedParams as JiraGetParams);
+          case 'create':
+            return await this.create(parsedParams as JiraCreateParams);
+          case 'update':
+            return await this.update(parsedParams as JiraUpdateParams);
+          case 'transition':
+            return await this.transition(parsedParams as JiraTransitionParams);
+          case 'list_transitions':
+            return await this.listTransitions(
+              parsedParams as JiraListTransitionsParams
+            );
+          case 'list_projects':
+            return await this.listProjects(
+              parsedParams as JiraListProjectsParams
+            );
+          case 'list_issue_types':
+            return await this.listIssueTypes(
+              parsedParams as JiraListIssueTypesParams
+            );
+          case 'get_create_fields':
+            return await this.getCreateFields(
+              parsedParams as JiraGetCreateFieldsParams
+            );
+          case 'add_comment':
+            return await this.addComment(parsedParams as JiraAddCommentParams);
+          case 'get_comments':
+            return await this.getComments(
+              parsedParams as JiraGetCommentsParams
+            );
+          default:
+            throw new Error(`Unsupported operation: ${operation}`);
+        }
+      })();
+
+      return result as Extract<JiraResult, { operation: T['operation'] }>;
+    } catch (error) {
+      return {
+        operation,
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      } as Extract<JiraResult, { operation: T['operation'] }>;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // CORE OPERATION 1: search
+  // -------------------------------------------------------------------------
+  private async search(
+    params: JiraSearchParams
+  ): Promise<Extract<JiraResult, { operation: 'search' }>> {
+    const { jql: rawJql, limit, offset, fields } = params;
+
+    // Resolve display names in assignee/reporter to accountIds (Jira Cloud GDPR)
+    const jql = await this.resolveJqlUserReferences(rawJql);
+
+    const queryParams = new URLSearchParams({
+      jql,
+      startAt: String(offset ?? 0),
+      maxResults: String(limit ?? 50),
+    });
+
+    // Default fields to request if not specified
+    // The /search/jql endpoint requires explicit field specification
+    // Note: 'key' must be explicitly requested with this endpoint
+    const defaultFields = [
+      'key',
+      'summary',
+      'status',
+      'priority',
+      'assignee',
+      'reporter',
+      'issuetype',
+      'project',
+      'labels',
+      'created',
+      'updated',
+      'duedate',
+      'description',
+      'parent',
+      'comment',
+    ];
+
+    const fieldsToRequest =
+      fields && fields.length > 0 ? fields : defaultFields;
+    queryParams.set('fields', fieldsToRequest.join(','));
+
+    // Use the new /search/jql endpoint (old /search was deprecated and returns 410)
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/search/jql?${queryParams.toString()}`,
+      'GET'
+    );
+
+    // Convert comment bodies from ADF to plain text if comments are present
+    if (Array.isArray(response.issues)) {
+      response.issues = response.issues.map((issue: unknown) => {
+        if (
+          issue &&
+          typeof issue === 'object' &&
+          'fields' in issue &&
+          issue.fields &&
+          typeof issue.fields === 'object' &&
+          'comment' in issue.fields &&
+          issue.fields.comment &&
+          typeof issue.fields.comment === 'object' &&
+          'comments' in issue.fields.comment &&
+          Array.isArray(issue.fields.comment.comments)
+        ) {
+          const comments = issue.fields.comment.comments as Array<{
+            id: string;
+            author?: unknown;
+            body?: unknown;
+            created?: string;
+            updated?: string;
+          }>;
+          issue.fields.comment.comments = comments.map((c) => ({
+            ...c,
+            body: adfToText(c.body),
+            renderedBody: adfToText(c.body),
+          }));
+        }
+        return issue;
+      });
+    }
+
+    // The /search/jql endpoint returns different pagination fields:
+    // - total: may not be present, use issues.length as fallback
+    // - startAt: pagination offset
+    // - maxResults: requested limit
+    // - isLast: boolean indicating if this is the last page
+    const issuesArray = Array.isArray(response.issues) ? response.issues : [];
+
+    return {
+      operation: 'search',
+      success: true,
+      issues: issuesArray as JiraResult extends { issues?: infer I }
+        ? I
+        : never,
+      total: (response.total as number) ?? issuesArray.length,
+      offset: (response.startAt as number) ?? offset ?? 0,
+      limit: (response.maxResults as number) ?? limit ?? 50,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // CORE OPERATION 2: get
+  // -------------------------------------------------------------------------
+  private async get(
+    params: JiraGetParams
+  ): Promise<Extract<JiraResult, { operation: 'get' }>> {
+    const { key, fields, expand } = params;
+
+    const queryParams = new URLSearchParams();
+
+    if (fields && fields.length > 0) {
+      queryParams.set('fields', fields.join(','));
+    }
+
+    if (expand && expand.length > 0) {
+      // Map expand options to Jira API expand values
+      const expandValues = expand.map((e) => {
+        switch (e) {
+          case 'comments':
+            return 'renderedFields';
+          case 'changelog':
+            return 'changelog';
+          case 'transitions':
+            return 'transitions';
+          default:
+            return e;
+        }
+      });
+      queryParams.set('expand', expandValues.join(','));
+    }
+
+    const queryString = queryParams.toString();
+    const endpoint = `/rest/api/3/issue/${encodeURIComponent(key)}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await this.makeJiraApiRequest(endpoint, 'GET');
+
+    // Convert comment bodies from ADF to plain text if comments are present
+    if (
+      response.fields &&
+      typeof response.fields === 'object' &&
+      'comment' in response.fields &&
+      response.fields.comment &&
+      typeof response.fields.comment === 'object' &&
+      'comments' in response.fields.comment &&
+      Array.isArray(response.fields.comment.comments)
+    ) {
+      const comments = response.fields.comment.comments as Array<{
+        id: string;
+        author?: unknown;
+        body?: unknown;
+        created?: string;
+        updated?: string;
+      }>;
+      response.fields.comment.comments = comments.map((c) => ({
+        ...c,
+        body: adfToText(c.body),
+        renderedBody: adfToText(c.body),
+      }));
+    }
+
+    return {
+      operation: 'get',
+      success: true,
+      issue: response as JiraIssue,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // CORE OPERATION 3: create
+  // -------------------------------------------------------------------------
+  private async create(
+    params: JiraCreateParams
+  ): Promise<Extract<JiraResult, { operation: 'create' }>> {
+    const {
+      project,
+      summary,
+      type,
+      description,
+      assignee,
+      priority,
+      labels,
+      parent,
+      due_date,
+      custom_fields,
+    } = params;
+
+    const fields: Record<string, unknown> = {
+      project: { key: project },
+      summary,
+      issuetype: { name: type ?? 'Task' },
+    };
+
+    if (description) {
+      fields.description = textToADF(description);
+    }
+
+    if (assignee) {
+      const accountId = await this.resolveAssigneeAccountId(assignee);
+      fields.assignee = { accountId };
+    }
+
+    if (priority) {
+      fields.priority = { name: priority };
+    }
+
+    if (labels && labels.length > 0) {
+      fields.labels = labels;
+    }
+
+    if (parent) {
+      fields.parent = { key: parent };
+    }
+
+    if (due_date) {
+      const normalizedDate = normalizeDate(due_date);
+      if (normalizedDate) {
+        fields.duedate = normalizedDate;
+      }
+    }
+
+    if (custom_fields) {
+      for (const [fieldId, value] of Object.entries(custom_fields)) {
+        fields[fieldId] = value;
+      }
+    }
+
+    const response = await this.makeJiraApiRequest(
+      '/rest/api/3/issue',
+      'POST',
+      { fields }
+    );
+
+    return {
+      operation: 'create',
+      success: true,
+      issue: {
+        id: response.id as string,
+        key: response.key as string,
+        self: response.self as string,
+      },
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // CORE OPERATION 4: update
+  // -------------------------------------------------------------------------
+  private async update(
+    params: JiraUpdateParams
+  ): Promise<Extract<JiraResult, { operation: 'update' }>> {
+    const {
+      key,
+      summary,
+      description,
+      assignee,
+      priority,
+      labels,
+      due_date,
+      comment,
+    } = params;
+
+    const fields: Record<string, unknown> = {};
+    const update: Record<string, unknown[]> = {};
+
+    if (summary !== undefined) {
+      fields.summary = summary;
+    }
+
+    if (description !== undefined) {
+      fields.description = textToADF(description);
+    }
+
+    if (assignee !== undefined) {
+      if (assignee === null) {
+        fields.assignee = null;
+      } else {
+        const accountId = await this.resolveAssigneeAccountId(assignee);
+        fields.assignee = { accountId };
+      }
+    }
+
+    if (priority !== undefined) {
+      fields.priority = { name: priority };
+    }
+
+    if (due_date !== undefined) {
+      if (due_date === null) {
+        fields.duedate = null;
+      } else {
+        const normalizedDate = normalizeDate(due_date);
+        if (normalizedDate) {
+          fields.duedate = normalizedDate;
+        }
+      }
+    }
+
+    // Handle labels modification
+    if (labels !== undefined) {
+      if (labels.set) {
+        // Replace all labels
+        fields.labels = labels.set;
+      } else {
+        // Use update operations for add/remove
+        const labelOps: Array<{ add: string } | { remove: string }> = [];
+
+        if (labels.add) {
+          labels.add.forEach((label) => labelOps.push({ add: label }));
+        }
+
+        if (labels.remove) {
+          labels.remove.forEach((label) => labelOps.push({ remove: label }));
+        }
+
+        if (labelOps.length > 0) {
+          update.labels = labelOps;
+        }
+      }
+    }
+
+    const body: Record<string, unknown> = {};
+
+    if (Object.keys(fields).length > 0) {
+      body.fields = fields;
+    }
+
+    if (Object.keys(update).length > 0) {
+      body.update = update;
+    }
+
+    // Update the issue
+    await this.makeJiraApiRequest(
+      `/rest/api/3/issue/${encodeURIComponent(key)}`,
+      'PUT',
+      body
+    );
+
+    // Add comment if provided
+    if (comment) {
+      await this.makeJiraApiRequest(
+        `/rest/api/3/issue/${encodeURIComponent(key)}/comment`,
+        'POST',
+        { body: textToADF(comment) }
+      );
+    }
+
+    return {
+      operation: 'update',
+      success: true,
+      key,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // CORE OPERATION 5: transition
+  // -------------------------------------------------------------------------
+  private async transition(
+    params: JiraTransitionParams
+  ): Promise<Extract<JiraResult, { operation: 'transition' }>> {
+    const { key, status, transition_id, comment, resolution } = params;
+
+    let targetTransitionId = transition_id;
+    let targetStatusName: string | undefined;
+
+    // If status name is provided, find the matching transition
+    if (status && !transition_id) {
+      const transitionsResponse = await this.makeJiraApiRequest(
+        `/rest/api/3/issue/${encodeURIComponent(key)}/transitions`,
+        'GET'
+      );
+
+      const transitions = transitionsResponse.transitions as Array<{
+        id: string;
+        name: string;
+        to?: { name: string };
+      }>;
+
+      const matchingTransition = findTransitionByStatus(transitions, status);
+
+      if (!matchingTransition) {
+        const availableTransitions = transitions
+          .map((t) => `"${t.name}" → ${t.to?.name || 'unknown'}`)
+          .join(', ');
+        throw new Error(
+          `No transition found to status "${status}". Available transitions: ${availableTransitions}`
+        );
+      }
+
+      targetTransitionId = matchingTransition.id;
+      targetStatusName = matchingTransition.to?.name || matchingTransition.name;
+    }
+
+    if (!targetTransitionId) {
+      throw new Error('Either status or transition_id is required');
+    }
+
+    const body: Record<string, unknown> = {
+      transition: { id: targetTransitionId },
+    };
+
+    // Add fields if resolution is specified
+    if (resolution) {
+      body.fields = {
+        resolution: { name: resolution },
+      };
+    }
+
+    // Add update with comment if provided
+    if (comment) {
+      body.update = {
+        comment: [{ add: { body: textToADF(comment) } }],
+      };
+    }
+
+    await this.makeJiraApiRequest(
+      `/rest/api/3/issue/${encodeURIComponent(key)}/transitions`,
+      'POST',
+      body
+    );
+
+    return {
+      operation: 'transition',
+      success: true,
+      key,
+      new_status: targetStatusName,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: list_transitions
+  // -------------------------------------------------------------------------
+  private async listTransitions(
+    params: JiraListTransitionsParams
+  ): Promise<Extract<JiraResult, { operation: 'list_transitions' }>> {
+    const { key } = params;
+
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/issue/${encodeURIComponent(key)}/transitions`,
+      'GET'
+    );
+
+    return {
+      operation: 'list_transitions',
+      success: true,
+      transitions: response.transitions as JiraResult extends {
+        transitions?: infer T;
+      }
+        ? T
+        : never,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: list_projects
+  // -------------------------------------------------------------------------
+  private async listProjects(
+    params: JiraListProjectsParams
+  ): Promise<Extract<JiraResult, { operation: 'list_projects' }>> {
+    const { limit, offset } = params;
+
+    const queryParams = new URLSearchParams({
+      startAt: String(offset ?? 0),
+      maxResults: String(limit ?? 50),
+    });
+
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/project/search?${queryParams.toString()}`,
+      'GET'
+    );
+
+    return {
+      operation: 'list_projects',
+      success: true,
+      projects: response.values as JiraResult extends { projects?: infer P }
+        ? P
+        : never,
+      total: response.total as number,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: list_issue_types
+  // -------------------------------------------------------------------------
+  private async listIssueTypes(
+    params: JiraListIssueTypesParams
+  ): Promise<Extract<JiraResult, { operation: 'list_issue_types' }>> {
+    const { project } = params;
+
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/project/${encodeURIComponent(project)}`,
+      'GET'
+    );
+
+    // Issue types are nested in the project response
+    const issueTypes = response.issueTypes as Array<{
+      id: string;
+      name: string;
+      description?: string;
+      subtask?: boolean;
+    }>;
+
+    return {
+      operation: 'list_issue_types',
+      success: true,
+      issue_types: issueTypes?.map((it) => ({
+        id: it.id,
+        name: it.name,
+        description: it.description,
+        subtask: it.subtask,
+      })),
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: get_create_fields
+  // -------------------------------------------------------------------------
+  private async getCreateFields(
+    params: JiraGetCreateFieldsParams
+  ): Promise<Extract<JiraResult, { operation: 'get_create_fields' }>> {
+    const { project, issue_type } = params;
+
+    // Step 1: Fetch issue types for the project via the createmeta endpoint
+    const issueTypesResponse = await this.makeJiraApiRequest(
+      `/rest/api/3/issue/createmeta/${encodeURIComponent(project)}/issuetypes`,
+      'GET'
+    );
+
+    const rawIssueTypes = (issueTypesResponse.values ??
+      issueTypesResponse.issueTypes ??
+      []) as Array<{
+      id: string;
+      name: string;
+      description?: string;
+      subtask?: boolean;
+    }>;
+
+    // Filter by issue type name if specified
+    const filteredTypes = issue_type
+      ? rawIssueTypes.filter(
+          (it) => it.name.toLowerCase() === issue_type.toLowerCase()
+        )
+      : rawIssueTypes;
+
+    if (issue_type && filteredTypes.length === 0) {
+      const available = rawIssueTypes.map((it) => it.name).join(', ');
+      throw new Error(
+        `Issue type "${issue_type}" not found in project ${project}. Available types: ${available}`
+      );
+    }
+
+    // Step 2: For each issue type, fetch its fields
+    const issueTypesWithFields: Array<{
+      id: string;
+      name: string;
+      fields: Array<{
+        fieldId: string;
+        name: string;
+        required: boolean;
+        isCustom: boolean;
+        schema?: unknown;
+        allowedValues?: unknown[];
+      }>;
+    }> = [];
+
+    for (const it of filteredTypes) {
+      const fieldsResponse = await this.makeJiraApiRequest(
+        `/rest/api/3/issue/createmeta/${encodeURIComponent(project)}/issuetypes/${encodeURIComponent(it.id)}`,
+        'GET'
+      );
+
+      const rawFields = (fieldsResponse.values ??
+        fieldsResponse.fields ??
+        []) as Array<{
+        fieldId: string;
+        name: string;
+        required: boolean;
+        schema?: unknown;
+        allowedValues?: unknown[];
+      }>;
+
+      const fields = rawFields.map((f) => ({
+        fieldId: f.fieldId,
+        name: f.name,
+        required: f.required,
+        isCustom: f.fieldId.startsWith('customfield_'),
+        schema: f.schema,
+        allowedValues: f.allowedValues,
+      }));
+
+      issueTypesWithFields.push({
+        id: it.id,
+        name: it.name,
+        fields,
+      });
+    }
+
+    return {
+      operation: 'get_create_fields',
+      success: true,
+      issue_types: issueTypesWithFields,
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: add_comment
+  // -------------------------------------------------------------------------
+  private async addComment(
+    params: JiraAddCommentParams
+  ): Promise<Extract<JiraResult, { operation: 'add_comment' }>> {
+    const { key, body } = params;
+
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/issue/${encodeURIComponent(key)}/comment`,
+      'POST',
+      { body: textToADF(body) }
+    );
+
+    return {
+      operation: 'add_comment',
+      success: true,
+      comment: {
+        id: response.id as string,
+        body: body, // Return the original text for readability
+        created: response.created as string,
+        updated: response.updated as string,
+        author: response.author as { accountId: string; displayName?: string },
+      },
+      error: '',
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTING OPERATION: get_comments
+  // -------------------------------------------------------------------------
+  private async getComments(
+    params: JiraGetCommentsParams
+  ): Promise<Extract<JiraResult, { operation: 'get_comments' }>> {
+    const { key, limit, offset } = params;
+
+    const queryParams = new URLSearchParams({
+      startAt: String(offset ?? 0),
+      maxResults: String(limit ?? 50),
+    });
+
+    const response = await this.makeJiraApiRequest(
+      `/rest/api/3/issue/${encodeURIComponent(key)}/comment?${queryParams.toString()}`,
+      'GET'
+    );
+
+    // Convert ADF body to plain text for readability
+    const rawComments = response.comments as Array<{
+      id: string;
+      author?: unknown;
+      body?: unknown;
+      created?: string;
+      updated?: string;
+    }>;
+
+    const comments = rawComments?.map((c) => ({
+      id: c.id,
+      author: c.author,
+      body: adfToText(c.body), // Convert ADF to plain text
+      renderedBody: adfToText(c.body), // Plain text version
+      created: c.created,
+      updated: c.updated,
+    }));
+
+    return {
+      operation: 'get_comments',
+      success: true,
+      comments: comments as JiraResult extends { comments?: infer C }
+        ? C
+        : never,
+      total: response.total as number,
+      error: '',
+    };
+  }
+
+  protected chooseCredential(): string | undefined {
+    const { credentials } = this.params as {
+      credentials?: Record<string, string>;
+    };
+
+    if (!credentials || typeof credentials !== 'object') {
+      return undefined;
+    }
+
+    // Return the raw credential value - will be parsed in parseCredentials()
+    return credentials[CredentialType.JIRA_CRED];
+  }
+}

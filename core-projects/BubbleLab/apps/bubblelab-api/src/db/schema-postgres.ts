@@ -10,7 +10,7 @@ import {
   doublePrecision,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import type { DatabaseMetadata } from '@bubblelab/shared-schemas';
+import type { CredentialMetadata } from '@bubblelab/shared-schemas';
 
 export const users = pgTable('users', {
   clerkId: text('clerk_id').primaryKey(),
@@ -89,8 +89,29 @@ export const bubbleFlowExecutions = pgTable('bubble_flow_executions', {
   status: text('status').notNull(),
   error: text('error'),
   code: text('code'), // Store the original code at execution time
+  executionLogs: jsonb('execution_logs'), // StreamingLogEvent[] from execution
   startedAt: timestamp('started_at', { mode: 'date' }).notNull().defaultNow(),
   completedAt: timestamp('completed_at', { mode: 'date' }),
+});
+
+export const bubbleFlowEvaluations = pgTable('bubble_flow_evaluations', {
+  id: serial().primaryKey(),
+  executionId: integer('execution_id')
+    .notNull()
+    .references(() => bubbleFlowExecutions.id, { onDelete: 'cascade' }),
+  bubbleFlowId: integer('bubble_flow_id')
+    .notNull()
+    .references(() => bubbleFlows.id, { onDelete: 'cascade' }),
+  // Evaluation result from Rice agent
+  working: boolean('working').notNull(), // Whether the workflow is functioning correctly
+  issueType: text('issue_type'), // 'setup' | 'workflow' | 'input' | null
+  summary: text('summary').notNull(), // Brief summary of execution or issue description
+  rating: integer('rating').notNull(), // Quality rating 1-10
+  // Metadata
+  modelUsed: text('model_used').notNull(), // Model used for evaluation (e.g., RECOMMENDED_MODELS.FAST)
+  evaluatedAt: timestamp('evaluated_at', { mode: 'date' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const userCredentials = pgTable('user_credentials', {
@@ -101,7 +122,7 @@ export const userCredentials = pgTable('user_credentials', {
   credentialType: text('credential_type').notNull(), // e.g., 'OPENAI_CRED', 'SLACK_CRED'
   encryptedValue: text('encrypted_value'), // Encrypted credential value (nullable for OAuth)
   name: text('name'), // Optional user-friendly name for the credential
-  metadata: jsonb('metadata').$type<DatabaseMetadata>(), // Typed JSONB field for database metadata
+  metadata: jsonb('metadata').$type<CredentialMetadata>(), // Typed JSONB field for credential metadata (DatabaseMetadata or JiraOAuthMetadata)
 
   // OAuth-specific fields
   oauthAccessToken: text('oauth_access_token'), // Encrypted OAuth access token
@@ -111,6 +132,16 @@ export const userCredentials = pgTable('user_credentials', {
   oauthTokenType: text('oauth_token_type').default('Bearer'), // Token type (usually Bearer)
   oauthProvider: text('oauth_provider'), // Provider name (google, slack, github, etc.)
   isOauth: boolean('is_oauth').default(false), // Flag to identify OAuth vs API key credentials
+
+  // BrowserBase session credential fields
+  isBrowserSession: boolean('is_browser_session').default(false), // Flag for browser session credentials
+  browserbaseContextId: text('browserbase_context_id'), // Context ID for session persistence
+  browserbaseCookies: text('browserbase_cookies'), // Encrypted JSON cookies array
+  browserbaseSessionData: jsonb('browserbase_session_data').$type<{
+    capturedAt: string;
+    cookieCount: number;
+    domain: string;
+  }>(), // Session metadata
 
   createdAt: timestamp('created_at', { mode: 'date' })
     .notNull()
@@ -172,6 +203,7 @@ export const waitlistedUsers = pgTable('waitlisted_users', {
 export const bubbleFlowsRelations = relations(bubbleFlows, ({ many }) => ({
   executions: many(bubbleFlowExecutions),
   webhooks: many(webhooks),
+  evaluations: many(bubbleFlowEvaluations),
 }));
 
 export const webhooksRelations = relations(webhooks, ({ one }) => ({
@@ -183,9 +215,24 @@ export const webhooksRelations = relations(webhooks, ({ one }) => ({
 
 export const bubbleFlowExecutionsRelations = relations(
   bubbleFlowExecutions,
-  ({ one }) => ({
+  ({ one, many }) => ({
     bubbleFlow: one(bubbleFlows, {
       fields: [bubbleFlowExecutions.bubbleFlowId],
+      references: [bubbleFlows.id],
+    }),
+    evaluations: many(bubbleFlowEvaluations),
+  })
+);
+
+export const bubbleFlowEvaluationsRelations = relations(
+  bubbleFlowEvaluations,
+  ({ one }) => ({
+    execution: one(bubbleFlowExecutions, {
+      fields: [bubbleFlowEvaluations.executionId],
+      references: [bubbleFlowExecutions.id],
+    }),
+    bubbleFlow: one(bubbleFlows, {
+      fields: [bubbleFlowEvaluations.bubbleFlowId],
       references: [bubbleFlows.id],
     }),
   })

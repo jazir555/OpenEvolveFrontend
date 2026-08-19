@@ -4,7 +4,11 @@ import {
   ParsedBubbleWithInfo,
   BUBBLE_CREDENTIAL_OPTIONS,
   BubbleName,
+  CredentialMetadata,
+  OPTIONAL_CREDENTIALS,
+  type CredentialRequirements,
 } from '@bubblelab/shared-schemas';
+import { getCapabilityMetadataById } from '@bubblelab/bubble-core';
 import { BubbleScript } from '../parse/BubbleScript';
 import { LoggerInjector } from './LoggerInjector';
 import { replaceBubbleInstantiation } from '../utils/parameter-formatter';
@@ -20,7 +24,9 @@ export interface UserCredentialWithId {
   secret: string;
   credentialType: CredentialType;
   credentialId?: number;
-  metadata?: Record<string, unknown>;
+  metadata?: CredentialMetadata;
+  /** User-assigned credential name (used for credential pool metadata) */
+  name?: string;
 }
 
 export interface CredentialInjectionResult {
@@ -52,23 +58,40 @@ export class BubbleInjector {
    * @param bubbleParameters - Parsed bubble parameters with info
    * @returns Record mapping bubble variable IDs to their required credential types (excluding system credentials)
    */
-  findCredentials(): Record<string, CredentialType[]> {
-    const requiredCredentials: Record<string, CredentialType[]> = {};
+  findCredentials(): CredentialRequirements {
+    const required: Record<string, CredentialType[]> = {};
+    const optional: Record<string, CredentialType[]> = {};
 
     // Iterate through each bubble and check its credential requirements
     for (const [, bubble] of Object.entries(
-      this.bubbleScript.getParsedBubbles()
+      this.bubbleScript.getParsedBubblesRaw()
     )) {
-      const allCredentialTypes = new Set<CredentialType>();
+      const requiredSet = new Set<CredentialType>();
+      const optionalSet = new Set<CredentialType>();
 
       // Get bubble-level credentials
-      let credentialOptions =
+      const rawCredentialOptions =
         BUBBLE_CREDENTIAL_OPTIONS[
           bubble.bubbleName as keyof typeof BUBBLE_CREDENTIAL_OPTIONS
         ];
 
+      // Handle wildcard - bubble accepts any credential type
+      const isWildcard =
+        Array.isArray(rawCredentialOptions) &&
+        rawCredentialOptions.includes(CredentialType.CREDENTIAL_WILDCARD);
+
+      let credentialOptions: CredentialType[];
+      if (isWildcard) {
+        // Wildcard means all credential types are accepted - all go to optional
+        credentialOptions = Object.values(CredentialType).filter(
+          (ct) => ct !== CredentialType.CREDENTIAL_WILDCARD
+        );
+      } else {
+        credentialOptions = rawCredentialOptions || [];
+      }
+
       // For AI agent bubbles, optimize credential requirements based on model
-      if (bubble.bubbleName === 'ai-agent' && credentialOptions) {
+      if (bubble.bubbleName === 'ai-agent' && credentialOptions.length > 0) {
         const modelCredentialTypes = this.extractModelCredentialType(bubble);
         if (modelCredentialTypes !== null) {
           // Model is static - only include the credentials needed for primary and backup models
@@ -79,9 +102,14 @@ export class BubbleInjector {
         // If modelCredentialTypes is null, model is dynamic - include all credentials
       }
 
+      // Add bubble-level credentials to required or optional
       if (credentialOptions && Array.isArray(credentialOptions)) {
         for (const credType of credentialOptions) {
-          allCredentialTypes.add(credType);
+          if (isWildcard || OPTIONAL_CREDENTIALS.has(credType)) {
+            optionalSet.add(credType);
+          } else {
+            requiredSet.add(credType);
+          }
         }
       }
 
@@ -89,20 +117,40 @@ export class BubbleInjector {
       if (bubble.bubbleName === 'ai-agent') {
         const toolCredentials = this.extractToolCredentials(bubble);
         for (const credType of toolCredentials) {
-          allCredentialTypes.add(credType);
+          if (OPTIONAL_CREDENTIALS.has(credType)) {
+            optionalSet.add(credType);
+          } else {
+            requiredSet.add(credType);
+          }
+        }
+
+        // Also collect capability-level credential requirements (already split)
+        const capCreds = this.extractCapabilityCredentials(bubble);
+        for (const credType of capCreds.required) {
+          requiredSet.add(credType);
+        }
+        for (const credType of capCreds.optional) {
+          optionalSet.add(credType);
         }
       }
 
-      // Return all credentials (system and user credentials)
-      const allCredentials = Array.from(allCredentialTypes);
+      // Final dedup: required wins over optional for overlaps
+      for (const cred of requiredSet) {
+        optionalSet.delete(cred);
+      }
 
-      // Only add the bubble if it has credentials
-      if (allCredentials.length > 0) {
-        requiredCredentials[bubble.variableId] = allCredentials;
+      const reqArr = Array.from(requiredSet);
+      const optArr = Array.from(optionalSet);
+
+      if (reqArr.length > 0) {
+        required[bubble.variableId] = reqArr;
+      }
+      if (optArr.length > 0) {
+        optional[bubble.variableId] = optArr;
       }
     }
 
-    return requiredCredentials;
+    return { required, optional };
   }
 
   /**
@@ -113,10 +161,6 @@ export class BubbleInjector {
   private extractModelCredentialType(
     bubble: ParsedBubbleWithInfo
   ): CredentialType[] | null {
-    console.log(
-      '[BubbleInjector] Extracting model credential type for bubble:',
-      bubble.bubbleName
-    );
     if (bubble.bubbleName !== 'ai-agent') {
       return null;
     }
@@ -126,7 +170,6 @@ export class BubbleInjector {
       (param) => param.name === 'model'
     );
     if (!modelParam) {
-      console.log('[BubbleInjector] No model parameter found');
       // No model parameter, use default (google) or return null to include all
       return [CredentialType.GOOGLE_GEMINI_CRED];
     }
@@ -311,8 +354,92 @@ export class BubbleInjector {
   }
 
   /**
+   * Extracts capability credential requirements from AI agent bubble parameters.
+   * Parses the `capabilities` array and looks up each capability's required credentials
+   * from the capability registry.
+   * @param bubble - The parsed bubble to extract capability requirements from
+   * @returns Array of credential types required by the bubble's capabilities
+   */
+  private extractCapabilityCredentials(bubble: ParsedBubbleWithInfo): {
+    required: CredentialType[];
+    optional: CredentialType[];
+  } {
+    const empty = { required: [], optional: [] };
+    if (bubble.bubbleName !== 'ai-agent') {
+      return empty;
+    }
+
+    const requiredSet: Set<CredentialType> = new Set();
+    const optionalSet: Set<CredentialType> = new Set();
+
+    // Find the capabilities parameter in the bubble
+    const capParam = bubble.parameters.find(
+      (param) => param.name === 'capabilities'
+    );
+    if (!capParam || typeof capParam.value !== 'string') {
+      return empty;
+    }
+
+    try {
+      // Parse the capabilities array from the parameter value
+      let capsArray: Array<{ id: string; [key: string]: unknown }>;
+
+      try {
+        // Use Function constructor to safely evaluate the expression in isolation
+        const safeEval = new Function('return ' + capParam.value);
+        const evaluated = safeEval();
+
+        if (Array.isArray(evaluated)) {
+          capsArray = evaluated;
+        } else {
+          capsArray = [evaluated];
+        }
+      } catch {
+        // Fallback to JSON.parse
+        if (capParam.value.startsWith('[')) {
+          capsArray = JSON.parse(capParam.value);
+        } else {
+          capsArray = [JSON.parse(capParam.value)];
+        }
+      }
+
+      // For each capability, get its credential requirements from registry
+      for (const cap of capsArray) {
+        if (!cap.id || typeof cap.id !== 'string') {
+          continue;
+        }
+
+        const meta = getCapabilityMetadataById(cap.id);
+        if (meta) {
+          for (const cred of meta.requiredCredentials) {
+            requiredSet.add(cred);
+          }
+          if (meta.optionalCredentials) {
+            for (const cred of meta.optionalCredentials) {
+              optionalSet.add(cred);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.debug(
+        `Failed to parse capabilities parameter for credential extraction: ${error}`
+      );
+    }
+
+    // Dedup: if a credential is in both required and optional, required wins
+    for (const cred of requiredSet) {
+      optionalSet.delete(cred);
+    }
+
+    return {
+      required: Array.from(requiredSet),
+      optional: Array.from(optionalSet),
+    };
+  }
+
+  /**
    * Injects credentials into bubble parameters
-   * @param bubbleParameters - Parsed bubble parameters with info
    * @param userCredentials - User-provided credentials
    * @param systemCredentials - System-provided credentials (environment variables)
    * @returns Result of credential injection
@@ -322,7 +449,7 @@ export class BubbleInjector {
     systemCredentials: Partial<Record<CredentialType, string>> = {}
   ): CredentialInjectionResult {
     try {
-      const modifiedBubbles = { ...this.bubbleScript.getParsedBubbles() };
+      const modifiedBubbles = { ...this.bubbleScript.getParsedBubblesRaw() };
       const injectedCredentials: Record<
         number,
         {
@@ -338,8 +465,24 @@ export class BubbleInjector {
         const bubbleName = bubble.bubbleName as BubbleName;
 
         // Get the credential options for this bubble from the registry
-        let bubbleCredentialOptions =
-          BUBBLE_CREDENTIAL_OPTIONS[bubbleName] || [];
+        const rawBubbleCredentialOptions =
+          BUBBLE_CREDENTIAL_OPTIONS[bubbleName];
+
+        // Handle wildcard - bubble accepts any credential type
+        let bubbleCredentialOptions: CredentialType[];
+        if (
+          Array.isArray(rawBubbleCredentialOptions) &&
+          rawBubbleCredentialOptions.includes(
+            CredentialType.CREDENTIAL_WILDCARD
+          )
+        ) {
+          // Wildcard means all credential types are accepted
+          bubbleCredentialOptions = Object.values(CredentialType).filter(
+            (ct) => ct !== CredentialType.CREDENTIAL_WILDCARD
+          );
+        } else {
+          bubbleCredentialOptions = rawBubbleCredentialOptions || [];
+        }
 
         // For AI agent bubbles, optimize credential injection based on model
         if (bubble.bubbleName === 'ai-agent') {
@@ -353,15 +496,25 @@ export class BubbleInjector {
           // If modelCredentialTypes is null, model is dynamic - include all credentials
         }
 
-        // For AI agent bubbles, also collect tool-level credential requirements
+        // For AI agent bubbles, also collect tool-level and capability-level credential requirements
         const toolCredentialOptions =
           bubble.bubbleName === 'ai-agent'
             ? this.extractToolCredentials(bubble)
             : [];
 
-        // Combine bubble and tool credentials
+        const capCreds =
+          bubble.bubbleName === 'ai-agent'
+            ? this.extractCapabilityCredentials(bubble)
+            : { required: [], optional: [] };
+
+        // Combine bubble, tool, and capability credentials (injection needs all regardless of optionality)
         const allCredentialOptions = [
-          ...new Set([...bubbleCredentialOptions, ...toolCredentialOptions]),
+          ...new Set([
+            ...bubbleCredentialOptions,
+            ...toolCredentialOptions,
+            ...capCreds.required,
+            ...capCreds.optional,
+          ]),
         ];
 
         if (allCredentialOptions.length === 0) {
@@ -373,39 +526,87 @@ export class BubbleInjector {
           string
         >;
 
-        // First, inject system credentials
-        for (const credentialType of allCredentialOptions as CredentialType[]) {
-          if (systemCredentials[credentialType]) {
-            credentialMapping[credentialType] = this.escapeString(
-              systemCredentials[credentialType]
-            );
-            injectedCredentials[`${bubble.variableId}.${credentialType}`] = {
-              isUserCredential: false,
-              credentialType: credentialType,
-              credentialValue: this.maskCredential(
+        // First, find user credentials for this bubble
+        // For clones, also check credentials under the original's variableId (clonedFromVariableId)
+        const userCreds = userCredentials.filter(
+          (uc) =>
+            uc.bubbleVarId === bubble.variableId ||
+            (bubble.clonedFromVariableId !== undefined &&
+              uc.bubbleVarId === bubble.clonedFromVariableId)
+        );
+
+        // Check if this is a wildcard bubble (accepts any credential type)
+        const isWildcardBubble =
+          Array.isArray(rawBubbleCredentialOptions) &&
+          rawBubbleCredentialOptions.includes(
+            CredentialType.CREDENTIAL_WILDCARD
+          );
+
+        // For wildcard bubbles with user credentials, ONLY inject the user-selected credential type
+        // This prevents system credentials from being picked over user's choice
+        const skipSystemCredentials = isWildcardBubble && userCreds.length > 0;
+
+        // Inject system credentials (skip for wildcard bubbles with user credentials)
+        if (!skipSystemCredentials) {
+          for (const credentialType of allCredentialOptions as CredentialType[]) {
+            if (systemCredentials[credentialType]) {
+              credentialMapping[credentialType] = this.escapeString(
                 systemCredentials[credentialType]
-              ),
-            };
+              );
+              injectedCredentials[`${bubble.variableId}.${credentialType}`] = {
+                isUserCredential: false,
+                credentialType: credentialType,
+                credentialValue: this.maskCredential(
+                  systemCredentials[credentialType]
+                ),
+              };
+            }
           }
         }
 
-        // Then inject user credentials (these override system credentials)
-        const userCreds = userCredentials.filter(
-          (uc) => uc.bubbleVarId === bubble.variableId
-        );
-
+        // Inject user credentials (first credential of each type wins as the "default")
+        // User credentials always override system credentials.
+        // Within a multi-credential pool, the first entry wins (pool order
+        // is preserved by CredentialHelper.getUserCredentials()).
+        const seenUserCredTypes = new Set<string>();
         for (const userCred of userCreds) {
           const userCredType = userCred.credentialType;
 
           if (allCredentialOptions.includes(userCredType)) {
-            credentialMapping[userCredType] = this.escapeString(
-              userCred.secret
-            );
-            injectedCredentials[`${bubble.variableId}.${userCredType}`] = {
-              isUserCredential: true,
-              credentialType: userCredType,
-              credentialValue: this.maskCredential(userCred.secret),
-            };
+            if (!seenUserCredTypes.has(userCredType)) {
+              seenUserCredTypes.add(userCredType);
+              credentialMapping[userCredType] = this.escapeString(
+                userCred.secret
+              );
+              injectedCredentials[`${bubble.variableId}.${userCredType}`] = {
+                isUserCredential: true,
+                credentialType: userCredType,
+                credentialValue: this.maskCredential(userCred.secret),
+              };
+            }
+          }
+        }
+
+        // For ai-agent bubbles, auto-inject all AI provider system credentials
+        // as fallbacks for runtime model overrides (capability overrides, etc.)
+        // These are NOT tracked in injectedCredentials (no credit impact)
+        if (bubble.bubbleName === 'ai-agent') {
+          const aiProviderCredentials = [
+            CredentialType.OPENAI_CRED,
+            CredentialType.GOOGLE_GEMINI_CRED,
+            CredentialType.ANTHROPIC_CRED,
+            CredentialType.OPENROUTER_CRED,
+            CredentialType.FIREWORKS_CRED,
+          ];
+          for (const credType of aiProviderCredentials) {
+            if (
+              !(credType in credentialMapping) &&
+              systemCredentials[credType]
+            ) {
+              credentialMapping[credType] = this.escapeString(
+                systemCredentials[credType]
+              );
+            }
           }
         }
 
@@ -413,18 +614,51 @@ export class BubbleInjector {
         if (Object.keys(credentialMapping).length > 0) {
           this.injectCredentialsIntoBubble(bubble, credentialMapping);
         }
+
+        // For ai-agent bubbles, build and inject credential pool so the
+        // master can disambiguate accounts by name. Populated for any
+        // non-empty type, including singletons — the prompt rendering and
+        // sibling-aware use-capability lookup both rely on pool entries
+        // existing.
+        if (bubble.bubbleName === 'ai-agent' && userCreds.length > 0) {
+          const credsByType = new Map<
+            CredentialType,
+            Array<{ id: number; name: string; value: string }>
+          >();
+          for (const uc of userCreds) {
+            if (
+              !allCredentialOptions.includes(uc.credentialType) ||
+              uc.credentialId == null
+            )
+              continue;
+            if (!credsByType.has(uc.credentialType)) {
+              credsByType.set(uc.credentialType, []);
+            }
+            credsByType.get(uc.credentialType)!.push({
+              id: uc.credentialId,
+              name: uc.name ?? `${uc.credentialType} (${uc.credentialId})`,
+              value: this.escapeString(uc.secret),
+            });
+          }
+          if (credsByType.size > 0) {
+            const pool: Record<
+              string,
+              Array<{ id: number; name: string; value: string }>
+            > = {};
+            for (const [credType, entries] of credsByType) {
+              pool[credType] = entries;
+            }
+            this.injectCredentialPoolIntoBubble(bubble, pool);
+          }
+        }
       }
 
       // Apply the modified bubbles back to the script
       const finalScript = this.reapplyBubbleInstantiations();
-      console.log(
-        'Final script:',
-        this.bubbleScript.showScript('[BubbleInjector] Final script')
-      );
       return {
         success: errors.length === 0,
         code: finalScript,
-        parsedBubbles: this.bubbleScript.getParsedBubbles(),
+        parsedBubbles: this.bubbleScript.getParsedBubblesRaw(),
         errors: errors.length > 0 ? errors : undefined,
         injectedCredentials,
       };
@@ -478,6 +712,28 @@ export class BubbleInjector {
   }
 
   /**
+   * Injects a credential pool into an ai-agent bubble's parameters.
+   * The pool contains all credentials per type with metadata (id, name, value).
+   */
+  private injectCredentialPoolIntoBubble(
+    bubble: ParsedBubbleWithInfo,
+    pool: Record<string, Array<{ id: number; name: string; value: string }>>
+  ): void {
+    let poolParam = bubble.parameters.find((p) => p.name === 'credentialPool');
+
+    if (!poolParam) {
+      poolParam = {
+        name: 'credentialPool',
+        value: pool,
+        type: BubbleParameterType.OBJECT,
+      };
+      bubble.parameters.push(poolParam);
+    } else {
+      poolParam.value = pool;
+    }
+  }
+
+  /**
    * Escapes a string for safe injection into TypeScript code
    */
   private escapeString(str: string): string {
@@ -505,7 +761,7 @@ export class BubbleInjector {
   }
 
   private getBubble(bubbleId: number) {
-    const bubbleClass = this.bubbleScript.getParsedBubbles()[bubbleId];
+    const bubbleClass = this.bubbleScript.getParsedBubblesRaw()[bubbleId];
     if (!bubbleClass) {
       throw new Error(`Bubble with id ${bubbleId} not found`);
     }
@@ -518,9 +774,9 @@ export class BubbleInjector {
    * tracks line shifts to adjust subsequent bubble locations.
    */
   private reapplyBubbleInstantiations(): string {
-    const bubbles = Object.values(this.bubbleScript.getParsedBubbles()).filter(
-      (bubble) => !bubble.invocationCallSiteKey
-    );
+    const bubbles = Object.values(
+      this.bubbleScript.getParsedBubblesRaw()
+    ).filter((bubble) => !bubble.invocationCallSiteKey);
     const lines = this.bubbleScript.currentBubbleScript.split('\n');
 
     // Sort bubbles by start line
@@ -583,25 +839,41 @@ export class BubbleInjector {
       }
     }
 
+    // Find the earliest nested bubble start line to determine which bubbles
+    // are affected by phase 1 deletions
+    const earliestNestedStartLine =
+      nestedBubbles.length > 0
+        ? Math.min(...nestedBubbles.map((b) => b.location.startLine))
+        : Infinity;
+
     // Now process non-nested bubbles in order, tracking line shifts
-    // For parent bubbles: lines were deleted from INSIDE them (nested bubbles), not before them
-    // So their start line should NOT be shifted by phase1LinesDeleted
-    // For non-parent bubbles: lines were deleted BEFORE them, so both start and end should be shifted
-    let lineShift = -phase1LinesDeleted; // Start with the shift from phase 1
+    // - Phase 1 shift (from nested bubble deletions) only affects bubbles that
+    //   come AFTER the nested bubbles, not before them
+    // - Cumulative shift from processing earlier non-nested bubbles affects all
+    //   subsequent bubbles
+    let cumulativeShift = 0; // Shift from processing earlier non-nested bubbles in phase 2
     for (const bubble of nonNestedBubbles) {
       const isParentBubble = parentBubbleIds.has(bubble.variableId);
+
+      // Only apply phase1 shift if this bubble comes AFTER the nested bubbles
+      // Bubbles before the nested bubbles are not affected by their deletion
+      const isAfterNestedBubbles =
+        bubble.location.startLine > earliestNestedStartLine;
+      const phase1Shift = isAfterNestedBubbles ? -phase1LinesDeleted : 0;
 
       const adjustedBubble = {
         ...bubble,
         location: {
           ...bubble.location,
           // For parent bubbles, start line is not affected by phase 1 deletions (they're inside, not before)
-          // For non-parent bubbles, start line is shifted by lines deleted in phase 1
+          // For non-parent bubbles, apply phase1 shift only if after nested bubbles
           startLine: isParentBubble
-            ? bubble.location.startLine
-            : bubble.location.startLine + lineShift,
-          // End line is always shifted for bubbles that come after phase 1 deletions
-          endLine: bubble.location.endLine + lineShift,
+            ? bubble.location.startLine + cumulativeShift
+            : bubble.location.startLine + phase1Shift + cumulativeShift,
+          // End line: parent bubbles need phase1 shift (nested deleted inside), others only if after
+          endLine: isParentBubble
+            ? bubble.location.endLine - phase1LinesDeleted + cumulativeShift
+            : bubble.location.endLine + phase1Shift + cumulativeShift,
         },
       };
 
@@ -610,7 +882,7 @@ export class BubbleInjector {
       const linesAfter = lines.length;
 
       const linesDeleted = linesBefore - linesAfter;
-      lineShift -= linesDeleted;
+      cumulativeShift -= linesDeleted;
     }
 
     const finalScript = lines.join('\n');
@@ -680,7 +952,9 @@ export class BubbleInjector {
 
   private buildInvocationDependencyGraphLiteral(): string {
     const callSiteMap: Record<string, Record<string, unknown>> = {};
-    for (const bubble of Object.values(this.bubbleScript.getParsedBubbles())) {
+    for (const bubble of Object.values(
+      this.bubbleScript.getParsedBubblesRaw()
+    )) {
       if (
         !bubble.invocationCallSiteKey ||
         typeof bubble.clonedFromVariableId !== 'number' ||
@@ -777,7 +1051,7 @@ export class BubbleInjector {
    * Injects logger to the bubble instantiations
    */
   injectBubbleLoggingAndReinitializeBubbleParameters(
-    loggingEnabled: boolean = true
+    loggingEnabled: boolean = false
   ) {
     const script = this.bubbleScript.currentBubbleScript;
     try {
@@ -811,7 +1085,6 @@ export class BubbleInjector {
 
     try {
       this.loggerInjector.injectSelfCapture();
-      this.bubbleScript.showScript('[BubbleInjector] After injectSelfCapture');
     } catch (error) {
       this.bubbleScript.parsingErrors.push(
         `Error injecting self capture: ${error instanceof Error ? error.message : String(error)}`

@@ -23,7 +23,7 @@ const ResearchAgentToolParamsSchema = z.object({
       'The research task that requires searching the internet and gathering information'
     ),
   expectedResultSchema: ExpectedResultSchema.describe(
-    'Zod schema or JSON schema string that defines the expected structure of the research result. Example: z.object({ trends: z.array(z.string()).describe("An array of trends"), summary: z.string().describe("A summary of the trends") }) or JSON.stringify({ type: "object", properties: { trends: { type: "array", items: { type: "string" } }, summary: { type: "string" } } })'
+    'Zod schema that defines the expected structure of the research result. Example: z.object({ trends: z.array(z.string()).describe("An array of trends"), summary: z.string().describe("A summary of the trends") })'
   ),
   model: AvailableModels.describe(
     `Model to use for the research agent (default: ${RECOMMENDED_MODELS.BEST})`
@@ -171,8 +171,9 @@ export class ResearchAgentTool extends ToolBubble<
       // Create the AI agent with web search and scraping tools
       const researchSubAgent = new AIAgentBubble(
         {
-          message: this.buildResearchPrompt(task, jsonSchemaString),
+          message: this.buildResearchPrompt(task),
           systemPrompt: this.buildSystemPrompt(),
+          expectedOutputSchema: this.params.expectedResultSchema,
           model: {
             model: this.params.model,
             temperature: 1,
@@ -183,6 +184,11 @@ export class ResearchAgentTool extends ToolBubble<
             { name: 'web-search-tool' },
             { name: 'web-scrape-tool' },
             { name: 'web-crawl-tool' },
+            { name: 'linkedin-tool' },
+            { name: 'twitter-tool' },
+            { name: 'youtube-tool' },
+            { name: 'google-maps-tool' },
+            { name: 'instagram-tool' },
             // { name: 'web-extract-tool' },
             { name: 'reddit-scrape-tool' },
           ],
@@ -190,7 +196,8 @@ export class ResearchAgentTool extends ToolBubble<
           credentials: this.params.credentials,
           streaming: false,
         },
-        this.context
+        this.context,
+        'researchSubAgent'
       );
 
       console.log('[ResearchAgentTool] Executing AI agent...');
@@ -215,31 +222,46 @@ export class ResearchAgentTool extends ToolBubble<
       const parseResult = parseJsonWithFallbacks(agentData.response);
 
       if (!parseResult.success || parseResult.error) {
-        // Check if this is already a processed error from the AI agent
-        if (
-          agentData.error &&
-          agentData.error.includes('failed to generate valid JSON')
-        ) {
-          throw new Error(`ResearchAgentTool failed: ${agentData.error}`);
+        // Parsing failed - try to repair using AI agent
+        console.log(
+          '[ResearchAgentTool] JSON parsing failed, attempting AI repair...'
+        );
+
+        const repairResult = await this.repairJsonWithAgent(
+          agentData.response,
+          jsonSchemaString
+        );
+
+        if (repairResult.success && repairResult.repaired) {
+          console.log('[ResearchAgentTool] AI repair successful');
+          parsedResult = repairResult.repaired as Record<string, unknown>;
+        } else {
+          // Check if this is already a processed error from the AI agent
+          if (
+            agentData.error &&
+            agentData.error.includes('failed to generate valid JSON')
+          ) {
+            throw new Error(`ResearchAgentTool failed: ${agentData.error}`);
+          }
+
+          // Both parsing and repair failed
+          throw new Error(
+            `ResearchAgentTool failed: AI Agent returned malformed JSON that could not be parsed or repaired: ${parseResult.error}. Repair error: ${repairResult.error || 'Unknown'}. Response: ${agentData.response.substring(0, 200)}...`
+          );
         }
-
-        // Use the robust parser's error message
-        throw new Error(
-          `ResearchAgentTool failed: AI Agent returned malformed JSON that could not be parsed: ${parseResult.error}. Response: ${agentData.response.substring(0, 200)}...`
-        );
-      }
-
-      try {
-        parsedResult = JSON.parse(parseResult.response);
-      } catch (finalParseError) {
-        // This should not happen with the robust parser, but just in case
-        const originalError =
-          finalParseError instanceof Error
-            ? finalParseError.message
-            : 'Unknown parsing error';
-        throw new Error(
-          `ResearchAgentTool failed: Final JSON parsing failed after robust processing: ${originalError}. Response: ${parseResult.response.substring(0, 200)}...`
-        );
+      } else {
+        try {
+          parsedResult = JSON.parse(parseResult.response);
+        } catch (finalParseError) {
+          // This should not happen with the robust parser, but just in case
+          const originalError =
+            finalParseError instanceof Error
+              ? finalParseError.message
+              : 'Unknown parsing error';
+          throw new Error(
+            `ResearchAgentTool failed: Final JSON parsing failed after robust processing: ${originalError}. Response: ${parseResult.response.substring(0, 200)}...`
+          );
+        }
       }
 
       // Extract sources from tool calls
@@ -296,24 +318,19 @@ export class ResearchAgentTool extends ToolBubble<
   /**
    * Build the main research prompt for the AI agent
    */
-  private buildResearchPrompt(
-    task: string,
-    expectedResultSchema: string
-  ): string {
+  private buildResearchPrompt(task: string): string {
     return `
 Research Task: ${task}
-
-Required Output Format (JSON Schema): ${expectedResultSchema}
 
 Instructions:
 1. Use web-search-tool to find relevant sources
 2. Analyze the sources and choose the right tool:
-   - If you need structured data extraction (images, prices, specific fields) → use web-extract-tool with a detailed prompt and schema
    - If multiple sources come from the same website → use web-crawl-tool for that site
    - If you're certain all needed info is on one specific page → use web-scrape-tool for that page
    - If scraping doesn't give complete results → use web-crawl-tool instead of more scraping
 3. Never scrape multiple pages individually - always crawl the site instead
 4. Return the final JSON result matching the expected schema
+5. When doing lead generation or finding specific information about a person or company, use specific tools for the platform you are researching for example linkedin-tool, twitter-tool, youtube-tool, instagram-tool, google-maps-tool, reddit-scrape-tool. Only use web-search-tool for general web content or fallback.
 
 SPECIAL INSTRUCTIONS FOR IMAGE URL EXTRACTION:
 - When extracting image URLs, look for the LARGEST, HIGHEST QUALITY product images
@@ -447,5 +464,173 @@ You have access to web-search-tool, web-scrape-tool, web-crawl-tool, and web-ext
     const taskPreview = task.length > 50 ? task.substring(0, 50) + '...' : task;
 
     return `Completed research on "${taskPreview}" using ${toolCallsCount} tool operations across ${sourcesCount} web sources. Gathered and structured information according to the requested schema format.`;
+  }
+
+  /**
+   * Attempt to repair malformed JSON using AI agent as a fallback
+   */
+  private async repairJsonWithAgent(
+    malformedInput: string,
+    expectedSchema?: string
+  ): Promise<{ success: boolean; repaired: unknown | null; error?: string }> {
+    if (!this.params?.credentials?.[CredentialType.GOOGLE_GEMINI_CRED]) {
+      return {
+        success: false,
+        repaired: null,
+        error: 'No Google API key available for JSON repair',
+      };
+    }
+
+    const schemaInstruction = expectedSchema
+      ? `
+The JSON should match this schema structure (output data, not schema keywords):
+${expectedSchema}
+
+Remember: If schema says {"type": "object", "properties": {"name": {"type": "string"}}}
+Output should be: {"name": "actual value"}
+NOT: {"type": "object", "properties": {"name": "actual value"}}`
+      : '';
+
+    const systemPrompt = `You are a JSON repair assistant. Your ONLY job is to extract and fix the JSON from the input.
+
+RULES:
+1. Find the JSON data in the input (it may be mixed with markdown or explanatory text)
+2. Fix any JSON syntax errors (missing quotes, trailing commas, etc.)
+3. If the JSON incorrectly wraps data in "type"/"properties" schema keywords, unwrap it
+4. Return ONLY the fixed JSON - no explanations, no markdown code blocks
+5. Start your response with { or [ and end with } or ]
+${schemaInstruction}`;
+
+    const message = `INPUT TO REPAIR:
+${malformedInput.substring(0, 15000)}
+
+OUTPUT (valid JSON only):`;
+
+    try {
+      const repairAgent = new AIAgentBubble(
+        {
+          name: 'JSON Repair Agent',
+          message,
+          systemPrompt,
+          model: {
+            model: RECOMMENDED_MODELS.FAST,
+            temperature: 0,
+            maxTokens: 16000,
+            jsonMode: true,
+          },
+          tools: [],
+          maxIterations: 4,
+          credentials: this.params.credentials,
+        },
+        this.context,
+        'repairAgent'
+      );
+
+      const result = await repairAgent.action();
+
+      if (!result.success || !result.data?.response) {
+        return {
+          success: false,
+          repaired: null,
+          error: `JSON repair agent failed: ${result.error || 'No response'}`,
+        };
+      }
+
+      // Try to parse the repaired JSON
+      try {
+        const parsed = JSON.parse(result.data.response);
+        // Unwrap schema-style response if needed (parseJsonWithFallbacks does this too)
+        const unwrapped = this.unwrapSchemaStyleResponse(parsed);
+        return {
+          success: true,
+          repaired: unwrapped,
+        };
+      } catch (parseError) {
+        // Try one more extraction - look for JSON in the response
+        const jsonMatch = result.data.response.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+        if (jsonMatch) {
+          try {
+            const extracted = JSON.parse(jsonMatch[0]);
+            const unwrapped = this.unwrapSchemaStyleResponse(extracted);
+            return {
+              success: true,
+              repaired: unwrapped,
+            };
+          } catch {
+            // Fall through to error
+          }
+        }
+
+        return {
+          success: false,
+          repaired: null,
+          error: `Repaired JSON still invalid: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        repaired: null,
+        error: `JSON repair failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+    }
+  }
+
+  /**
+   * Unwraps JSON that was incorrectly formatted in JSON Schema style.
+   */
+  private unwrapSchemaStyleResponse(parsed: unknown): unknown {
+    if (typeof parsed !== 'object' || parsed === null) {
+      return parsed;
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Check for schema-style wrapping: {"type": "object", "properties": {...}}
+    if (
+      obj.type === 'object' &&
+      typeof obj.properties === 'object' &&
+      obj.properties !== null
+    ) {
+      const props = obj.properties as Record<string, unknown>;
+      const propKeys = Object.keys(props);
+
+      if (propKeys.length === 0) {
+        return parsed;
+      }
+
+      // Check if properties contains actual data (not schema definitions)
+      const looksLikeData = propKeys.some((key) => {
+        const val = props[key];
+        if (typeof val === 'object' && val !== null) {
+          const valObj = val as Record<string, unknown>;
+          const schemaTypes = [
+            'string',
+            'number',
+            'boolean',
+            'object',
+            'array',
+            'null',
+            'integer',
+          ];
+          if (
+            typeof valObj.type === 'string' &&
+            schemaTypes.includes(valObj.type)
+          ) {
+            return false; // Looks like schema definition
+          }
+        }
+        return true; // Looks like actual data
+      });
+
+      if (looksLikeData) {
+        console.log(
+          '[ResearchAgentTool] Unwrapping schema-style response, extracting properties'
+        );
+        return props;
+      }
+    }
+
+    return parsed;
   }
 }

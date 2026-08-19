@@ -3,11 +3,48 @@ Configuration handling for OpenEvolve
 """
 
 import os
-from dataclasses import dataclass, field
+import re
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
+import dacite
 import yaml
+
+if TYPE_CHECKING:
+    from openevolve.llm.base import LLMInterface
+
+
+_ENV_VAR_PATTERN = re.compile(r"^\$\{([^}]+)\}$")  # ${VAR}
+
+
+def _resolve_env_var(value: Optional[str]) -> Optional[str]:
+    """
+    Resolve ${VAR} environment variable reference in a string value.
+    In current implementation pattern must match the entire string (e.g., "${OPENAI_API_KEY}"),
+    not embedded within other text.
+
+    Args:
+        value: The string value that may contain ${VAR} syntax
+
+    Returns:
+        The resolved value with environment variable expanded, or original value if no match
+
+    Raises:
+        ValueError: If the environment variable is referenced but not set
+    """
+    if value is None:
+        return None
+
+    match = _ENV_VAR_PATTERN.match(value)
+    if not match:
+        return value
+
+    var_name = match.group(1)
+    env_value = os.environ.get(var_name)
+    if env_value is None:
+        raise ValueError(f"Environment variable {var_name} is not set")
+    return env_value
 
 
 @dataclass
@@ -19,6 +56,9 @@ class LLMModelConfig:
     api_key: Optional[str] = None
     name: str = None
 
+    # LLM provider: "openai" (default), "claude_code" (Claude Code CLI)
+    provider: Optional[str] = None
+
     # Custom LLM client
     init_client: Optional[Callable] = None
 
@@ -27,8 +67,8 @@ class LLMModelConfig:
 
     # Generation parameters
     system_message: Optional[str] = None
-    temperature: float = None
-    top_p: float = None
+    temperature: float | None = None
+    top_p: float | None = None
     max_tokens: int = None
 
     # Request parameters
@@ -42,6 +82,17 @@ class LLMModelConfig:
     # Reasoning parameters
     reasoning_effort: Optional[str] = None
 
+    # Claude Code CLI budget per call (USD)
+    max_budget_usd: Optional[float] = None
+
+    # Manual mode (human-in-the-loop)
+    manual_mode: Optional[bool] = None
+    _manual_queue_dir: Optional[str] = None
+
+    def __post_init__(self):
+        """Post-initialization to resolve ${VAR} env var references in api_key"""
+        self.api_key = _resolve_env_var(self.api_key)
+
 
 @dataclass
 class LLMConfig(LLMModelConfig):
@@ -52,8 +103,8 @@ class LLMConfig(LLMModelConfig):
 
     # Generation parameters
     system_message: Optional[str] = "system_message"
-    temperature: float = 0.7
-    top_p: float = 0.95
+    temperature: float | None = 0.7
+    top_p: float | None = None
     max_tokens: int = 4096
 
     # Request parameters
@@ -76,8 +127,13 @@ class LLMConfig(LLMModelConfig):
     # Reasoning parameters (inherited from LLMModelConfig but can be overridden)
     reasoning_effort: Optional[str] = None
 
+    # Manual mode switch
+    manual_mode: bool = False
+
     def __post_init__(self):
         """Post-initialization to set up model configurations"""
+        super().__post_init__()  # Resolve ${VAR} in api_key at LLMConfig level
+
         # Handle backward compatibility for primary_model(_weight) and secondary_model(_weight).
         if self.primary_model:
             # Create primary model
@@ -118,6 +174,12 @@ class LLMConfig(LLMModelConfig):
 
         # Update models with shared configuration values
         shared_config = {
+            # `provider` must be shared: without it a top-level `llm.provider`
+            # (e.g. "claude_code") never reaches the per-model configs, every model
+            # keeps provider=None, and LLMEnsemble silently routes them all to the
+            # OpenAI backend. Propagation uses overwrite=False, so an explicit
+            # per-model provider still wins.
+            "provider": self.provider,
             "api_base": self.api_base,
             "api_key": self.api_key,
             "temperature": self.temperature,
@@ -128,6 +190,7 @@ class LLMConfig(LLMModelConfig):
             "retry_delay": self.retry_delay,
             "random_seed": self.random_seed,
             "reasoning_effort": self.reasoning_effort,
+            "manual_mode": self.manual_mode,
         }
         self.update_model_params(shared_config)
 
@@ -173,6 +236,9 @@ class LLMConfig(LLMModelConfig):
 
         # Update models with shared configuration values
         shared_config = {
+            # See the note in __post_init__: `provider` has to be propagated here too,
+            # or rebuilding the models drops a top-level provider back to None.
+            "provider": self.provider,
             "api_base": self.api_base,
             "api_key": self.api_key,
             "temperature": self.temperature,
@@ -195,6 +261,11 @@ class PromptConfig:
     system_message: str = "system_message"
     evaluator_system_message: str = "evaluator_system_message"
 
+    # Large-codebase mode: represent programs in prompts via compact changes descriptions
+    programs_as_changes_description: bool = False
+    system_message_changes_description: Optional[str] = None
+    initial_changes_description: str = ""
+
     # Number of examples to include in the prompt
     num_top_programs: int = 3
     num_diverse_programs: int = 2
@@ -204,6 +275,7 @@ class PromptConfig:
     template_variations: Dict[str, List[str]] = field(default_factory=dict)
 
     # Meta-prompting
+    # Note: meta-prompting features not implemented
     use_meta_prompting: bool = False
     meta_prompt_weight: float = 0.1
 
@@ -225,6 +297,10 @@ class PromptConfig:
     comprehensive_implementation_min_lines: Optional[int] = (
         50  # Label as "comprehensive" if program has this many lines or more
     )
+
+    # Diff summary formatting for "Previous Attempts" section
+    diff_summary_max_line_len: int = 100  # Truncate lines longer than this
+    diff_summary_max_lines: int = 30  # Max lines per SEARCH/REPLACE block
 
     # Backward compatibility - deprecated
     code_length_threshold: Optional[int] = (
@@ -252,6 +328,7 @@ class DatabaseConfig:
     elite_selection_ratio: float = 0.1
     exploration_ratio: float = 0.2
     exploitation_ratio: float = 0.7
+    # Note: diversity_metric fixed to "edit_distance"
     diversity_metric: str = "edit_distance"  # Options: "edit_distance", "feature_based"
 
     # Feature map dimensions for MAP-Elites
@@ -288,6 +365,13 @@ class DatabaseConfig:
     artifact_size_threshold: int = 32 * 1024  # 32KB threshold
     cleanup_old_artifacts: bool = True
     artifact_retention_days: int = 30
+    max_snapshot_artifacts: Optional[int] = (
+        100  # Max artifacts in worker snapshots (None=unlimited)
+    )
+
+    novelty_llm: Optional["LLMInterface"] = None
+    embedding_model: Optional[str] = None
+    similarity_threshold: float = 0.99
 
 
 @dataclass
@@ -299,6 +383,7 @@ class EvaluatorConfig:
     max_retries: int = 3
 
     # Resource limits for evaluation
+    # Note: resource limits not implemented
     memory_limit_mb: Optional[int] = None
     cpu_limit: Optional[float] = None
 
@@ -308,6 +393,7 @@ class EvaluatorConfig:
 
     # Parallel evaluation
     parallel_evaluations: int = 1
+    # Note: distributed evaluation not implemented
     distributed: bool = False
 
     # LLM-based feedback
@@ -355,24 +441,39 @@ class Config:
     # Evolution settings
     diff_based_evolution: bool = True
     max_code_length: int = 10000
+    diff_pattern: str = r"<<<<<<< SEARCH\n(.*?)=======\n(.*?)>>>>>>> REPLACE"
 
     # Early stopping settings
     early_stopping_patience: Optional[int] = None
     convergence_threshold: float = 0.001
     early_stopping_metric: str = "combined_score"
 
+    # Parallel controller settings
+    max_tasks_per_child: Optional[int] = None
+
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "Config":
         """Load configuration from a YAML file"""
-        with open(path, "r") as f:
+        config_path = Path(path).resolve()
+        with open(config_path, "r") as f:
             config_dict = yaml.safe_load(f)
-        return cls.from_dict(config_dict)
+        config = cls.from_dict(config_dict)
+
+        # Resolve template_dir relative to config file location
+        if config.prompt.template_dir:
+            template_path = Path(config.prompt.template_dir)
+            if not template_path.is_absolute():
+                config.prompt.template_dir = str((config_path.parent / template_path).resolve())
+
+        return config
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Any]) -> "Config":
-        """Create configuration from a dictionary"""
-        # Handle nested configurations
-        config = Config()
+        if "diff_pattern" in config_dict:
+            try:
+                re.compile(config_dict["diff_pattern"])
+            except re.error as e:
+                raise ValueError(f"Invalid regex pattern in diff_pattern: {e}")
 
         # Update top-level fields
         for key, value in config_dict.items():
@@ -387,20 +488,20 @@ class Config:
 
         # Update nested configs
         if "llm" in config_dict:
-            llm_dict = config_dict["llm"]
-            if "models" in llm_dict:
-                llm_dict["models"] = [LLMModelConfig(**m) for m in llm_dict["models"]]
-            if "evaluator_models" in llm_dict:
-                llm_dict["evaluator_models"] = [
-                    LLMModelConfig(**m) for m in llm_dict["evaluator_models"]
-                ]
-            config.llm = LLMConfig(**llm_dict)
-        if "prompt" in config_dict:
-            config.prompt = PromptConfig(**config_dict["prompt"])
-        if "database" in config_dict:
-            config.database = DatabaseConfig(**config_dict["database"])
+            if "temperature" in config_dict["llm"] and config_dict["llm"]["temperature"] is None:
+                del config_dict["llm"]["temperature"]
+            if "top_p" in config_dict["llm"] and config_dict["llm"]["top_p"] is None:
+                del config_dict["llm"]["top_p"]
 
-        # Ensure database inherits the random seed if not explicitly set
+        config: Config = dacite.from_dict(
+            data_class=cls,
+            data=config_dict,
+            config=dacite.Config(
+                cast=[List, Union],
+                forward_references={"LLMInterface": Any},
+            ),
+        )
+
         if config.database.random_seed is None and config.random_seed is not None:
             config.database.random_seed = config.random_seed
         if "evaluator" in config_dict:
@@ -413,87 +514,7 @@ class Config:
         return config
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert configuration to a dictionary"""
-        return {
-            # General settings
-            "max_iterations": self.max_iterations,
-            "checkpoint_interval": self.checkpoint_interval,
-            "log_level": self.log_level,
-            "log_dir": self.log_dir,
-            "random_seed": self.random_seed,
-            # Component configurations
-            "llm": {
-                "models": self.llm.models,
-                "evaluator_models": self.llm.evaluator_models,
-                "api_base": self.llm.api_base,
-                "temperature": self.llm.temperature,
-                "top_p": self.llm.top_p,
-                "max_tokens": self.llm.max_tokens,
-                "timeout": self.llm.timeout,
-                "retries": self.llm.retries,
-                "retry_delay": self.llm.retry_delay,
-            },
-            "prompt": {
-                "template_dir": self.prompt.template_dir,
-                "system_message": self.prompt.system_message,
-                "evaluator_system_message": self.prompt.evaluator_system_message,
-                "num_top_programs": self.prompt.num_top_programs,
-                "num_diverse_programs": self.prompt.num_diverse_programs,
-                "use_template_stochasticity": self.prompt.use_template_stochasticity,
-                "template_variations": self.prompt.template_variations,
-                # Note: meta-prompting features not implemented
-                # "use_meta_prompting": self.prompt.use_meta_prompting,
-                # "meta_prompt_weight": self.prompt.meta_prompt_weight,
-            },
-            "database": {
-                "db_path": self.database.db_path,
-                "in_memory": self.database.in_memory,
-                "population_size": self.database.population_size,
-                "archive_size": self.database.archive_size,
-                "num_islands": self.database.num_islands,
-                "elite_selection_ratio": self.database.elite_selection_ratio,
-                "exploration_ratio": self.database.exploration_ratio,
-                "exploitation_ratio": self.database.exploitation_ratio,
-                # Note: diversity_metric fixed to "edit_distance"
-                # "diversity_metric": self.database.diversity_metric,
-                "feature_dimensions": self.database.feature_dimensions,
-                "feature_bins": self.database.feature_bins,
-                "migration_interval": self.database.migration_interval,
-                "migration_rate": self.database.migration_rate,
-                "random_seed": self.database.random_seed,
-                "log_prompts": self.database.log_prompts,
-            },
-            "evaluator": {
-                "timeout": self.evaluator.timeout,
-                "max_retries": self.evaluator.max_retries,
-                # Note: resource limits not implemented
-                # "memory_limit_mb": self.evaluator.memory_limit_mb,
-                # "cpu_limit": self.evaluator.cpu_limit,
-                "cascade_evaluation": self.evaluator.cascade_evaluation,
-                "cascade_thresholds": self.evaluator.cascade_thresholds,
-                "parallel_evaluations": self.evaluator.parallel_evaluations,
-                # Note: distributed evaluation not implemented
-                # "distributed": self.evaluator.distributed,
-                "use_llm_feedback": self.evaluator.use_llm_feedback,
-                "llm_feedback_weight": self.evaluator.llm_feedback_weight,
-            },
-            "evolution_trace": {
-                "enabled": self.evolution_trace.enabled,
-                "format": self.evolution_trace.format,
-                "include_code": self.evolution_trace.include_code,
-                "include_prompts": self.evolution_trace.include_prompts,
-                "output_path": self.evolution_trace.output_path,
-                "buffer_size": self.evolution_trace.buffer_size,
-                "compress": self.evolution_trace.compress,
-            },
-            # Evolution settings
-            "diff_based_evolution": self.diff_based_evolution,
-            "max_code_length": self.max_code_length,
-            # Early stopping settings
-            "early_stopping_patience": self.early_stopping_patience,
-            "convergence_threshold": self.convergence_threshold,
-            "early_stopping_metric": self.early_stopping_metric,
-        }
+        return asdict(self)
 
     def to_yaml(self, path: Union[str, Path]) -> None:
         """Save configuration to a YAML file"""

@@ -4,6 +4,7 @@ Main controller for OpenEvolve
 
 import logging
 import os
+import shutil
 import signal
 import time
 import uuid
@@ -15,45 +16,12 @@ from openevolve.database import Program, ProgramDatabase
 from openevolve.evaluator import Evaluator
 from openevolve.evolution_trace import EvolutionTracer
 from openevolve.llm.ensemble import LLMEnsemble
-from openevolve.prompt.sampler import PromptSampler
 from openevolve.process_parallel import ProcessParallelController
-from openevolve.utils.code_utils import (
-    extract_code_language,
-)
-from openevolve.utils.format_utils import (
-    format_metrics_safe,
-    format_improvement_safe,
-)
+from openevolve.prompt.sampler import PromptSampler
+from openevolve.utils.code_utils import extract_code_language
+from openevolve.utils.format_utils import format_improvement_safe, format_metrics_safe
 
 logger = logging.getLogger(__name__)
-
-
-def _format_metrics(metrics: Dict[str, Any]) -> str:
-    """Safely format metrics, handling both numeric and string values"""
-    formatted_parts = []
-    for name, value in metrics.items():
-        if isinstance(value, (int, float)) and not isinstance(value, bool):
-            try:
-                formatted_parts.append(f"{name}={value:.4f}")
-            except (ValueError, TypeError):
-                formatted_parts.append(f"{name}={value}")
-        else:
-            formatted_parts.append(f"{name}={value}")
-    return ", ".join(formatted_parts)
-
-
-def _format_improvement(improvement: Dict[str, Any]) -> str:
-    """Safely format improvement metrics"""
-    formatted_parts = []
-    for name, diff in improvement.items():
-        if isinstance(diff, (int, float)) and not isinstance(diff, bool):
-            try:
-                formatted_parts.append(f"{name}={diff:+.4f}")
-            except (ValueError, TypeError):
-                formatted_parts.append(f"{name}={diff}")
-        else:
-            formatted_parts.append(f"{name}={diff}")
-    return ", ".join(formatted_parts)
 
 
 class OpenEvolve:
@@ -74,18 +42,12 @@ class OpenEvolve:
         self,
         initial_program_path: str,
         evaluation_file: str,
-        config_path: Optional[str] = None,
-        config: Optional[Config] = None,
+        config: Config,
         output_dir: Optional[str] = None,
         log_queue: Optional[Any] = None,  # Can't use mp.Queue here due to pickling
     ):
-        # Load configuration
-        if config is not None:
-            # Use provided Config object directly
-            self.config = config
-        else:
-            # Load from file or use defaults
-            self.config = load_config(config_path)
+        # Load configuration (loaded in main_async)
+        self.config = config
 
         self.log_queue = log_queue
 
@@ -98,17 +60,23 @@ class OpenEvolve:
         # Set up logging
         self._setup_logging()
 
+        # Manual mode queue lives in <openevolve_output>/manual_tasks_queue
+        self._setup_manual_mode_queue()
+
         # Set random seed for reproducibility if specified
         if self.config.random_seed is not None:
-            import random
-            import numpy as np
             import hashlib
+            import random
+
+            import numpy as np
 
             # Set global random seeds
             random.seed(self.config.random_seed)
             np.random.seed(self.config.random_seed)
 
-            # Create hash-based seeds for different components
+            # Create hash-based seeds for different components. md5 is used only to
+            # derive a deterministic RNG seed from the configured seed, not for any
+            # security purpose; usedforsecurity=False documents that intent.
             base_seed = str(self.config.random_seed).encode("utf-8")
             llm_seed = int(hashlib.md5(base_seed + b"llm").hexdigest()[:8], 16) % (
                 2**31
@@ -166,6 +134,7 @@ class OpenEvolve:
         if self.config.random_seed is not None:
             self.config.database.random_seed = self.config.random_seed
 
+        self.config.database.novelty_llm = self.llm_ensemble
         self.database = ProgramDatabase(self.config.database)
 
         self.evaluator = Evaluator(
@@ -234,6 +203,35 @@ class OpenEvolve:
 
         logger.info(f"Logging to {log_file}")
 
+    def _setup_manual_mode_queue(self) -> None:
+        """
+        Set up manual task queue directory if llm.manual_mode is enabled
+
+        Queue directory is always:
+          <openevolve_output>/manual_tasks_queue
+
+        The directory is cleared on controller start so the UI shows only tasks
+        from the current run (no stale tasks after restart)
+        """
+        if not bool(getattr(self.config.llm, "manual_mode", False)):
+            return
+
+        qdir = Path(self.output_dir).expanduser().resolve() / "manual_tasks_queue"
+
+        # Clear stale tasks from previous runs
+        if qdir.exists():
+            shutil.rmtree(qdir)
+        qdir.mkdir(parents=True, exist_ok=True)
+
+        # Inject runtime-only queue dir into configs
+        self.config.llm._manual_queue_dir = str(qdir)
+        for model_cfg in self.config.llm.models:
+            model_cfg._manual_queue_dir = str(qdir)
+        for model_cfg in self.config.llm.evaluator_models:
+            model_cfg._manual_queue_dir = str(qdir)
+
+        logger.info(f"Manual mode enabled. Queue dir: {qdir}")
+
     def _load_initial_program(self) -> str:
         """Load the initial program from file"""
         with open(self.initial_program_path, "r") as f:
@@ -257,7 +255,6 @@ class OpenEvolve:
             Best program found
         """
         max_iterations = iterations or self.config.max_iterations
-
         # Determine starting iteration
         start_iteration = 0
         if checkpoint_path and os.path.exists(checkpoint_path):
@@ -289,12 +286,19 @@ class OpenEvolve:
             initial_program = Program(
                 id=initial_program_id,
                 code=self.initial_program_code,
+                changes_description=self.config.prompt.initial_changes_description,
                 language=self.config.language,
                 metrics=initial_metrics,
                 iteration_found=start_iteration,
             )
 
             self.database.add(initial_program)
+
+            # Check for and store artifacts from initial program
+            initial_artifacts = self.evaluator.get_pending_artifacts(initial_program_id)
+            if initial_artifacts:
+                self.database.store_artifacts(initial_program_id, initial_artifacts)
+                logger.info(f"Stored artifacts for initial program")
 
             # Check if combined_score is present in the metrics
             if "combined_score" not in initial_metrics:
@@ -386,28 +390,6 @@ class OpenEvolve:
         if best_program is None:
             best_program = self.database.get_best_program()
             logger.info("Using calculated best program (tracked program not found)")
-
-        # Check if there's a better program by combined_score that wasn't tracked
-        if best_program and "combined_score" in best_program.metrics:
-            best_by_combined = self.database.get_best_program(metric="combined_score")
-            if (
-                best_by_combined
-                and best_by_combined.id != best_program.id
-                and "combined_score" in best_by_combined.metrics
-            ):
-                # If the combined_score of this program is significantly better, use it instead
-                if (
-                    best_by_combined.metrics["combined_score"]
-                    > best_program.metrics["combined_score"] + 0.02
-                ):
-                    logger.warning(
-                        f"Found program with better combined_score: {best_by_combined.id}"
-                    )
-                    logger.warning(
-                        f"Score difference: {best_program.metrics['combined_score']:.4f} vs "
-                        f"{best_by_combined.metrics['combined_score']:.4f}"
-                    )
-                    best_program = best_by_combined
 
         if best_program:
             if (

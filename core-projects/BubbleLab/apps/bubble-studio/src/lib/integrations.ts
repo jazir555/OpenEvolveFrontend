@@ -149,6 +149,19 @@ const NAME_ALIASES: Readonly<Record<string, string>> = Object.freeze({
   notion: 'Notion',
   insforge: 'InsForge',
   'insforge-db': 'InsForge',
+  amazon: 'Amazon',
+  'amazon-shopping-tool': 'Amazon',
+  browserbase: 'Browserbase',
+  jira: 'Jira',
+  'jira-bubble': 'Jira',
+  ashby: 'Ashby',
+  'ashby-bubble': 'Ashby',
+  fullenrich: 'FullEnrich',
+  'fullenrich-bubble': 'FullEnrich',
+  'full-enrich': 'FullEnrich',
+  enrich: 'FullEnrich',
+  stripe: 'Stripe',
+  'stripe-bubble': 'Stripe',
   'research-agent': 'Research Agent',
   'research-agent-tool': 'Research Agent',
   research: 'Research Agent',
@@ -285,6 +298,12 @@ export function findLogoForBubble(
     [/\bweb\s*search\b|\bweb-search\b/, 'Web Search'],
     [/\bweb\s*scrape\b|\bweb-scrape\b/, 'Web Scrape'],
     [/\bweb\s*crawl\b|\bweb-crawl\b/, 'Web Crawl'],
+    [/\bamazon\b|\bamazon-shopping\b/, 'Amazon'],
+    [/\bbrowserbase\b/, 'Browserbase'],
+    [/\bjira\b/, 'Jira'],
+    [/\bashby\b/, 'Ashby'],
+    [/\bfullenrich\b|\bfull-enrich\b|\benrich\b/, 'FullEnrich'],
+    [/\bstripe\b/, 'Stripe'],
   ];
 
   const allLogos = { ...SERVICE_LOGOS, ...TOOL_LOGOS };
@@ -341,6 +360,7 @@ export function findDocsUrlForBubble(bubble: MinimalBubble): string | null {
       followupbossbubble: 'followupboss-bubble',
       telegrambubble: 'telegram-bubble',
       airtablebubble: 'airtable-bubble',
+      jirabubble: 'jira-bubble',
     }
   );
 
@@ -385,6 +405,7 @@ export function findDocsUrlForBubble(bubble: MinimalBubble): string | null {
     fub: 'followupboss-bubble',
     telegram: 'telegram-bubble',
     airtable: 'airtable-bubble',
+    jira: 'jira-bubble',
   });
 
   // Known tool docs keyed by bubbleName variants

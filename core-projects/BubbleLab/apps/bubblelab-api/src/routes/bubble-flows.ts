@@ -15,7 +15,7 @@ import { getFlowNameFromCode } from '../utils/code-parser.js';
 import {
   extractRequiredCredentials,
   generateDisplayedBubbleParameters,
-  mergeCredentialsIntoBubbleParameters,
+  mergeCredentialsByBubbleName,
 } from '../services/bubble-flow-parser.js';
 import { injectCredentialsIntoBubbleParameters } from '../utils/bubble-parameters.js';
 import {
@@ -41,6 +41,7 @@ import {
   deactivateBubbleFlowRoute,
   deleteBubbleFlowRoute,
   listBubbleFlowExecutionsRoute,
+  getBubbleFlowExecutionDetailRoute,
   validateBubbleFlowCodeRoute,
   generateBubbleFlowCodeRoute,
   runContextFlowRoute,
@@ -89,6 +90,7 @@ app.openapi(listBubbleFlowsRoute, async (c) => {
         updatedAt: true,
         originalCode: true,
         bubbleParameters: true,
+        userId: true,
       },
       with: {
         webhooks: {
@@ -148,6 +150,7 @@ app.openapi(listBubbleFlowsRoute, async (c) => {
       webhookFailureCount: flow.webhookFailureCount,
       executionCount: executionCountMap.get(flow.id) || 0,
       bubbles,
+      ownerId: flow.userId,
       createdAt: flow.createdAt.toISOString(),
       updatedAt: flow.updatedAt.toISOString(),
     };
@@ -430,6 +433,8 @@ app.openapi(executeBubbleFlowStreamRoute, async (c) => {
   const userPayload = c.req.valid('json') ?? {}; // Handle empty payloads gracefully
   const userId = getUserId(c);
   const appType = getAppType(c);
+  // Check for evalPerformance query param
+  const evalPerformance = c.req.query('evalPerformance') === 'true';
 
   try {
     const triggerEvent = {
@@ -446,6 +451,7 @@ app.openapi(executeBubbleFlowStreamRoute, async (c) => {
         await executeBubbleFlowWithTracking(id, triggerEvent, {
           userId,
           appType,
+          evalPerformance,
           streamCallback: async (event) => {
             await stream.writeSSE({
               data: JSON.stringify(event),
@@ -761,7 +767,6 @@ app.openapi(activateBubbleFlowRoute, async (c) => {
   if (!webhook.isActive) {
     // Check webhook limit before activating
     const webhookUsage = await getCurrentWebhookUsage(userId);
-    console.log('[activateBubbleFlowRoute] Webhook usage:', webhookUsage);
     if (webhookUsage.currentUsage >= webhookUsage.limit) {
       return c.json(
         {
@@ -926,17 +931,25 @@ app.openapi(listBubbleFlowExecutionsRoute, async (c) => {
   }
 
   // Get execution history for this BubbleFlow
-  const executions = await db.query.bubbleFlowExecutions.findMany({
-    where: eq(bubbleFlowExecutions.bubbleFlowId, id),
-    limit,
-    offset,
-    orderBy: (table, { desc }) => [desc(table.startedAt)], // Most recent first
-  });
+  const [executions, totalResult] = await Promise.all([
+    db.query.bubbleFlowExecutions.findMany({
+      where: eq(bubbleFlowExecutions.bubbleFlowId, id),
+      limit,
+      offset,
+      orderBy: (table, { desc }) => [desc(table.startedAt)], // Most recent first
+    }),
+    db
+      .select({ count: count() })
+      .from(bubbleFlowExecutions)
+      .where(eq(bubbleFlowExecutions.bubbleFlowId, id)),
+  ]);
 
-  const response = executions.map((execution) => ({
+  const total = totalResult[0]?.count ?? 0;
+
+  const items = executions.map((execution) => ({
     id: execution.id,
     status: execution.status as 'running' | 'success' | 'error',
-    payload: execution.payload as Record<string, any>,
+    payload: execution.payload as Record<string, unknown>,
     result: execution.result,
     error: execution.error || undefined,
     startedAt: execution.startedAt.toISOString(),
@@ -944,6 +957,75 @@ app.openapi(listBubbleFlowExecutionsRoute, async (c) => {
     webhook_url: getWebhookUrl(userId, flow.webhooks[0]?.path || ''),
     code: execution.code || undefined,
   }));
+
+  return c.json({ items, total }, 200);
+});
+
+// GET /bubble-flow/:id/executions/:executionId - Get single execution with logs
+app.openapi(getBubbleFlowExecutionDetailRoute, async (c) => {
+  const userId = getUserId(c);
+  const id = parseInt(c.req.param('id'));
+  const executionId = parseInt(c.req.param('executionId'));
+
+  if (isNaN(id) || isNaN(executionId)) {
+    return c.json(
+      {
+        error: 'Invalid ID format',
+      },
+      400
+    );
+  }
+
+  // Check if BubbleFlow exists and belongs to the user
+  const flow = await db.query.bubbleFlows.findFirst({
+    where: and(eq(bubbleFlows.id, id), eq(bubbleFlows.userId, userId)),
+    with: {
+      webhooks: {
+        columns: {
+          path: true,
+        },
+      },
+    },
+  });
+
+  if (!flow) {
+    return c.json(
+      {
+        error: 'BubbleFlow not found',
+      },
+      404
+    );
+  }
+
+  // Get the specific execution
+  const execution = await db.query.bubbleFlowExecutions.findFirst({
+    where: and(
+      eq(bubbleFlowExecutions.id, executionId),
+      eq(bubbleFlowExecutions.bubbleFlowId, id)
+    ),
+  });
+
+  if (!execution) {
+    return c.json(
+      {
+        error: 'Execution not found',
+      },
+      404
+    );
+  }
+
+  const response = {
+    id: execution.id,
+    status: execution.status as 'running' | 'success' | 'error',
+    payload: execution.payload as Record<string, unknown>,
+    result: execution.result,
+    error: execution.error || undefined,
+    startedAt: execution.startedAt.toISOString(),
+    completedAt: execution.completedAt?.toISOString(),
+    webhook_url: getWebhookUrl(userId, flow.webhooks[0]?.path || ''),
+    code: execution.code || undefined,
+    executionLogs: execution.executionLogs || undefined,
+  };
 
   return c.json(response, 200);
 });
@@ -1080,12 +1162,16 @@ app.openapi(validateBubbleFlowCodeRoute, async (c) => {
         }
       }
 
-      // Prepare bubble parameters with credentials if provided
+      // Prepare bubble parameters with credentials - merge by bubbleName
+      // This handles when variableIds change but bubbleNames stay the same
       let finalBubbleParameters = result.bubbleParameters || {};
-      // If credentials are provided in the request, merge them into the bubble parameters
       if (credentials && Object.keys(credentials).length > 0) {
-        finalBubbleParameters = mergeCredentialsIntoBubbleParameters(
+        finalBubbleParameters = mergeCredentialsByBubbleName(
           finalBubbleParameters,
+          existingFlow?.bubbleParameters as Record<
+            string | number,
+            ParsedBubbleWithInfo
+          > | null,
           credentials
         );
       }
@@ -1113,6 +1199,21 @@ app.openapi(validateBubbleFlowCodeRoute, async (c) => {
         .where(eq(bubbleFlows.id, flowId));
     }
 
+    // Prepare final bubble parameters - merge credentials by bubbleName
+    // This handles when variableIds change but bubbleNames stay the same
+    let finalBubbleParametersForResponse = result.bubbleParameters || {};
+    if (credentials && Object.keys(credentials).length > 0) {
+      // Use bubbleName-based matching to carry over credentials from old bubbles to new
+      finalBubbleParametersForResponse = mergeCredentialsByBubbleName(
+        finalBubbleParametersForResponse,
+        existingFlow?.bubbleParameters as Record<
+          string | number,
+          ParsedBubbleWithInfo
+        > | null,
+        credentials
+      );
+    }
+
     // Return the validation result based on if code itself is valid
     if (result.valid) {
       return c.json(
@@ -1120,7 +1221,7 @@ app.openapi(validateBubbleFlowCodeRoute, async (c) => {
           valid: true,
           success: true,
           inputSchema: result.inputSchema || {},
-          bubbles: result.bubbleParameters,
+          bubbles: finalBubbleParametersForResponse,
           eventType: result.trigger?.type || 'webhook/http',
           webhookPath: getWebhookUrl(
             userId,
@@ -1133,7 +1234,7 @@ app.openapi(validateBubbleFlowCodeRoute, async (c) => {
           error: '',
           errors: [],
           requiredCredentials: extractRequiredCredentials(
-            result.bubbleParameters || {}
+            finalBubbleParametersForResponse
           ),
           metadata: {
             validatedAt: new Date().toISOString(),
@@ -1262,8 +1363,6 @@ app.openapi(generateBubbleFlowCodeRoute, async (c) => {
       try {
         // PLANNING PHASE: Run Coffee agent for clarification and plan generation
         if (phase === 'planning') {
-          console.log('[API] Running Coffee agent (planning phase)');
-
           const coffeeResult = await runCoffee(
             {
               prompt,
@@ -1305,10 +1404,6 @@ app.openapi(generateBubbleFlowCodeRoute, async (c) => {
                     eq(bubbleFlows.userId, userId)
                   )
                 );
-
-              console.log(
-                `[API] Saved ${messages.length} conversation messages to flow ${flowId} metadata (planning phase)`
-              );
             } catch (saveError) {
               console.error(
                 `[API] Error saving conversation messages to flow ${flowId}:`,
@@ -1348,18 +1443,21 @@ app.openapi(generateBubbleFlowCodeRoute, async (c) => {
 
             // Capture validation events for analytics
             if (
-              event.type === 'tool_complete' &&
+              event.type === 'tool_call_complete' &&
               event.data.tool === 'bubbleflow-validation-tool'
             ) {
               try {
                 const output = event.data
                   .output as BubbleResult<ValidationResult>;
+                const toolInput = event.data.input as
+                  | { input?: string }
+                  | undefined;
                 // Check if validation failed
                 if (output.data.errors && output.data.errors.length > 0) {
                   posthog.captureValidationError({
                     userId,
-                    code: event.data.input.input
-                      ? JSON.parse(event.data.input.input).code
+                    code: toolInput?.input
+                      ? JSON.parse(toolInput.input).code
                       : '',
                     errorMessages: output.data.errors || [],
                     source: 'ai_generation',
@@ -1620,8 +1718,6 @@ app.openapi(runContextFlowRoute, async (c) => {
   try {
     const { flowCode, credentials } = c.req.valid('json');
 
-    console.log('[API] Running context-gathering flow for user:', userId);
-
     // Validate the flow code
     const bubbleFactory = await getBubbleFactory();
     const validationResult = await validateAndExtract(
@@ -1657,11 +1753,6 @@ app.openapi(runContextFlowRoute, async (c) => {
       credentials
     );
 
-    console.log(
-      '[API] Bubble parameters with credentials:',
-      JSON.stringify(bubbleParametersWithCreds, null, 2)
-    );
-
     // Execute the flow using the standard execution path
     const executionResult = await runBubbleFlow(
       flowCode,
@@ -1678,11 +1769,6 @@ app.openapi(runContextFlowRoute, async (c) => {
         userId,
         pricingTable: PRICING_TABLE,
       }
-    );
-
-    console.log(
-      '[API] Context flow executed successfully with result:',
-      executionResult.data
     );
 
     return c.json(

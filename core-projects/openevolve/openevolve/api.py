@@ -236,6 +236,51 @@ def _prepare_program(
     return program_file
 
 
+def _extract_lambda_source(source: str) -> Optional[str]:
+    """Extract a single ``lambda ...`` expression from a source snippet.
+
+    ``inspect.getsource`` on a lambda returns the whole line it appears on, e.g.
+    ``evaluator=lambda p: {"score": 0.8},  # comment``. This isolates just the
+    ``lambda p: {"score": 0.8}`` expression using a bracket/string-aware scan so a
+    trailing comma, comment, or the enclosing call's ``)`` do not leak in.
+
+    Returns the lambda expression string, or None if no lambda is found.
+    """
+    idx = source.find("lambda")
+    if idx == -1:
+        return None
+
+    out = []
+    depth = 0
+    quote = None
+    i = idx
+    while i < len(source):
+        c = source[i]
+        if quote is not None:
+            out.append(c)
+            if c == quote and source[i - 1] != "\\":
+                quote = None
+        elif c in "\"'":
+            quote = c
+            out.append(c)
+        elif c in "([{":
+            depth += 1
+            out.append(c)
+        elif c in ")]}":
+            if depth == 0:
+                break  # closing bracket of the enclosing call -> lambda ended
+            depth -= 1
+            out.append(c)
+        elif depth == 0 and (c == "," or c == "#" or c == "\n"):
+            break  # top-level comma / comment / newline ends the lambda
+        else:
+            out.append(c)
+        i += 1
+
+    expr = "".join(out).strip()
+    return expr or None
+
+
 def _prepare_evaluator(
     evaluator: Union[str, Path, Callable],
     temp_dir: Optional[str],
@@ -362,7 +407,17 @@ def evolve_function(
         module = importlib.util.module_from_spec(spec)
 
         try:
-            spec.loader.exec_module(module)
+            # Handle case where input is a list/mutable - make a copy
+            if isinstance(input_val, list):
+                test_input = input_val.copy()
+            else:
+                test_input = input_val
+
+            result = evolved_func(test_input)
+            if result == expected:
+                correct += 1
+            else:
+                errors.append(f"Input {{input_val}}: expected {{expected}}, got {{result}}")
         except Exception as e:
             return {"score": 0.0, "error": f"Failed to execute program: {str(e)}"}
 

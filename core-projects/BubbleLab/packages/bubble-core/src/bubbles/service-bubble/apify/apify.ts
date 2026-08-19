@@ -33,7 +33,7 @@ const ApifyParamsSchema = z.object({
   limit: z
     .number()
     .min(1)
-    .max(100)
+    .max(1000)
     .optional()
     .default(20)
     .describe(
@@ -52,11 +52,11 @@ const ApifyParamsSchema = z.object({
   timeout: z
     .number()
     .min(1000)
-    .max(500000)
+    .max(1800000)
     .optional()
     .default(300000)
     .describe(
-      'Maximum time to wait for actor completion in milliseconds (default: 120000)'
+      'Maximum time to wait for actor completion in milliseconds (default: 300000 = 5 min, max: 1800000 = 30 min). Long-running actors (e.g., apify/instagram-reel-scraper with transcripts) need >300s.'
     ),
   credentials: z
     .record(z.nativeEnum(CredentialType), z.string())
@@ -188,9 +188,10 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
     This is a generic service bubble that can execute any Apify actor with any input.
     Actor-specific logic and data transformation should be handled by Tool Bubbles.
 
-    Integrated Actors, use them through instagram-tool, reddit-tool, linkedin-tool, youtube-tool, tiktok-tool, twitter-tool, google-maps-tool, etc, not directly:
+    Integrated Actors, use them through instagram-tool, reddit-tool, linkedin-tool, youtube-tool, tiktok-tool, twitter-tool, google-maps-tool, app-rankings-tool, etc, not directly:
     - apify/instagram-scraper - Instagram posts, profiles, hashtags
     - apify/instagram-hashtag-scraper - Instagram hashtag posts
+    - harvestapi/linkedin-profile-scraper - LinkedIn profile details (name, experience, education, skills)
     - apimaestro/linkedin-profile-posts - LinkedIn profile posts and activity
     - apimaestro/linkedin-posts-search-scraper-no-cookies - Search LinkedIn posts by keyword
     - curious_coder/linkedin-jobs-scraper - LinkedIn job postings
@@ -199,11 +200,12 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
     - clockworks/tiktok-scraper - TikTok profiles, videos, hashtags
     - apidojo/tweet-scraper - Twitter/X profiles, tweets, search results
     - compass/crawler-google-places - Google Maps business listings and reviews
+    - slothtechlabs/ios-android-app-rankings-scraper - Apple & Google Play top chart rankings
     - IMPORTANT: For other actors, use discovery mode to find the actor and its page, then use the web scrape tool to scrape the input schema page to get the input/output schema details.
 
     Discovery Mode:
     - Provide a "search" parameter to discover available actors
-    - Optionally set "limit" to control the number of results (default: 20, max: 100)
+    - Optionally set "limit" to control the number of results (default: 20, max: 1000)
     - Returns actor information including input schemas, descriptions, and metadata
     - This mode is specifically designed for discovering available actors and their capabilities
     - Example: { search: "google flights prices", limit: 10 } to find Google flights related actors
@@ -240,18 +242,20 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
       return false;
     }
 
-    try {
-      // Test the credential by making a simple API call to get user info
-      const response = await fetch('https://api.apify.com/v2/users/me', {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-        },
-      });
+    // Test the credential by making a simple API call to get user info
+    const response = await fetch('https://api.apify.com/v2/users/me', {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+    });
 
-      return response.ok;
-    } catch {
-      return false;
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(
+        `Apify API key validation failed (${response.status}): ${errorText}`
+      );
     }
+    return true;
   }
 
   protected async performAction(
@@ -295,7 +299,14 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
       }
 
       // Start the actor run
-      const runResponse = await this.startActorRun(apiToken, actorId, input);
+      const runResponse = await this.startActorRun(
+        apiToken,
+        actorId,
+        input,
+        limit,
+        waitForFinish,
+        timeout
+      );
 
       if (!runResponse.data?.id) {
         return {
@@ -396,19 +407,38 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
   private async startActorRun(
     apiToken: string,
     actorId: string,
-    input: Record<string, unknown>
+    input: Record<string, unknown>,
+    limit?: number,
+    waitForFinish?: boolean,
+    timeout?: number
   ): Promise<ApifyRunResponse> {
     // Replace '/' with '~' in actor ID for API endpoint
     const apiActorId = actorId.replace('/', '~');
-    const url = `https://api.apify.com/v2/acts/${apiActorId}/runs`;
+    const url = new URL(`https://api.apify.com/v2/acts/${apiActorId}/runs`);
 
-    const response = await fetch(url, {
+    // Add query parameters for cost control
+    url.searchParams.set('maxItems', String(limit));
+
+    // Always set max charge to $5
+    url.searchParams.set('maxTotalChargeUsd', '5');
+
+    // Add waitForFinish query parameter (in seconds)
+    if (waitForFinish && timeout !== undefined) {
+      // Convert timeout from milliseconds to seconds
+      const waitSeconds = Math.floor(timeout / 1000);
+      url.searchParams.set('waitForFinish', String(waitSeconds));
+    }
+
+    const bodyJson = JSON.stringify(input);
+    const requestUrl = url.toString();
+
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiToken}`,
       },
-      body: JSON.stringify(input),
+      body: bodyJson,
     });
 
     if (!response.ok) {
@@ -507,7 +537,7 @@ export class ApifyBubble<T extends string = string> extends ServiceBubble<
       if (query) {
         searchUrl.searchParams.set('search', query);
       }
-      searchUrl.searchParams.set('limit', String(Math.min(limit, 100))); // Cap at 100
+      searchUrl.searchParams.set('limit', limit.toString()); // Cap at 100
 
       const searchResponse = await fetch(searchUrl.toString(), {
         headers: {

@@ -3,8 +3,11 @@ Prompt templates for OpenEvolve
 """
 
 import json
+import logging
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 # Base system message template for evolution
 BASE_SYSTEM_TEMPLATE = """You are an expert software developer tasked with iteratively improving a codebase.
@@ -184,8 +187,13 @@ class TemplateManager:
         self._load_from_directory(self.default_dir)
 
         # 2. Override with custom templates (if provided)
-        if self.custom_dir and self.custom_dir.exists():
-            self._load_from_directory(self.custom_dir)
+        if self.custom_dir:
+            if self.custom_dir.exists():
+                self._load_from_directory(self.custom_dir)
+            else:
+                logger.warning(
+                    f"Custom template directory does not exist, using default prompt."
+                )
 
     def _load_from_directory(self, directory: Path) -> None:
         """Load all templates and fragments from a directory"""

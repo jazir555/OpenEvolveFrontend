@@ -15,10 +15,20 @@ export const AvailableTools = z.enum([
   'instagram-tool',
   // Existing bubble tools (for reference - these are handled by bubble names)
   'list-bubbles-tool',
+  'list-capabilities-tool',
   'get-bubble-details-tool',
+  'get-trigger-detail-tool',
   'bubbleflow-validation-tool',
   'code-edit-tool',
   'chart-js-tool',
+  'amazon-shopping-tool',
+  'linkedin-tool',
+  'tiktok-tool',
+  'twitter-tool',
+  'google-maps-tool',
+  'app-rankings-tool',
+  'youtube-tool',
+  'people-search-tool',
   'sql-query-tool',
 ] as const satisfies readonly BubbleName[]);
 

@@ -7,6 +7,10 @@ import {
   InstagramHashtagScraperItemSchema,
 } from './actors/instagram-hashtag-scraper.js';
 import {
+  InstagramReelScraperInputSchema,
+  InstagramReelScraperItemSchema,
+} from './actors/instagram-reel-scraper.js';
+import {
   LinkedInProfilePostsInputSchema,
   LinkedInProfilePostsOutputSchema,
 } from './actors/linkedin-profile-posts.js';
@@ -18,6 +22,10 @@ import {
   LinkedInJobsScraperInputSchema,
   LinkedInJobSchema,
 } from './actors/linkedin-jobs-scraper.js';
+import {
+  LinkedInProfileDetailInputSchema,
+  LinkedInProfileDetailOutputSchema,
+} from './actors/linkedin-profile-detail.js';
 import {
   YouTubeScraperInputSchema,
   YouTubeVideoSchema,
@@ -38,6 +46,10 @@ import {
   GoogleMapsScraperInputSchema,
   GoogleMapsPlaceSchema,
 } from './actors/google-maps-scraper.js';
+import {
+  AppRankingsScraperInputSchema,
+  AppRankingsItemSchema,
+} from './actors/app-rankings-scraper.js';
 
 // ============================================================================
 // ACTOR REGISTRY
@@ -56,6 +68,14 @@ export const APIFY_ACTOR_SCHEMAS = {
     output: InstagramHashtagScraperItemSchema,
     description: 'Scrape Instagram posts by hashtag',
     documentation: 'https://apify.com/apify/instagram-hashtag-scraper',
+    category: 'social-media',
+  },
+  'apify/instagram-reel-scraper': {
+    input: InstagramReelScraperInputSchema,
+    output: InstagramReelScraperItemSchema,
+    description:
+      'Scrape Instagram reels from profiles or direct reel URLs with optional transcript, share counts, and downloaded MP4 URLs',
+    documentation: 'https://apify.com/apify/instagram-reel-scraper',
     category: 'social-media',
   },
   'apimaestro/linkedin-profile-posts': {
@@ -94,6 +114,14 @@ export const APIFY_ACTOR_SCHEMAS = {
     documentation: 'https://apify.com/curious_coder/linkedin-jobs-scraper',
     category: 'jobs',
   },
+  'harvestapi/linkedin-profile-scraper': {
+    input: LinkedInProfileDetailInputSchema,
+    output: LinkedInProfileDetailOutputSchema,
+    description:
+      'Scrape LinkedIn profile details from a profile URL - name, headline, experience, education, skills, and more',
+    documentation: 'https://apify.com/harvestapi/linkedin-profile-scraper',
+    category: 'social-media',
+  },
   'clockworks/tiktok-scraper': {
     input: TikTokScraperInputSchema,
     output: TikTokVideoSchema,
@@ -116,5 +144,14 @@ export const APIFY_ACTOR_SCHEMAS = {
       'Scrape Google Maps for business listings, reviews, and place data',
     documentation: 'https://apify.com/compass/crawler-google-places',
     category: 'maps',
+  },
+  'slothtechlabs/ios-android-app-rankings-scraper': {
+    input: AppRankingsScraperInputSchema,
+    output: AppRankingsItemSchema,
+    description:
+      'Scrape Apple App Store and Google Play top chart rankings (Top Free, Top Paid, Top Grossing) across 60+ countries and 50+ categories',
+    documentation:
+      'https://apify.com/slothtechlabs/ios-android-app-rankings-scraper',
+    category: 'apps',
   },
 };

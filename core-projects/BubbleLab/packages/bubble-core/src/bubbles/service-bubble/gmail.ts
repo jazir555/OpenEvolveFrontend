@@ -2,6 +2,20 @@ import { z } from 'zod';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
+import { markdownToHtml } from '../../utils/markdown-to-html.js';
+
+/**
+ * RFC 2047 encode a header value if it contains non-ASCII characters.
+ * Email headers are assumed Latin-1 unless explicitly encoded, so any
+ * non-ASCII content (emojis, accented chars, CJK, etc.) must be wrapped
+ * in =?UTF-8?B?<base64>?= to be displayed correctly by mail clients.
+ */
+function encodeRFC2047(str: string): string {
+  // eslint-disable-next-line no-control-regex -- intentionally matching full ASCII range (0x00-0x7F)
+  if (!str || /^[\x00-\x7f]*$/.test(str)) return str;
+  const encoded = Buffer.from(str, 'utf-8').toString('base64');
+  return `=?UTF-8?B?${encoded}?=`;
+}
 
 // Essential headers that users typically care about
 const ESSENTIAL_HEADERS = [
@@ -161,8 +175,18 @@ const GmailParamsSchema = z.discriminatedUnion('operation', [
       .string()
       .min(1, 'Subject is required')
       .describe('Email subject line'),
-    body_text: z.string().optional().describe('Plain text email body'),
-    body_html: z.string().optional().describe('HTML email body'),
+    body_text: z
+      .string()
+      .optional()
+      .describe(
+        '[ONEOF:body] Email body (supports markdown — automatically converted to HTML for rendering)'
+      ),
+    body_html: z
+      .string()
+      .optional()
+      .describe(
+        '[ONEOF:body] HTML email body. If not provided and body_text is set, HTML is auto-generated from body_text.'
+      ),
     reply_to: z.string().email().optional().describe('Reply-to email address'),
     thread_id: z
       .string()
@@ -323,8 +347,18 @@ const GmailParamsSchema = z.discriminatedUnion('operation', [
       .string()
       .min(1, 'Subject is required')
       .describe('Email subject line'),
-    body_text: z.string().optional().describe('Plain text email body'),
-    body_html: z.string().optional().describe('HTML email body'),
+    body_text: z
+      .string()
+      .optional()
+      .describe(
+        '[ONEOF:body] Email body (supports markdown — automatically converted to HTML for rendering)'
+      ),
+    body_html: z
+      .string()
+      .optional()
+      .describe(
+        '[ONEOF:body] HTML email body. If not provided and body_text is set, HTML is auto-generated from body_text.'
+      ),
     reply_to: z.string().email().optional().describe('Reply-to email address'),
     thread_id: z
       .string()
@@ -545,6 +579,29 @@ const GmailParamsSchema = z.discriminatedUnion('operation', [
         'Object mapping credential types to values (injected at runtime)'
       ),
   }),
+
+  // Get attachment operation
+  z.object({
+    operation: z
+      .literal('get_attachment')
+      .describe('Download an attachment from an email message'),
+    message_id: z
+      .string()
+      .min(1, 'Message ID is required')
+      .describe('Gmail message ID that contains the attachment'),
+    attachment_id: z
+      .string()
+      .min(1, 'Attachment ID is required')
+      .describe(
+        'Attachment ID from the message payload (found in body.attachmentId of attachment parts)'
+      ),
+    credentials: z
+      .record(z.nativeEnum(CredentialType), z.string())
+      .optional()
+      .describe(
+        'Object mapping credential types to values (injected at runtime)'
+      ),
+  }),
 ]);
 
 // Define result schemas for different operations
@@ -754,6 +811,18 @@ const GmailResultSchema = z.discriminatedUnion('operation', [
     thread_id: z.string().optional().describe('Modified thread ID'),
     error: z.string().describe('Error message if operation failed'),
   }),
+
+  z.object({
+    operation: z
+      .literal('get_attachment')
+      .describe('Download an attachment from an email message'),
+    success: z
+      .boolean()
+      .describe('Whether the attachment was downloaded successfully'),
+    data: z.string().optional().describe('Base64-encoded attachment content'),
+    size: z.number().optional().describe('Attachment size in bytes'),
+    error: z.string().describe('Error message if operation failed'),
+  }),
 ]);
 
 type GmailResult = z.output<typeof GmailResultSchema>;
@@ -809,21 +878,20 @@ export class GmailBubble<
       throw new Error('Gmail credentials are required');
     }
 
-    try {
-      // Test the credentials by making a simple API call
-      const response = await fetch(
-        'https://www.googleapis.com/gmail/v1/users/me/profile',
-        {
-          headers: {
-            Authorization: `Bearer ${credential}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      return response.ok;
-    } catch {
-      return false;
+    const response = await fetch(
+      'https://www.googleapis.com/gmail/v1/users/me/profile',
+      {
+        headers: {
+          Authorization: `Bearer ${credential}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Gmail API error (${response.status}): ${text}`);
     }
+    return true;
   }
 
   private async makeGmailApiRequest(
@@ -1092,6 +1160,8 @@ export class GmailBubble<
             return await this.modifyMessageLabels(this.params);
           case 'modify_thread_labels':
             return await this.modifyThreadLabels(this.params);
+          case 'get_attachment':
+            return await this.getAttachment(this.params);
           default:
             throw new Error(`Unsupported operation: ${operation}`);
         }
@@ -1132,7 +1202,7 @@ export class GmailBubble<
       emailContent += `Bcc: ${bcc.join(', ')}\r\n`;
     }
 
-    emailContent += `Subject: ${subject}\r\n`;
+    emailContent += `Subject: ${encodeRFC2047(subject)}\r\n`;
 
     if (reply_to) {
       emailContent += `Reply-To: ${reply_to}\r\n`;
@@ -1186,13 +1256,17 @@ export class GmailBubble<
       throw new Error('Either body_text or body_html must be provided');
     }
 
+    // Auto-convert markdown text to HTML when no HTML is provided
+    const resolvedHtml =
+      body_html || (body_text ? markdownToHtml(body_text) : undefined);
+
     const raw = this.createEmailMessage({
       to,
       cc,
       bcc,
       subject,
       body_text,
-      body_html,
+      body_html: resolvedHtml,
       reply_to,
       thread_id,
     });
@@ -1378,13 +1452,17 @@ export class GmailBubble<
       throw new Error('Either body_text or body_html must be provided');
     }
 
+    // Auto-convert markdown text to HTML when no HTML is provided
+    const resolvedHtml =
+      body_html || (body_text ? markdownToHtml(body_text) : undefined);
+
     const raw = this.createEmailMessage({
       to,
       cc,
       bcc,
       subject,
       body_text,
-      body_html,
+      body_html: resolvedHtml,
       reply_to,
       thread_id,
     });
@@ -1416,11 +1494,13 @@ export class GmailBubble<
   ): Promise<Extract<GmailResult, { operation: 'send_draft' }>> {
     const { draft_id } = params;
 
-    const response = await this.makeGmailApiRequest(
-      `/drafts/${draft_id}/send`,
-      'POST',
-      {}
-    );
+    // Gmail API: POST /drafts/send with the draft id in the body.
+    // There is no /drafts/{id}/send route — hitting it returns a generic
+    // Google HTML 404 (not a Gmail API JSON error) because the request
+    // never reaches a Gmail handler.
+    const response = await this.makeGmailApiRequest('/drafts/send', 'POST', {
+      id: draft_id,
+    });
 
     return {
       operation: 'send_draft',
@@ -1690,6 +1770,36 @@ export class GmailBubble<
       operation: 'modify_thread_labels',
       success: true,
       thread_id: response.id,
+      error: '',
+    };
+  }
+
+  private async getAttachment(
+    params: Extract<GmailParams, { operation: 'get_attachment' }>
+  ): Promise<Extract<GmailResult, { operation: 'get_attachment' }>> {
+    const { message_id, attachment_id } = params;
+
+    const response = await this.makeGmailApiRequest(
+      `/messages/${message_id}/attachments/${attachment_id}`
+    );
+
+    // Gmail API returns base64url-encoded data — convert to standard base64 with proper padding
+    let base64Data: string | undefined;
+    if (response.data) {
+      let converted = (response.data as string)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      // Add padding if missing — required for standard base64 and downstream consumers
+      const paddingNeeded = (4 - (converted.length % 4)) % 4;
+      converted += '='.repeat(paddingNeeded);
+      base64Data = converted;
+    }
+
+    return {
+      operation: 'get_attachment',
+      success: true,
+      data: base64Data,
+      size: response.size as number | undefined,
       error: '',
     };
   }

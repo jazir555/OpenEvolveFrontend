@@ -9,10 +9,9 @@
 *Turn your LLMs into autonomous code optimizers that discover breakthrough algorithms*
 
 <p align="center">
-  <a href="https://github.com/codelion/openevolve/stargazers"><img src="https://img.shields.io/github/stars/codelion/openevolve?style=social" alt="GitHub stars"></a>
   <a href="https://pypi.org/project/openevolve/"><img src="https://img.shields.io/pypi/v/openevolve" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/openevolve/"><img src="https://img.shields.io/pypi/dm/openevolve" alt="PyPI downloads"></a>
-  <a href="https://github.com/codelion/openevolve/blob/main/LICENSE"><img src="https://img.shields.io/github/license/codelion/openevolve" alt="License"></a>
+  <a href="https://pepy.tech/projects/openevolve"><img src="https://static.pepy.tech/personalized-badge/openevolve?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=GREEN&left_text=downloads%2Fmonth" alt="PyPI Downloads"></a>
+  <a href="https://github.com/algorithmicsuperintelligence/openevolve/blob/main/LICENSE"><img src="https://img.shields.io/github/license/algorithmicsuperintelligence/openevolve" alt="License"></a>
 </p>
 
 [🚀 **Quick Start**](#quick-start) • [**Examples**](#examples-gallery) • [**System Messages**](#crafting-effective-system-messages) • [**Discussions**](https://github.com/codelion/openevolve/discussions)
@@ -233,7 +232,7 @@ OpenEvolve implements a sophisticated **evolutionary coding pipeline** that goes
 
 ### Requirements
 - **Python**: 3.10+ 
-- **LLM Access**: Any OpenAI-compatible API
+- **LLM Access**: Any OpenAI-compatible API, or [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - **Optional**: Docker for containerized runs
 
 ### Installation Options
@@ -251,7 +250,7 @@ pip install openevolve
 <summary><b>🔧 Development Install</b></summary>
 
 ```bash
-git clone https://github.com/codelion/openevolve.git
+git clone https://github.com/algorithmicsuperintelligence/openevolve.git
 cd openevolve
 pip install -e ".[dev]"
 ```
@@ -464,6 +463,10 @@ database:
   migration_interval: 20
   feature_dimensions: ["complexity", "diversity", "performance"]
 
+  # Optional novelty filtering with Gemini embeddings
+  embedding_model: "gemini-embedding-001"
+  similarity_threshold: 0.99
+
 evaluator:
   enable_artifacts: true      # Error feedback to LLM
   cascade_evaluation: true    # Multi-stage testing
@@ -479,6 +482,9 @@ prompt:
   template_dir: "custom_prompts/"
   use_template_stochasticity: true  # Randomized prompts
 ```
+
+For Gemini embeddings, set `GEMINI_API_KEY`. `GOOGLE_API_KEY` is also supported
+as a fallback. OpenEvolve uses Google's OpenAI-compatible endpoint automatically.
 
 <details>
 <summary><b>🎯 Feature Engineering</b></summary>
@@ -761,7 +767,7 @@ python scripts/visualizer.py --path examples/function_minimization/openevolve_ou
 - [ ] **Neurosymbolic Reasoning**: Combine neural and symbolic approaches
 - [ ] **Human-AI Collaboration**: Interactive evolution with human feedback
 
-Want to contribute? Check out our [roadmap discussions](https://github.com/codelion/openevolve/discussions/categories/roadmap)!
+Want to contribute? Check out our [roadmap discussions](https://github.com/algorithmicsuperintelligence/openevolve/discussions/categories/roadmap)!
 
 ## FAQ
 
@@ -838,8 +844,8 @@ Just set the `api_base` in your config to point to your endpoint.
 
 Thanks to all our amazing contributors who make OpenEvolve possible!
 
-<a href="https://github.com/codelion/openevolve/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=codelion/openevolve" />
+<a href="https://github.com/algorithmicsuperintelligence/openevolve/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=algorithmicsuperintelligence/openevolve" />
 </a>
 
 ### **Contributing**
@@ -853,7 +859,7 @@ We welcome contributions! Here's how to get started:
 5. 📝 **Commit** with a clear message
 6. 🚀 **Push** and create a Pull Request
 
-**New to open source?** Check out our [Contributing Guide](CONTRIBUTING.md) and look for [`good-first-issue`](https://github.com/codelion/openevolve/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) labels!
+**New to open source?** Check out our [Contributing Guide](CONTRIBUTING.md) and look for [`good-first-issue`](https://github.com/algorithmicsuperintelligence/openevolve/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) labels!
 
 ### **Academic & Research**
 
@@ -872,7 +878,7 @@ If you use OpenEvolve in your research, please cite:
   author = {Asankhaya Sharma},
   year = {2025},
   publisher = {GitHub},
-  url = {https://github.com/codelion/openevolve}
+  url = {https://github.com/algorithmicsuperintelligence/openevolve}
 }
 ```
 ---

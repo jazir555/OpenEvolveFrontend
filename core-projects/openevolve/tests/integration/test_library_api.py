@@ -3,6 +3,8 @@ Integration tests for OpenEvolve library API with real LLM inference
 Tests the end-to-end flow of using OpenEvolve as a library
 """
 
+import os
+import sys
 import pytest
 import tempfile
 import shutil
@@ -10,6 +12,10 @@ from pathlib import Path
 
 from openevolve import run_evolution, evolve_function, evolve_code
 from openevolve.config import Config, LLMModelConfig
+
+# Reuse the shared test model constant so this config tracks the server's model.
+sys.path.append(str(Path(__file__).parent.parent))
+from test_utils import TEST_MODEL
 
 
 def _get_library_test_config(port: int = 8000) -> Config:
@@ -27,12 +33,16 @@ def _get_library_test_config(port: int = 8000) -> Config:
     config.llm.api_base = base_url
     config.llm.timeout = 120
     config.llm.retries = 0
+    # Bound generation length so the (non-stopping) dhara model does not ramble to
+    # the 4096-token default on every call (see tests/test_utils.py for details).
+    config.llm.max_tokens = 256
     config.llm.models = [
         LLMModelConfig(
-            name="google/gemma-3-270m-it",
+            name=TEST_MODEL,
             api_key="optillm",
             api_base=base_url,
             weight=1.0,
+            max_tokens=256,
             timeout=120,
             retries=0,
         )

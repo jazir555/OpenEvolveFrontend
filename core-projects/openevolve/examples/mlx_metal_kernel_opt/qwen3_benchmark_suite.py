@@ -8,7 +8,7 @@ discovered by OpenEvolve against MLX's standard attention implementation.
 
 Target Model: mlx-community/Qwen3-0.6B-bf16
 Target Hardware: Apple M4 24GB
-Optimization: Custom Metal kernel for GQA attention (40 query heads : 8 KV heads)
+Optimization: Custom Metal kernel for GQA attention (16 query heads : 8 KV heads)
 Baseline: mx.fast.scaled_dot_product_attention
 """
 
@@ -17,6 +17,7 @@ import json
 import subprocess
 import tempfile
 import os
+import sys
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 import mlx.core as mx
@@ -53,8 +54,15 @@ class BenchmarkConfig:
 class Qwen3BenchmarkSuite:
     """Comprehensive benchmark suite for Qwen3-0.6B Metal kernel optimization"""
 
-    def __init__(self, model_path: str = "mlx-community/Qwen3-0.6B-bf16"):
+    def __init__(
+        self,
+        model_path: str = "mlx-community/Qwen3-0.6B-bf16",
+        hook_program_path: Optional[str] = None,
+    ):
         self.model_path = model_path
+        # When set, benchmarks will run via `mlx_lm_generate_with_hook.py` so that
+        # the attention monkey-patch is applied inside the subprocess.
+        self.hook_program_path = hook_program_path
         self.results: List[BenchmarkResult] = []
 
     def create_benchmark_configs(self) -> List[BenchmarkConfig]:
@@ -566,17 +574,37 @@ Given this comprehensive overview of the current state and future directions of 
 
         try:
             # Build command
-            cmd = [
-                "python",
-                "-m",
-                "mlx_lm.generate",
-                "--model",
-                self.model_path,
-                "--prompt",
-                config.prompt,
-                "--max-tokens",
-                str(config.max_tokens),
-            ]
+            if self.hook_program_path:
+                wrapper_path = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "mlx_lm_generate_with_hook.py",
+                )
+                cmd = [
+                    sys.executable,
+                    "-W", "ignore::RuntimeWarning",  # Suppress harmless import warnings
+                    wrapper_path,
+                    "--hook-program",
+                    self.hook_program_path,
+                    "--model",
+                    self.model_path,
+                    "--prompt",
+                    config.prompt,
+                    "--max-tokens",
+                    str(config.max_tokens),
+                ]
+            else:
+                cmd = [
+                    sys.executable,
+                    "-W", "ignore::RuntimeWarning",  # Suppress harmless import warnings
+                    "-m",
+                    "mlx_lm.generate",
+                    "--model",
+                    self.model_path,
+                    "--prompt",
+                    config.prompt,
+                    "--max-tokens",
+                    str(config.max_tokens),
+                ]
 
             # Clear MLX cache before starting
             print(f"🧹 Clearing MLX cache...")
@@ -593,8 +621,9 @@ Given this comprehensive overview of the current state and future directions of 
                     else:
                         print(f"   [OK] Warmup run {i+1} completed")
 
-                    # Clear cache between warmup runs
+                    # Clear cache and add small delay between runs to reduce GPU contention
                     mx.clear_cache()
+                    time.sleep(0.5)
 
                 except subprocess.TimeoutExpired:
                     print(f"   ⏰ Warmup run {i+1} timed out")

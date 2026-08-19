@@ -35,6 +35,7 @@ class SerializableResult:
     artifacts: Optional[Dict[str, Any]] = None
     iteration: int = 0
     error: Optional[str] = None
+    target_island: Optional[int] = None  # Island where child should be placed
 
 
 def _worker_init(
@@ -66,8 +67,8 @@ def _worker_init(
         DatabaseConfig,
         EvaluatorConfig,
         LLMConfig,
-        PromptConfig,
         LLMModelConfig,
+        PromptConfig,
     )
 
     # Reconstruct model objects
@@ -210,6 +211,7 @@ def _run_iteration_worker(
             diff_based_evolution=_worker_config.diff_based_evolution,
             program_artifacts=parent_artifacts,
             feature_dimensions=db_snapshot.get("feature_dimensions", []),
+            current_changes_description=parent_changes_desc,
         )
 
         iteration_start = time.time()
@@ -244,15 +246,52 @@ def _run_iteration_worker(
                 format_diff_summary,
             )
 
-            diff_blocks = extract_diffs(llm_response)
+            diff_blocks = extract_diffs(llm_response, _worker_config.diff_pattern)
             if not diff_blocks:
                 _log_to_queue("No valid diffs found in response", level="WARNING")
                 return SerializableResult(
                     error="No valid diffs found in response", iteration=iteration
                 )
 
-            child_code = apply_diff(parent.code, llm_response)
-            changes_summary = format_diff_summary(diff_blocks)
+            if _worker_config.prompt.programs_as_changes_description:
+                try:
+                    code_blocks, desc_blocks, _unmatched = split_diffs_by_target(
+                        diff_blocks,
+                        code_text=parent.code,
+                        changes_description_text=parent_changes_desc,
+                    )
+                except Exception as e:
+                    return SerializableResult(error=str(e), iteration=iteration)
+
+                child_code, _ = apply_diff_blocks(parent.code, code_blocks)
+                child_changes_desc, desc_applied = apply_diff_blocks(
+                    parent_changes_desc, desc_blocks
+                )
+
+                # Must update the previous changes description
+                if (
+                    desc_applied == 0
+                    or not child_changes_desc.strip()
+                    or child_changes_desc.strip() == parent_changes_desc.strip()
+                ):
+                    return SerializableResult(
+                        error="changes_description was not updated or empty, program is discarded",
+                        iteration=iteration,
+                    )
+
+                changes_summary = format_diff_summary(
+                    code_blocks,
+                    max_line_len=_worker_config.prompt.diff_summary_max_line_len,
+                    max_lines=_worker_config.prompt.diff_summary_max_lines,
+                )
+            else:
+                # All diffs applied only to code
+                child_code = apply_diff(parent.code, llm_response, _worker_config.diff_pattern)
+                changes_summary = format_diff_summary(
+                    diff_blocks,
+                    max_line_len=_worker_config.prompt.diff_summary_max_line_len,
+                    max_lines=_worker_config.prompt.diff_summary_max_lines,
+                )
         else:
             from openevolve.utils.code_utils import parse_full_rewrite
 
@@ -293,6 +332,7 @@ def _run_iteration_worker(
         child_program = Program(
             id=child_id,
             code=child_code,
+            changes_description=child_changes_desc,
             language=_worker_config.language,
             parent_id=parent.id,
             generation=parent.generation + 1,
@@ -308,6 +348,9 @@ def _run_iteration_worker(
         iteration_time = time.time() - iteration_start
         _log_to_queue(f"Iteration {iteration} finished in {iteration_time:.2f}s")
 
+        # Get target island from snapshot (where child should be placed)
+        target_island = db_snapshot.get("sampling_island")
+
         return SerializableResult(
             child_program_dict=child_program.to_dict(),
             parent_id=parent.id,
@@ -316,11 +359,67 @@ def _run_iteration_worker(
             llm_response=llm_response,
             artifacts=artifacts,
             iteration=iteration,
+            target_island=target_island,
         )
 
     except Exception as e:
         _log_to_queue(f"Error in worker iteration {iteration}: {e}", level="ERROR")
         return SerializableResult(error=str(e), iteration=iteration)
+
+
+def _wait_for_processes(processes: tuple[mp.Process, ...], timeout: float) -> list[mp.Process]:
+    """Wait for process handles to observe worker exits without blocking indefinitely."""
+    deadline = time.monotonic() + timeout
+    alive = list(processes)
+    while alive:
+        next_alive = []
+        for process in alive:
+            try:
+                process.join(timeout=0)
+                if process.is_alive():
+                    next_alive.append(process)
+            except (AssertionError, ValueError):
+                continue
+        alive = next_alive
+        remaining = deadline - time.monotonic()
+        if not alive or remaining <= 0:
+            break
+        time.sleep(min(0.001, remaining))
+    return alive
+
+
+def _terminate_process_pool(executor: ProcessPoolExecutor) -> None:
+    """Cancel queued work and ensure all process-pool workers have exited."""
+    # Python < 3.14 has no public force-shutdown API. Capture only this
+    # executor's workers before shutdown clears its private process mapping.
+    process_map = getattr(executor, "_processes", None) or {}
+    processes = tuple(process_map.copy().values())
+    terminate_workers = getattr(executor, "terminate_workers", None)
+
+    if callable(terminate_workers):
+        terminate_workers()
+    else:
+        executor.shutdown(wait=False, cancel_futures=True)
+        for process in processes:
+            try:
+                if process.is_alive():
+                    process.terminate()
+            except (ProcessLookupError, ValueError):
+                continue
+
+    surviving_processes = _wait_for_processes(processes, timeout=1.0)
+    for process in surviving_processes:
+        try:
+            process.kill()
+        except (ProcessLookupError, ValueError):
+            continue
+
+    surviving_processes = _wait_for_processes(tuple(surviving_processes), timeout=1.0)
+    if surviving_processes:
+        logger.warning(
+            "Process-pool workers did not exit: %s",
+            [process.pid for process in surviving_processes],
+        )
 
 
 class ProcessParallelController:
@@ -346,15 +445,7 @@ class ProcessParallelController:
 
         # Number of worker processes
         self.num_workers = config.evaluator.parallel_evaluations
-
-        # Worker-to-island pinning for true island isolation
         self.num_islands = config.database.num_islands
-        self.worker_island_map = {}
-
-        # Distribute workers across islands using modulo
-        for worker_id in range(self.num_workers):
-            island_id = worker_id % self.num_islands
-            self.worker_island_map[worker_id] = island_id
 
         logger.info(
             f"Initialized process parallel controller with {self.num_workers} workers"
@@ -364,6 +455,10 @@ class ProcessParallelController:
     def _serialize_config(self, config: Config) -> dict:
         """Serialize config object to a dictionary that can be pickled"""
         # Manual serialization to handle nested objects properly
+
+        # The asdict() call itself triggers the deepcopy which tries to serialize novelty_llm. Remove it first.
+        config.database.novelty_llm = None
+
         return {
             "llm": {
                 "models": [asdict(m) for m in config.llm.models],
@@ -409,15 +504,35 @@ class ProcessParallelController:
             initargs=(config_dict, self.evaluation_file, current_env, self.log_queue),
         )
 
+        current_env = dict(os.environ)
+
+        executor_kwargs = {
+            "max_workers": self.num_workers,
+            "initializer": _worker_init,
+            "initargs": (config_dict, self.evaluation_file, current_env),
+        }
+        if sys.version_info >= (3, 11):
+            logger.info(f"Set max {self.config.max_tasks_per_child} tasks per child")
+            executor_kwargs["max_tasks_per_child"] = self.config.max_tasks_per_child
+        elif self.config.max_tasks_per_child is not None:
+            logger.warn(
+                "max_tasks_per_child is only supported in Python 3.11+. "
+                "Ignoring max_tasks_per_child and using spawn start method."
+            )
+            executor_kwargs["mp_context"] = mp.get_context("spawn")
+
+        # Create process pool with initializer
+        self.executor = ProcessPoolExecutor(**executor_kwargs)
         logger.info(f"Started process pool with {self.num_workers} processes")
 
     def stop(self) -> None:
         """Stop the process pool"""
         self.shutdown_event.set()
 
-        if self.executor:
-            self.executor.shutdown(wait=True)
-            self.executor = None
+        executor = self.executor
+        self.executor = None
+        if executor:
+            _terminate_process_pool(executor)
 
         logger.info("Stopped process pool")
 
@@ -449,13 +564,18 @@ class ProcessParallelController:
         }
 
         # Include artifacts for programs that might be selected
-        # IMPORTANT: This limits artifacts (execution outputs/errors) to first 100 programs only.
+        # This limits artifacts (execution outputs/errors) to avoid large snapshot sizes.
         # This does NOT affect program code - all programs are fully serialized above.
         # With max_artifact_bytes=20KB and population_size=1000, artifacts could be 20MB total,
-        # which would significantly slow worker process initialization. The limit of 100 keeps
-        # artifact data under 2MB while still providing execution context for recent programs.
+        # which would significantly slow worker process initialization. The default limit of 100
+        # keeps artifact data under 2MB while still providing execution context for recent programs.
         # Workers can still evolve properly as they have access to ALL program code.
-        for pid in list(self.database.programs.keys())[:100]:
+        # Configure via database.max_snapshot_artifacts (None for unlimited).
+        max_artifacts = self.database.config.max_snapshot_artifacts
+        program_ids = list(self.database.programs.keys())
+        if max_artifacts is not None:
+            program_ids = program_ids[:max_artifacts]
+        for pid in program_ids:
             artifacts = self.database.get_artifacts(pid)
             if artifacts:
                 snapshot["artifacts"][pid] = artifacts
@@ -519,11 +639,17 @@ class ProcessParallelController:
         if early_stopping_enabled:
             best_score = float("-inf")
             iterations_without_improvement = 0
-            logger.info(
-                f"Early stopping enabled: patience={self.config.early_stopping_patience}, "
-                f"threshold={self.config.convergence_threshold}, "
-                f"metric={self.config.early_stopping_metric}"
-            )
+            if self.config.early_stopping_patience < 0:
+                logger.info(
+                    f"Early stopping patience is set to a negative value, running event-based early-stopping, "
+                    f"Early stop when metric '{self.config.early_stopping_metric}' reaches {self.config.convergence_threshold}"
+                )
+            else:
+                logger.info(
+                    f"Early stopping enabled: patience={self.config.early_stopping_patience}, "
+                    f"threshold={self.config.convergence_threshold}, "
+                    f"metric={self.config.early_stopping_metric}"
+                )
         else:
             logger.info("Early stopping disabled")
 
@@ -560,9 +686,14 @@ class ProcessParallelController:
                     # Reconstruct program from dict
                     child_program = Program(**result.child_program_dict)
 
-                    # Add to database (will auto-inherit parent's island)
-                    # No need to specify target_island - database will handle parent island inheritance
-                    self.database.add(child_program, iteration=completed_iteration)
+                    # Add to database with explicit target_island to ensure proper island placement
+                    # This fixes issue #391: children should go to the target island, not inherit
+                    # from the parent (which may be from a different island due to fallback sampling)
+                    self.database.add(
+                        child_program,
+                        iteration=completed_iteration,
+                        target_island=result.target_island,
+                    )
 
                     # Store artifacts
                     if result.artifacts:
@@ -730,31 +861,43 @@ class ProcessParallelController:
                             current_score, (int, float)
                         ):
                             # Check for improvement
-                            improvement = current_score - best_score
-                            if improvement >= self.config.convergence_threshold:
-                                best_score = current_score
-                                iterations_without_improvement = 0
-                                logger.debug(
-                                    f"New best score: {best_score:.4f} (improvement: {improvement:+.4f})"
-                                )
-                            else:
-                                iterations_without_improvement += 1
-                                logger.debug(
-                                    f"No improvement: {iterations_without_improvement}/{self.config.early_stopping_patience}"
-                                )
+                            if self.config.early_stopping_patience > 0:
+                                improvement = current_score - best_score
+                                if improvement >= self.config.convergence_threshold:
+                                    best_score = current_score
+                                    iterations_without_improvement = 0
+                                    logger.debug(
+                                        f"New best score: {best_score:.4f} (improvement: {improvement:+.4f})"
+                                    )
+                                else:
+                                    iterations_without_improvement += 1
+                                    logger.debug(
+                                        f"No improvement: {iterations_without_improvement}/{self.config.early_stopping_patience}"
+                                    )
 
-                            # Check if we should stop
-                            if (
-                                iterations_without_improvement
-                                >= self.config.early_stopping_patience
-                            ):
-                                self.early_stopping_triggered = True
-                                logger.info(
-                                    f"🛑 Early stopping triggered at iteration {completed_iteration}: "
-                                    f"No improvement for {iterations_without_improvement} iterations "
-                                    f"(best score: {best_score:.4f})"
-                                )
-                                break
+                                # Check if we should stop
+                                if (
+                                    iterations_without_improvement
+                                    >= self.config.early_stopping_patience
+                                ):
+                                    self.early_stopping_triggered = True
+                                    logger.info(
+                                        f"🛑 Early stopping triggered at iteration {completed_iteration}: "
+                                        f"No improvement for {iterations_without_improvement} iterations "
+                                        f"(best score: {best_score:.4f})"
+                                    )
+                                    break
+
+                            else:
+                                # Event-based early stopping
+                                if current_score == self.config.convergence_threshold:
+                                    best_score = current_score
+                                    logger.info(
+                                        f"🛑 Early stopping (event-based) triggered at iteration {completed_iteration}: "
+                                        f"Task successfully solved with score {best_score:.4f}."
+                                    )
+                                    self.early_stopping_triggered = True
+                                    break
 
             except FutureTimeoutError:
                 logger.error(
@@ -821,6 +964,9 @@ class ProcessParallelController:
 
             # Use thread-safe sampling that doesn't modify shared state
             # This fixes the race condition from GitHub issue #246
+            # Inspirations are the diverse/creative examples; size them by
+            # num_diverse_programs (not num_top_programs) so the config parameter
+            # actually controls the inspiration count (GitHub issue #452).
             parent, inspirations = self.database.sample_from_island(
                 island_id=target_island,
                 num_inspirations=self.config.prompt.num_top_programs,

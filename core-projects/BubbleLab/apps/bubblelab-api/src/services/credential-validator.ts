@@ -191,7 +191,18 @@ export class CredentialValidator {
         baseParams.tableIdOrName = 'test-table';
         break;
       case CredentialType.NOTION_OAUTH_TOKEN:
+      case CredentialType.NOTION_API:
         baseParams.operation = 'list_users';
+        break;
+      case CredentialType.JIRA_CRED:
+        baseParams.operation = 'list_projects';
+        break;
+      case CredentialType.ASHBY_CRED:
+        baseParams.operation = 'list_candidates';
+        baseParams.limit = 1;
+        break;
+      case CredentialType.STRIPE_CRED:
+        baseParams.operation = 'get_balance';
         break;
       default:
         break;

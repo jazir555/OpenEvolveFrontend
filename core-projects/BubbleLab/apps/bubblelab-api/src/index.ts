@@ -23,17 +23,7 @@ import {
 
 // Memory monitoring function
 function logMemoryUsage() {
-  const usage = process.memoryUsage();
-  const formatBytes = (bytes: number) =>
-    (bytes / 1024 / 1024).toFixed(2) + ' MB';
-
-  console.log('=== Memory Usage ===');
-  console.log(`RSS (Resident Set Size): ${formatBytes(usage.rss)}`);
-  console.log(`Heap Used: ${formatBytes(usage.heapUsed)}`);
-  console.log(`Heap Total: ${formatBytes(usage.heapTotal)}`);
-  console.log(`External: ${formatBytes(usage.external)}`);
-  console.log(`Array Buffers: ${formatBytes(usage.arrayBuffers)}`);
-  console.log('==================');
+  // Memory logging disabled - can be re-enabled for debugging
 }
 
 // Import route modules
@@ -48,6 +38,7 @@ import joinWaitlistRoutes from './routes/join-waitlist.js';
 import { startCronScheduler } from './services/cron-scheduler.js';
 import aiRoutes from './routes/ai.js';
 import templateSubmissionRoutes from './routes/template-submission.js';
+import browserbaseRoutes from './routes/browserbase.js';
 import { getBubbleFactory } from './services/bubble-factory-instance.js';
 
 const app = new OpenAPIHono({
@@ -72,6 +63,7 @@ app.use('/oauth/:provider/revoke/*', authMiddleware);
 app.use('/auth/*', authMiddleware);
 app.use('/execute-bubble-flow/*', authMiddleware);
 app.use('/ai/*', authMiddleware);
+app.use('/browserbase/*', authMiddleware);
 
 // Note: webhook and execute-bubble-flow routes will handle verification internally
 // They don't need auth middleware since they use their own authentication
@@ -86,11 +78,9 @@ app.get('/', (c) => {
 });
 
 // Mount route modules
-console.log('[DEBUG] Mounting routes...');
 app.route('/bubble-flow', bubbleFlowRoutes);
 app.route('/bubbleflow-template', bubbleFlowTemplateRoutes);
 app.route('/credentials', credentialRoutes);
-console.log('[DEBUG] Mounting OAuth routes...');
 app.route('/oauth', oauthRoutes);
 app.route('/webhook', webhookRoutes);
 app.route('/auth', authRoutes);
@@ -98,7 +88,7 @@ app.route('/subscription', subscriptionRoutes);
 app.route('/join-waitlist', joinWaitlistRoutes);
 app.route('/ai', aiRoutes);
 app.route('/template-submission', templateSubmissionRoutes);
-console.log('[DEBUG] All routes mounted.');
+app.route('/browserbase', browserbaseRoutes);
 
 // OpenAPI documentation endpoint
 app.doc('/doc', {

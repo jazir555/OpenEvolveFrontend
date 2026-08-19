@@ -29,14 +29,13 @@ import {
   COFFEE_DEFAULT_MODEL,
   CREDENTIAL_ENV_MAP,
   CredentialType,
-  CRITICAL_INSTRUCTIONS,
   TOOL_CALL_TO_DISCARD,
   BubbleName,
 } from '@bubblelab/shared-schemas';
+import { CRITICAL_INSTRUCTIONS } from '../../config/bubbleflow-generation-prompts.js';
 import {
   AIAgentBubble,
   type StreamingCallback,
-  ListBubblesTool,
   type ToolHookAfter,
   type ToolHookContext,
 } from '@bubblelab/bubble-core';
@@ -71,18 +70,17 @@ const CoffeeAgentOutputSchema = z.object({
  * Build the system prompt for Coffee agent
  */
 async function buildCoffeeSystemPrompt(): Promise<string> {
-  const listBubblesTool = new ListBubblesTool({});
-  const listBubblesResult = await listBubblesTool.action();
+  const bubbleFactory = await getBubbleFactory();
+  const availableBubbles = bubbleFactory.listBubblesForCodeGenerator();
 
-  const boilerplate = (
-    await getBubbleFactory()
-  ).generateBubbleFlowBoilerplate();
-  const bubbleList = listBubblesResult.data.bubbles
-    .map(
-      (bubble) =>
-        `- ${bubble.name}: ${bubble.shortDescription || 'No description'}`
-    )
+  const bubbleList = availableBubbles
+    .map((name) => {
+      const metadata = bubbleFactory.getMetadata(name);
+      return `- ${name}: ${metadata?.shortDescription || 'No description'}`;
+    })
     .join('\n');
+
+  const boilerplate = bubbleFactory.generateBubbleFlowBoilerplate();
 
   return `You are Coffee, a Planning Agent for Bubble Lab workflows.
 Your role is to understand the user's workflow requirements, ask clarifying questions, gather external context when needed, and generate an implementation plan BEFORE code generation begins.
@@ -92,16 +90,9 @@ Your role is to understand the user's workflow requirements, ask clarifying ques
 2. Understand the bubbles implementation details and capabilities using get-bubble-detail tool
 3. If is is helpful to gather external data context (e.g., database schemas, file listings, google sheet files, etc.), use the tool runBubbleFlow to gather it, ex: spreadsheet names, table names, file names, schemas.
 4. Identify any ambiguities or missing information
-5. Ask 1-${COFFEE_MAX_QUESTIONS} targeted clarification questions with multiple-choice options
+5. Ask up to ${COFFEE_MAX_QUESTIONS} targeted clarification questions with multiple-choice options when needed
 6. Generate a clear implementation plan once you have enough information
 
-Here's the boilerplate template you should use as a starting point:
-\`\`\`typescript
-${boilerplate}
-\`\`\`
-
-Available bubbles in the system:
-${bubbleList}
 
 ${CRITICAL_INSTRUCTIONS}
 
@@ -109,10 +100,12 @@ ${CRITICAL_INSTRUCTIONS}
 
 ## CLARIFICATION QUESTIONS GUIDELINES:
 - Ask questions ONLY when there's genuine ambiguity
-- Each question should have 2-4 clear choices
+- Each question should have at least 2 clear choices
 - Questions should be actionable and help determine the implementation
 - Set "allowMultiple": true when the user can reasonably select multiple options (e.g., "Which fields to include?", "Which integrations to connect?")
 - Set "allowMultiple": false (or omit) when only one option should be selected (e.g., "Which database type?", "What trigger type?")
+- For Google Drive file ID options: always highlight selecting files visually (with a file picker) as an option to providing the fileID (e.g., "I will select the file using the Google Drive picker or paste ID")--these are the same input method but visual is easier.
+
 - Focus on:
   - Data sources (where does the data come from?)
   - Output destinations (where should results go?)
@@ -145,8 +138,17 @@ Use the runBubbleFlow tool when you need external context from integrated servic
 - Finding the right actors to run on Apify (for specific scraping tasks that are hard with the current tool)
 - Any other external data from user's connected accounts
 
+
+Here's the  template you should use for context gathering, always use BubbleFlow<webhook/http> as the trigger type (and no input should be provided) when just gathering context.
+\`\`\`typescript
+${boilerplate}
+\`\`\`
+
+Available bubbles in the system:
+${bubbleList}
+
 IMPORTANT: When using runBubbleFlow:
-- The flow code must be valid BubbleFlow TypeScript code
+- The flow code must be valid BubbleFlow<webhook/http> TypeScript code
 - The flow should NOT have any input parameters (inputSchema must be empty)
 - The flow will be validated and the user will be asked to provide credentials
 - Keep context-gathering flows simple - just fetch the minimal context needed
@@ -201,9 +203,10 @@ IMPORTANT: When you need external context, DO NOT output JSON. Instead, DIRECTLY
 1. Read the user's request carefully
 2. Check if clarification answers or context answers are provided (previous round)
 3. If this is the first interaction AND there's ambiguity → get-bubble-details-tool to understand the bubbles implementation details and capabilities
-4. If the user provides a URL or mentions a website → use web-scrape-tool to understand the site structure
-5. If the request is vague or involves topics you need more context on → use web-search-tool to research
-6. Run bubbleflow to get external context from integrated services if needed (database schema, file listings, etc.)
+4. If user requests a specific trigger (Slack, cron, etc.) → use get-trigger-detail-tool to get payload schema and setup instructions
+5. If the user provides a URL or mentions a website → use web-scrape-tool to understand the site structure
+6. If the request is vague or involves topics you need more context on → use web-search-tool to research
+7. Run bubbleflow to get external context from integrated services if needed (database schema, file listings, etc.)
 7. Then ask clarification questions if needed based on additional context gathered.
 8. If clarification answers are provided OR request is clear → Generate the plan
 9. If additional context is needed, gather it using appropriate tools
@@ -213,6 +216,7 @@ IMPORTANT: When you need external context, DO NOT output JSON. Instead, DIRECTLY
 - askClarification: Ask the user multiple-choice questions (handled via JSON output)
 - runBubbleFlow: Run a mini flow to gather context from integrated services (e.g., fetch database schema, list files from connected accounts, find the right apify actor to use)
 - get-bubble-details-tool: Get the details of a bubble (e.g., input parameters, output structure), always run to check api for the bubble before running the bubbleFlow.
+- get-trigger-detail-tool: Get trigger type details (payload schema, setup guide). Use when user requests Slack, cron, or specific trigger types.
 - web-search-tool: Search the web for information on topics, find relevant sites, or research vague requests. Use this when the user asks about things you need more context on.
 - web-scrape-tool: Scrape content from a specific URL to understand its structure and available data. Use this when the user provides a website URL or wants to extract data from a site.
 
@@ -407,8 +411,6 @@ export async function runCoffee(
     // Create afterToolCall hook to stop agent after runBubbleFlow is validated
     const afterToolCall: ToolHookAfter = async (context: ToolHookContext) => {
       if (context.toolName === ('runBubbleFlow' as unknown)) {
-        console.log('[Coffee] Post-hook: runBubbleFlow completed');
-
         // Check if the tool returned AWAITING_USER_INPUT status
         const toolOutput = context.toolOutput?.data as {
           status?: string;
@@ -416,9 +418,6 @@ export async function runCoffee(
         };
 
         if (toolOutput?.status === 'AWAITING_USER_INPUT') {
-          console.log(
-            '[Coffee] Post-hook: Context request validated, stopping agent execution'
-          );
           // Stop the agent - we need user input before continuing
           return { messages: context.messages, shouldStop: true };
         }
@@ -436,9 +435,6 @@ export async function runCoffee(
     while (parseAttempt <= COFFEE_MAX_PARSE_RETRIES) {
       // If this is a retry, append the parse error as feedback
       if (parseAttempt > 0 && lastParseError) {
-        console.log(
-          `[Coffee] Parse retry attempt ${parseAttempt}/${COFFEE_MAX_PARSE_RETRIES}`
-        );
         retryMessages.push({
           role: 'user',
           content: `[System]: Your previous response failed to parse. Error: ${lastParseError}\n\nPlease try again and ensure your response is valid JSON matching the expected schema.`,
@@ -473,6 +469,9 @@ export async function runCoffee(
             name: 'get-bubble-details-tool',
           },
           {
+            name: 'get-trigger-detail-tool',
+          },
+          {
             name: 'web-search-tool',
           },
           {
@@ -500,11 +499,6 @@ export async function runCoffee(
                 ),
             }),
             func: async (input: Record<string, unknown>) => {
-              console.log('[Coffee] runBubbleFlow called:', {
-                purpose: input.purpose,
-                flowDescription: input.flowDescription,
-              });
-
               const flowCode = input.flowCode as string;
               const flowDescription = input.flowDescription as string;
 
@@ -529,24 +523,31 @@ export async function runCoffee(
                 };
               }
 
-              // Extract required credentials from the validated flow
-              // The validation result already has requiredCredentials extracted
+              // Extract required and optional credentials from the validated flow
               const requiredCredentialsMap =
                 validationResult.requiredCredentials || {};
+              const optionalCredentialsMap =
+                validationResult.optionalCredentials || {};
 
               // Flatten to unique credential types
               const requiredCredentials: CredentialType[] = [
                 ...new Set(Object.values(requiredCredentialsMap).flat()),
               ];
+              const optionalCredentials: CredentialType[] = [
+                ...new Set(Object.values(optionalCredentialsMap).flat()),
+              ];
 
               // Generate a unique flow ID for this context request
               const contextFlowId = `coffee-ctx-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-              // Build the context request event
+              // Build the context request event with unified credentialRequirements
               const contextRequestEvent: CoffeeRequestExternalContextEvent = {
                 flowId: contextFlowId,
                 flowCode: flowCode,
-                requiredCredentials,
+                credentialRequirements: {
+                  required: requiredCredentials,
+                  optional: optionalCredentials,
+                },
                 description: flowDescription,
               };
 
@@ -584,10 +585,6 @@ export async function runCoffee(
       // Check if context request was triggered during tool execution
       // If so, return the context request response (the event was already sent)
       if (coffeeState.contextRequest) {
-        console.log(
-          '[Coffee] Context request triggered, awaiting user input:',
-          coffeeState.contextRequest.flowId
-        );
         return {
           type: 'context_request',
           contextRequest: coffeeState.contextRequest,
@@ -606,7 +603,6 @@ export async function runCoffee(
 
       // Parse the agent's JSON response
       const responseText = result.data.response;
-      console.log('[Coffee] Agent response:', responseText);
       // Handle array responses - take the last element if it's an array
       let finalResponseText = responseText;
       try {
@@ -619,10 +615,6 @@ export async function runCoffee(
             lastElement.text
           ) {
             finalResponseText = lastElement.text;
-            console.log(
-              '[Coffee] Extracted text from array response:',
-              finalResponseText
-            );
           }
         }
       } catch (e) {

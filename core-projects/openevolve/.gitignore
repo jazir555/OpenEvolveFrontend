@@ -24,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.lock
 
 # Virtual environments
 venv/
@@ -40,6 +41,8 @@ ENV/
 examples/*/output/
 openevolve_output*/
 *.log
+demo_output*/
+pr_sanity*/
 
 # Test cache
 .pytest_cache/

@@ -21,6 +21,7 @@ export const fixtures = {
   'reddit-scraper': '',
   'test-script': '',
   'parameter-with-string': '',
+  'custom-tool-mixed': '',
   'bubble-inside-promise': '',
   'data-assistant': '',
   'research-agent': '',
@@ -71,6 +72,11 @@ export const fixtures = {
   'promise-all-patterns': '',
   'string-literal-complex': '',
   'promises-all-map': '',
+  'slack-with-custom-input': '',
+  'custom-tool-spread-param': '',
+  'agent-with-capability': '',
+  'ai-snack-club-backfill': '',
+  'single-key-object-with-variable': '',
 } as const;
 
 export type FixtureName = keyof typeof fixtures;
@@ -104,6 +110,7 @@ export function getUserCredential(): Partial<Record<CredentialType, string>> {
     [CredentialType.RESEND_CRED]: 'test-resend-key',
     [CredentialType.GOOGLE_SHEETS_CRED]: 'test-google-sheets-key',
     [CredentialType.GOOGLE_DRIVE_CRED]: 'test-google-drive-key',
+    [CredentialType.STRIPE_CRED]: 'test-stripe-key',
   };
 }
 
