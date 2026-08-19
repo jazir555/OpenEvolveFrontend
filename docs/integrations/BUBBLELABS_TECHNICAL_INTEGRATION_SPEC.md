@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a comprehensive technical specification for integrating OpenEvolve with BubbleLabs, enabling complete and total control of OpenEvolve workflows through the BubbleLabs UI. The integration will provide visualization, control, and management of OpenEvolve's sophisticated evolutionary computing workflows within the BubbleLabs workflow automation platform.
+This document provides a comprehensive technical specification for integrating OpenEvolve with BubbleLabs, enabling intended end-to-end control (NOT yet implemented) of OpenEvolve workflows through the BubbleLabs UI. The integration will provide visualization, control, and management of OpenEvolve's sophisticated evolutionary computing workflows within the BubbleLabs workflow automation platform.
 
 ## Architecture Overview
 

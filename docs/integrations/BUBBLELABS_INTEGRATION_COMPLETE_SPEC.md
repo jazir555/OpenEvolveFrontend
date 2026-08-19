@@ -14,7 +14,7 @@
 
 ## Executive Summary
 
-The OpenEvolve BubbleLabs integration provides complete and total control over the OpenEvolve workflow system through the BubbleLabs user interface. This integration enables enterprise-grade visualization, management, and orchestration of complex AI workflows through a single, intuitive interface.
+The OpenEvolve BubbleLabs integration provides intended end-to-end control (NOT yet implemented) over the OpenEvolve workflow system through the BubbleLabs user interface. This integration enables enterprise-grade visualization, management, and orchestration of complex AI workflows through a single, intuitive interface.
 
 The system leverages BubbleLabs' advanced workflow visualization capabilities to provide a comprehensive dashboard for managing every aspect of the OpenEvolve platform, from basic content evolution to advanced adversarial testing and multi-objective optimization.
 
@@ -634,7 +634,7 @@ Comprehensive analytics capabilities:
 
 ## Conclusion
 
-This comprehensive integration specification provides a complete framework for achieving full control of OpenEvolve workflows through the BubbleLabs UI. The system ensures that every configuration knob, control, and parameter available in the BubbleLab UI UI is fully accessible and manageable through the BubbleLabs interface, providing enhanced visualization and control capabilities for complex AI workflows.
+This comprehensive integration specification provides a complete framework for achieving full control of OpenEvolve workflows through the BubbleLabs UI. The system ensures that the described configuration knobs are PLANNED to be accessible (not yet implemented) through the BubbleLabs interface, providing enhanced visualization and control capabilities for complex AI workflows.
 
 The integration maintains full compatibility with existing OpenEvolve functionality while providing the enhanced visualization and control capabilities that make complex workflows easier to understand and manage. The sophisticated parameter synchronization system ensures that changes made in either UI are immediately reflected in both, providing a seamless user experience.
 

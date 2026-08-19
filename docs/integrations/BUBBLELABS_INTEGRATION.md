@@ -2,7 +2,7 @@
 
 ## Executive Overview
 
-The OpenEvolve BubbleLabs Integration provides **complete and total control** over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration enables comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.
+The OpenEvolve BubbleLabs Integration provides **intended end-to-end control (NOT yet implemented)** over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration enables comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.
 
 Every single configuration knob, control element, and parameter available in the main BubbleLab UI UI application (including both sidebar and main area components) is fully accessible, configurable, and controllable from within the BubbleLabs UI. This includes:
 
@@ -495,6 +495,6 @@ python -m Backend.bubblelabs_service
 
 ## Conclusion
 
-The OpenEvolve BubbleLabs Integration provides **complete and total control** over every aspect of the OpenEvolve workflow system through an intuitive and powerful BubbleLabs interface. Every configuration knob, control element, and parameter from the main BubbleLab UI application is fully accessible and manageable from within the BubbleLabs UI, providing enhanced visualization, monitoring, and control capabilities for complex AI workflows.
+The OpenEvolve BubbleLabs Integration provides **intended end-to-end control (NOT yet implemented)** over every aspect of the OpenEvolve workflow system through an intuitive and powerful BubbleLabs interface. Every configuration knob, control element, and parameter from the main BubbleLab UI application is fully accessible and manageable from within the BubbleLabs UI, providing enhanced visualization, monitoring, and control capabilities for complex AI workflows.
 
 This integration maintains full compatibility with existing OpenEvolve functionality while delivering the advanced visualization and control capabilities that make complex workflows easier to understand, manage, and optimize for enterprise-scale operations.
