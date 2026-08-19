@@ -270,8 +270,8 @@ describe('OpenEvolve API Contract Tests', () => {
       const response = await openevolveApi.bubblelabsKnowledgeQueryHistory(TEST_CONFIG);
 
       expect(response).toBeDefined();
-      expect(response.queries).toBeDefined();
-      expect(Array.isArray(response.queries)).toBe(true);
+      expect(response.history).toBeDefined();
+      expect(Array.isArray(response.history)).toBe(true);
     });
   });
 
@@ -287,8 +287,8 @@ describe('OpenEvolve API Contract Tests', () => {
       const response = await openevolveApi.bubblelabsLeanAideTrees(TEST_CONFIG);
 
       expect(response).toBeDefined();
-      expect(response.trees).toBeDefined();
-      expect(Array.isArray(response.trees)).toBe(true);
+      expect(response.tree_ids).toBeDefined();
+      expect(Array.isArray(response.tree_ids)).toBe(true);
     });
   });
 
