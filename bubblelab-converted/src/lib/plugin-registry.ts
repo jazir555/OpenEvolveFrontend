@@ -437,4 +437,4 @@ export function resetPluginRegistry(): void {
 }
 
 export { PluginRegistry };
-export type { PluginRegistryConfig, RegistryEntry };
+export type { RegistryEntry };

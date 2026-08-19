@@ -79,7 +79,7 @@ export { openevolveApi } from './openevolveApi';
 export type { ApiConfig } from './openevolveApi';
 
 // Types
-export type from './types';
+export * from './types';
 
 // Re-export hooks for convenience
 export {

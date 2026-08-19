@@ -159,7 +159,7 @@ class BubbleLabIntegration {
           server_url: this.config.ragbits?.serverUrl
         });
       } catch (error) {
-        apiLogger.warn('RAGBits plugin not available', error as Error, this.correlationContext);
+        apiLogger.warn('RAGBits plugin not available', { ...this.correlationContext, error: error as Error });
       }
     }
 
@@ -180,7 +180,7 @@ class BubbleLabIntegration {
           server_url: this.config.datapizza?.serverUrl
         });
       } catch (error) {
-        apiLogger.warn('Datapizza plugin not available', error as Error, this.correlationContext);
+        apiLogger.warn('Datapizza plugin not available', { ...this.correlationContext, error: error as Error });
       }
     }
 
@@ -356,4 +356,4 @@ export async function resetBubbleLabIntegration(): Promise<void> {
 }
 
 export { BubbleLabIntegration };
-export type { BubbleLabIntegrationConfig, IntegrationState };
+export type { IntegrationState };

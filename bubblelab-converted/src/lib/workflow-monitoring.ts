@@ -82,7 +82,7 @@ class WorkflowMonitor {
    * Record workflow start
    */
   recordWorkflowStart(context: WorkflowContext): void {
-    if (!this.config.enabled || Math.random() > this.config.sampleRate) {
+    if (!this.config.enabled || Math.random() > (this.config.sampleRate ?? 1)) {
       return;
     }
 
@@ -491,4 +491,3 @@ export function resetWorkflowMonitor(): void {
 }
 
 export { WorkflowMonitor };
-export type { WorkflowMetrics, StepMetrics, TelemetryConfig };

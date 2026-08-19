@@ -914,8 +914,6 @@ export const openevolveApi = {
     request<Record<string, unknown>>("/sovereign/health", {}, config),
   listSovereignProblems: (config?: ApiConfig) =>
     request<{ problems: Record<string, unknown>[] }>("/sovereign/problems", {}, config),
-  listSovereignPlans: (config?: ApiConfig) =>
-    request<{ plans: Record<string, unknown>[] }>("/sovereign/plans", {}, config),
 
   // Suggestions
   getContentSuggestions: (payload: Record<string, unknown>, config?: ApiConfig) =>
