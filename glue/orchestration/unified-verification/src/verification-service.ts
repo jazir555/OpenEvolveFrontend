@@ -15,9 +15,9 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, LoggerContext } from '../../lib/logger';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
-import { retryWithBackoff } from '../../lib/retry';
+import { logger, LoggerContext } from './lib/logger';
+import { CircuitBreaker } from './lib/circuit-breaker';
+import { retryWithBackoff } from './lib/retry';
 import type {
   VerificationRequest,
   VerificationOptions,
@@ -25,7 +25,10 @@ import type {
   VerificationResult,
   SystemResult,
   ConfidenceScore,
+  VerificationStrategy,
 } from './canonical';
+
+export type { SystemResult } from './canonical';
 
 /**
  * Result from executing a proof in a native system
@@ -86,10 +89,10 @@ export class UnifiedVerificationService {
    */
   async verifyProof(
     request: VerificationRequest,
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<CrossValidationResult> {
     const correlationId = options.correlationId || request.correlationId || uuidv4();
-    const ctx: LoggerContext = { ...this.loggerContext, correlation_id };
+    const ctx: LoggerContext = { ...this.loggerContext, correlation_id: correlationId };
 
     logger.info('Starting proof verification', {
       ...ctx,
@@ -122,7 +125,7 @@ export class UnifiedVerificationService {
         systemResults: systemResults.map(r => this.formatResult(r)),
         conflicts: crossValidation.conflicts,
         resolution: crossValidation.resolution as any,
-        strategy,
+        strategy: strategy as VerificationStrategy,
         metadata: {
           correlationId,
           totalExecutionTime: Date.now() - startTime,
@@ -151,10 +154,10 @@ export class UnifiedVerificationService {
    */
   async batchVerify(
     requests: VerificationRequest[],
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<CrossValidationResult[]> {
     const correlationId = options.correlationId || uuidv4();
-    const ctx: LoggerContext = { ...this.loggerContext, correlation_id };
+    const ctx: LoggerContext = { ...this.loggerContext, correlation_id: correlationId };
 
     logger.info('Starting batch proof verification', {
       ...ctx,
@@ -162,7 +165,7 @@ export class UnifiedVerificationService {
     });
 
     // Verify in parallel if option allows
-    if (options.parallel !== false) {
+    if ((options as { parallel?: boolean }).parallel !== false) {
       const results = await Promise.all(
         requests.map(req => this.verifyProof(req, { ...options, correlationId }))
       );
@@ -185,10 +188,10 @@ export class UnifiedVerificationService {
   async revalidateOnDependencyChange(
     changedProofId: string,
     dependentProofs: VerificationRequest[],
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<CrossValidationResult[]> {
     const correlationId = options.correlationId || uuidv4();
-    const ctx: LoggerContext = { ...this.loggerContext, correlation_id };
+    const ctx: LoggerContext = { ...this.loggerContext, correlation_id: correlationId };
 
     logger.info('Revalidating on dependency change', {
       ...ctx,
@@ -524,6 +527,7 @@ export class UnifiedVerificationService {
     }
 
     // If all results have low confidence, require review
+    const systemResults = [...verified, ...unverified];
     const allLowConfidence = systemResults.every(r => r.confidence < 0.7);
     if (allLowConfidence) {
       return 'inconclusive';
@@ -578,7 +582,7 @@ export class UnifiedVerificationService {
         memoryUsed: result.memoryUsed,
         strategy: 'parallel',
         timestamp: result.timestamp,
-        errorMessage: result.error,
+        errorMessage: result.errorMessage,
       },
     };
   }

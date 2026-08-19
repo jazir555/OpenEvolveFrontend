@@ -21,7 +21,7 @@ import {
 import { VerificationStrategySelector } from './strategy-selector';
 import { CrossValidator } from './cross-validator';
 import { ConfidenceAggregator } from './confidence-aggregator';
-import { Logger } from '../../lib/logger';
+import { Logger } from './lib/logger';
 
 /**
  * Main Orchestrator - coordinates all verification components
@@ -68,7 +68,7 @@ export class UnifiedVerificationOrchestrator {
   async verify(
     problem: Problem,
     constraints: Constraints,
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<VerificationResult> {
     const correlationId = options.correlationId || uuidv4();
 
@@ -153,7 +153,7 @@ export class UnifiedVerificationOrchestrator {
    */
   async verifyWithCrossValidation(
     problem: Problem,
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<CrossValidationResult> {
     const correlationId = options.correlationId || uuidv4();
 
@@ -238,7 +238,7 @@ export class UnifiedVerificationOrchestrator {
   async verifyBatch(
     problems: Problem[],
     constraints: Constraints,
-    options: VerificationOptions = {}
+    options: VerificationOptions = {} as VerificationOptions
   ): Promise<Map<string, VerificationResult>> {
     const correlationId = options.correlationId || uuidv4();
 

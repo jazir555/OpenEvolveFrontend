@@ -4,9 +4,9 @@
  * Verifies Lean proofs using LeanAide (AI-assisted theorem proving).
  */
 
-import { logger, LoggerContext } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithBackoff } from '../../../lib/retry';
+import { logger, LoggerContext } from './lib/logger';
+import { CircuitBreaker } from './lib/circuit-breaker';
+import { retryWithBackoff } from './lib/retry';
 import type { ProofVerifier, SystemResult } from './verification-service';
 import type { VerificationRequest } from './canonical';
 
@@ -109,6 +109,8 @@ export class LeanAideVerifier implements ProofVerifier {
    * Execute LeanAide proof verification
    */
   private async executeLeanAide(request: VerificationRequest): Promise<SystemResult> {
+    const startTime = Date.now();
+
     const requestBody = {
       theorem: request.problem.statement,
       library: request.problem.metadata?.library || 'Mathlib',
@@ -125,11 +127,11 @@ export class LeanAideVerifier implements ProofVerifier {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json() as { message?: string };
       throw new Error(error.message || 'LeanAide API request failed');
     }
 
-    const data: LeanAideApiResponse = await response.json();
+    const data: LeanAideApiResponse = await response.json() as LeanAideApiResponse;
     const executionTime = Date.now() - startTime;
 
     // Determine verification result

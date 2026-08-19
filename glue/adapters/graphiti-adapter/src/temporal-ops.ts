@@ -14,13 +14,12 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../../lib/logger';
+import { Logger } from '../../../lib/logger';
 import { GraphitiClient } from './graph-client';
 import {
   CanonicalSearchQuery,
   CanonicalSearchResult,
-  TemporalFilter,
-} from '../../schemas/graphiti-canonical';
+} from '../../../schemas/graphiti-canonical';
 
 // ============================================================================
 // TEMPORAL OPERATIONS

@@ -418,11 +418,11 @@ export class EnhancedICRMemoryAgent {
       }
 
       // Build session memory object
-      const sessionMemory: SessionMemory = {
+      const sessionMemory = {
         session_id: sessionId,
         session,
         created_at: new Date().toISOString()
-      };
+      } as SessionMemory;
 
       this.logger.info({
         msg: 'Contextual memory retrieved successfully',
@@ -768,7 +768,7 @@ export class EnhancedICRMemoryAgent {
           pattern_id: node.id,
           pattern_type: this.inferPatternType(node.name),
           pattern_name: node.name,
-          description: node.description,
+          description: node.description ?? '',
           related_sessions: connectedEdges.map(e =>
             (e.source_id === node.id ? e.target_id : e.source_id)
           ),

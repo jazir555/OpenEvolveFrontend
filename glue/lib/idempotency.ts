@@ -118,7 +118,10 @@ export async function idempotentBatch<T, R>(
   const correlationId = context.correlation_id || `cid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   // Deduplicate items
-  const uniqueItems = deduplicate(items, getId);
+  const uniqueItems = deduplicate(
+    items as Array<{ id?: string; name?: string }>,
+    getId as (item: { id?: string; name?: string }) => string
+  ) as T[];
 
   logger.info(`Processing ${uniqueItems.length} unique items (deduplicated from ${items.length})`, {
     ...context,

@@ -14,7 +14,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { icrAdapter } from './adapter';
-import { Logger } from '../../lib/logger';
+import { Logger } from './types/logger';
 
 const app = express();
 const logger = new Logger('icr-adapter-server');
@@ -23,7 +23,7 @@ const port = process.env.SERVICE_PORT || 3002;
 app.use(express.json());
 
 // Logging middleware
-app.use((req, res, next) => {
+app.use((req: any, res: any, next: any) => {
   const correlationId = req.headers['x-correlation-id'] || uuidv4();
   (req as any).correlationId = correlationId;
 
@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Health check
-app.get('/health', async (req, res) => {
+app.get('/health', async (req: any, res: any) => {
   try {
     const health = await icrAdapter.healthCheck();
     res.status(200).json(health);
@@ -48,7 +48,7 @@ app.get('/health', async (req, res) => {
 });
 
 // Mode execution endpoint
-app.post('/api/modes/execute', async (req, res) => {
+app.post('/api/modes/execute', async (req: any, res: any) => {
   const { mode, prompt, options } = req.body;
   const { correlationId } = (req as any);
 

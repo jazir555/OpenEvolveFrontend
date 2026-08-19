@@ -13,7 +13,7 @@
  * - Dependency health checks
  */
 
-import { logger, LoggerContext } from '../logger';
+const { logger } = require('../logger');
 
 export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 

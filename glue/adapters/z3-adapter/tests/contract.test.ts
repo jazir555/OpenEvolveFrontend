@@ -25,7 +25,7 @@ import {
   CanonicalLogEntrySchema,
   CanonicalErrorSchema,
   validateCanonical,
-} from '../../../../../BubbleLab/integrations/openevolve/schemas/canonical-models';
+} from 'bubblelab-canonical-models';
 
 // Import Z3 schemas from the core project definition
 // Note: Adjust import path based on actual project structure
@@ -35,7 +35,7 @@ import {
   Z3SimplifyResponseSchema,
   Z3TacticResponseSchema,
   Z3FixedpointResponseSchema,
-} from '../../../../../BubbleLab/apps/bubblelab-api/src/schemas/z3';
+} from 'bubblelab-z3';
 
 // ============================================================================
 // MOCK DATA - Simulating Z3 Core API Responses
@@ -236,7 +236,7 @@ describe('Z3 API Contract - Solve Endpoint', () => {
 
     test('may omit "model" when result is "unsat"', () => {
       expect(mockSolveUnsatResponse.result).toBe('unsat');
-      expect(mockSolveUnsatResponse.model).toBeUndefined();
+      expect((mockSolveUnsatResponse as any).model).toBeUndefined();
     });
   });
 });

@@ -14,7 +14,7 @@ import {
   VerificationStrategy,
   SystemResult
 } from './canonical';
-import { Logger } from '../../lib/logger';
+import { Logger } from './lib/logger';
 
 export type ProblemType =
   | 'SMT_CONSTRAINTS'

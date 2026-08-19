@@ -521,16 +521,7 @@ export class ProofGraphIndex {
     });
 
     // Create dependency relationships
-    if (proof.dependencies && proof.dependencies.length > 0) {
-      for (const depId of proof.dependencies) {
-        relationships.push({
-          from: `proof:${proof.id}`,
-          to: `proof:${depId}`,
-          relationshipName: 'DEPENDS_ON',
-          createdAt: proof.timestamp_utc,
-        });
-      }
-    }
+    relationships.push(...this.createProofDependencies(proof));
 
     return {
       name: `proof-episode-${proof.id}`,
@@ -548,10 +539,12 @@ export class ProofGraphIndex {
   /**
    * Create a graph entity from a theorem
    *
+   * Extension point: subclasses can reuse or override theorem entity creation.
+   *
    * @param theorem - The theorem
    * @returns Graph entity
    */
-  private createTheoremEntity(theorem: Theorem): GraphEntity {
+  protected createTheoremEntity(theorem: Theorem): GraphEntity {
     return {
       name: `theorem:${theorem.id}`,
       entityType: 'theorem',
@@ -600,13 +593,13 @@ export class ProofGraphIndex {
    *
    * @param proofId - Proof ID
    * @param depth - Traversal depth
-   * @param correlationId - Optional correlation ID
+   * @param _correlationId - Optional correlation ID (reserved for tracing)
    * @returns Array of ancestors
    */
   private async getAncestors(
     proofId: string,
     depth: number,
-    correlationId?: string
+    _correlationId?: string
   ): Promise<Array<{ proof_id: string; depth: number; relationship: string }>> {
     const ancestors: Array<{ proof_id: string; depth: number; relationship: string }> = [];
     const visited = new Set<string>();
@@ -649,13 +642,13 @@ export class ProofGraphIndex {
    *
    * @param proofId - Proof ID
    * @param depth - Traversal depth
-   * @param correlationId - Optional correlation ID
+   * @param _correlationId - Optional correlation ID (reserved for tracing)
    * @returns Array of descendants
    */
   private async getDescendants(
     proofId: string,
     depth: number,
-    correlationId?: string
+    _correlationId?: string
   ): Promise<Array<{ proof_id: string; depth: number; relationship: string }>> {
     const descendants: Array<{ proof_id: string; depth: number; relationship: string }> = [];
     const visited = new Set<string>();

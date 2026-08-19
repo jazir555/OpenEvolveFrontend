@@ -6,7 +6,7 @@
  */
 
 import { useMemo } from 'react';
-import { getRomaPluginInstance } from '../utils/createRomaPlugin';
+import { romaPlugin } from '../utils/createRomaPlugin';
 import { RomaPlugin, RomaPluginState, RomaPluginError } from '../types/plugin-types';
 
 /**
@@ -56,7 +56,7 @@ export interface UseRomaPluginReturn {
  * ```
  */
 export function useRomaPlugin(): UseRomaPluginReturn {
-  const plugin = useMemo(() => getRomaPluginInstance(), []);
+  const plugin = useMemo(() => romaPlugin, []);
 
   if (!plugin) {
     return {

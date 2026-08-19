@@ -11,7 +11,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, Logger } from '../../lib/logger';
+import { Logger } from '../../../lib/logger.js';
 import {
   Conflict,
   ConflictReport,
@@ -19,8 +19,7 @@ import {
   ConflictSeverity,
   ConflictResolution,
   SyncOperation,
-  SyncDirection,
-} from './canonical';
+} from './canonical.js';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -396,7 +395,7 @@ export class ConflictDetector {
     const missingInGraphiti = ragbitsLabels.filter((l: string) => !graphitiLabels.includes(l));
     const missingInRagbits = graphitiLabels.filter((l) => !ragbitsLabels.includes(l));
 
-    if (missingInGraphiti.length > 0 || missingInRagBits.length > 0) {
+    if (missingInGraphiti.length > 0 || missingInRagbits.length > 0) {
       conflicts.push({
         id: uuidv4(),
         type: ConflictType.entity_mismatch,

@@ -38,7 +38,7 @@ import {
   CanonicalEntity,
   CanonicalEntityEdge,
   EpisodeType
-} from '../../../schemas/graphiti-canonical';
+} from '../types/graphiti-canonical';
 
 // ============================================================================
 // GRAPHITI ADAPTER INTERFACE (Air Gap Compliant)
@@ -141,7 +141,7 @@ export class GraphitiMemoryManager {
           processing_time_ms: Date.now() - startTime,
           error: `Validation failed: ${validation.errors?.join(', ')}`,
           correlation_id: cid
-        };
+        } as StorageResult;
       }
 
       // Create episode content from insights
@@ -174,12 +174,12 @@ export class GraphitiMemoryManager {
         correlation_id: cid
       };
     } catch (error) {
-      return {
-        success: false,
-        processing_time_ms: Date.now() - startTime,
-        error: error instanceof Error ? error.message : String(error),
-        correlation_id: cid
-      };
+        return {
+          success: false,
+          processing_time_ms: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          correlation_id: cid
+        } as StorageResult;
     }
   }
 
@@ -210,7 +210,7 @@ export class GraphitiMemoryManager {
           processing_time_ms: Date.now() - startTime,
           error: `Validation failed: ${validation.errors?.join(', ')}`,
           correlation_id: cid
-        };
+        } as StorageResult;
       }
 
       // Create episode content from session
@@ -243,12 +243,12 @@ export class GraphitiMemoryManager {
         correlation_id: cid
       };
     } catch (error) {
-      return {
-        success: false,
-        processing_time_ms: Date.now() - startTime,
-        error: error instanceof Error ? error.message : String(error),
-        correlation_id: cid
-      };
+        return {
+          success: false,
+          processing_time_ms: Date.now() - startTime,
+          error: error instanceof Error ? error.message : String(error),
+          correlation_id: cid
+        } as StorageResult;
     }
   }
 
@@ -709,7 +709,7 @@ export class GraphitiMemoryManager {
     const factWords = factText.split(/\s+/);
     const queryWords = queryText.split(/\s+/);
 
-    const matches = factWords.filter(w => queryWords.includes(w)).length;
+    const matches = factWords.filter((w: any) => queryWords.includes(w)).length;
     const score = queryWords.length > 0 ? matches / queryWords.length : 0;
 
     return Math.min(1, Math.max(0, score));

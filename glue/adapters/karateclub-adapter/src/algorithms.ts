@@ -12,7 +12,7 @@ import {
   CommunityAlgorithm,
   GraphEmbeddingAlgorithm,
   AlgorithmCategory,
-} from '../../schemas/karateclub-canonical';
+} from '../../../schemas/karateclub-canonical';
 
 export interface AlgorithmInfo {
   name: string;

@@ -4,9 +4,9 @@
  * Verifies SMT-LIB formatted proofs using Z3 SMT solver.
  */
 
-import { logger, LoggerContext } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithBackoff } from '../../../lib/retry';
+import { logger, LoggerContext } from './lib/logger';
+import { CircuitBreaker } from './lib/circuit-breaker';
+import { retryWithBackoff } from './lib/retry';
 import type { ProofVerifier, SystemResult } from './verification-service';
 import type { VerificationRequest } from './canonical';
 
@@ -106,6 +106,8 @@ export class Z3Verifier implements ProofVerifier {
    * Execute Z3 proof
    */
   private async executeZ3(request: VerificationRequest): Promise<SystemResult> {
+    const startTime = Date.now();
+
     const requestBody = {
       problem: request.problem.statement,
       timeout: Math.min(request.constraints.timeout, this.timeout) / 1000,
@@ -121,11 +123,11 @@ export class Z3Verifier implements ProofVerifier {
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json() as { message?: string };
       throw new Error(error.message || 'Z3 API request failed');
     }
 
-    const data: Z3ApiResponse = await response.json();
+    const data: Z3ApiResponse = await response.json() as Z3ApiResponse;
     const executionTime = Date.now() - startTime;
 
     // Determine verification result

@@ -15,7 +15,7 @@
  *   - OIDC_SCOPES: Scopes to request (default: openid profile email)
  */
 
-import { logger, LoggerContext } from '../../lib/logger';
+import { logger, LoggerContext } from '../../../lib/logger';
 
 export interface OIDCConfig {
   issuer: string;
@@ -115,7 +115,7 @@ export class OIDCProvider {
         throw new Error(`Failed to fetch OIDC config: ${response.status} ${response.statusText}`);
       }
 
-      const config = await response.json();
+      const config = await response.json() as OIDCProviderConfig;
 
       // Validate required fields
       if (!config.issuer || !config.authorization_endpoint || !config.token_endpoint) {
@@ -198,11 +198,11 @@ export class OIDCProvider {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json() as { error?: string };
         throw new Error(`Token exchange failed: ${error.error || response.statusText}`);
       }
 
-      const token = await response.json();
+      const token = await response.json() as OIDCToken;
 
       logger.info('Token exchange successful', {
         ...this.loggerContext,
@@ -247,11 +247,11 @@ export class OIDCProvider {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await response.json() as { error?: string };
         throw new Error(`Token refresh failed: ${error.error || response.statusText}`);
       }
 
-      const token = await response.json();
+      const token = await response.json() as OIDCToken;
 
       logger.info('Token refresh successful', this.loggerContext);
 
@@ -286,7 +286,7 @@ export class OIDCProvider {
         throw new Error(`UserInfo request failed: ${response.status} ${response.statusText}`);
       }
 
-      const userInfo = await response.json();
+      const userInfo = await response.json() as OIDCUserInfo;
 
       logger.info('User info fetched successfully', {
         ...this.loggerContext,

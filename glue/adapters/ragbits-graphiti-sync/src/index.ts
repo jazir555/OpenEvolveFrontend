@@ -9,13 +9,13 @@
  * - Failure Management: Circuit breakers and retries
  */
 
-import SyncManager from './sync-manager';
-import RAGBitsToGraphitiSync from './ragbits-to-graphiti';
-import GraphitiToRAGBitsSync from './graphiti-to-ragbits';
-import ConflictDetector from './conflict-detector';
+import SyncManager from './sync-manager.js';
+import RAGBitsToGraphitiSync from './ragbits-to-graphiti.js';
+import GraphitiToRAGBitsSync from './graphiti-to-ragbits.js';
+import ConflictDetector from './conflict-detector.js';
 
 // Export canonical schemas
-export * from './canonical';
+export * from './canonical.js';
 
 // Export main classes
 export { SyncManager, RAGBitsToGraphitiSync, GraphitiToRAGBitsSync, ConflictDetector };
@@ -26,7 +26,7 @@ export type {
   SyncStrategy,
   SyncManagerConfig,
   SyncOperationResult,
-} from './sync-manager';
+} from './sync-manager.js';
 
 export type {
   DocumentChunkData,
@@ -34,14 +34,14 @@ export type {
   Entity,
   Relationship,
   RAGBitsToGraphitiConfig,
-} from './ragbits-to-graphiti';
+} from './ragbits-to-graphiti.js';
 
 export type {
   GraphitiEntity,
   GraphitiEpisode,
   TemporalEntity,
   GraphitiToRAGBitsConfig,
-} from './graphiti-to-ragbits';
+} from './graphiti-to-ragbits.js';
 
 export type {
   RAGBitsData,
@@ -51,7 +51,7 @@ export type {
   GraphitiEntityData,
   GraphitiRelationshipData,
   ConflictDetectorConfig,
-} from './conflict-detector';
+} from './conflict-detector.js';
 
 // Default export
 export { SyncManager as default };

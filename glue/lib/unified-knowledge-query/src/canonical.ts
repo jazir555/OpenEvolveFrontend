@@ -224,12 +224,24 @@ export const UnifiedQueryResultSchema = z.object({
 export type UnifiedQueryResult = z.infer<typeof UnifiedQueryResultSchema>;
 
 /**
+ * System Configuration
+ */
+export const SystemConfigSchema = z.object({
+  name: SystemSourceSchema,
+  enabled: z.boolean(),
+  url: z.string().url(),
+  timeout: z.number().int().positive(),
+  priority: z.number().int().min(1).max(10),
+});
+export type SystemConfig = z.infer<typeof SystemConfigSchema>;
+
+/**
  * Query Plan for Execution
  */
 export const QueryPlanSchema = z.object({
   query: UnifiedKnowledgeQuerySchema,
   strategy: QueryTypeSchema,
-  systems: z.array(SystemSourceSchema),
+  systems: z.array(SystemConfigSchema),
   estimatedCost: z.number(),
   parallelizable: z.boolean(),
 });
@@ -244,18 +256,6 @@ export const CostEstimateSchema = z.object({
   resources: z.array(z.string()),
 });
 export type CostEstimate = z.infer<typeof CostEstimateSchema>;
-
-/**
- * System Configuration
- */
-export const SystemConfigSchema = z.object({
-  name: SystemSourceSchema,
-  enabled: z.boolean(),
-  url: z.string().url(),
-  timeout: z.number().int().positive(),
-  priority: z.number().int().min(1).max(10),
-});
-export type SystemConfig = z.infer<typeof SystemConfigSchema>;
 
 /**
  * Health Status

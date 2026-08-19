@@ -15,8 +15,9 @@
  */
 
 import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
-import { CircuitState } from '../circuit-breaker';
-import { logger, LoggerContext } from '../logger';
+import type { CircuitState as CircuitStateType } from './glue-modules';
+const { logger } = require('../logger');
+const { CircuitState } = require('../circuit-breaker');
 
 export interface MetricsLabels {
   service: string;
@@ -44,40 +45,40 @@ export class MetricsCollector {
   private prefix: string;
 
   // HTTP Request Metrics
-  private httpRequestDuration: Histogram<string>;
-  private httpRequestsTotal: Counter<string>;
-  private httpRequestsInProgress: Gauge<string>;
+  private httpRequestDuration!: Histogram<string>;
+  private httpRequestsTotal!: Counter<string>;
+  private httpRequestsInProgress!: Gauge<string>;
 
   // Error Metrics
-  private errorsTotal: Counter<string>;
-  private errorsByType: Counter<string>;
+  private errorsTotal!: Counter<string>;
+  private errorsByType!: Counter<string>;
 
   // Circuit Breaker Metrics
-  private circuitBreakerState: Gauge<string>;
-  private circuitBreakerFailures: Counter<string>;
-  private circuitBreakerSuccesses: Counter<string>;
-  private circuitBreakerRejects: Counter<string>;
+  private circuitBreakerState!: Gauge<string>;
+  private circuitBreakerFailures!: Counter<string>;
+  private circuitBreakerSuccesses!: Counter<string>;
+  private circuitBreakerRejects!: Counter<string>;
 
   // Adapter Health Metrics
-  private adapterHealth: Gauge<string>;
-  private adapterLastSuccess: Gauge<string>;
-  private adapterLastFailure: Gauge<string>;
+  private adapterHealth!: Gauge<string>;
+  private adapterLastSuccess!: Gauge<string>;
+  private adapterLastFailure!: Gauge<string>;
 
   // Knowledge Extraction Metrics
-  private knowledgeExtractionTotal: Counter<string>;
-  private knowledgeExtractionDuration: Histogram<string>;
-  private knowledgeExtractionEntitiesExtracted: Gauge<string>;
-  private knowledgeExtractionRelationsExtracted: Gauge<string>;
+  private knowledgeExtractionTotal!: Counter<string>;
+  private knowledgeExtractionDuration!: Histogram<string>;
+  private knowledgeExtractionEntitiesExtracted!: Gauge<string>;
+  private knowledgeExtractionRelationsExtracted!: Gauge<string>;
 
   // Event Bus Metrics
-  private eventsProcessed: Counter<string>;
-  private eventProcessingDuration: Histogram<string>;
-  private eventsInQueue: Gauge<string>;
+  private eventsProcessed!: Counter<string>;
+  private eventProcessingDuration!: Histogram<string>;
+  private eventsInQueue!: Gauge<string>;
 
   // Retry Metrics
-  private retryAttempts: Counter<string>;
-  private retrySuccess: Counter<string>;
-  private retryFailure: Counter<string>;
+  private retryAttempts!: Counter<string>;
+  private retrySuccess!: Counter<string>;
+  private retryFailure!: Counter<string>;
 
   constructor(prefix: string = 'openevolve_') {
     this.prefix = prefix;
@@ -323,7 +324,7 @@ export class MetricsCollector {
   /**
    * Update circuit breaker state metric
    */
-  setCircuitBreakerState(service: string, circuit: string, state: CircuitState): void {
+  setCircuitBreakerState(service: string, circuit: string, state: CircuitStateType): void {
     const stateValue = state === CircuitState.CLOSED ? 0 : state === CircuitState.HALF_OPEN ? 1 : 2;
     this.circuitBreakerState.set({ service, circuit }, stateValue);
   }

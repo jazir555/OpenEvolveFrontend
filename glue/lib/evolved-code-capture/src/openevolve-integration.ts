@@ -18,7 +18,7 @@ import {
   EvolutionMetrics,
   EvolvedCode,
   CaptureResult,
-  LanguageEnum,
+  Language,
   validateProblem,
   validateEvolutionMetrics,
   validateEvolvedCode,
@@ -169,7 +169,7 @@ export class OpenEvolveClient {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      const result: any = await response.json();
 
       this.logger.info('Evolutions listed successfully', {
         correlation_id: correlationId,
@@ -196,8 +196,13 @@ export class OpenEvolveClient {
  * Orchestrates the capture of evolved code from OpenEvolve
  */
 export class OpenEvolveIntegration {
-  private readonly config: Required<Omit<OpenEvolveIntegrationConfig, 'logger'>> & {
+  private readonly config: Omit<
+    Required<Omit<OpenEvolveIntegrationConfig, 'logger'>>,
+    'openevolve_api_key' | 'capture_threshold_fitness'
+  > & {
     logger?: Logger;
+    openevolve_api_key?: string;
+    capture_threshold_fitness?: number;
   };
 
   private readonly logger: Logger;
@@ -600,5 +605,3 @@ export class OpenEvolveIntegration {
 // ============================================================================
 // EXPORTS
 // ============================================================================
-
-export type { OpenEvolveIntegrationConfig };

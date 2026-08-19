@@ -12,7 +12,7 @@ import { MetricsCollector, getMetricsCollector } from './metrics-collector';
 import { HealthChecker, HealthEndpointHandler } from './health-checker';
 import { Tracer, getTracer } from './tracer';
 import { AlertManager, getAlertManager } from './alert-manager';
-import { logger } from '../logger';
+const { logger } = require('../logger');
 
 export interface MonitoringConfig {
   serviceName: string;
@@ -269,23 +269,19 @@ export {
 };
 
 // Export types
+export type { MetricsLabels, KnowledgeExtractionLabels } from './metrics-collector';
 export type {
-  // Metrics Collector
-  MetricsLabels,
-  KnowledgeExtractionLabels,
-  // Health Checker
   HealthStatus,
   HealthCheckResult,
   HealthCheckOptions,
   HealthCheckFunction,
-  // Tracer
-  TraceOptions,
-  SpanMetadata,
-  // Alert Manager
+} from './health-checker';
+export type { TraceOptions, SpanMetadata } from './tracer';
+export type {
   AlertSeverity,
   AlertRule,
   AlertCondition,
   NotificationChannel,
   Alert,
   AlertHistory,
-};
+} from './alert-manager';

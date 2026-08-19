@@ -29,7 +29,7 @@ import {
   validateCommunityDetectionRequest,
   validateGraphEmbeddingRequest,
   validateGraphAnalysisRequest,
-} from '../../schemas/karateclub-canonical';
+} from '../../../schemas/karateclub-canonical';
 
 import { KarateClubMLClient, KarateClubClientConfig } from './ml-client';
 

@@ -11,19 +11,14 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, Logger } from '../../lib/logger';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
+import { Logger } from '../../../lib/logger.js';
+import { CircuitBreaker } from '../../../lib/circuit-breaker.js';
 import {
-  SyncOperation,
   SyncResult,
   SyncDirection,
   SyncStatus,
-  DocumentChunk,
-  Conflict,
-  ConflictType,
-  ConflictSeverity,
   createSyncResult,
-} from './canonical';
+} from './canonical.js';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -349,9 +344,10 @@ export class RAGBitsToGraphitiSync {
 
       return { entities, relationships };
     } catch (error) {
-      this.logger.warn('Entity extraction failed, continuing without entities', error as Error, {
+      this.logger.warn('Entity extraction failed, continuing without entities', {
         correlation_id: correlationId,
         chunk_id: chunk.id,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
       });
 
       return { entities: [], relationships: [] };
@@ -463,7 +459,7 @@ export class RAGBitsToGraphitiSync {
    * @param correlationId - Correlation ID for tracing
    * @returns Promise that resolves after a delay
    */
-  private async simulateApiCall(correlationId: string): Promise<void> {
+  private async simulateApiCall(_correlationId: string): Promise<void> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

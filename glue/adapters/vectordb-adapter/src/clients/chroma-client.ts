@@ -4,9 +4,9 @@
  * Chroma-specific vector database client with circuit breaker and retry logic.
  */
 
-import { Logger } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithJitter } from '../../../lib/retry';
+import { Logger } from '../lib/logger';
+import { CircuitBreaker } from '../lib/circuit-breaker';
+import { retryWithJitter } from '../lib/retry';
 import {
   VectorEntry,
   CollectionConfig,
@@ -21,7 +21,7 @@ import {
   VectorDBType,
   transformChromaToCanonical,
   transformCanonicalToChroma,
-} from '../../../schemas/vectordb-canonical';
+} from '../schemas/vectordb-canonical';
 
 export interface ChromaClientConfig {
   url: string;
@@ -160,7 +160,7 @@ export class ChromaClient {
         throw new Error(`Failed to get collection info: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       return {
         name: data.name,
@@ -255,7 +255,7 @@ export class ChromaClient {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const results: SearchResult[] = [];
 
       // Chroma returns batch results, extract first batch
@@ -369,7 +369,7 @@ export class ChromaClient {
         throw new Error(`Failed to list collections: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       return data.map((c: any) => c.name);
     });
   }

@@ -598,4 +598,3 @@ export class GraphStorage {
 // EXPORTS
 // ============================================================================
 
-export type { GraphStorageConfig };

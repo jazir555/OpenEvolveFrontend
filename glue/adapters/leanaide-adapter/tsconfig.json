@@ -63,9 +63,6 @@
   ],
   "references": [
     {
-      "path": "../../schemas"
-    },
-    {
       "path": "../../lib"
     }
   ]

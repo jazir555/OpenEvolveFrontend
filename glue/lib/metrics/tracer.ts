@@ -15,7 +15,8 @@
  */
 
 import { trace, context, Context, Span, SpanStatusCode, SpanKind } from '@opentelemetry/api';
-import { logger } from '../logger';
+import type { Logger as LoggerType } from './glue-modules';
+const { logger, Logger } = require('../logger');
 
 export interface TraceOptions {
   name: string;
@@ -40,7 +41,7 @@ export interface SpanMetadata {
 export class Tracer {
   private tracer: any;
   private serviceName: string;
-  private logger: Logger;
+  private logger: LoggerType;
 
   constructor(serviceName: string) {
     this.serviceName = serviceName;
@@ -174,7 +175,7 @@ export class Tracer {
   getCorrelationId(): string | undefined {
     const span = this.getCurrentSpan();
     if (span) {
-      return span.attributes['correlation.id'] as string;
+      return (span as any).attributes['correlation.id'] as string;
     }
     return undefined;
   }
@@ -458,8 +459,8 @@ export function generateServiceMap(spans: Span[]): ServiceMapNode {
 
   // Process spans to build map
   for (const span of spans) {
-    const serviceName = (span.attributes as any)['service.name'] || 'unknown';
-    const operation = (span.name as string) || 'unknown';
+    const serviceName = (span as any).attributes['service.name'] || 'unknown';
+    const operation = (span as any).name || 'unknown';
 
     if (!nodes.has(serviceName)) {
       nodes.set(serviceName, {
@@ -477,12 +478,12 @@ export function generateServiceMap(spans: Span[]): ServiceMapNode {
     node.span_count++;
 
     // Track errors
-    if ((span.status as any).code === SpanStatusCode.ERROR) {
+    if ((span as any).status.code === SpanStatusCode.ERROR) {
       node.error_count++;
     }
 
     // Track duration if available
-    const duration = (span.duration as number) / 1000000; // Convert to ms
+    const duration = (span as any).duration / 1000000; // Convert to ms
     node.avg_duration_ms = (node.avg_duration_ms * (node.span_count - 1) + duration) / node.span_count;
   }
 

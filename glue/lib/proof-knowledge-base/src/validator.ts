@@ -12,12 +12,11 @@
  */
 
 import { logger, LoggerContext } from '../../logger';
-import { retryWithBackoff } from '../retry';
-import { CircuitBreaker } from '../circuit-breaker';
+import { retryWithBackoff } from '../../retry';
+import { CircuitBreaker } from '../../circuit-breaker';
 import {
   FormalProof,
   ProofValidation,
-  ProofDependency,
   RevalidationResult,
 } from './canonical';
 
@@ -42,6 +41,29 @@ interface ProofValidatorConfig {
 }
 
 /**
+ * Shape of the Z3 solver API response
+ */
+interface Z3ApiResponse {
+  result?: string;
+  model?: string;
+  error?: string;
+  time_ms?: number;
+}
+
+/**
+ * Shape of the LeanAide verification API response
+ */
+interface LeanAideApiResponse {
+  verified?: boolean;
+  output_tactics?: string;
+  errors?: Array<{
+    message?: string;
+    location?: { line?: number; column?: number };
+  }>;
+  time_ms?: number;
+}
+
+/**
  * Proof Validator
  *
  * Validates formal proofs and manages dependency checking
@@ -60,14 +82,16 @@ export class ProofValidator {
     };
 
     // Initialize circuit breakers for external services
-    this.z3CircuitBreaker = new CircuitBreaker('z3-validator', {
+    // Note: the shared glue CircuitBreaker is configured via an options object
+    // (threshold + timeout_ms), so the service label lives in the log context.
+    this.z3CircuitBreaker = new CircuitBreaker({
       threshold: 5,
-      timeout: this.config.timeoutMs,
+      timeout_ms: this.config.timeoutMs,
     });
 
-    this.leanaideCircuitBreaker = new CircuitBreaker('leanaide-validator', {
+    this.leanaideCircuitBreaker = new CircuitBreaker({
       threshold: 5,
-      timeout: this.config.timeoutMs,
+      timeout_ms: this.config.timeoutMs,
     });
 
     logger.info('Proof Validator initialized', {
@@ -219,11 +243,13 @@ export class ProofValidator {
   /**
    * Check validation status of a single dependency
    *
+   * Extension point: subclasses can override this to query real storage.
+   *
    * @param dependencyId - ID of dependency to check
    * @param correlationId - Optional correlation ID
    * @returns Whether dependency is currently valid
    */
-  private async checkDependencyValidationStatus(
+  protected async checkDependencyValidationStatus(
     dependencyId: string,
     correlationId?: string
   ): Promise<boolean> {
@@ -502,7 +528,7 @@ export class ProofValidator {
               throw new Error(`Z3 API error: ${response.status} - ${errorText}`);
             }
 
-            const z3Response = await response.json();
+            const z3Response = (await response.json()) as Z3ApiResponse;
 
             // Transform Z3 response to execution result
             return {
@@ -514,8 +540,7 @@ export class ProofValidator {
               executionTime: z3Response.time_ms,
             };
           },
-          this.config.maxRetries,
-          correlationId
+          { max_retries: this.config.maxRetries }
         );
       });
 
@@ -593,7 +618,7 @@ export class ProofValidator {
               throw new Error(`LeanAide API error: ${response.status} - ${errorText}`);
             }
 
-            const leanResponse = await response.json();
+            const leanResponse = (await response.json()) as LeanAideApiResponse;
 
             // Transform LeanAide response to execution result
             return {
@@ -607,8 +632,7 @@ export class ProofValidator {
               executionTime: leanResponse.time_ms,
             };
           },
-          this.config.maxRetries,
-          correlationId
+          { max_retries: this.config.maxRetries }
         );
       });
 
@@ -640,10 +664,12 @@ export class ProofValidator {
   /**
    * Update proof validation in storage
    *
+   * Extension point: subclasses can override this to persist validations.
+   *
    * @param proofId - ID of the proof
    * @param validation - Validation result
    */
-  private updateProofValidation(proofId: string, validation: ProofValidation): void {
+  protected updateProofValidation(proofId: string, validation: ProofValidation): void {
     // In a real implementation, this would update the database
     // For now, we just log it
     logger.info('Proof validation updated', {

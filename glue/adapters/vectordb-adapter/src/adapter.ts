@@ -14,9 +14,9 @@
  * - JSON Lines logging with correlation_id
  */
 
-import { Logger } from '../../lib/logger';
-import { validateEnvVars } from '../../lib/env-validator';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
+import { Logger } from './lib/logger';
+import { validateEnvVars } from './lib/env-validator';
+import { CircuitBreaker } from './lib/circuit-breaker';
 import {
   VectorDBType,
   VectorEntry,
@@ -35,7 +35,7 @@ import {
   validateUpsertRequest,
   validateDeleteRequest,
   validateCollectionConfig,
-} from '../../schemas/vectordb-canonical';
+} from './schemas/vectordb-canonical';
 import { QdrantClient, QdrantClientConfig } from './clients/qdrant-client';
 import { PineconeClient, PineconeClientConfig } from './clients/pinecone-client';
 import { ChromaClient, ChromaClientConfig } from './clients/chroma-client';

@@ -46,4 +46,4 @@ export {
   validateCommunityDetectionRequest,
   validateGraphEmbeddingRequest,
   validateGraphAnalysisRequest,
-} from '../../schemas/karateclub-canonical';
+} from '../../../schemas/karateclub-canonical';

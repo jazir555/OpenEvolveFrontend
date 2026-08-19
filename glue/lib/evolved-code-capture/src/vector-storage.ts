@@ -15,7 +15,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import { Logger } from '../../logger';
-import { CircuitBreaker } from '../circuit-breaker';
+import { CircuitBreaker, CircuitState } from '../../circuit-breaker';
 import {
   EvolvedCode,
   Problem,
@@ -135,7 +135,7 @@ export class OpenAIEmbeddingGenerator implements EmbeddingGenerator {
         throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (!data.data || !data.data[0] || !data.data[0].embedding) {
         throw new Error('Invalid response format from OpenAI API');
@@ -191,7 +191,7 @@ export class VectorStorage {
     this.circuitBreaker = new CircuitBreaker({
       threshold: this.config.circuit_breaker_threshold,
       timeout_ms: this.config.circuit_breaker_timeout_ms,
-      onStateChange: (oldState, newState) => {
+      onStateChange: (oldState: CircuitState, newState: CircuitState) => {
         this.logger.warn('Circuit breaker state changed', {
           correlation_id: 'vector-storage-circuit',
           old_state: oldState,
@@ -430,7 +430,7 @@ export class VectorStorage {
             language: request.evolved_code.language,
             fitness_score: request.evolved_code.metrics.fitness_score,
             timestamp_utc: request.evolved_code.timestamp_utc,
-            tags: request.evolvedCode.tags || [],
+            tags: request.evolved_code.tags || [],
           },
         };
 
@@ -647,5 +647,3 @@ export class VectorStorage {
 // EXPORTS
 // ============================================================================
 
-export { SimpleEmbeddingGenerator, OpenAIEmbeddingGenerator };
-export type { EmbeddingGenerator };

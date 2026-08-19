@@ -53,7 +53,7 @@ import {
 /**
  * Build common metadata for requests
  */
-function buildMetadata(correlationId?: string) {
+function buildMetadata(correlationId?: string): any {
   return {
     correlation_id: correlationId || uuidv4(),
     timestamp_utc: new Date().toISOString(),
@@ -121,7 +121,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<RefineModeResponse>;
   }
 
   // ========================================================================
@@ -162,7 +162,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<ReactModeResponse>;
   }
 
   // ========================================================================
@@ -211,7 +211,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<DeepthinkModeResponse>;
   }
 
   // ========================================================================
@@ -252,7 +252,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<AdaptiveDeepthinkResponse>;
   }
 
   // ========================================================================
@@ -297,7 +297,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<AgenticModeResponse>;
   }
 
   // ========================================================================
@@ -340,7 +340,7 @@ export class ICRAdapter {
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<ContextualModeResponse>;
   }
 
   /**
@@ -491,13 +491,12 @@ export class ICRAdapter {
         model_name: options.model_name,
         provider: options.provider,
         enable_interaction_capture: options.enable_interaction_capture,
-        quality_threshold: options.quality_threshold,
-        max_iterations: options.max_iterations
+        quality_threshold: options.quality_threshold
       } : undefined,
       metadata: buildMetadata(cid)
     };
 
-    return this.client.executeMode(request, cid);
+    return this.client.executeMode(request, cid) as Promise<GenerativeUIModeResponse>;
   }
 
   // ========================================================================
@@ -627,7 +626,7 @@ export class ICRAdapter {
       successful_iterations: success ? 1 : 0,
       failed_iterations: success ? 0 : 1,
       total_execution_time_ms: response.result.execution_time_ms,
-      average_quality_score: response.metadata.quality_score,
+      average_quality_score: (response.metadata as any).quality_score,
       overall_outcome: success ? 'success' : 'failure',
       key_patterns_discovered: enrichedContext.related_patterns.map(p => p.pattern_name),
       lessons_learned: enrichedContext.suggested_approaches,
@@ -664,7 +663,7 @@ export class ICRAdapter {
       start_time_utc: response.request.metadata.timestamp_utc,
       end_time_utc: response.metadata.completed_at_utc,
       final_output: response.result.content,
-      quality_score: response.metadata.quality_score,
+      quality_score: (response.metadata as any).quality_score,
       metadata: {
         enriched_context: enrichedContext
       }
@@ -691,7 +690,7 @@ export class ICRAdapter {
       },
       failure_reasons: response.result.success ? [] : ['Execution failed'],
       successful_patterns: session.metadata?.enriched_context?.related_patterns
-        ?.map(p => p.pattern_name) || [],
+        ?.map((p: any) => p.pattern_name) || [],
       problematic_patterns: [],
       lessons_learned: session.metadata?.enriched_context?.suggested_approaches || [],
       timestamp_utc: session.end_time_utc

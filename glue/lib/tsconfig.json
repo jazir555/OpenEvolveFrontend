@@ -14,20 +14,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "composite": true,
     "types": ["node"]
   },
   "include": [
-    "logger.ts",
-    "retry.ts",
-    "circuit-breaker.ts",
-    "env-validator.ts",
-    "idempotency.ts",
-    "timestampUtils.ts",
-    "inputValidation.ts",
-    "health-check.ts",
-    "configValidation.ts",
-    "startup-validation.ts",
-    "index.ts"
+    "**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -36,14 +27,12 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "event-enabled-adapter.ts",
-    "metrics",
     "evolved-code-capture",
     "proof-knowledge-base",
     "unified-knowledge-query",
     "rese-sce.ts",
     "example.ts",
-    "circuitBreaker.ts",
-    "structuredLogger.ts"
+    "circuitBreaker.ts"
   ],
   "references": []
 }

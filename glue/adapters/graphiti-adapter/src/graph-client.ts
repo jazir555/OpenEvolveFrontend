@@ -14,11 +14,10 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../../lib/logger';
+import { Logger } from '../../../lib/logger';
 import {
   CanonicalEntity,
   CanonicalEntityEdge,
-  CanonicalEpisode,
   CanonicalSearchQuery,
   CanonicalSearchResult,
   AddEpisodeOperation,
@@ -26,8 +25,7 @@ import {
   AddTripletOperation,
   AddTripletResult,
   GraphStatistics,
-  EpisodeType,
-} from '../../schemas/graphiti-canonical';
+} from '../../../schemas/graphiti-canonical';
 
 // ============================================================================
 // CLIENT CONFIGURATION
@@ -44,73 +42,14 @@ export interface GraphitiClientConfig {
 }
 
 // ============================================================================
-// GRAPHITI API RESPONSE TYPES
-// ============================================================================
-
-interface GraphitiHealthResponse {
-  status: 'ok' | 'degraded';
-  neo4j_connected: boolean;
-  version?: string;
-}
-
-interface GraphitiSearchResponse {
-  edges: Array<{
-    uuid: string;
-    source_node_name: string;
-    target_node_name: string;
-    fact: string;
-    episodes: string[];
-    created_at: string;
-    score?: number;
-  }>;
-  nodes: Array<{
-    uuid: string;
-    name: string;
-    labels: string[];
-    summary?: string;
-    created_at: string;
-  }>;
-}
-
-interface GraphitiEpisodeResponse {
-  episode: {
-    uuid: string;
-    name: string;
-    content: string;
-    source: EpisodeType;
-    created_at: string;
-    valid_at: string;
-    entity_edges: string[];
-  };
-  nodes: Array<{
-    uuid: string;
-    name: string;
-    labels: string[];
-    summary?: string;
-  }>;
-  edges: Array<{
-    uuid: string;
-    source_node_uuid: string;
-    target_node_uuid: string;
-    fact: string;
-    episodes: string[];
-  }>;
-}
-
-// ============================================================================
 // GRAPHITI CLIENT IMPLEMENTATION
 // ============================================================================
 
 export class GraphitiClient {
-  private readonly config: GraphitiClientConfig;
   private readonly log: Logger;
   private initialized: boolean = false;
 
-  // Graphiti Python client (simulated - in real implementation would import from graphiti_core)
-  private graphitiInstance: any = null;
-
   constructor(config: GraphitiClientConfig) {
-    this.config = config;
     this.log = config.logger;
 
     this.log.info('GraphitiClient initialized', {
@@ -260,6 +199,7 @@ export class GraphitiClient {
         episode_id: uuidv4(),
         entities_extracted: 0,
         relationships_extracted: 0,
+        communities_updated: 0,
         processing_time_ms: 0,
         correlation_id: correlationId,
         error: error instanceof Error ? error.message : String(error),
@@ -366,12 +306,14 @@ export class GraphitiClient {
             id: sourceId,
             name: `Entity_${i}_A`,
             labels: ['Entity'],
+            attributes: {},
             created_at: new Date().toISOString(),
           },
           {
             id: targetId,
             name: `Entity_${i}_B`,
             labels: ['Entity'],
+            attributes: {},
             created_at: new Date().toISOString(),
           }
         );
@@ -382,6 +324,7 @@ export class GraphitiClient {
           target_entity_id: targetId,
           relation_type: 'RELATES_TO',
           fact: `Mock fact ${i} for query: ${query.query}`,
+          attributes: {},
           created_at: new Date().toISOString(),
           episodes: [],
         });

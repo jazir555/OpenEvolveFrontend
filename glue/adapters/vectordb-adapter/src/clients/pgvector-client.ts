@@ -5,9 +5,9 @@
  * Uses PostgreSQL with the pgvector extension for vector similarity search.
  */
 
-import { Logger } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithJitter } from '../../../lib/retry';
+import { Logger } from '../lib/logger';
+import { CircuitBreaker } from '../lib/circuit-breaker';
+import { retryWithJitter } from '../lib/retry';
 import {
   VectorEntry,
   CollectionConfig,
@@ -23,7 +23,7 @@ import {
   transformPgvectorToCanonical,
   transformCanonicalToPgvector,
   validateVectorDimension,
-} from '../../../schemas/vectordb-canonical';
+} from '../schemas/vectordb-canonical';
 
 export interface PgvectorClientConfig {
   connectionString: string;

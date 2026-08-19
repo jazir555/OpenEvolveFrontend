@@ -12,20 +12,16 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, Logger } from '../../lib/logger';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
+import { Logger } from '../../../lib/logger.js';
+import { CircuitBreaker } from '../../../lib/circuit-breaker.js';
 import {
   SyncResult,
   SyncDirection,
   SyncStatus,
-  Entity,
   EnhancedQuery,
   BoostFactor,
   createSyncResult,
-  Conflict,
-  ConflictType,
-  ConflictSeverity,
-} from './canonical';
+} from './canonical.js';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -105,14 +101,12 @@ export interface GraphitiToRAGBitsConfig {
  * Enhances retrieval with knowledge graph context
  */
 export class GraphitiToRAGBitsSync {
-  private readonly config: GraphitiToRAGBitsConfig;
   private readonly logger: Logger;
   private readonly circuitBreaker: CircuitBreaker;
   private readonly graphitiServiceName = 'graphiti';
   private readonly ragbitsServiceName = 'ragbits';
 
-  constructor(config: GraphitiToRAGBitsConfig) {
-    this.config = config;
+  constructor(_config: GraphitiToRAGBitsConfig) {
     this.logger = new Logger('graphiti-to-ragbits-sync');
     this.circuitBreaker = new CircuitBreaker({
       threshold: 5,
@@ -259,8 +253,9 @@ export class GraphitiToRAGBitsSync {
         },
       };
     } catch (error) {
-      this.logger.warn('Query enhancement failed, returning original query', error as Error, {
+      this.logger.warn('Query enhancement failed, returning original query', {
         correlation_id: correlationId,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
       });
 
       // Return original query if enhancement fails
@@ -528,7 +523,7 @@ export class GraphitiToRAGBitsSync {
    * @param correlationId - Correlation ID for tracing
    * @returns Promise that resolves after a delay
    */
-  private async simulateApiCall(correlationId: string): Promise<void> {
+  private async simulateApiCall(_correlationId: string): Promise<void> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

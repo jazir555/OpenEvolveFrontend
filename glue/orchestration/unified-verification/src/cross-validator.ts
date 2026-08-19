@@ -19,7 +19,7 @@ import {
   Disagreement,
   VerificationStrategy
 } from './canonical';
-import { Logger } from '../../lib/logger';
+import { Logger } from './lib/logger';
 
 /**
  * Configuration for verification systems
@@ -152,7 +152,7 @@ export class CrossValidator {
   /**
    * Execute verification based on strategy
    */
-  private async executeVerification(
+  async executeVerification(
     request: VerificationRequest,
     strategy: VerificationStrategy
   ): Promise<SystemResult[]> {

@@ -31,7 +31,7 @@ global.console = {
 // });
 
 // Global test utilities
-global.testUtils = {
+(global as any).testUtils = {
   generateCorrelationId: () => `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
 
   generateUTCDate: () => new Date().toISOString(),

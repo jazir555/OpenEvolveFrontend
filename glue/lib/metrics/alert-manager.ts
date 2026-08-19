@@ -14,7 +14,8 @@
  * - Alert history
  */
 
-import { logger, LoggerContext } from '../logger';
+import type { LoggerContext } from './glue-modules';
+const { logger } = require('../logger');
 
 export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
 
@@ -388,11 +389,15 @@ export class AlertManager {
       critical: logger.error.bind(logger),
     }[alert.severity];
 
-    logMethod(`ALERT: [${alert.severity.toUpperCase()}] ${alert.rule_name}`, {
-      alert_id: alert.id,
-      message: alert.message,
-      data: alert.data,
-    });
+    (logMethod as (msg: string, err?: Error, ctx?: LoggerContext) => void)(
+      `ALERT: [${alert.severity.toUpperCase()}] ${alert.rule_name}`,
+      undefined,
+      {
+        alert_id: alert.id,
+        message: alert.message,
+        data: alert.data,
+      }
+    );
   }
 
   /**

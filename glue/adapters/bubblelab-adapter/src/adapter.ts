@@ -671,7 +671,7 @@ export class BubbleLabAdapter {
         flow_id: event.flow_id,
         execution_id: event.execution_id,
       },
-    } as Event;
+      } as unknown as Event;
 
     try {
       await this.eventBus.publish(orchestrationEvent);

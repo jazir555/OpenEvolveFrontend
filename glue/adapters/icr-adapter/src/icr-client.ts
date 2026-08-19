@@ -86,7 +86,7 @@ enum CircuitBreakerState {
   HALF_OPEN = 'half_open'
 }
 
-interface CircuitBreakerStats {
+export interface CircuitBreakerStats {
   state: CircuitBreakerState;
   failureCount: number;
   lastFailureTime: number | null;
@@ -319,7 +319,7 @@ export class ICRClient {
 
     // Request interceptor for logging
     this.axiosInstance.interceptors.request.use(
-      (config) => {
+      (config: any) => {
         const correlationId = config.headers['X-Correlation-ID'] as string || uuidv4();
         config.headers['X-Correlation-ID'] = correlationId;
 
@@ -332,7 +332,7 @@ export class ICRClient {
 
         return config;
       },
-      (error) => {
+      (error: any) => {
         this.logger.error({
           msg: 'ICR API request interceptor error',
           error: error.message
@@ -343,7 +343,7 @@ export class ICRClient {
 
     // Response interceptor for logging
     this.axiosInstance.interceptors.response.use(
-      (response) => {
+      (response: any) => {
         const correlationId = response.config.headers['X-Correlation-ID'] as string;
 
         this.logger.debug({
@@ -354,7 +354,7 @@ export class ICRClient {
 
         return response;
       },
-      (error) => {
+      (error: any) => {
         const correlationId = error.config?.headers?.['X-Correlation-ID'] as string || uuidv4();
 
         this.logger.error({
@@ -487,9 +487,9 @@ export class ICRClient {
     });
 
     return this.executeWithRetry<ICRModeResponse>(
-      () => this.axiosInstance.post<ICRModeResponse>('/api/modes/execute', request, {
+      () => this.axiosInstance.post('/api/modes/execute', request, {
         headers: { 'X-Correlation-ID': cid }
-      }),
+      }) as Promise<AxiosResponse<ICRModeResponse>>,
       cid,
       `execute_mode_${request.mode}`
     );
@@ -511,9 +511,9 @@ export class ICRClient {
     });
 
     return this.executeWithRetry<ICRHealthCheckResponse>(
-      () => this.axiosInstance.post<ICRHealthCheckResponse>('/api/health', payload, {
+      () => this.axiosInstance.post('/api/health', payload, {
         headers: { 'X-Correlation-ID': cid }
-      }),
+      }) as Promise<AxiosResponse<ICRHealthCheckResponse>>,
       cid,
       'health_check'
     );

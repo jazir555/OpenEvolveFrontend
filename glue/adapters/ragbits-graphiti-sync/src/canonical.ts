@@ -25,7 +25,13 @@ export const SyncDirectionEnum = z.enum([
   'bidirectional',
 ]);
 
-export type SyncDirection = z.infer<typeof SyncDirectionEnum>;
+export const SyncDirection = {
+  ragbits_to_graphiti: 'ragbits_to_graphiti',
+  graphiti_to_ragbits: 'graphiti_to_ragbits',
+  bidirectional: 'bidirectional',
+} as const;
+
+export type SyncDirection = typeof SyncDirection[keyof typeof SyncDirection];
 
 /**
  * Sync Status Enumeration
@@ -39,7 +45,16 @@ export const SyncStatusEnum = z.enum([
   'partially_completed',
 ]);
 
-export type SyncStatus = z.infer<typeof SyncStatusEnum>;
+export const SyncStatus = {
+  pending: 'pending',
+  in_progress: 'in_progress',
+  completed: 'completed',
+  failed: 'failed',
+  conflict_detected: 'conflict_detected',
+  partially_completed: 'partially_completed',
+} as const;
+
+export type SyncStatus = typeof SyncStatus[keyof typeof SyncStatus];
 
 /**
  * Sync Operation Type
@@ -180,14 +195,30 @@ export const ConflictTypeEnum = z.enum([
   'version_conflict',
 ]);
 
-export type ConflictType = z.infer<typeof ConflictTypeEnum>;
+export const ConflictType = {
+  entity_mismatch: 'entity_mismatch',
+  temporal_inconsistency: 'temporal_inconsistency',
+  semantic_conflict: 'semantic_conflict',
+  data_collision: 'data_collision',
+  reference_missing: 'reference_missing',
+  version_conflict: 'version_conflict',
+} as const;
+
+export type ConflictType = typeof ConflictType[keyof typeof ConflictType];
 
 /**
  * Conflict Severity Enumeration
  */
 export const ConflictSeverityEnum = z.enum(['low', 'medium', 'high', 'critical']);
 
-export type ConflictSeverity = z.infer<typeof ConflictSeverityEnum>;
+export const ConflictSeverity = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  critical: 'critical',
+} as const;
+
+export type ConflictSeverity = typeof ConflictSeverity[keyof typeof ConflictSeverity];
 
 /**
  * Conflict
@@ -209,6 +240,7 @@ export const ConflictSchema = z.object({
   resolved: z.boolean().describe('Whether the conflict has been resolved'),
   resolution_strategy: ConflictResolutionEnum.optional().describe('Strategy used for resolution'),
   resolution_notes: z.string().optional().describe('Notes about the resolution'),
+  correlation_id: z.string().uuid().optional().describe('Correlation ID for tracing'),
   metadata: z.record(z.any()).optional().describe('Additional metadata'),
 });
 

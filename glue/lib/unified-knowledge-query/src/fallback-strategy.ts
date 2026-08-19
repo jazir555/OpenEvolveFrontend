@@ -187,7 +187,7 @@ export class FallbackStrategy {
 
     try {
       // Use Promise.any to get first successful result
-      const result = await Promise.any(promises);
+      const result = await (Promise as any).any(promises);
 
       this.logger.info('Parallel query succeeded', {
         correlation_id: options.correlationId,
@@ -346,7 +346,7 @@ export class FallbackStrategy {
 
         // If not in priority list, put at end
         const aPriority = aIndex === -1 ? 999 : aIndex;
-        const bPriority = bIndex === -1 ? 999 : bPriority;
+        const bPriority = bIndex === -1 ? 999 : bIndex;
 
         return aPriority - bPriority;
       });

@@ -4,9 +4,9 @@
  * Pinecone-specific vector database client with circuit breaker and retry logic.
  */
 
-import { Logger } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithJitter } from '../../../lib/retry';
+import { Logger } from '../lib/logger';
+import { CircuitBreaker } from '../lib/circuit-breaker';
+import { retryWithJitter } from '../lib/retry';
 import {
   VectorEntry,
   CollectionConfig,
@@ -21,7 +21,7 @@ import {
   VectorDBType,
   transformPineconeToCanonical,
   transformCanonicalToPinecone,
-} from '../../../schemas/vectordb-canonical';
+} from '../schemas/vectordb-canonical';
 
 export interface PineconeClientConfig {
   apiKey: string;
@@ -167,7 +167,7 @@ export class PineconeClient {
         throw new Error(`Failed to get index info: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
 
       return {
         name: data.database.name,
@@ -262,7 +262,7 @@ export class PineconeClient {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const results = data.matches.map((match: any) => ({
         entry: transformPineconeToCanonical(match),
         score: match.score,
@@ -361,7 +361,7 @@ export class PineconeClient {
         throw new Error(`Failed to list indexes: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       return data.databases.map((db: any) => db.name);
     });
   }

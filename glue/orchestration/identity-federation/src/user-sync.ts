@@ -16,9 +16,9 @@
  *   node sync-users.js [--dry-run] [--service=<service>] [--users=<user1,user2>]
  */
 
-import { logger, LoggerContext } from '../../lib/logger';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
-import { retryWithBackoff } from '../../lib/retry';
+import { logger, LoggerContext } from '../../../lib/logger';
+import { CircuitBreaker } from '../../../lib/circuit-breaker';
+import { retryWithBackoff } from '../../../lib/retry';
 
 export interface CentralUser {
   sub: string; // Unique ID from IdP
@@ -364,8 +364,6 @@ export class ShadowAccountSync {
    * Build account data for creation
    */
   private buildAccountData(centralUser: CentralUser): Omit<ShadowAccount, 'created_at' | 'updated_at' | 'last_sync'> {
-    const now = new Date().toISOString();
-
     return {
       remote_id: centralUser.sub,
       username: centralUser.username,
@@ -373,7 +371,6 @@ export class ShadowAccountSync {
       display_name: centralUser.name || centralUser.username,
       groups: centralUser.groups,
       is_active: true,
-      last_sync: now,
     };
   }
 

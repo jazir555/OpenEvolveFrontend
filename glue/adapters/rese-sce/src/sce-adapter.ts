@@ -24,19 +24,20 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Logger } from '../../lib/logger';
-import { CircuitBreaker, CircuitState } from '../../lib/circuit-breaker';
-import { retry } from '../../lib/retry';
+import { Logger } from './shims/logger';
+import { CircuitBreaker, CircuitState } from './shims/circuit-breaker';
+import { retryWithBackoff } from './shims/retry';
 import {
   EpistemicAuditResult,
   validateEpistemicAuditResult,
-} from '../../schemas/rese-canonical';
+  ConstraintCategory,
+} from './shims/rese-canonical';
 import {
   SymbolicConstraintEngine,
   Constraint,
   ConstraintType,
   ConstraintCategoryInternal,
-} from '../../lib/rese-sce';
+} from './shims/rese-sce';
 
 // ============================================================================
 // CONFIGURATION (Law of Configuration Explicitness)
@@ -154,7 +155,7 @@ class DeadLetterQueue {
 
     this.queue.push(entry);
 
-    this.logger.error('Operation added to DLQ', {
+    this.logger.error('Operation added to DLQ', undefined, {
       dlq_entry_id: entry.id,
       operation,
       error,
@@ -495,20 +496,19 @@ export class SCEAdapter {
     correlationId: string,
     operation: string
   ): Promise<T> {
-    return retry(
-      fn,
-      this.config.MAX_RETRIES,
-      this.config.INITIAL_RETRY_DELAY_MS,
-      this.config.MAX_RETRY_DELAY_MS,
-      (error, attempt) => {
+    return retryWithBackoff(fn, {
+      max_retries: this.config.MAX_RETRIES,
+      base_delay_ms: this.config.INITIAL_RETRY_DELAY_MS,
+      max_delay_ms: this.config.MAX_RETRY_DELAY_MS,
+      onRetry: (attempt, error) => {
         this.logger.warn(`Retry attempt ${attempt}`, {
           correlation_id: correlationId,
           operation,
           error_name: error.name,
           error_message: error.message,
         });
-      }
-    );
+      },
+    });
   }
 
   /**

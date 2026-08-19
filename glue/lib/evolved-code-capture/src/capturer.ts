@@ -79,7 +79,7 @@ const DEFAULT_CONFIG = {
 /**
  * Internal metrics tracking
  */
-class MetricsTracker {
+export class MetricsTracker {
   private total_captures: number = 0;
   private successful_captures: number = 0;
   private failed_captures: number = 0;
@@ -663,6 +663,7 @@ export function createCapturerFromEnv(logger?: Logger): EvolvedCodeCapturer {
     enable_vector_storage: config.ENABLE_VECTOR_STORAGE as boolean,
     enable_graph_storage: config.ENABLE_GRAPH_STORAGE as boolean,
     track_metrics: config.TRACK_METRICS as boolean,
+    metrics_retention_days: 30,
   });
 }
 
@@ -670,4 +671,4 @@ export function createCapturerFromEnv(logger?: Logger): EvolvedCodeCapturer {
 // EXPORTS
 // ============================================================================
 
-export type { EvolvedCodeCapturerConfig };
+

@@ -57,7 +57,7 @@ export class RAGBitsClient implements KnowledgeClient {
     this.circuitBreaker = new CircuitBreaker({
       threshold: 5,
       timeout_ms: 60000,
-      onStateChange: (old, newState) => {
+      onStateChange: (old: any, newState: any) => {
         this.logger.warn('RAGBits circuit breaker state changed', {
           old_state: old,
           new_state: newState,
@@ -230,7 +230,7 @@ export class GraphitiClient implements KnowledgeClient {
     this.circuitBreaker = new CircuitBreaker({
       threshold: 5,
       timeout_ms: 60000,
-      onStateChange: (old, newState) => {
+      onStateChange: (old: any, newState: any) => {
         this.logger.warn('Graphiti circuit breaker state changed', {
           old_state: old,
           new_state: newState,
@@ -478,7 +478,7 @@ export class VectorDBClient implements KnowledgeClient {
     this.circuitBreaker = new CircuitBreaker({
       threshold: 5,
       timeout_ms: 60000,
-      onStateChange: (old, newState) => {
+      onStateChange: (old: any, newState: any) => {
         this.logger.warn('VectorDB circuit breaker state changed', {
           old_state: old,
           new_state: newState,

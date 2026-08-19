@@ -4,9 +4,9 @@
  * Qdrant-specific vector database client with circuit breaker and retry logic.
  */
 
-import { Logger } from '../../../lib/logger';
-import { CircuitBreaker } from '../../../lib/circuit-breaker';
-import { retryWithJitter } from '../../../lib/retry';
+import { Logger } from '../lib/logger';
+import { CircuitBreaker } from '../lib/circuit-breaker';
+import { retryWithJitter } from '../lib/retry';
 import {
   VectorEntry,
   CollectionConfig,
@@ -21,7 +21,7 @@ import {
   VectorDBType,
   transformQdrantToCanonical,
   transformCanonicalToQdrant,
-} from '../../../schemas/vectordb-canonical';
+} from '../schemas/vectordb-canonical';
 
 export interface QdrantClientConfig {
   url: string;
@@ -77,7 +77,7 @@ export class QdrantClient {
           throw new Error(`Qdrant health check failed: ${response.statusText}`);
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         const latency = Date.now() - startTime;
 
         const result: HealthCheckResponse = {
@@ -163,7 +163,7 @@ export class QdrantClient {
         throw new Error(`Failed to get collection info: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const { result } = data;
 
       return {
@@ -251,7 +251,7 @@ export class QdrantClient {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       const results = data.result.map((point: any) => ({
         entry: transformQdrantToCanonical(point),
         score: point.score || 0,
@@ -345,7 +345,7 @@ export class QdrantClient {
         throw new Error(`Failed to list collections: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as any;
       return data.result.collections.map((c: any) => c.name);
     });
   }

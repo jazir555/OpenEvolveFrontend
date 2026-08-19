@@ -12,18 +12,18 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, Logger } from '../../lib/logger';
-import { CircuitBreaker } from '../../lib/circuit-breaker';
-import { validateEnvWithTypes } from '../../lib/env-validator';
+import { Logger } from '../../../lib/logger.js';
+import { CircuitBreaker } from '../../../lib/circuit-breaker.js';
+import { validateEnvWithTypes } from '../../../lib/env-validator.js';
 import RAGBitsToGraphitiSync, {
   RAGBitsToGraphitiConfig,
   DocumentChunkData,
-} from './ragbits-to-graphiti';
+} from './ragbits-to-graphiti.js';
 import GraphitiToRAGBitsSync, {
   GraphitiToRAGBitsConfig,
   GraphitiEntity,
-} from './graphiti-to-ragbits';
-import ConflictDetector, { ConflictDetectorConfig, ConflictReport } from './conflict-detector';
+} from './graphiti-to-ragbits.js';
+import ConflictDetector, { ConflictDetectorConfig } from './conflict-detector.js';
 import {
   SyncOperation,
   SyncResult,
@@ -32,11 +32,12 @@ import {
   SyncStatus,
   SyncSpec,
   Conflict,
+  ConflictReport,
   ConflictResolution,
   createSyncOperation,
   createSyncResult,
   DEFAULT_SYNC_CONFIG,
-} from './canonical';
+} from './canonical.js';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -273,7 +274,7 @@ export class SyncManager {
     this.activeOperations.set(operation.id, operation);
 
     const startTime = Date.now();
-    const errors: Error[] = errors;
+    const errors: Error[] = [];
 
     try {
       const result = await this.circuitBreaker.execute(async () => {
@@ -341,7 +342,7 @@ export class SyncManager {
     const errors: Error[] = [];
 
     try {
-      let syncResult: SyncResult;
+      let syncResult: SyncResult | undefined;
       let conflictReport: ConflictReport | undefined;
 
       if (
@@ -526,7 +527,7 @@ export class SyncManager {
   /**
    * Build configuration from environment and defaults
    */
-  private buildConfig(userConfig?: Partial<SyncManagerConfig>): SyncManagerConfig {
+  private buildConfig(_userConfig?: Partial<SyncManagerConfig>): SyncManagerConfig {
     return {
       ragbits: {
         ragbits_api_url: process.env.RAGBITS_API_URL || 'http://ragbits:8000',
@@ -592,7 +593,7 @@ export class SyncManager {
     let graphitiToRAGBitsResult: SyncResult | undefined;
 
     if (graphitiData.entities && graphitiData.entities.size > 0) {
-      const entities = Array.from(graphitiData.entities.values());
+      const entities = Array.from(graphitiData.entities.values()) as GraphitiEntity[];
       for (const entity of entities) {
         const result = await this.graphitiToRAGBits.syncEntity(entity, correlationId);
         if (graphitiToRAGBitsResult) {
@@ -645,7 +646,7 @@ export class SyncManager {
    */
   private async chunkDocument(
     document: Document,
-    correlationId: string
+    _correlationId: string
   ): Promise<DocumentChunkData[]> {
     // Placeholder for document chunking logic
     const chunk: DocumentChunkData = {
@@ -682,7 +683,7 @@ export class SyncManager {
   /**
    * Fetch RAGBits data (placeholder)
    */
-  private async fetchRAGBitsData(correlationId: string): Promise<any> {
+  private async fetchRAGBitsData(_correlationId: string): Promise<any> {
     // Placeholder for fetching RAGBits data
     return { chunks: [] };
   }
@@ -690,7 +691,7 @@ export class SyncManager {
   /**
    * Fetch Graphiti data (placeholder)
    */
-  private async fetchGraphitiData(correlationId: string): Promise<any> {
+  private async fetchGraphitiData(_correlationId: string): Promise<any> {
     // Placeholder for fetching Graphiti data
     return { episodes: [], entities: new Map(), relationships: new Map() };
   }
@@ -698,7 +699,7 @@ export class SyncManager {
   /**
    * Fetch chunks by IDs (placeholder)
    */
-  private async fetchChunks(chunkIds: string[], correlationId: string): Promise<DocumentChunkData[]> {
+  private async fetchChunks(_chunkIds: string[], _correlationId: string): Promise<DocumentChunkData[]> {
     // Placeholder for fetching chunks
     return [];
   }
@@ -706,7 +707,7 @@ export class SyncManager {
   /**
    * Fetch entities by IDs (placeholder)
    */
-  private async fetchEntities(entityIds: string[], correlationId: string): Promise<GraphitiEntity[]> {
+  private async fetchEntities(_entityIds: string[], _correlationId: string): Promise<GraphitiEntity[]> {
     // Placeholder for fetching entities
     return [];
   }

@@ -30,7 +30,7 @@ import { RAGBitsClient, GraphitiClient, VectorDBClient } from './clients';
 /**
  * Engine Configuration
  */
-interface EngineConfig {
+export interface EngineConfig {
   ragbits: Partial<SystemConfig>;
   graphiti: Partial<SystemConfig>;
   vectordb: Partial<SystemConfig>;
@@ -39,7 +39,7 @@ interface EngineConfig {
 /**
  * Engine Constructor Options
  */
-interface EngineOptions {
+export interface EngineOptions {
   ragbitsUrl?: string;
   graphitiUrl?: string;
   vectordbUrl?: string;
@@ -95,13 +95,13 @@ export class UnifiedKnowledgeQueryEngine {
    */
   async query(
     query: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {} as QueryOptions
   ): Promise<UnifiedQueryResult> {
-    const correlationId = options.correlationId || this.generateCorrelationId();
+    const correlationId = (options as any).correlationId || this.generateCorrelationId();
     const startTime = Date.now();
 
     // Build unified query object
-    const unifiedQuery: UnifiedKnowledgeQuery = {
+    const unifiedQuery = {
       query,
       domains: options.domains || ['all'],
       queryType: options.queryType || 'hybrid',
@@ -111,7 +111,7 @@ export class UnifiedKnowledgeQueryEngine {
       minConfidence: options.minConfidence || 0.0,
       maxDepth: options.maxDepth || 2,
       correlationId,
-    };
+    } as UnifiedKnowledgeQuery;
 
     // Validate query (Law of Configuration Explicitness)
     const validated = validateQuery(unifiedQuery);
@@ -173,7 +173,7 @@ export class UnifiedKnowledgeQueryEngine {
    */
   async semanticSearch(
     query: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {} as QueryOptions
   ): Promise<UnifiedQueryResult> {
     return this.query(query, {
       ...options,
@@ -189,7 +189,7 @@ export class UnifiedKnowledgeQueryEngine {
     query: string,
     startDate: string,
     endDate: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {} as QueryOptions
   ): Promise<UnifiedQueryResult> {
     return this.query(query, {
       ...options,
@@ -207,7 +207,7 @@ export class UnifiedKnowledgeQueryEngine {
    */
   async graphTraversal(
     query: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {} as QueryOptions
   ): Promise<UnifiedQueryResult> {
     return this.query(query, {
       ...options,
@@ -221,7 +221,7 @@ export class UnifiedKnowledgeQueryEngine {
    */
   async hybridQuery(
     query: string,
-    options: QueryOptions = {}
+    options: QueryOptions = {} as QueryOptions
   ): Promise<UnifiedQueryResult> {
     return this.query(query, {
       ...options,
@@ -304,7 +304,7 @@ export class UnifiedKnowledgeQueryEngine {
     // Check if parallel execution is possible
     if (plan.parallelizable && plan.systems.length > 1) {
       // Execute in parallel
-      const promises = plan.systems.map(system =>
+      const promises = plan.systems.map((system: any) =>
         this.executeSystemQuery(system, query, correlationId)
           .catch(error => ({
             system: system.name,
@@ -352,7 +352,7 @@ export class UnifiedKnowledgeQueryEngine {
 
           // Try fallback
           const fallbacks = this.fallback.getAvailableFallbacks(
-            plan.systems.filter(s => s.name !== system.name)
+            plan.systems.filter((s: any) => s.name !== system.name)
           );
 
           if (fallbacks.length > 0) {

@@ -13,13 +13,11 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { logger, Logger } from '../../lib/logger';
-import { CircuitBreaker, CircuitState } from '../../lib/circuit-breaker';
+import { Logger } from '../../../lib/logger';
+import { CircuitBreaker, CircuitState } from '../../../lib/circuit-breaker';
 import {
   validateCanonical,
   CanonicalEntity,
-  CanonicalEntityEdge,
-  CanonicalEpisode,
   CanonicalSearchQuery,
   CanonicalSearchResult,
   AddEpisodeOperation,
@@ -27,15 +25,11 @@ import {
   AddTripletOperation,
   AddTripletResult,
   GraphStatistics,
-  TemporalFilter,
-  EpisodeType,
-  CanonicalEpisodeSchema,
   CanonicalEntitySchema,
-  CanonicalEntityEdgeSchema,
   AddEpisodeOperationSchema,
   AddTripletOperationSchema,
   CanonicalSearchQuerySchema,
-} from '../../schemas/graphiti-canonical';
+} from '../../../schemas/graphiti-canonical';
 import { GraphitiClient } from './graph-client';
 import { GraphitiTemporalOps } from './temporal-ops';
 
@@ -116,7 +110,7 @@ export class GraphitiAdapter {
     this.circuitBreaker = new CircuitBreaker({
       threshold: this.config.circuit_breaker_threshold,
       timeout_ms: this.config.circuit_breaker_timeout_ms,
-      onStateChange: (oldState, newState) => {
+      onStateChange: (oldState: CircuitState, newState: CircuitState) => {
         this.log.warn('Circuit breaker state changed', {
           correlation_id: 'circuit-breaker',
           old_state: oldState,
@@ -216,9 +210,10 @@ export class GraphitiAdapter {
         episode_id: uuidv4(), // Placeholder
         entities_extracted: 0,
         relationships_extracted: 0,
+        communities_updated: 0,
         processing_time_ms: 0,
         correlation_id: cid,
-        error: `Validation failed: ${validation.errors.join(', ')}`,
+        error: `Validation failed: ${(validation.errors ?? []).join(', ')}`,
       };
     }
 
@@ -258,6 +253,7 @@ export class GraphitiAdapter {
         episode_id: uuidv4(),
         entities_extracted: 0,
         relationships_extracted: 0,
+        communities_updated: 0,
         processing_time_ms: processingTimeMs,
         correlation_id: cid,
         error: error instanceof Error ? error.message : String(error),
@@ -330,7 +326,7 @@ export class GraphitiAdapter {
         success: false,
         processing_time_ms: 0,
         correlation_id: cid,
-        error: `Validation failed: ${validation.errors.join(', ')}`,
+        error: `Validation failed: ${(validation.errors ?? []).join(', ')}`,
       };
     }
 
@@ -400,7 +396,7 @@ export class GraphitiAdapter {
         correlation_id: cid,
         errors: validation.errors,
       });
-      throw new Error(`Invalid search query: ${validation.errors.join(', ')}`);
+      throw new Error(`Invalid search query: ${(validation.errors ?? []).join(', ')}`);
     }
 
     const startTime = Date.now();
@@ -527,7 +523,7 @@ export class GraphitiAdapter {
           entity_uuid: uuid,
           errors: validation.errors,
         });
-        throw new Error(`Invalid entity: ${validation.errors.join(', ')}`);
+        throw new Error(`Invalid entity: ${(validation.errors ?? []).join(', ')}`);
       }
 
       this.log.info('Entity retrieved successfully', {

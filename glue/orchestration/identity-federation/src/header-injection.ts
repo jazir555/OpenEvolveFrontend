@@ -19,7 +19,7 @@
  * (enforced via network isolation)
  */
 
-import { logger, LoggerContext } from '../../lib/logger';
+import { logger, LoggerContext } from '../../../lib/logger';
 
 export interface HeaderInjectionConfig {
   // OAuth2-Proxy configuration

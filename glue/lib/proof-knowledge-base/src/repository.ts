@@ -13,7 +13,7 @@
  */
 
 import { logger, LoggerContext } from '../../logger';
-import { validateEnvWithTypes, EnvVar } from '../env-validator';
+import { validateEnvWithTypes, EnvVar } from '../../env-validator';
 import { ProofVectorIndex } from './vector-index';
 import { ProofGraphIndex } from './graph-index';
 import { ProofValidator } from './validator';
@@ -25,7 +25,6 @@ import {
   ProofMetrics,
   StorageResult,
   UpdateResult,
-  IndexResult,
 } from './canonical';
 
 /**

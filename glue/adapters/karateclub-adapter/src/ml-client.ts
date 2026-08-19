@@ -26,7 +26,7 @@ import {
   GraphEmbeddingRequest,
   GraphEmbeddingResponse,
   GraphStructure,
-} from '../../schemas/karateclub-canonical';
+} from '../../../schemas/karateclub-canonical';
 
 import { getAlgorithmInfo, getDefaultTimeout } from './algorithms';
 
@@ -563,6 +563,9 @@ if __name__ == "__main__":
         success: false,
         error: 'Circuit breaker is OPEN',
         algorithm: request.algorithm,
+        metadata: {
+          detection_time_ms: 0,
+        },
         timestamp: new Date().toISOString(),
       };
     }
