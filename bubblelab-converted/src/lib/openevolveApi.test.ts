@@ -11,11 +11,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
-import { fetch, RequestInit, Response } from 'node-fetch';
 import { openevolveApi, ApiConfig } from './openevolveApi';
-
-// Mock fetch globally for testing
-global.fetch = fetch as any;
 
 // Test configuration - should be injected via environment
 const TEST_CONFIG: ApiConfig = {
