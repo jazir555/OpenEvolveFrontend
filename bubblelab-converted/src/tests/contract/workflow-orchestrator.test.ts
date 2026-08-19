@@ -290,7 +290,7 @@ describe('Workflow Orchestrator', () => {
 
       const result = await orchestrator.executeWorkflow(workflow);
 
-      expect(result.status).toBe('completed'); // Workflow completed despite error
+      expect(result.status).toBe('failed'); // A failed step means the workflow failed
       expect(result.errors).toHaveLength(1);
       expect(result.stepResults.size).toBe(2); // step1 and step3
     });

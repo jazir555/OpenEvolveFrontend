@@ -155,31 +155,51 @@ class WorkflowOrchestrator {
       // Map final outputs
       context.output = this.mapOutputs(workflow, context);
 
-      context.status = 'completed';
       const duration = Date.now() - startTime;
-
-      apiLogger.info('Workflow completed successfully', {
-        ...this.correlationContext,
-        workflow_id: workflow.id,
-        execution_id: executionId,
-        duration_ms: duration
-      });
+      const hasStepErrors = stepErrors.length > 0;
+      const finalStatus: 'completed' | 'failed' = hasStepErrors ? 'failed' : 'completed';
 
       const result = {
         executionId,
         workflowId: workflow.id,
-        status: 'completed' as const,
+        status: finalStatus,
         duration,
         results: context.output,
         stepResults,
         errors: stepErrors
       };
 
+      context.status = result.status;
+
       // Record completion in monitor
       this.monitor.recordWorkflowCompletion(context, result);
 
-      // Emit workflow completed event
-      await this.eventIntegration.emitWorkflowCompleted(result);
+      if (hasStepErrors) {
+        apiLogger.error('Workflow completed with step errors', undefined, {
+          ...this.correlationContext,
+          workflow_id: workflow.id,
+          execution_id: executionId,
+          duration_ms: duration,
+          error_count: stepErrors.length
+        });
+
+        // Emit workflow failed event
+        await this.eventIntegration.emitWorkflowFailed(
+          workflow.id,
+          executionId,
+          `${stepErrors.length} step(s) failed`
+        );
+      } else {
+        apiLogger.info('Workflow completed successfully', {
+          ...this.correlationContext,
+          workflow_id: workflow.id,
+          execution_id: executionId,
+          duration_ms: duration
+        });
+
+        // Emit workflow completed event
+        await this.eventIntegration.emitWorkflowCompleted(result);
+      }
 
       return result;
     } catch (error) {
