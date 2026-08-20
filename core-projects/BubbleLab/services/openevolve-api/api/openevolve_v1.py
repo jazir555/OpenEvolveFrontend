@@ -50,6 +50,10 @@ router = APIRouter()
 RUNS: Dict[str, Dict[str, Any]] = {}
 _RUNS_LOCK = threading.Lock()
 
+# In-memory default run configuration applied to FUTURE orchestrate calls.
+# Populated by POST /workflows/configure (e.g. {"max_iterations": N, "population_size": M}).
+DEFAULT_RUN_CONFIG: Dict[str, Any] = {}
+
 # Offline mock runs finish fast when kept tiny.
 _DEFAULT_MAX_ITERATIONS = 3
 _DEFAULT_POPULATION_SIZE = 6
@@ -76,13 +80,56 @@ def _run_worker(run_id: str, bridge_request: Dict[str, Any]) -> None:
     try:
         result = run_openevolve_workflow(bridge_request)
         with _RUNS_LOCK:
-            RUNS[run_id]["status"] = "completed"
-            RUNS[run_id]["result"] = result
+            # Preserve an externally-set status (stopped/paused) if the run was
+            # halted while the worker was in flight.
+            if RUNS.get(run_id, {}).get("status") == "running":
+                RUNS[run_id]["status"] = "completed"
+                RUNS[run_id]["result"] = result
     except Exception as exc:  # Never crash the worker thread.
         logger.error("openevolve_v1_run_failed", run_id=run_id, error=str(exc))
         with _RUNS_LOCK:
-            RUNS[run_id]["status"] = "failed"
-            RUNS[run_id]["error"] = str(exc)
+            if RUNS.get(run_id, {}).get("status") == "running":
+                RUNS[run_id]["status"] = "failed"
+                RUNS[run_id]["error"] = str(exc)
+
+
+def _chain_worker(chain_id: str, steps: list) -> None:
+    """Run each chain step sequentially; halt the chain on first failure."""
+    for step in steps:
+        step_id = step["run_id"]
+        with _RUNS_LOCK:
+            if RUNS.get(step_id, {}).get("status") in ("stopped", "paused"):
+                continue  # skip steps halted before they began
+            RUNS[step_id]["status"] = "running"
+        try:
+            bridge_request = _orchestrate_request_to_bridge(step["spec"])
+            result = run_openevolve_workflow(bridge_request)
+            with _RUNS_LOCK:
+                RUNS[step_id]["status"] = "completed"
+                RUNS[step_id]["result"] = result
+        except Exception as exc:  # Halt the chain on any step failure.
+            logger.error("openevolve_v1_chain_step_failed", chain_id=chain_id, step_id=step_id, error=str(exc))
+            with _RUNS_LOCK:
+                RUNS[step_id]["status"] = "failed"
+                RUNS[step_id]["error"] = str(exc)
+            break
+
+
+def _update_run_status(run_id: str, new_status: str) -> Optional[Dict[str, Any]]:
+    """Best-effort status transition for a run.
+
+    Only transitions *from* ``running`` (or ``pending``); if the run already
+    reached a terminal state, its current status is preserved and returned.
+    Returns ``None`` when the run_id is unknown.
+    """
+    with _RUNS_LOCK:
+        run = RUNS.get(run_id)
+        if run is None:
+            return None
+        current = run["status"]
+        if current not in ("completed", "failed"):
+            run["status"] = new_status
+        return dict(run)
 
 
 def _spawn(bridge_request: Dict[str, Any]) -> str:
@@ -159,6 +206,11 @@ def _orchestrate_request_to_bridge(body: Dict[str, Any]) -> Dict[str, Any]:
             "max_iterations": _DEFAULT_MAX_ITERATIONS,
             "population_size": _DEFAULT_POPULATION_SIZE,
         }
+
+    # Apply any config overrides registered via /workflows/configure (without
+    # clobbering an explicit value supplied on this request).
+    for key, value in DEFAULT_RUN_CONFIG.items():
+        parameters.setdefault(key, value)
 
     return {
         "system": system,
@@ -280,5 +332,214 @@ async def orchestrate(request: Request) -> Response:
     return JSONResponse(
         status_code=202,
         content={"workflowId": run_id, "status": "running"},
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/{run_id}/stop")
+async def stop_workflow(run_id: str) -> Response:
+    run = _update_run_status(run_id, "stopped")
+    if run is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Run not found: {run_id}"},
+            headers={"Content-Type": "application/json"},
+        )
+    return JSONResponse(
+        {"workflowId": run_id, "status": run["status"], "operation": "stop_workflow"},
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/{run_id}/pause")
+async def pause_workflow(run_id: str) -> Response:
+    run = _update_run_status(run_id, "paused")
+    if run is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Run not found: {run_id}"},
+            headers={"Content-Type": "application/json"},
+        )
+    return JSONResponse(
+        {"workflowId": run_id, "status": run["status"], "operation": "pause_workflow"},
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/{run_id}/resume")
+async def resume_workflow(run_id: str) -> Response:
+    run = _update_run_status(run_id, "running")
+    if run is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": f"Run not found: {run_id}"},
+            headers={"Content-Type": "application/json"},
+        )
+    return JSONResponse(
+        {"workflowId": run_id, "status": run["status"], "operation": "resume_workflow"},
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/configure")
+async def configure(request: Request) -> Response:
+    try:
+        body = await _json_payload(request)
+    except ValueError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(exc)},
+            headers={"Content-Type": "application/json"},
+        )
+
+    definition = body.get("definition")
+    if not isinstance(definition, dict):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "'definition' (object) is required"},
+            headers={"Content-Type": "application/json"},
+        )
+
+    # Extract recognized overrides that the bridge understands.
+    overrides: Dict[str, Any] = {}
+    alias_map = {
+        "iterations": "max_iterations",
+        "maxIterations": "max_iterations",
+        "max_iterations": "max_iterations",
+        "generations": "max_iterations",
+        "populationSize": "population_size",
+        "population_size": "population_size",
+        "seed": "seed",
+        "temperature": "temperature",
+    }
+    for src, dst in alias_map.items():
+        value = definition.get(src)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            overrides[dst] = value
+
+    with _RUNS_LOCK:
+        DEFAULT_RUN_CONFIG.update(overrides)
+        effective = dict(DEFAULT_RUN_CONFIG)
+
+    return JSONResponse(
+        {
+            "workflowName": body.get("workflowName"),
+            "config": effective,
+            "status": "configured",
+        },
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/batch")
+async def batch_execute(request: Request) -> Response:
+    if not OPENEVOLVE_BRIDGE_AVAILABLE:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"openevolve bridge unavailable: {_OPENEVOLVE_IMPORT_ERROR}"},
+            headers={"Content-Type": "application/json"},
+        )
+    try:
+        body = await _json_payload(request)
+    except ValueError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(exc)},
+            headers={"Content-Type": "application/json"},
+        )
+
+    workflows = body.get("workflows")
+    if not isinstance(workflows, list) or not workflows:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "'workflows' (non-empty array) is required"},
+            headers={"Content-Type": "application/json"},
+        )
+
+    run_ids: list = []
+    for spec in workflows:
+        if not isinstance(spec, dict):
+            return JSONResponse(
+                status_code=400,
+                content={"error": "each workflow spec must be an object"},
+                headers={"Content-Type": "application/json"},
+            )
+        try:
+            bridge_request = _orchestrate_request_to_bridge(spec)
+        except ValueError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={"error": str(exc)},
+                headers={"Content-Type": "application/json"},
+            )
+        run_ids.append(_spawn(bridge_request))
+
+    return JSONResponse(
+        {
+            "batchId": uuid.uuid4().hex,
+            "run_ids": run_ids,
+            "count": len(run_ids),
+            "status": "running",
+        },
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@router.post("/workflows/chain")
+async def chain_workflows(request: Request) -> Response:
+    if not OPENEVOLVE_BRIDGE_AVAILABLE:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"openevolve bridge unavailable: {_OPENEVOLVE_IMPORT_ERROR}"},
+            headers={"Content-Type": "application/json"},
+        )
+    try:
+        body = await _json_payload(request)
+    except ValueError as exc:
+        return JSONResponse(
+            status_code=400,
+            content={"error": str(exc)},
+            headers={"Content-Type": "application/json"},
+        )
+
+    chain = body.get("chain")
+    if not isinstance(chain, list) or not chain:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "'chain' (non-empty array) is required"},
+            headers={"Content-Type": "application/json"},
+        )
+
+    steps: list = []
+    with _RUNS_LOCK:
+        for spec in chain:
+            if not isinstance(spec, dict):
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "each chain step must be an object"},
+                    headers={"Content-Type": "application/json"},
+                )
+            step_id = uuid.uuid4().hex
+            RUNS[step_id] = {
+                "run_id": step_id,
+                "status": "pending",
+                "result": None,
+                "error": None,
+            }
+            steps.append({"run_id": step_id, "spec": spec})
+
+    chain_id = uuid.uuid4().hex
+    thread = threading.Thread(
+        target=_chain_worker, args=(chain_id, steps), daemon=True
+    )
+    thread.start()
+
+    return JSONResponse(
+        {
+            "chainId": chain_id,
+            "run_ids": [s["run_id"] for s in steps],
+            "count": len(steps),
+            "status": "running",
+        },
         headers={"Content-Type": "application/json"},
     )

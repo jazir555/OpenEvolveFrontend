@@ -287,6 +287,32 @@ them. All numbers are derived from the live in-memory run registry
 - `GET  /api/analytics/knowledge-stats` — knowledge-base stats (empty state until wired).
 - `GET  /api/statistics` — workflow/team/gauntlet counts.
 
+### Knowledge Engine (`/api/knowledge`)
+
+The `/api/knowledge` router serves the Knowledge Base feature surface the
+BubbleLab client expects, plus Knowledge Engine primitives. It is mounted
+from `api/knowledge.py` and degrades gracefully (structured-empty, never
+failing) when no backend is configured:
+
+- `GET   /api/knowledge/documents`        — list knowledge documents (`{documents, backend, total}`).
+- `GET   /api/knowledge/artifacts`        — list artifacts (`{artifacts: KnowledgeArtifact[]}`).
+- `GET   /api/knowledge/artifacts/{id}`   — fetch one artifact (404 if absent).
+- `POST  /api/knowledge/artifacts`        — create an artifact.
+- `DELETE /api/knowledge/artifacts/{id}`  — delete an artifact (`{success}`).
+- `POST  /api/knowledge/search`           — hybrid search (`{results, backend, query, limit}`).
+- `GET   /api/knowledge/graph`            — knowledge graph (`{nodes, edges}`).
+- `GET   /api/knowledge/stats`            — KB stats (`{total_artifacts, total_usage, average_effectiveness, by_type}`).
+- `POST  /api/knowledge/recommendations`  — recommendations (empty lists until wired).
+- `GET   /api/knowledge/export`           — export the KB (`{artifacts, documents}`).
+- `POST  /api/knowledge/import`           — import artifacts (`{success, imported}`).
+- `POST  /api/knowledge/embed`            — embedding result (`{model, dimension, count}`; stub if no model).
+- `POST  /api/knowledge/sync`             — trigger a (no-op/logging) sync (`{status, backend, synced}`).
+
+If `QDRANT_BASE_URL` (and optional `QDRANT_API_KEY`/`QDRANT_COLLECTION`) is set,
+`/search` and `/embed` proxy to the configured vector/embedding backend;
+otherwise they return structured-empty results (`backend: "none"`). There is no
+hard dependency on Qdrant or Elasticsearch being reachable.
+
 ### Boot smoke test
 
 `scripts/smoke_boot.py` launches the real uvicorn server, waits for `/health`,
