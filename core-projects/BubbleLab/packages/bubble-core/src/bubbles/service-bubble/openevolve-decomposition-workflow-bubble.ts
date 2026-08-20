@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -100,7 +102,7 @@ const OpenEvolveDecompositionWorkflowParamsSchema = z.discriminatedUnion('operat
 
 type OpenEvolveDecompositionWorkflowParams = z.input<
   typeof OpenEvolveDecompositionWorkflowParamsSchema
->;
+> & ServiceBubbleParams;
 
 const OpenEvolveDecompositionWorkflowResultSchema = z.object({
   success: z.boolean(),
@@ -155,6 +157,7 @@ export class OpenEvolveDecompositionWorkflowBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveDecompositionWorkflowResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
 
     try {
       switch (params.operation) {
@@ -195,8 +198,8 @@ export class OpenEvolveDecompositionWorkflowBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -205,7 +208,7 @@ export class OpenEvolveDecompositionWorkflowBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: op,
         workflow_id: (this.params as any).workflow_id,
         error: message,
         timing: Date.now() - startTime,
@@ -264,7 +267,7 @@ export class OpenEvolveDecompositionWorkflowBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         workflow_id: (this.params as any).workflow_id,
         data,
         error: response.ok
@@ -280,7 +283,7 @@ export class OpenEvolveDecompositionWorkflowBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         workflow_id: (this.params as any).workflow_id,
         error: message,
         timing: Date.now() - startTime,

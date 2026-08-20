@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -150,7 +152,7 @@ const OpenEvolveWorkflowParamsSchema = z.discriminatedUnion('operation', [
   HealthWorkflowSchema,
 ]);
 
-type OpenEvolveWorkflowParams = z.input<typeof OpenEvolveWorkflowParamsSchema>;
+type OpenEvolveWorkflowParams = z.input<typeof OpenEvolveWorkflowParamsSchema> & ServiceBubbleParams;
 
 const OpenEvolveWorkflowResultSchema = z.object({
   success: z.boolean(),
@@ -163,7 +165,7 @@ const OpenEvolveWorkflowResultSchema = z.object({
   timing: z.number(),
 });
 
-type OpenEvolveWorkflowResult = z.output<typeof OpenEvolveWorkflowResultSchema>;
+type OpenEvolveWorkflowResult = z.output<typeof OpenEvolveWorkflowResultSchema> & BubbleOperationResult;
 
 const flattenNestedParameters = (
   nested: Record<string, unknown>
@@ -246,6 +248,7 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveWorkflowResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
     try {
       switch (params.operation) {
         case 'create':
@@ -299,8 +302,8 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -309,7 +312,7 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: op,
         error: message,
         timing: Date.now() - startTime,
       };
@@ -320,12 +323,12 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    if (this.params.headers) {
-      Object.assign(headers, this.params.headers);
+    if ((this.params as any).headers) {
+      Object.assign(headers, (this.params as any).headers);
     }
-    if (this.params.auth_token) {
-      const headerName = this.params.auth_header || 'Authorization';
-      const token = this.params.auth_token;
+    if ((this.params as any).auth_token) {
+      const headerName = (this.params as any).auth_header || 'Authorization';
+      const token = (this.params as any).auth_token;
       if (headerName.toLowerCase() === 'authorization' && !token.startsWith('Bearer ')) {
         headers[headerName] = `Bearer ${token}`;
       } else {
@@ -348,14 +351,14 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
 
   private async handleCreate(startTime: number): Promise<OpenEvolveWorkflowResult> {
     const payload = {
-      name: this.params.name,
-      description: this.params.description,
-      problem_statement: this.params.problem_statement,
-      content_type: this.params.content_type,
-      teams: this.params.teams,
-      gauntlets: this.params.gauntlets,
-      workflow_type: this.params.workflow_type,
-      metadata: this.params.metadata,
+      name: (this.params as any).name,
+      description: (this.params as any).description,
+      problem_statement: (this.params as any).problem_statement,
+      content_type: (this.params as any).content_type,
+      teams: (this.params as any).teams,
+      gauntlets: (this.params as any).gauntlets,
+      workflow_type: (this.params as any).workflow_type,
+      metadata: (this.params as any).metadata,
       parameters: this.buildParameters(),
     };
     return this.request('POST', '/api/workflows', payload, startTime);
@@ -363,7 +366,8 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
 
   private async handleUpdate(startTime: number): Promise<OpenEvolveWorkflowResult> {
     const payload: Record<string, unknown> = {};
-    const params = this.params;
+    const params = this.params as any;
+    const op: string = params.operation;
 
     if (params.name !== undefined) payload.name = params.name;
     if (params.description !== undefined) payload.description = params.description;
@@ -380,7 +384,8 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
   }
 
   private async handleList(startTime: number): Promise<OpenEvolveWorkflowResult> {
-    const params = this.params;
+    const params = this.params as any;
+    const op: string = params.operation;
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
     if (params.page_size) query.set('page_size', String(params.page_size));
@@ -400,8 +405,8 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
     startTime: number
   ): Promise<OpenEvolveWorkflowResult> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
-    const url = `${this.params.base_url}${endpoint}`;
+    const timeoutId = setTimeout(() => controller.abort(), (this.params as any).timeout);
+    const url = `${(this.params as any).base_url}${endpoint}`;
 
     try {
       const response = await fetch(url, {
@@ -425,7 +430,7 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: (((this.params as any).operation as string) as string),
         workflow_id: (this.params as any).workflow_id,
         execution_id:
           typeof data === 'object' && data && 'execution_id' in data
@@ -445,7 +450,7 @@ export class OpenEvolveWorkflowBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: (((this.params as any).operation as string) as string),
         workflow_id: (this.params as any).workflow_id,
         error: message,
         timing: Date.now() - startTime,

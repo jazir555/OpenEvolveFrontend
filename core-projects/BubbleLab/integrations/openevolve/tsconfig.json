@@ -13,7 +13,7 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@bubblelab/bubble-core": ["./types/bubble-core.d.ts"]
+      "@bubblelab/bubble-core": ["./types/bubble-core.ts"]
     }
   },
   "include": [
@@ -35,6 +35,7 @@
     "adapters/anti-corruption-layer.ts",
     "adapters/resilience.ts",
     "types/bubble-core.d.ts",
+    "types/bubble-core.ts",
     "types/shims.d.ts",
     "types/ioredis.d.ts"
   ],

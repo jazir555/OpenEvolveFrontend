@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -44,7 +46,7 @@ const OpenEvolveDecompositionParamsSchema = z.discriminatedUnion('operation', [
   HealthSchema,
 ]);
 
-type OpenEvolveDecompositionParams = z.input<typeof OpenEvolveDecompositionParamsSchema>;
+type OpenEvolveDecompositionParams = z.input<typeof OpenEvolveDecompositionParamsSchema> & ServiceBubbleParams;
 
 const OpenEvolveDecompositionResultSchema = z.object({
   success: z.boolean(),
@@ -55,7 +57,7 @@ const OpenEvolveDecompositionResultSchema = z.object({
   timing: z.number(),
 });
 
-type OpenEvolveDecompositionResult = z.output<typeof OpenEvolveDecompositionResultSchema>;
+type OpenEvolveDecompositionResult = z.output<typeof OpenEvolveDecompositionResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveDecompositionBubble extends ServiceBubble<
   OpenEvolveDecompositionParams,
@@ -95,6 +97,7 @@ export class OpenEvolveDecompositionBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveDecompositionResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
 
     try {
       switch (params.operation) {
@@ -113,8 +116,8 @@ export class OpenEvolveDecompositionBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -123,7 +126,7 @@ export class OpenEvolveDecompositionBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: (params.operation as string),
         error: message,
         timing: Date.now() - startTime,
       };
@@ -181,7 +184,7 @@ export class OpenEvolveDecompositionBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         data,
         error: response.ok
           ? undefined
@@ -196,7 +199,7 @@ export class OpenEvolveDecompositionBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

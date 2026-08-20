@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -16,10 +18,11 @@ const resolveOpenEvolveBaseUrl = (): string => {
     (typeof process !== 'undefined' && process.env
       ? process.env.OPENEVOLVE_KNOWLEDGE_API_URL ||
         process.env.OPENEVOLVE_API_URL ||
+        process.env.OPENEVOLVE_BASE_URL ||
         process.env.OPENEVOLVE_API_BASE_URL
       : undefined) || '';
   const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
-  return base.replace(/\/$/, '');
+  return base.replace(/\/+$/, '');
 };
 
 const KnowledgeOperationSchema = z.enum([
@@ -93,7 +96,7 @@ const KnowledgeEngineParamsSchema = z.object({
   timeout: z.number().int().min(1000).max(120000).default(30000),
 });
 
-type KnowledgeEngineParams = z.input<typeof KnowledgeEngineParamsSchema>;
+type KnowledgeEngineParams = z.input<typeof KnowledgeEngineParamsSchema> & ServiceBubbleParams;
 
 const KnowledgeEngineResultSchema = z.object({
   success: z.boolean(),
@@ -114,7 +117,7 @@ const KnowledgeEngineResultSchema = z.object({
   timing: z.number(),
 });
 
-type KnowledgeEngineResult = z.output<typeof KnowledgeEngineResultSchema>;
+type KnowledgeEngineResult = z.output<typeof KnowledgeEngineResultSchema> & BubbleOperationResult;
 
 type KnowledgeDocument = {
   id: string;
@@ -168,7 +171,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
   protected async performAction(): Promise<KnowledgeEngineResult> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (((this.params.operation as string) as string)) {
         case 'search':
         case 'semantic_search':
           return await this.semanticSearch(startTime);
@@ -187,9 +190,9 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
         default:
           return {
             success: false,
-            operation: this.params.operation,
-            backend: this.params.backend,
-            error: `Unsupported operation: ${this.params.operation}`,
+            operation: ((this.params.operation as string) as string),
+            backend: this.params.backend ?? 'qdrant',
+            error: `Unsupported operation: ${((this.params.operation as string) as string)}`,
             timing: Date.now() - startTime,
           };
       }
@@ -197,8 +200,8 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
-        backend: this.params.backend,
+        operation: ((this.params.operation as string) as string),
+        backend: this.params.backend ?? 'qdrant',
         error: message,
         timing: Date.now() - startTime,
       };
@@ -249,7 +252,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const results = await this.searchElasticsearch();
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'elasticsearch',
         results,
         timing: Date.now() - startTime,
@@ -260,7 +263,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const results = await this.searchBedrock();
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'bedrock',
         results,
         timing: Date.now() - startTime,
@@ -271,7 +274,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const results = await this.searchEks();
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'eks',
         results,
         timing: Date.now() - startTime,
@@ -281,7 +284,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
     const results = await this.searchQdrant();
     return {
       success: true,
-      operation: this.params.operation,
+      operation: ((this.params.operation as string) as string),
       backend: 'qdrant',
       results,
       timing: Date.now() - startTime,
@@ -300,7 +303,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
     for (const item of semanticResults) {
       const weighted = {
         ...item,
-        score: (item.score || 0) * this.params.semantic_weight,
+        score: (item.score || 0) * (this.params.semantic_weight ?? 0.5),
       };
       byId.set(item.id, weighted);
       combined.push(weighted);
@@ -309,11 +312,11 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
     for (const item of keywordResults) {
       const existing = byId.get(item.id);
       if (existing) {
-        existing.score = (existing.score || 0) + (item.score || 0) * this.params.keyword_weight;
+        existing.score = (existing.score || 0) + (item.score || 0) * (this.params.keyword_weight ?? 0.5);
       } else {
         const weighted = {
           ...item,
-          score: (item.score || 0) * this.params.keyword_weight,
+          score: (item.score || 0) * (this.params.keyword_weight ?? 0.5),
         };
         byId.set(item.id, weighted);
         combined.push(weighted);
@@ -324,7 +327,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
 
     return {
       success: true,
-      operation: this.params.operation,
+      operation: ((this.params.operation as string) as string),
       backend: 'hybrid',
       results: combined.slice(0, this.params.limit),
       timing: Date.now() - startTime,
@@ -344,7 +347,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       await this.indexElasticsearch(documents, isBatch);
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'elasticsearch',
         data: { indexed: documents.length },
         timing: Date.now() - startTime,
@@ -354,7 +357,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
     await this.indexQdrant(documents);
     return {
       success: true,
-      operation: this.params.operation,
+      operation: ((this.params.operation as string) as string),
       backend: 'qdrant',
       data: { indexed: documents.length },
       timing: Date.now() - startTime,
@@ -371,7 +374,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       await this.deleteElasticsearch(ids);
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'elasticsearch',
         data: { deleted: ids.length },
         timing: Date.now() - startTime,
@@ -381,7 +384,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
     await this.deleteQdrant(ids);
     return {
       success: true,
-      operation: this.params.operation,
+      operation: ((this.params.operation as string) as string),
       backend: 'qdrant',
       data: { deleted: ids.length },
       timing: Date.now() - startTime,
@@ -393,7 +396,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const vector = await this.generateEmbedding(this.params.query);
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'embedding',
         data: { vector },
         timing: Date.now() - startTime,
@@ -409,7 +412,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       );
       return {
         success: true,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend: 'embedding',
         data: { vectors },
         timing: Date.now() - startTime,
@@ -421,11 +424,13 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
 
   private async healthCheck(startTime: number): Promise<KnowledgeEngineResult> {
     // Health must reflect the real OpenEvolve backend: never fake success.
-    // `success` is derived from the HTTP response, and transport failures
-    // (unreachable server, timeout/abort) resolve to success: false.
+    // `success` is derived from the HTTP response of the verified server
+    // contract (GET {baseUrl}/api/v1/health -> {status:"healthy",version}),
+    // and transport failures (unreachable server, timeout/abort) resolve to
+    // success: false.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
-    const url = `${resolveOpenEvolveBaseUrl()}/health`;
+    const url = `${resolveOpenEvolveBaseUrl()}/api/v1/health`;
     // `backend` carries a zod default, so narrow it to a plain string here.
     const backend = this.params.backend ?? 'qdrant';
 
@@ -441,7 +446,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend,
         data: {
           status: response.ok ? 'ok' : 'unhealthy',
@@ -459,7 +464,7 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         backend,
         data: { status: 'unhealthy', url },
         error: `OpenEvolve server unreachable: ${message}`,

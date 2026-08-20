@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -65,7 +67,7 @@ const Z3ParamsSchema = z.object({
   options: z.record(z.unknown()).optional(),
 });
 
-type Z3Params = z.input<typeof Z3ParamsSchema>;
+type Z3Params = z.input<typeof Z3ParamsSchema> & ServiceBubbleParams;
 
 const Z3ResultSchema = z.object({
   success: z.boolean(),
@@ -75,7 +77,7 @@ const Z3ResultSchema = z.object({
   timing: z.number(),
 });
 
-type Z3Result = z.output<typeof Z3ResultSchema>;
+type Z3Result = z.output<typeof Z3ResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> {
   static readonly service = 'openevolve';
@@ -105,7 +107,7 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
   protected async performAction(): Promise<Z3Result> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (((this.params.operation as string) as string)) {
         case 'health_check':
           return await this.request('GET', '/health', undefined, startTime);
         case 'solve_smt':
@@ -147,8 +149,8 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
         default:
           return {
             success: false,
-            operation: this.params.operation,
-            error: `Unsupported operation: ${this.params.operation}`,
+            operation: ((this.params.operation as string) as string),
+            error: `Unsupported operation: ${((this.params.operation as string) as string)}`,
             timing: Date.now() - startTime,
           };
       }
@@ -156,7 +158,7 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };
@@ -166,7 +168,7 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
   private requireParam(key: 'smtlib2' | 'expression' | 'goal' | 'tactic' | 'query'): string {
     const value = (this.params as any)[key];
     if (!value) {
-      throw new Error(`${key} is required for ${this.params.operation}`);
+      throw new Error(`${key} is required for ${((this.params.operation as string) as string)}`);
     }
     return value;
   }
@@ -201,7 +203,7 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         data,
         error: response.ok ? undefined : data?.error || response.statusText,
         timing: Date.now() - startTime,
@@ -211,7 +213,7 @@ export class OpenEvolveZ3ProverBubble extends ServiceBubble<Z3Params, Z3Result> 
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

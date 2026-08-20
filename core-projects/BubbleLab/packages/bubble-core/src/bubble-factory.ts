@@ -349,6 +349,18 @@ export class BubbleFactory {
     const { GetBubbleDetailsTool } = (await this.safeImport(
       './bubbles/tool-bubble/get-bubble-details-tool.js'
     )) ?? {};
+    const { GetTriggerDetailTool } = (await this.safeImport(
+      './bubbles/tool-bubble/get-trigger-detail-tool.js'
+    )) ?? {};
+    const { ListCapabilitiesTool } = (await this.safeImport(
+      './bubbles/tool-bubble/list-capabilities-tool.js'
+    )) ?? {};
+    const { AppRankingsTool } = (await this.safeImport(
+      './bubbles/tool-bubble/app-rankings-tool.js'
+    )) ?? {};
+    const { PeopleSearchTool } = (await this.safeImport(
+      './bubbles/tool-bubble/people-search-tool.js'
+    )) ?? {};
     const { SQLQueryTool } = (await this.safeImport(
       './bubbles/tool-bubble/sql-query-tool.js'
     )) ?? {};
@@ -663,9 +675,6 @@ export class BubbleFactory {
       LinkedInReceivedInvitationsTool,
       LinkedInAcceptInvitationsTool,
     } = await import('./bubbles/tool-bubble/browser-tools/index.js');
-    const { StripeBubble } = await import(
-      './bubbles/service-bubble/stripe/index.js'
-    );
     const { SendSafelyBubble } = await import(
       './bubbles/service-bubble/sendsafely/index.js'
     );

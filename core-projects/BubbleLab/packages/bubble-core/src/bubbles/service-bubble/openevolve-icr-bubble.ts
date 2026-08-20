@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -110,7 +112,7 @@ const OpenEvolveIcrParamsSchema = z.discriminatedUnion('operation', [
   HealthSchema,
 ]);
 
-type OpenEvolveIcrParams = z.input<typeof OpenEvolveIcrParamsSchema>;
+type OpenEvolveIcrParams = z.input<typeof OpenEvolveIcrParamsSchema> & ServiceBubbleParams;
 
 const OpenEvolveIcrResultSchema = z.object({
   success: z.boolean(),
@@ -121,7 +123,7 @@ const OpenEvolveIcrResultSchema = z.object({
   timing: z.number(),
 });
 
-type OpenEvolveIcrResult = z.output<typeof OpenEvolveIcrResultSchema>;
+type OpenEvolveIcrResult = z.output<typeof OpenEvolveIcrResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveIcrBubble extends ServiceBubble<
   OpenEvolveIcrParams,
@@ -167,6 +169,7 @@ export class OpenEvolveIcrBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveIcrResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
 
     try {
       switch (params.operation) {
@@ -252,8 +255,8 @@ export class OpenEvolveIcrBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -262,7 +265,7 @@ export class OpenEvolveIcrBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: op,
         error: message,
         timing: Date.now() - startTime,
       };
@@ -320,7 +323,7 @@ export class OpenEvolveIcrBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         data,
         error: response.ok
           ? undefined
@@ -335,7 +338,7 @@ export class OpenEvolveIcrBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

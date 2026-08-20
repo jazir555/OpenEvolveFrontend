@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -47,7 +49,7 @@ const GauntletParamsSchema = z.object({
     .optional(),
 });
 
-type GauntletParams = z.input<typeof GauntletParamsSchema>;
+type GauntletParams = z.input<typeof GauntletParamsSchema> & ServiceBubbleParams;
 
 const GauntletResultSchema = z.object({
   success: z.boolean(),
@@ -57,7 +59,7 @@ const GauntletResultSchema = z.object({
   timing: z.number(),
 });
 
-type GauntletResult = z.output<typeof GauntletResultSchema>;
+type GauntletResult = z.output<typeof GauntletResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
   GauntletParams,
@@ -92,7 +94,7 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
   protected async performAction(): Promise<GauntletResult> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (((this.params.operation as string) as string)) {
         case 'run_gauntlet':
           return await this.request('POST', '/api/gauntlets/run', {
             gauntlet_type: this.params.gauntlet_type,
@@ -111,8 +113,8 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
         default:
           return {
             success: false,
-            operation: this.params.operation,
-            error: `Unsupported operation: ${this.params.operation}`,
+            operation: ((this.params.operation as string) as string),
+            error: `Unsupported operation: ${((this.params.operation as string) as string)}`,
             timing: Date.now() - startTime,
           };
       }
@@ -120,7 +122,7 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };
@@ -168,7 +170,7 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         data,
         error: response.ok ? undefined : data?.error || response.statusText,
         timing: Date.now() - startTime,
@@ -178,7 +180,7 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

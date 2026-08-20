@@ -58,6 +58,12 @@ export enum CredentialType {
   MONGODB_CRED = 'mongodb_cred',
   S3_CRED = 's3_cred',
   AWS_CRED = 'aws_cred',
+  ELASTICSEARCH_CRED = 'elasticsearch_cred',
+  GITHUB_CRED = 'github_cred',
+  POSTGRESQL_CRED = 'postgresql_cred',
+  QDRANT_CRED = 'qdrant_cred',
+  SENDGRID_CRED = 'sendgrid_cred',
+  TWILIO_CRED = 'twilio_cred',
 }
 
 /**

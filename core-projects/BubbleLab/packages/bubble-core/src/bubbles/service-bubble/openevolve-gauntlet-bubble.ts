@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -75,7 +77,7 @@ const OpenEvolveGauntletParamsSchema = z.discriminatedUnion('operation', [
   HealthSchema,
 ]);
 
-type OpenEvolveGauntletParams = z.input<typeof OpenEvolveGauntletParamsSchema>;
+type OpenEvolveGauntletParams = z.input<typeof OpenEvolveGauntletParamsSchema> & ServiceBubbleParams;
 
 const OpenEvolveGauntletResultSchema = z.object({
   success: z.boolean(),
@@ -87,7 +89,7 @@ const OpenEvolveGauntletResultSchema = z.object({
   timing: z.number(),
 });
 
-type OpenEvolveGauntletResult = z.output<typeof OpenEvolveGauntletResultSchema>;
+type OpenEvolveGauntletResult = z.output<typeof OpenEvolveGauntletResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveGauntletBubble extends ServiceBubble<
   OpenEvolveGauntletParams,
@@ -125,6 +127,7 @@ export class OpenEvolveGauntletBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveGauntletResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
 
     try {
       switch (params.operation) {
@@ -172,8 +175,8 @@ export class OpenEvolveGauntletBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -182,7 +185,7 @@ export class OpenEvolveGauntletBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: op,
         error: message,
         timing: Date.now() - startTime,
       };
@@ -240,7 +243,7 @@ export class OpenEvolveGauntletBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         gauntlet_id:
           (this.params as any).gauntlet_id ||
           (typeof data === 'object' && data && 'id' in data
@@ -260,7 +263,7 @@ export class OpenEvolveGauntletBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         gauntlet_id: (this.params as any).gauntlet_id,
         error: message,
         timing: Date.now() - startTime,

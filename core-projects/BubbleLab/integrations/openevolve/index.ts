@@ -7,16 +7,22 @@
  * @module openevolve-integrations
  */
 
-import { KnowledgeEngineBubble } from './service-bubbles/knowledge-engine-bubble';
-import { WorkflowOrchestratorBubble } from './service-bubbles/workflow-orchestrator-bubble';
-import { CrewAIBubble } from './service-bubbles/crewai-bubble';
-import { LeanAideBubble } from './service-bubbles/leanaide-bubble';
-import { Z3ProverBubble } from './service-bubbles/z3prover-bubble';
+// OpenEvolve service bubbles are re-exported from the built
+// `@bubblelab/bubble-core` (single canonical source of truth). The integration
+// keeps its own Qdrant/Elasticsearch/PostgreSQL/Redis implementations because
+// bubble-core does not ship openevolve-prefixed versions of those.
+import {
+  OpenEvolveKnowledgeEngineBubble as KnowledgeEngineBubble,
+  OpenEvolveWorkflowOrchestratorBubble as WorkflowOrchestratorBubble,
+  OpenEvolveCrewAIBubble as CrewAIBubble,
+  OpenEvolveLeanAideBubble as LeanAideBubble,
+  OpenEvolveZ3ProverBubble as Z3ProverBubble,
+  OpenEvolveAceToolsBubble as ACEToolsBubble,
+} from '@bubblelab/bubble-core';
 import { QdrantBubble } from './service-bubbles/qdrant-bubble';
 import { ElasticsearchBubble } from './service-bubbles/elasticsearch-bubble';
 import { PostgreSQLBubbleExtended as PostgreSQLBubble } from './service-bubbles/postgresql-bubble';
 import { RedisBubble } from './service-bubbles/redis-bubble';
-import { ACEToolsBubble } from './service-bubbles/ace-tools-bubble';
 import { LogParserTool } from './tool-bubbles/log-parser-tool';
 import { MetricsCollectorTool } from './tool-bubbles/metrics-collector-tool';
 import AntiCorruptionLayer from './adapters/anti-corruption-layer';
@@ -27,14 +33,16 @@ import AntiCorruptionLayer from './adapters/anti-corruption-layer';
 
 export { QdrantBubble } from './service-bubbles/qdrant-bubble';
 export { ElasticsearchBubble } from './service-bubbles/elasticsearch-bubble';
-export { KnowledgeEngineBubble } from './service-bubbles/knowledge-engine-bubble';
-export { WorkflowOrchestratorBubble } from './service-bubbles/workflow-orchestrator-bubble';
-export { CrewAIBubble } from './service-bubbles/crewai-bubble';
-export { LeanAideBubble } from './service-bubbles/leanaide-bubble';
-export { Z3ProverBubble } from './service-bubbles/z3prover-bubble';
 export { PostgreSQLBubbleExtended as PostgreSQLBubble } from './service-bubbles/postgresql-bubble';
 export { RedisBubble } from './service-bubbles/redis-bubble';
-export { ACEToolsBubble } from './service-bubbles/ace-tools-bubble';
+export {
+  OpenEvolveKnowledgeEngineBubble as KnowledgeEngineBubble,
+  OpenEvolveWorkflowOrchestratorBubble as WorkflowOrchestratorBubble,
+  OpenEvolveCrewAIBubble as CrewAIBubble,
+  OpenEvolveLeanAideBubble as LeanAideBubble,
+  OpenEvolveZ3ProverBubble as Z3ProverBubble,
+  OpenEvolveAceToolsBubble as ACEToolsBubble,
+} from '@bubblelab/bubble-core';
 
 // ============================================================================
 // TOOL BUBBLES
@@ -91,7 +99,7 @@ export async function createOpenEvolveIntegration(
 
   const z3prover = new Z3ProverBubble({
     operation: 'health_check',
-    baseUrl: process.env.Z3_API_URL || 'http://localhost:7655',
+    base_url: process.env.Z3_API_URL || 'http://localhost:7655',
     timeout: parseInt(process.env.Z3_TIMEOUT || '60000', 10),
   });
 
@@ -178,7 +186,7 @@ export async function validateIntegration(
     results.knowledgeEngine = {
       status: knowledgeHealth.success,
       error: knowledgeHealth.error,
-      timing: knowledgeHealth.timing,
+      timing: knowledgeHealth.data?.timing,
     };
     if (!knowledgeHealth.success) {
       errors.push(`Knowledge engine: ${knowledgeHealth.error || 'Unknown error'}`);
@@ -196,7 +204,7 @@ export async function validateIntegration(
     results.workflowOrchestrator = {
       status: workflowHealth.success,
       error: workflowHealth.error,
-      timing: workflowHealth.timing,
+      timing: workflowHealth.data?.timing,
     };
     if (!workflowHealth.success) {
       errors.push(`Workflow orchestrator: ${workflowHealth.error || 'Unknown error'}`);
@@ -214,7 +222,7 @@ export async function validateIntegration(
     results.crewai = {
       status: crewaiHealth.success,
       error: crewaiHealth.error,
-      timing: crewaiHealth.timing,
+      timing: crewaiHealth.data?.timing,
     };
     if (!crewaiHealth.success) {
       errors.push(`CrewAI: ${crewaiHealth.error || 'Unknown error'}`);
@@ -232,7 +240,7 @@ export async function validateIntegration(
     results.z3prover = {
       status: z3proverHealth.success,
       error: z3proverHealth.error,
-      timing: z3proverHealth.timing,
+      timing: z3proverHealth.data?.timing,
     };
     if (!z3proverHealth.success) {
       errors.push(`Z3 Prover: ${z3proverHealth.error || 'Unknown error'}`);

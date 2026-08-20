@@ -143,6 +143,16 @@ export enum CredentialType {
 
   // Zoom Credentials
   ZOOM_CRED = 'ZOOM_CRED',
+
+  // OpenEvolve / additional service credentials
+  OAUTH_TOKEN = 'OAUTH_TOKEN',
+  ELASTICSEARCH_CRED = 'ELASTICSEARCH_CRED',
+  GITHUB_CRED = 'GITHUB_CRED',
+  POSTGRESQL_CRED = 'POSTGRESQL_CRED',
+  QDRANT_CRED = 'QDRANT_CRED',
+  REDIS_CRED = 'REDIS_CRED',
+  SENDGRID_CRED = 'SENDGRID_CRED',
+  TWILIO_CRED = 'TWILIO_CRED',
 }
 
 // Define all bubble names as a union type for type safety
@@ -236,4 +246,55 @@ export type BubbleName =
   | 'granola'
   | 'memberful'
   | 'luma'
-  | 'zoom';
+  | 'zoom'
+  | 'ace-tools'
+  | 'elasticsearch'
+  | 'qdrant'
+  | 'redis'
+  | 'sendgrid'
+  | 'twilio'
+  | 'workflow-orchestrator'
+  | 'code-formatter-tool'
+  | 'csv-processor-tool'
+  | 'data-transformer-tool'
+  | 'email-validator-tool'
+  | 'file-processor-tool'
+  | 'image-processor-tool'
+  | 'json-validator-tool'
+  | 'log-parser-tool'
+  | 'metrics-collector-tool'
+  | 'text-analyzer-tool'
+  | 'url-validator-tool'
+  | 'vector-search-tool'
+  | 'xml-parser-tool'
+  | 'api-aggregator-workflow'
+  | 'backup-restore-workflow'
+  | 'data-enrichment-workflow'
+  | 'etl-pipeline-workflow'
+  | 'event-handler-workflow'
+  | 'monitoring-alert-workflow'
+  | 'multi-step-approval-workflow'
+  | 'scheduled-task-workflow'
+  | 'webhook-repeater-workflow'
+  | 'openevolve-ace-tools'
+  | 'openevolve-crewai'
+  | 'openevolve-decomposition'
+  | 'openevolve-decomposition-workflow'
+  | 'openevolve-determinism'
+  | 'openevolve-execution'
+  | 'openevolve-gauntlet'
+  | 'openevolve-gauntlet-testing'
+  | 'openevolve-icr'
+  | 'openevolve-knowledge-engine'
+  | 'openevolve-leanaide'
+  | 'openevolve-settings'
+  | 'openevolve-team'
+  | 'openevolve-workflow'
+  | 'openevolve-workflow-orchestrator'
+  | 'openevolve-z3prover'
+  | 'ragbits-ingest'
+  | 'ragbits-search'
+  | 'ragbits-index'
+  | 'ragbits-generation'
+  | 'crewai-orchestration'
+  | 'crewai-research';

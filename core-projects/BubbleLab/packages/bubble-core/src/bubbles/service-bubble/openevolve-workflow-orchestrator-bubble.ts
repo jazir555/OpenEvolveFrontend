@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import type {
+  BubbleOperationResult,
+  BubbleResult,
+} from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -24,83 +29,104 @@ const WorkflowOperationSchema = z.enum([
   'chain_workflows',
 ]);
 
-const resolveBaseUrl = (): string => {
-  const envUrl =
+const DEFAULT_BASE_URL = 'http://localhost:8000';
+
+/**
+ * Resolve the OpenEvolve server base URL.
+ *
+ * Precedence: explicit `baseUrl` param > env
+ * (`OPENEVOLVE_API_URL` / `OPENEVOLVE_BASE_URL` / `OPENEVOLVE_API_BASE_URL`) >
+ * `http://localhost:8000`. Resolved lazily (per request) so tests can point the
+ * bubble at a live or dead server via env at runtime.
+ */
+const resolveBaseUrl = (explicit?: string): string => {
+  const fromEnv =
     (typeof process !== 'undefined' && process.env
-      ? process.env.OPENEVOLVE_API_URL || process.env.OPENEVOLVE_API_BASE_URL
+      ? process.env.OPENEVOLVE_API_URL ||
+        process.env.OPENEVOLVE_BASE_URL ||
+        process.env.OPENEVOLVE_API_BASE_URL
       : undefined) || '';
-  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
-  return base.replace(/\/$/, '');
+  const base =
+    (explicit && explicit.trim().length > 0 ? explicit : undefined) ||
+    (fromEnv.trim().length > 0 ? fromEnv : undefined) ||
+    DEFAULT_BASE_URL;
+  return base.replace(/\/+$/, '');
 };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const WorkflowParamsSchema = z.object({
   operation: WorkflowOperationSchema,
   system: WorkflowSystemSchema,
 
-  base_url: z.string().url().default(resolveBaseUrl()),
+  baseUrl: z.string().url().optional(),
   timeout: z.number().min(1000).max(300000).default(60000),
   headers: z.record(z.string()).optional(),
-  auth_token: z.string().optional(),
-  auth_header: z.string().default('Authorization'),
+  authToken: z.string().optional(),
+  authHeader: z.string().default('Authorization'),
 
-  workflow_id: z.string().optional(),
-  workflow_name: z.string().optional(),
-  workflow_definition: z.record(z.unknown()).optional(),
+  workflowId: z.string().optional(),
+  workflowName: z.string().optional(),
+  workflowDefinition: z.record(z.unknown()).optional(),
 
-  problem_statement: z.string().optional(),
-  decomposition_strategy: z
+  problemStatement: z.string().optional(),
+  decompositionStrategy: z
     .enum(['hierarchical', 'parallel', 'adaptive'])
     .default('adaptive'),
-  max_depth: z.number().min(1).max(10).default(5),
+  maxDepth: z.number().min(1).max(10).default(5),
 
-  population_size: z.number().min(10).max(1000).default(100),
+  populationSize: z.number().min(1).max(1000).default(100),
   generations: z.number().min(1).max(1000).default(50),
-  mutation_rate: z.number().min(0).max(1).default(0.1),
-  crossover_rate: z.number().min(0).max(1).default(0.8),
-  selection_method: z
+  mutationRate: z.number().min(0).max(1).default(0.1),
+  crossoverRate: z.number().min(0).max(1).default(0.8),
+  selectionMethod: z
     .enum(['tournament', 'roulette', 'rank'])
     .default('tournament'),
-  fitness_function: z.string().optional(),
+  fitnessFunction: z.string().optional(),
 
-  mdap_config: z
+  mdapConfig: z
     .object({
-      enable_mcts: z.boolean().default(true),
-      enable_adversarial: z.boolean().default(true),
-      enable_evolution: z.boolean().default(true),
+      enableMcts: z.boolean().default(true),
+      enableAdversarial: z.boolean().default(true),
+      enableEvolution: z.boolean().default(true),
       iterations: z.number().default(100),
     })
     .optional(),
 
-  maker_config: z.record(z.unknown()).optional(),
-  adaptive_config: z.record(z.unknown()).optional(),
+  makerConfig: z.record(z.unknown()).optional(),
+  adaptiveConfig: z.record(z.unknown()).optional(),
 
-  test_types: z
+  testTypes: z
     .array(z.enum(['red_team', 'blue_team', 'purple_team', 'automated']))
     .default(['automated']),
-  attack_vectors: z.array(z.string()).optional(),
-  defense_mechanisms: z.array(z.string()).optional(),
-  test_duration: z.number().default(300),
+  attackVectors: z.array(z.string()).optional(),
+  defenseMechanisms: z.array(z.string()).optional(),
+  testDuration: z.number().default(300),
 
-  async_execution: z.boolean().default(false),
-  callback_url: z.string().url().optional(),
+  asyncExecution: z.boolean().default(false),
+  callbackUrl: z.string().url().optional(),
   parameters: z.record(z.unknown()).optional(),
 });
 
-type WorkflowParams = z.input<typeof WorkflowParamsSchema>;
+type WorkflowParams = z.input<typeof WorkflowParamsSchema> & ServiceBubbleParams;
 
 const WorkflowResultSchema = z.object({
   success: z.boolean(),
   operation: z.string(),
   system: z.string(),
-  workflow_id: z.string().optional(),
+  workflowId: z.string().optional(),
   status: z.string().optional(),
+  // `result` mirrors GET /api/v1/runs/{run_id}.result (best_score, best_code, metrics, ...)
+  result: z.record(z.unknown()).optional(),
   results: z.record(z.unknown()).optional(),
   metrics: z.record(z.unknown()).optional(),
   error: z.string().optional(),
   timing: z.number(),
 });
 
-type WorkflowResult = z.output<typeof WorkflowResultSchema>;
+type WorkflowResult = z.output<typeof WorkflowResultSchema> &
+  BubbleOperationResult;
 
 export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   WorkflowParams,
@@ -118,6 +144,11 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   static readonly longDescription = `
     Orchestrates OpenEvolve workflows across decomposition, evolutionary search,
     MDAP maker, and adversarial testing systems.
+
+    Targets the OpenEvolve server /api/v1/* contract:
+      - GET  {baseUrl}/api/v1/health                -> health_check
+      - POST {baseUrl}/api/v1/workflows/orchestrate -> start_workflow (returns workflowId)
+      - GET  {baseUrl}/api/v1/runs/{workflowId}     -> get_status / get_results
   `;
   static readonly alias = 'openevolve-workflow-orchestrator';
 
@@ -126,31 +157,63 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   }
 
   protected chooseCredential(): string | undefined {
-    return this.params.auth_token;
+    return this.params.authToken;
   }
 
   public async testCredential(): Promise<boolean> {
     return true;
   }
 
+  /**
+   * Return the operation payload flattened onto the standard bubble envelope so
+   * callers can read `workflowId` / `status` / `result` directly off `action()`
+   * while `data` / `executionId` / `timestamp` remain available.
+   */
+  public async action(): Promise<
+    BubbleResult<WorkflowResult> & WorkflowResult
+  > {
+    const envelope = await super.action();
+    const payload = (envelope.data ?? {}) as WorkflowResult;
+    return {
+      ...envelope,
+      ...payload,
+      data: payload,
+    } as BubbleResult<WorkflowResult> & WorkflowResult;
+  }
+
   protected async performAction(): Promise<WorkflowResult> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (this.params.operation as string) {
         case 'start_workflow':
           return await this.startWorkflow(startTime);
-        case 'stop_workflow':
-          return await this.simpleRequest('POST', `/api/workflows/${this.requireWorkflowId()}/stop`, startTime);
-        case 'pause_workflow':
-          return await this.simpleRequest('POST', `/api/workflows/${this.requireWorkflowId()}/pause`, startTime);
-        case 'resume_workflow':
-          return await this.simpleRequest('POST', `/api/workflows/${this.requireWorkflowId()}/resume`, startTime);
         case 'get_status':
-          return await this.simpleRequest('GET', `/api/workflows/${this.requireWorkflowId()}/status`, startTime);
         case 'get_results':
-          return await this.simpleRequest('GET', `/api/workflows/${this.requireWorkflowId()}/results`, startTime);
+          return await this.simpleRequest(
+            'GET',
+            `/api/v1/runs/${this.requireWorkflowId()}`,
+            startTime
+          );
         case 'health_check':
-          return await this.simpleRequest('GET', '/api/workflows/health', startTime);
+          return await this.simpleRequest('GET', '/api/v1/health', startTime);
+        case 'stop_workflow':
+          return await this.simpleRequest(
+            'POST',
+            `/api/v1/workflows/${this.requireWorkflowId()}/stop`,
+            startTime
+          );
+        case 'pause_workflow':
+          return await this.simpleRequest(
+            'POST',
+            `/api/v1/workflows/${this.requireWorkflowId()}/pause`,
+            startTime
+          );
+        case 'resume_workflow':
+          return await this.simpleRequest(
+            'POST',
+            `/api/v1/workflows/${this.requireWorkflowId()}/resume`,
+            startTime
+          );
         case 'configure':
           return await this.configureWorkflow(startTime);
         case 'batch_execute':
@@ -160,9 +223,9 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
         default:
           return {
             success: false,
-            operation: this.params.operation,
+            operation: this.params.operation as string,
             system: this.params.system,
-            error: `Unsupported operation: ${this.params.operation}`,
+            error: `Unsupported operation: ${this.params.operation as string}`,
             timing: Date.now() - startTime,
           };
       }
@@ -170,7 +233,7 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: this.params.operation as string,
         system: this.params.system,
         error: message,
         timing: Date.now() - startTime,
@@ -179,10 +242,10 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   }
 
   private requireWorkflowId(): string {
-    if (!this.params.workflow_id) {
-      throw new Error('workflow_id is required');
+    if (!this.params.workflowId) {
+      throw new Error('workflowId is required');
     }
-    return this.params.workflow_id;
+    return this.params.workflowId;
   }
 
   private buildHeaders(): Record<string, string> {
@@ -192,11 +255,12 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
     if (this.params.headers) {
       Object.assign(headers, this.params.headers);
     }
-    if (this.params.auth_token) {
-      const headerName = this.params.auth_header || 'Authorization';
-      const token = this.params.auth_token;
+    if (this.params.authToken) {
+      const headerName = this.params.authHeader || 'Authorization';
+      const token = this.params.authToken;
       headers[headerName] =
-        headerName.toLowerCase() === 'authorization' && !token.startsWith('Bearer ')
+        headerName.toLowerCase() === 'authorization' &&
+        !token.startsWith('Bearer ')
           ? `Bearer ${token}`
           : token;
     }
@@ -204,7 +268,7 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   }
 
   private buildUrl(endpoint: string): string {
-    return `${this.params.base_url}${endpoint}`;
+    return `${resolveBaseUrl(this.params.baseUrl)}${endpoint}`;
   }
 
   private async request(
@@ -214,7 +278,10 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
     startTime: number
   ): Promise<WorkflowResult> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      this.params.timeout ?? 60000
+    );
 
     try {
       const response = await fetch(this.buildUrl(endpoint), {
@@ -225,17 +292,39 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
       });
 
       clearTimeout(timeoutId);
-      const data = await response.json().catch(() => ({}));
+      const data = (await response
+        .json()
+        .catch(() => ({}))) as Record<string, unknown>;
+
+      // POST /api/v1/workflows/orchestrate -> { workflowId, status }
+      // GET  /api/v1/runs/{run_id}         -> { run_id, status, result, error }
+      const returnedId =
+        typeof data.workflowId === 'string'
+          ? data.workflowId
+          : typeof data.workflow_id === 'string'
+            ? data.workflow_id
+            : typeof data.run_id === 'string'
+              ? data.run_id
+              : undefined;
+
+      const responseError =
+        typeof data.error === 'string' && data.error.length > 0
+          ? data.error
+          : undefined;
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: this.params.operation as string,
         system: this.params.system,
-        workflow_id: data.workflow_id || this.params.workflow_id,
-        status: data.status,
-        results: data.results,
-        metrics: data.metrics,
-        error: response.ok ? undefined : data.error || response.statusText,
+        workflowId: returnedId ?? this.params.workflowId,
+        status: typeof data.status === 'string' ? data.status : undefined,
+        result: isRecord(data.result) ? data.result : undefined,
+        results: isRecord(data.results) ? data.results : undefined,
+        metrics: isRecord(data.metrics) ? data.metrics : undefined,
+        error: response.ok
+          ? undefined
+          : responseError ||
+            `${response.status} ${response.statusText || 'request failed'}`,
         timing: Date.now() - startTime,
       };
     } catch (error) {
@@ -243,9 +332,10 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: this.params.operation as string,
         system: this.params.system,
-        error: message,
+        workflowId: this.params.workflowId,
+        error: `OpenEvolve request failed (${method} ${endpoint}): ${message}`,
         timing: Date.now() - startTime,
       };
     }
@@ -259,114 +349,67 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
     return this.request(method, endpoint, undefined, startTime);
   }
 
+  /**
+   * POST {baseUrl}/api/v1/workflows/orchestrate
+   *
+   * The server accepts camelCase `system` / `problemStatement` / `generations` /
+   * `populationSize` and replies 202 `{ workflowId, status: 'running' }`.
+   */
   private async startWorkflow(startTime: number): Promise<WorkflowResult> {
-    switch (this.params.system) {
-      case 'decomposition':
-        return this.request(
-          'POST',
-          '/api/workflows/decomposition/start',
-          {
-            problem_statement: this.params.problem_statement,
-            strategy: this.params.decomposition_strategy,
-            max_depth: this.params.max_depth,
-            parameters: {
-              ...this.params.parameters,
-              maker: this.params.maker_config,
-              adaptive: this.params.adaptive_config,
-            },
-            async: this.params.async_execution,
-            callback_url: this.params.callback_url,
-          },
-          startTime
-        );
-      case 'evolutionary':
-        return this.request(
-          'POST',
-          '/api/workflows/evolutionary/start',
-          {
-            population_size: this.params.population_size,
-            generations: this.params.generations,
-            mutation_rate: this.params.mutation_rate,
-            crossover_rate: this.params.crossover_rate,
-            selection_method: this.params.selection_method,
-            fitness_function: this.params.fitness_function,
-            parameters: {
-              ...this.params.parameters,
-              maker: this.params.maker_config,
-              adaptive: this.params.adaptive_config,
-            },
-            async: this.params.async_execution,
-            callback_url: this.params.callback_url,
-          },
-          startTime
-        );
-      case 'mdap_maker':
-        return this.request(
-          'POST',
-          '/api/workflows/mdap/start',
-          {
-            config: this.params.mdap_config,
-            parameters: {
-              ...this.params.parameters,
-              maker: this.params.maker_config,
-              adaptive: this.params.adaptive_config,
-            },
-            async: this.params.async_execution,
-            callback_url: this.params.callback_url,
-          },
-          startTime
-        );
-      case 'adversarial':
-        return this.request(
-          'POST',
-          '/api/workflows/adversarial/start',
-          {
-            test_types: this.params.test_types,
-            attack_vectors: this.params.attack_vectors,
-            defense_mechanisms: this.params.defense_mechanisms,
-            test_duration: this.params.test_duration,
-            parameters: this.params.parameters,
-            async: this.params.async_execution,
-            callback_url: this.params.callback_url,
-          },
-          startTime
-        );
-      default:
-        return {
-          success: false,
-          operation: this.params.operation,
-          system: this.params.system,
-          error: `Unsupported workflow system: ${this.params.system}`,
-          timing: Date.now() - startTime,
-        };
-    }
-  }
-
-  private async configureWorkflow(startTime: number): Promise<WorkflowResult> {
-    if (!this.params.workflow_definition) {
-      throw new Error('workflow_definition is required');
+    if (
+      !this.params.problemStatement ||
+      this.params.problemStatement.trim().length === 0
+    ) {
+      return {
+        success: false,
+        operation: this.params.operation as string,
+        system: this.params.system,
+        error: 'problemStatement is required to start an OpenEvolve workflow',
+        timing: Date.now() - startTime,
+      };
     }
 
     return this.request(
       'POST',
-      '/api/workflows/configure',
+      '/api/v1/workflows/orchestrate',
       {
-        workflow_name: this.params.workflow_name,
-        definition: this.params.workflow_definition,
+        system: this.params.system,
+        problemStatement: this.params.problemStatement,
+        generations: this.params.generations,
+        populationSize: this.params.populationSize,
+        ...(this.params.parameters
+          ? { parameters: this.params.parameters }
+          : {}),
+      },
+      startTime
+    );
+  }
+
+  private async configureWorkflow(startTime: number): Promise<WorkflowResult> {
+    if (!this.params.workflowDefinition) {
+      throw new Error('workflowDefinition is required');
+    }
+
+    return this.request(
+      'POST',
+      '/api/v1/workflows/configure',
+      {
+        workflowName: this.params.workflowName,
+        definition: this.params.workflowDefinition,
       },
       startTime
     );
   }
 
   private async batchExecute(startTime: number): Promise<WorkflowResult> {
-    const workflows = (this.params.workflow_definition as any)?.workflows;
+    const workflows = this.params.workflowDefinition?.workflows;
     if (!Array.isArray(workflows)) {
-      throw new Error('workflow_definition.workflows array is required');
+      throw new Error('workflowDefinition.workflows array is required');
     }
 
     return this.request(
       'POST',
-      '/api/workflows/batch',
+      '/api/v1/workflows/batch',
       {
         workflows,
         parameters: this.params.parameters,
@@ -376,14 +419,14 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   }
 
   private async chainWorkflows(startTime: number): Promise<WorkflowResult> {
-    const chain = (this.params.workflow_definition as any)?.chain;
+    const chain = this.params.workflowDefinition?.chain;
     if (!Array.isArray(chain)) {
-      throw new Error('workflow_definition.chain array is required');
+      throw new Error('workflowDefinition.chain array is required');
     }
 
     return this.request(
       'POST',
-      '/api/workflows/chain',
+      '/api/v1/workflows/chain',
       {
         chain,
         parameters: this.params.parameters,

@@ -20,7 +20,7 @@ function generateUUID(): string {
 // Base interface that all bubble operation results must extend, at individual bubble level
 export interface BubbleOperationResult {
   success: boolean;
-  error: string;
+  error?: string;
 }
 
 // Final bubble execution result

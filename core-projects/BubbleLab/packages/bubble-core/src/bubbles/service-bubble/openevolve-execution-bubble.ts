@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -86,7 +88,7 @@ const OpenEvolveExecutionParamsSchema = z.discriminatedUnion('operation', [
   HealthSchema,
 ]);
 
-type OpenEvolveExecutionParams = z.input<typeof OpenEvolveExecutionParamsSchema>;
+type OpenEvolveExecutionParams = z.input<typeof OpenEvolveExecutionParamsSchema> & ServiceBubbleParams;
 
 const OpenEvolveExecutionResultSchema = z.object({
   success: z.boolean(),
@@ -99,7 +101,7 @@ const OpenEvolveExecutionResultSchema = z.object({
   timing: z.number(),
 });
 
-type OpenEvolveExecutionResult = z.output<typeof OpenEvolveExecutionResultSchema>;
+type OpenEvolveExecutionResult = z.output<typeof OpenEvolveExecutionResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveExecutionBubble extends ServiceBubble<
   OpenEvolveExecutionParams,
@@ -144,6 +146,7 @@ export class OpenEvolveExecutionBubble extends ServiceBubble<
   protected async performAction(): Promise<OpenEvolveExecutionResult> {
     const startTime = Date.now();
     const params = this.params;
+    const op: string = params.operation;
 
     try {
       switch (params.operation) {
@@ -208,8 +211,8 @@ export class OpenEvolveExecutionBubble extends ServiceBubble<
           return {
             success: false,
             status: 400,
-            operation: params.operation,
-            error: `Unsupported operation: ${params.operation}`,
+            operation: op,
+            error: `Unsupported operation: ${op}`,
             timing: Date.now() - startTime,
           };
       }
@@ -218,7 +221,7 @@ export class OpenEvolveExecutionBubble extends ServiceBubble<
       return {
         success: false,
         status: 500,
-        operation: params.operation,
+        operation: op,
         error: message,
         timing: Date.now() - startTime,
       };
@@ -276,7 +279,7 @@ export class OpenEvolveExecutionBubble extends ServiceBubble<
       return {
         success: response.ok,
         status: response.status,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         workflow_id:
           (this.params as any).workflow_id ||
           (typeof data === 'object' && data && 'workflow_id' in data
@@ -301,7 +304,7 @@ export class OpenEvolveExecutionBubble extends ServiceBubble<
       return {
         success: false,
         status: 0,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         execution_id: (this.params as any).execution_id,
         error: message,
         timing: Date.now() - startTime,

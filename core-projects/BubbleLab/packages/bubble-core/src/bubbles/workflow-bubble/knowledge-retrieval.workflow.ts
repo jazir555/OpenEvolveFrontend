@@ -21,8 +21,8 @@ import { WorkflowBubble } from '../../types/workflow-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
 import { HttpBubble } from '../service-bubble/http.js';
-import { CircuitBreaker } from '../../../lib/circuitBreaker.js';
-import { NetworkError, ValidationError } from '../../../lib/errors.js';
+import { CircuitBreaker } from '../../lib/circuitBreaker.js';
+import { NetworkError, ValidationError } from '../../lib/errors.js';
 
 /**
  * Knowledge source configuration

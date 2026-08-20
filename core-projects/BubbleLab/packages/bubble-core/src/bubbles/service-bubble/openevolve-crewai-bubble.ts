@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -55,7 +57,7 @@ const CrewAIParamsSchema = z.object({
   parameters: z.record(z.unknown()).optional(),
 });
 
-type CrewAIParams = z.input<typeof CrewAIParamsSchema>;
+type CrewAIParams = z.input<typeof CrewAIParamsSchema> & ServiceBubbleParams;
 
 const CrewAIResultSchema = z.object({
   success: z.boolean(),
@@ -67,7 +69,7 @@ const CrewAIResultSchema = z.object({
   timing: z.number(),
 });
 
-type CrewAIResult = z.output<typeof CrewAIResultSchema>;
+type CrewAIResult = z.output<typeof CrewAIResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveCrewAIBubble extends ServiceBubble<
   CrewAIParams,
@@ -100,7 +102,7 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
   protected async performAction(): Promise<CrewAIResult> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (((this.params.operation as string) as string)) {
         case 'health_check':
           return await this.request('GET', '/api/crewai/health', undefined, startTime);
         case 'get_capabilities':
@@ -134,8 +136,8 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
         default:
           return {
             success: false,
-            operation: this.params.operation,
-            error: `Unsupported operation: ${this.params.operation}`,
+            operation: ((this.params.operation as string) as string),
+            error: `Unsupported operation: ${((this.params.operation as string) as string)}`,
             timing: Date.now() - startTime,
           };
       }
@@ -143,7 +145,7 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };
@@ -205,7 +207,7 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         workflow_id: data?.workflow_id || this.params.workflow_id,
         status: data?.status,
         data,
@@ -217,7 +219,7 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BubbleOperationResult } from '@bubblelab/shared-schemas';
+import type { ServiceBubbleParams } from '../../types/bubble.js';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import type { BubbleName } from '@bubblelab/shared-schemas';
@@ -56,7 +58,7 @@ const LeanAideParamsSchema = z.object({
   options: z.record(z.unknown()).optional(),
 });
 
-type LeanAideParams = z.input<typeof LeanAideParamsSchema>;
+type LeanAideParams = z.input<typeof LeanAideParamsSchema> & ServiceBubbleParams;
 
 const LeanAideResultSchema = z.object({
   success: z.boolean(),
@@ -66,7 +68,7 @@ const LeanAideResultSchema = z.object({
   timing: z.number(),
 });
 
-type LeanAideResult = z.output<typeof LeanAideResultSchema>;
+type LeanAideResult = z.output<typeof LeanAideResultSchema> & BubbleOperationResult;
 
 export class OpenEvolveLeanAideBubble extends ServiceBubble<
   LeanAideParams,
@@ -99,7 +101,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
   protected async performAction(): Promise<LeanAideResult> {
     const startTime = Date.now();
     try {
-      switch (this.params.operation) {
+      switch (((this.params.operation as string) as string)) {
         case 'health_check':
           return await this.request('GET', '/health', undefined, startTime);
         case 'generate_proof':
@@ -135,7 +137,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
         case 'get_models':
           return {
             success: true,
-            operation: this.params.operation,
+            operation: ((this.params.operation as string) as string),
             data: {
               models: [
                 { provider: 'OpenAI', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
@@ -149,8 +151,8 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
         default:
           return {
             success: false,
-            operation: this.params.operation,
-            error: `Unsupported operation: ${this.params.operation}`,
+            operation: ((this.params.operation as string) as string),
+            error: `Unsupported operation: ${((this.params.operation as string) as string)}`,
             timing: Date.now() - startTime,
           };
       }
@@ -158,7 +160,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };
@@ -168,7 +170,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
   private requireParam(key: 'theorem' | 'code' | 'statement' | 'query'): string {
     const value = (this.params as any)[key];
     if (!value) {
-      throw new Error(`${key} is required for ${this.params.operation}`);
+      throw new Error(`${key} is required for ${((this.params.operation as string) as string)}`);
     }
     return value;
   }
@@ -214,7 +216,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
 
       return {
         success: response.ok,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         data,
         error: response.ok ? undefined : data?.error || response.statusText,
         timing: Date.now() - startTime,
@@ -224,7 +226,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
       const message = error instanceof Error ? error.message : 'Unknown error';
       return {
         success: false,
-        operation: this.params.operation,
+        operation: ((this.params.operation as string) as string),
         error: message,
         timing: Date.now() - startTime,
       };

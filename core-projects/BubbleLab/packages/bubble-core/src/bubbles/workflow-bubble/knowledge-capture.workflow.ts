@@ -22,7 +22,7 @@ import { WorkflowBubble } from '../../types/workflow-bubble-class.js';
 import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
 import { HttpBubble } from '../service-bubble/http.js';
-import { ValidationError } from '../../../lib/errors.js';
+import { ValidationError } from '../../lib/errors.js';
 
 /**
  * Pattern extraction configuration

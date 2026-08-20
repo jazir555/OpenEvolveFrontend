@@ -23,7 +23,7 @@ import type { BubbleContext } from '../../types/bubble.js';
 import { CredentialType, type BubbleName } from '@bubblelab/shared-schemas';
 import { KnowledgeRetrievalWorkflow } from './knowledge-retrieval.workflow.js';
 import { HttpBubble } from '../service-bubble/http.js';
-import { ValidationError } from '../../../lib/errors.js';
+import { ValidationError } from '../../lib/errors.js';
 
 /**
  * Workflow execution configuration
