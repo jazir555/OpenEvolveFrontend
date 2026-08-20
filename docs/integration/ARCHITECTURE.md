@@ -16,12 +16,15 @@ Three moving parts:
    pnpm+turbo monorepo).
 
 The frontend↔backend contract is owned by `openevolve-sdk`, not by the React app.
+`openevolve-sdk` was renamed from `bubblelab-converted`; it is the OpenEvolve TypeScript
+SDK / contract package — the TypeScript types plus the API client that own the
+frontend↔backend contract.
 
 ## Repo layout
 
 | Area | Path | Notes |
 | --- | --- | --- |
-| Backend API | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5497). `__main__` just calls it (line 7670). |
+| Backend API | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5535). `__main__` just calls it (line 7708). |
 | Glue library | `glue/lib/` | 17 root `.ts` modules + `glue/lib/metrics/`. This is the part that typechecks clean. |
 | Glue (out of typecheck) | `glue/orchestration/`, `glue/schemas/`, `glue/adapters/`, `glue/tests/` | See boundary section — partially pulled in via imports. |
 | Canonical contract | `openevolve-sdk/src/lib/openevolveApi.ts`, `openevolve-sdk/src/lib/types.ts` | Source of truth for response shapes. |
@@ -44,7 +47,11 @@ The canonical client is the functional `openevolveApi` object exported from
   `glue/lib` via relative paths (`../../../glue/lib/...`, lines 95–97);
 - sends `X-API-Key` and `X-Correlation-ID`, and enforces an `AbortController` timeout.
 
-Response shapes live in `openevolve-sdk/src/lib/types.ts`. Examples confirmed:
+Response shapes live in `openevolve-sdk/src/lib/types.ts` (canonical contract types;
+client in `openevolve-sdk/src/lib/openevolveApi.ts`). The BubbleLab app mirrors both
+locally: types in `core-projects/BubbleLab/apps/bubble-studio/src/types/openevolve.ts`
+and the matching client in `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts`.
+Examples confirmed:
 `KnowledgeExplorerQueryResponse.history` (line 1126),
 `KnowledgeExplorerHistoryResponse.history` (line 1134),
 `LeanAideTreeListResponse.tree_ids` (line 1157),
@@ -99,6 +106,73 @@ covered. Real builds are per-package:
 - Root `npm run build` only builds `glue/orchestration/workflows` and `glue/orchestration`
   (i.e. code the root typecheck largely skips).
 
+## Decomposition-workflow client surface (DONE)
+
+The adversarial/decomposition workflow is fully wired end-to-end: the canonical SDK client,
+a glue resilience facade, and seven BubbleLab React feature components. All route references
+below were verified against `engines/other/api_server.py`.
+
+### Canonical SDK client — `openevolve-sdk/src/lib/openevolveApi.ts`
+
+The `openevolveApi` object now implements the complete surface, all routed through the same
+`request()` helper (CircuitBreaker + retryWithBackoff + apiLogger) described in the API-contract
+section:
+
+- **Teams CRUD** — `listTeams` (line 333, `GET /teams`), `getTeam` (335, `GET /teams/{name}`),
+  `createTeam` (337, `POST /teams`), `updateTeam` (343, `PUT /teams/{name}`), `deleteTeam`
+  (349, `DELETE /teams/{name}`). Backend: `api_server.py` lines 3014 (list), 3044 (get),
+  3079 (create), 3117 (update), 3161 (delete).
+- **Gauntlets CRUD** — `listGauntlets` (355, `GET /gauntlets`), `getGauntlet` (357),
+  `createGauntlet` (359, `POST /gauntlets`), `updateGauntlet` (365, `PUT /gauntlets/{name}`),
+  `deleteGauntlet` (371, `DELETE /gauntlets/{name}`). Backend: lines 3188 (list), 3218 (get),
+  3254 (create), 3293 (update), 3337 (delete).
+- **Evaluators** — `listEvaluators` (line 949, `GET /evaluators`), `uploadEvaluator`
+  (950, `POST /evaluators`), `deleteEvaluator` (956, `DELETE /evaluators/{id}`). Backend:
+  lines 3364 (list), 3382 (upload), 3405 (delete).
+- **Workflows** — `listWorkflows` (377, `GET /workflows`), `getWorkflow` (379,
+  `GET /workflows/{id}`), `createWorkflow` (381, `POST /workflows`), `pauseWorkflow` (387,
+  `POST /workflows/{id}/pause`), `resumeWorkflow` (393, `POST /workflows/{id}/resume`),
+  `deleteWorkflow` (399, `DELETE /workflows/{id}`), `getWorkflowResults` (405,
+  `GET /workflows/{id}/results`). Backend: `GET /workflows` line 2502, `GET /workflows/{id}`
+  line 2532, `pause` line 2853, `resume` line 2887, `results` line 2921, `delete` line 2981.
+- **Decomposition-plan** — `getWorkflowPlan` (line 429, `GET /workflows/{id}/decomposition-plan`),
+  `updateWorkflowPlan` (964, `PUT /workflows/{id}/decomposition-plan`). Backend: lines 2573
+  (get), 2626 (update).
+- **Broader surface** (also wrapped): Executions, Monitoring, Analytics, Knowledge, CrewAI,
+  LeanAide, Version-Control, Validation, Parameters, Integrated-run. Examples:
+  `getWorkflowTelemetry` → `GET /workflows/{id}/telemetry` (line 2755),
+  `getWorkflowMetrics` → `GET /workflows/metrics` (line 441), `listCrewaiWorkflows` →
+  `GET /crewai/workflows` (line 483), `GET /workflows/{id}/resource-usage` (line 2809),
+  `POST /workflows/{id}/resource-optimization` (line 2829).
+
+### Glue facade — `glue/lib/decomposition-workflow.ts` (DONE)
+
+A self-contained, resilient client that wraps the same routes so the glue resilience library
+can drive the workflow directly. It imports `CircuitBreaker` (line 18), `retryWithBackoff`
+(line 19), and `apiLogger` (line 20) from `glue/lib`; constructs a `CircuitBreaker` named
+`openevolve-decomposition-workflow` (line 426); logs each request via `apiLogger` (line 465);
+retries failures with `retryWithBackoff` (line 507); and rejects fast when the breaker is open
+(lines 511–512). The resilient `DecompositionWorkflowClient` is exported from the module
+(circuit-breaker field at line 418).
+
+### BubbleLab UI components (DONE)
+
+Seven React feature components live under
+`core-projects/BubbleLab/apps/bubble-studio/src/components/`:
+
+| Feature | Directory | Primary component |
+| --- | --- | --- |
+| Team Manager | `teams/` | `TeamManager.tsx` |
+| Gauntlet Designer | `gauntlets/` | `GauntletDesigner.tsx` |
+| Workflow Orchestrator | `workflows/` | `WorkflowOrchestrator.tsx` |
+| Decomposition / Manual Review | `decomposition/` | `SubProblemCard.tsx` |
+| Real-time Monitoring | `monitoring/` | `MonitoringView.tsx` |
+| Analytics Dashboard | `analytics/` | (dashboard view in `analytics/`) |
+| Knowledge Base Interface | `knowledge/` | `KnowledgeBase.tsx` |
+
+They consume the BubbleLab app client (`@/services/openevolveApi`) and types
+(`@/types/openevolve`), which mirror the canonical SDK surface above.
+
 ## Known integration shims
 
 Both exist to accommodate the divergent bubble-studio client and are intentional
@@ -126,18 +200,25 @@ tech debt, not architecture.
 
 ## Open items
 
-- **Duplicate API clients.** `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts`
-  is a second, divergent client: it uses `ApiClient` from `@/lib/api`,
-  `OPENEVOLVE_API_BASE_URL` from `@/env`, `/api/...` prefixed paths, and its **own local
-  types** (`WorkflowResponse`, `ExecutionResponse`, `ExecutionStatus`, `TeamResponse`, …)
-  that duplicate `openevolve-sdk/src/lib/types.ts`. It targets `/api/executions`,
-  which is exactly what keeps both shims alive. Consolidating on the canonical client
-  would let both shims be deleted. **Mitigated**: BubbleLab client now has `listExecutions`
-  + `getExecution` methods and aligned `ExecutionResponse` fields (`name`, `real_engine`,
-  `real_engine_available`, `best_score`, `result_summary`).
-- **Port standardized to 8000.** BubbleLab `env.ts` and `api-client.ts` now default to
+- **Duplicate API clients — MITIGATED.** `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts`
+  is still a second client: it uses `ApiClient` from `@/lib/api`, `OPENEVOLVE_API_BASE_URL`
+  from `@/env`, `/api/...` prefixed paths, and its **own local types** in
+  `src/types/openevolve.ts` (`WorkflowResponse`, `ExecutionResponse`, `ExecutionStatus`,
+  `TeamResponse`, …). But it now **mirrors the canonical SDK surface** end-to-end rather than
+  diverging: `createTeam`/`listTeams` (lines 636/650), `createGauntlet`/`listGauntlets`
+  (776/790), `uploadEvaluator` (941), `createWorkflow`/`listWorkflows`/`pauseWorkflow`/
+  `resumeWorkflow` (396/412/1028/1047), plus `listExecutions`/`getExecution` (546/535). Its
+  local types shadow `openevolve-sdk/src/lib/types.ts`, so the two clients stay in lockstep and
+  the duplicate-client debt no longer blocks deletion of the `/api` shims. The `/api` prefix is
+  still rewritten by middleware (see Known integration shims), and the BubbleLab app still ships
+  its own local types — consolidation onto the canonical client remains possible but is no
+  longer urgent.
+- **Package rename — DONE.** `bubblelab-converted` was renamed to `openevolve-sdk` (the
+  OpenEvolve TypeScript SDK / contract package). All references in this doc now use
+  `openevolve-sdk`.
+- **Port standardized to 8000 — DONE.** BubbleLab `env.ts` and `api-client.ts` default to
   `http://localhost:8000`, matching contract tests and the dev runtime. Backend `start_api_server`
-  still defaults to 8001 — callers should pass `port=8000` explicitly.
+  still defaults to 8001 (line 5535) — callers pass `port=8000` explicitly.
 - **Excluded glue subpackages** (`unified-knowledge-query`, `evolved-code-capture`,
   `proof-knowledge-base`) are unverified by any typecheck. Same for
   `glue/orchestration/workflow-system` (directory exists, outside root scope).

@@ -19,6 +19,83 @@ import type {
   EvolutionParameters,
   AdversarialParameters,
   SovereignParameters,
+  Team,
+  TeamSummary,
+  GauntletDefinition,
+  GauntletSummary,
+  WorkflowSummary,
+  WorkflowDetail,
+  WorkflowCreateRequest,
+  WorkflowCreateResponse,
+  WorkflowResults,
+  WorkflowPlanResponse,
+  WorkflowPlanUpdateRequest,
+  EvaluatorListResponse,
+  EvaluatorUploadResponse,
+  ExecutionRecord,
+  ExecutionListResponse,
+  ExecutionCreateRequest,
+  StatisticsSummary,
+  PerformanceMetric,
+  AnalyticsWorkflowMetric,
+  AnalyticsKnowledgeStats,
+  MonitoringDashboardMetrics,
+  MonitoringAlert,
+  MonitoringMetric,
+  MonitoringService,
+  MonitoringLogEntry,
+  KnowledgeArtifact,
+  KnowledgeGraph,
+  KnowledgeStats,
+  KnowledgeRecommendations,
+  CrewAIWorkflowSummary,
+  CrewAIWorkflowTicket,
+  LeanAideStatusResponse,
+  LeanAideExecuteResponse,
+  LeanAideTreeListResponse,
+  LeanAideTreeResponse,
+  LeanAideProofListResponse,
+  LeanAideProofResponse,
+  VersionEntry,
+  VersionCompareResult,
+  ValidationRule,
+  ValidationRunResult,
+  ComplianceCheckResult,
+  ParameterDefinition,
+  ParameterValidationResult,
+  IntegratedWorkflowRequest,
+} from '@/types/openevolve';
+
+// Re-export the canonical decomposition/adversarial types so UI components can
+// import both the client and its contract from a single module.
+export type {
+  ModelConfig,
+  Team,
+  TeamRole,
+  TeamType,
+  TeamSummary,
+  GauntletDefinition,
+  GauntletSummary,
+  GauntletRoundRule,
+  GauntletType,
+  GenerationMode,
+  CollaborationMode,
+  VotingStrategy,
+  WorkflowSummary,
+  WorkflowDetail,
+  WorkflowCreateRequest,
+  WorkflowCreateResponse,
+  WorkflowResults,
+  WorkflowSubProblem,
+  WorkflowDecompositionPlan,
+  WorkflowDependencyGraph,
+  WorkflowPlanResponse,
+  WorkflowPlanUpdateRequest,
+  EvaluatorListResponse,
+  EvaluatorUploadResponse,
+  ExecutionRecord,
+  ExecutionListResponse,
+  ExecutionCreateRequest,
 } from '@/types/openevolve';
 
 // Create ApiClient with retry and timeout configuration
@@ -597,6 +674,100 @@ export const openevolveApi = {
     );
   },
 
+  // ==================== Teams (canonical decomposition surface) ====================
+  //
+  // The three methods above (`createTeam` / `listTeams` / `getTeam`) model the
+  // legacy `openevolve-api` microservice shapes. The methods below mirror the
+  // canonical SDK and the current FastAPI backend (`GET/POST/PUT/DELETE /teams`).
+
+  /**
+   * List teams as canonical summaries (`GET /teams`).
+   */
+  listTeamSummaries: async (): Promise<{ teams: TeamSummary[]; total: number }> => {
+    logger.debug({
+      msg: 'Listing team summaries',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ teams: TeamSummary[]; total: number }>('/api/teams');
+  },
+
+  /**
+   * Get a full team definition by name (`GET /teams/{team_name}`).
+   *
+   * NOTE: the backend projects each member down to
+   * `{ model_id, temperature, max_tokens }`, so `api_key` and the other
+   * `ModelConfig` fields are absent on responses even though the canonical
+   * `Team` type declares them for request bodies.
+   */
+  getTeamDefinition: async (teamName: string): Promise<Team> => {
+    logger.debug({
+      msg: 'Getting team definition',
+      component: 'openevolveApi',
+      team_name: teamName,
+    });
+
+    return openevolveApiClient.get<Team>(`/api/teams/${encodeURIComponent(teamName)}`);
+  },
+
+  /**
+   * Create a team from a canonical `Team` definition (`POST /teams`).
+   */
+  createTeamDefinition: async (
+    team: Team
+  ): Promise<{ message: string; team_name: string }> => {
+    logger.debug({
+      msg: 'Creating team definition',
+      component: 'openevolveApi',
+      name: team.name,
+      role: team.role,
+      member_count: team.members.length,
+    });
+
+    return openevolveApiClient.post<{ message: string; team_name: string }>(
+      '/api/teams',
+      team
+    );
+  },
+
+  /**
+   * Update an existing team (`PUT /teams/{team_name}`).
+   */
+  updateTeam: async (
+    teamName: string,
+    team: Team
+  ): Promise<{ message: string; team_name: string }> => {
+    logger.debug({
+      msg: 'Updating team',
+      component: 'openevolveApi',
+      team_name: teamName,
+      member_count: team.members.length,
+    });
+
+    return openevolveApiClient.put<{ message: string; team_name: string }>(
+      `/api/teams/${encodeURIComponent(teamName)}`,
+      team
+    );
+  },
+
+  /**
+   * Delete a team (`DELETE /teams/{team_name}`, requires ADMIN role).
+   *
+   * NOTE: the backend returns `{ message, team_name }`; the canonical SDK still
+   * declares `{ success: boolean }` for this route (stale).
+   */
+  deleteTeam: async (teamName: string): Promise<{ message: string; team_name: string }> => {
+    logger.info({
+      msg: 'Deleting team',
+      component: 'openevolveApi',
+      team_name: teamName,
+    });
+
+    return openevolveApiClient.delete<{ message: string; team_name: string }>(
+      `/api/teams/${encodeURIComponent(teamName)}`
+    );
+  },
+
   // ==================== Gauntlets ====================
 
   /**
@@ -643,6 +814,347 @@ export const openevolveApi = {
     return openevolveApiClient.get<GauntletResponse>(
       `/api/gauntlets/${encodeURIComponent(gauntletId)}`
     );
+  },
+
+  // ============ Gauntlets (canonical adversarial surface) ============
+  //
+  // As with teams, `createGauntlet` / `listGauntlets` / `getGauntlet` above use
+  // the legacy microservice shapes. The methods below mirror the canonical SDK
+  // and the current FastAPI backend (`GET/POST/PUT/DELETE /gauntlets`).
+
+  /**
+   * List gauntlets as canonical summaries (`GET /gauntlets`).
+   */
+  listGauntletSummaries: async (): Promise<{
+    gauntlets: GauntletSummary[];
+    total: number;
+  }> => {
+    logger.debug({
+      msg: 'Listing gauntlet summaries',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ gauntlets: GauntletSummary[]; total: number }>(
+      '/api/gauntlets'
+    );
+  },
+
+  /**
+   * Get a full gauntlet definition by name (`GET /gauntlets/{gauntlet_name}`).
+   *
+   * NOTE: the backend projects each round down to
+   * `{ round_number, quorum_required_approvals, quorum_from_panel_size, min_overall_confidence }`,
+   * so the remaining `GauntletRoundRule` fields are absent on responses even
+   * though the canonical type declares them for request bodies.
+   */
+  getGauntletDefinition: async (gauntletName: string): Promise<GauntletDefinition> => {
+    logger.debug({
+      msg: 'Getting gauntlet definition',
+      component: 'openevolveApi',
+      gauntlet_name: gauntletName,
+    });
+
+    return openevolveApiClient.get<GauntletDefinition>(
+      `/api/gauntlets/${encodeURIComponent(gauntletName)}`
+    );
+  },
+
+  /**
+   * Create a gauntlet from a canonical definition (`POST /gauntlets`).
+   */
+  createGauntletDefinition: async (
+    gauntlet: GauntletDefinition
+  ): Promise<{ message: string; gauntlet_name: string }> => {
+    logger.debug({
+      msg: 'Creating gauntlet definition',
+      component: 'openevolveApi',
+      name: gauntlet.name,
+      team_name: gauntlet.team_name,
+      rounds_count: gauntlet.rounds.length,
+    });
+
+    return openevolveApiClient.post<{ message: string; gauntlet_name: string }>(
+      '/api/gauntlets',
+      gauntlet
+    );
+  },
+
+  /**
+   * Update an existing gauntlet (`PUT /gauntlets/{gauntlet_name}`).
+   */
+  updateGauntlet: async (
+    gauntletName: string,
+    gauntlet: GauntletDefinition
+  ): Promise<{ message: string; gauntlet_name: string }> => {
+    logger.debug({
+      msg: 'Updating gauntlet',
+      component: 'openevolveApi',
+      gauntlet_name: gauntletName,
+      rounds_count: gauntlet.rounds.length,
+    });
+
+    return openevolveApiClient.put<{ message: string; gauntlet_name: string }>(
+      `/api/gauntlets/${encodeURIComponent(gauntletName)}`,
+      gauntlet
+    );
+  },
+
+  /**
+   * Delete a gauntlet (`DELETE /gauntlets/{gauntlet_name}`, requires ADMIN role).
+   *
+   * NOTE: the backend returns `{ message, gauntlet_name }`; the canonical SDK
+   * still declares `{ success: boolean }` for this route (stale).
+   */
+  deleteGauntlet: async (
+    gauntletName: string
+  ): Promise<{ message: string; gauntlet_name: string }> => {
+    logger.info({
+      msg: 'Deleting gauntlet',
+      component: 'openevolveApi',
+      gauntlet_name: gauntletName,
+    });
+
+    return openevolveApiClient.delete<{ message: string; gauntlet_name: string }>(
+      `/api/gauntlets/${encodeURIComponent(gauntletName)}`
+    );
+  },
+
+  // ==================== Evaluators ====================
+
+  /**
+   * List custom evaluators (`GET /evaluators`).
+   *
+   * Returns a map of evaluator id -> evaluator source code.
+   */
+  listEvaluators: async (): Promise<EvaluatorListResponse> => {
+    logger.debug({
+      msg: 'Listing evaluators',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<EvaluatorListResponse>('/api/evaluators');
+  },
+
+  /**
+   * Upload a custom evaluator (`POST /evaluators`).
+   */
+  uploadEvaluator: async (payload: { code: string }): Promise<EvaluatorUploadResponse> => {
+    logger.info({
+      msg: 'Uploading evaluator',
+      component: 'openevolveApi',
+      code_length: payload.code.length,
+    });
+
+    return openevolveApiClient.post<EvaluatorUploadResponse>('/api/evaluators', payload);
+  },
+
+  /**
+   * Delete a custom evaluator (`DELETE /evaluators/{evaluator_id}`, requires ADMIN role).
+   */
+  deleteEvaluator: async (
+    evaluatorId: string
+  ): Promise<{ success: boolean; evaluator_id: string }> => {
+    logger.info({
+      msg: 'Deleting evaluator',
+      component: 'openevolveApi',
+      evaluator_id: evaluatorId,
+    });
+
+    return openevolveApiClient.delete<{ success: boolean; evaluator_id: string }>(
+      `/api/evaluators/${encodeURIComponent(evaluatorId)}`
+    );
+  },
+
+  // ============ Decomposition Workflows (canonical surface) ============
+  //
+  // `createWorkflow` / `listWorkflows` / `getWorkflow` / `updateWorkflow` /
+  // `deleteWorkflow` above use the legacy microservice shapes (and normalize
+  // `workflow_id` -> `id`). The methods below mirror the canonical SDK and the
+  // current FastAPI decomposition workflow routes.
+
+  /**
+   * List workflows as canonical summaries (`GET /workflows`).
+   */
+  listWorkflowSummaries: async (): Promise<{
+    workflows: WorkflowSummary[];
+    total: number;
+  }> => {
+    logger.debug({
+      msg: 'Listing workflow summaries',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ workflows: WorkflowSummary[]; total: number }>(
+      '/api/workflows'
+    );
+  },
+
+  /**
+   * Get canonical workflow detail (`GET /workflows/{workflow_id}`).
+   */
+  getWorkflowDetail: async (workflowId: string): Promise<WorkflowDetail> => {
+    logger.debug({
+      msg: 'Getting workflow detail',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<WorkflowDetail>(
+      `/api/workflows/${encodeURIComponent(workflowId)}`
+    );
+  },
+
+  /**
+   * Create a decomposition workflow (`POST /workflows`).
+   *
+   * Requires all five team names and all five gauntlet names to already exist.
+   */
+  createDecompositionWorkflow: async (
+    payload: WorkflowCreateRequest
+  ): Promise<WorkflowCreateResponse> => {
+    logger.info({
+      msg: 'Creating decomposition workflow',
+      component: 'openevolveApi',
+      problem_statement_length: payload.problem_statement.length,
+      solver_team: payload.solver_team,
+    });
+
+    return openevolveApiClient.post<WorkflowCreateResponse>('/api/workflows', payload);
+  },
+
+  /**
+   * Pause a running workflow (`POST /workflows/{workflow_id}/pause`).
+   */
+  pauseWorkflow: async (
+    workflowId: string
+  ): Promise<{ message: string; workflow_id: string; status: string }> => {
+    logger.info({
+      msg: 'Pausing workflow',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.post<{
+      message: string;
+      workflow_id: string;
+      status: string;
+    }>(`/api/workflows/${encodeURIComponent(workflowId)}/pause`, {});
+  },
+
+  /**
+   * Resume a paused workflow (`POST /workflows/{workflow_id}/resume`).
+   */
+  resumeWorkflow: async (
+    workflowId: string
+  ): Promise<{ message: string; workflow_id: string; status: string }> => {
+    logger.info({
+      msg: 'Resuming workflow',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.post<{
+      message: string;
+      workflow_id: string;
+      status: string;
+    }>(`/api/workflows/${encodeURIComponent(workflowId)}/resume`, {});
+  },
+
+  /**
+   * Get final and per-sub-problem results (`GET /workflows/{workflow_id}/results`).
+   */
+  getWorkflowResults: async (workflowId: string): Promise<WorkflowResults> => {
+    logger.debug({
+      msg: 'Getting workflow results',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<WorkflowResults>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/results`
+    );
+  },
+
+  /**
+   * Get the decomposition plan and dependency graph
+   * (`GET /workflows/{workflow_id}/decomposition-plan`).
+   */
+  getWorkflowPlan: async (workflowId: string): Promise<WorkflowPlanResponse> => {
+    logger.debug({
+      msg: 'Getting workflow decomposition plan',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<WorkflowPlanResponse>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`
+    );
+  },
+
+  /**
+   * Update the decomposition plan / sub-problems
+   * (`PUT /workflows/{workflow_id}/decomposition-plan`).
+   *
+   * NOTE: the backend responds with `{ message, execution_order }` (the freshly
+   * computed topological order), not the full plan. Re-fetch via
+   * `getWorkflowPlan` if the updated plan is needed.
+   */
+  updateWorkflowPlan: async (
+    workflowId: string,
+    payload: WorkflowPlanUpdateRequest
+  ): Promise<{ message: string; execution_order: string[] }> => {
+    logger.info({
+      msg: 'Updating workflow decomposition plan',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+      sub_problem_count: payload.sub_problems.length,
+    });
+
+    return openevolveApiClient.put<{ message: string; execution_order: string[] }>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
+      payload
+    );
+  },
+
+  // ============ Execution Records (canonical surface) ============
+
+  /**
+   * Create an execution record directly (`POST /executions`).
+   *
+   * Lower-level counterpart to `executeWorkflow`: returns the raw
+   * `ExecutionRecord` (with `id`) instead of the normalized `ExecutionResponse`.
+   */
+  createExecution: async (payload: ExecutionCreateRequest): Promise<ExecutionRecord> => {
+    logger.info({
+      msg: 'Creating execution record',
+      component: 'openevolveApi',
+      workflow_id: payload.workflow_id,
+    });
+
+    return openevolveApiClient.post<ExecutionRecord>('/api/executions', payload);
+  },
+
+  /**
+   * List raw execution records (`GET /executions`).
+   *
+   * Canonical counterpart to `listExecutions`, which normalizes records into
+   * `ExecutionResponse`.
+   */
+  listExecutionRecords: async (params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<ExecutionListResponse> => {
+    const search = new URLSearchParams();
+    if (params?.limit !== undefined) search.set('limit', String(params.limit));
+    if (params?.offset !== undefined) search.set('offset', String(params.offset));
+    const suffix = search.toString() ? `?${search.toString()}` : '';
+
+    logger.debug({
+      msg: 'Listing execution records',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<ExecutionListResponse>(`/api/executions${suffix}`);
   },
 
   // ==================== BubbleLabs Control Plane ====================
@@ -864,6 +1376,842 @@ export const openevolveApi = {
     return openevolveApiClient.delete(
       `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}`
     );
+  },
+
+  // ==================== Monitoring ====================
+
+  /**
+   * Get the monitoring dashboard snapshot (`GET /monitoring/dashboard`).
+   */
+  getMonitoringDashboard: async (): Promise<MonitoringDashboardMetrics> => {
+    logger.debug({
+      msg: 'Getting monitoring dashboard',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<MonitoringDashboardMetrics>('/api/monitoring/dashboard');
+  },
+
+  /**
+   * Get active monitoring alerts (`GET /monitoring/alerts`).
+   */
+  getMonitoringAlerts: async (): Promise<{ alerts: MonitoringAlert[] }> => {
+    logger.debug({
+      msg: 'Getting monitoring alerts',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ alerts: MonitoringAlert[] }>('/api/monitoring/alerts');
+  },
+
+  /**
+   * Get monitored service health (`GET /monitoring/services`).
+   */
+  getMonitoringServices: async (): Promise<{
+    services: MonitoringService[];
+    timestamp?: string;
+  }> => {
+    logger.debug({
+      msg: 'Getting monitoring services',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{
+      services: MonitoringService[];
+      timestamp?: string;
+    }>('/api/monitoring/services');
+  },
+
+  /**
+   * Get monitoring logs (`GET /monitoring/logs`).
+   */
+  getMonitoringLogs: async (
+    limit = 200,
+    source?: string
+  ): Promise<{ entries: MonitoringLogEntry[]; total: number }> => {
+    const search = new URLSearchParams();
+    if (limit) search.set('limit', String(limit));
+    if (source) search.set('source', source);
+    const suffix = search.toString() ? `?${search.toString()}` : '';
+
+    logger.debug({
+      msg: 'Getting monitoring logs',
+      component: 'openevolveApi',
+      limit,
+      source,
+    });
+
+    return openevolveApiClient.get<{ entries: MonitoringLogEntry[]; total: number }>(
+      `/api/monitoring/logs${suffix}`
+    );
+  },
+
+  /**
+   * Query monitoring metrics (`GET /monitoring/metrics`).
+   */
+  getMonitoringMetrics: async (params: {
+    name?: string;
+    start_time?: string;
+    end_time?: string;
+  }): Promise<{ metrics: MonitoringMetric[] }> => {
+    const search = new URLSearchParams();
+    if (params.name) search.set('name', params.name);
+    if (params.start_time) search.set('start_time', params.start_time);
+    if (params.end_time) search.set('end_time', params.end_time);
+    const suffix = search.toString() ? `?${search.toString()}` : '';
+
+    logger.debug({
+      msg: 'Getting monitoring metrics',
+      component: 'openevolveApi',
+      name: params.name,
+    });
+
+    return openevolveApiClient.get<{ metrics: MonitoringMetric[] }>(
+      `/api/monitoring/metrics${suffix}`
+    );
+  },
+
+  /**
+   * Get raw monitoring health (`GET /monitoring/health`).
+   */
+  getMonitoringHealth: async (): Promise<Record<string, unknown>> => {
+    logger.debug({
+      msg: 'Getting monitoring health',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<Record<string, unknown>>('/api/monitoring/health');
+  },
+
+  // ==================== Analytics ====================
+
+  /**
+   * Get aggregate statistics (`GET /statistics`).
+   */
+  getStatistics: async (): Promise<StatisticsSummary> => {
+    logger.debug({
+      msg: 'Getting statistics',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<StatisticsSummary>('/api/statistics');
+  },
+
+  /**
+   * Get performance metrics (`GET /analytics/performance-metrics`).
+   */
+  getPerformanceMetrics: async (
+    entityType?: string,
+    limit = 200
+  ): Promise<{ metrics: PerformanceMetric[]; total: number }> => {
+    const search = new URLSearchParams();
+    if (entityType) search.set('entity_type', entityType);
+    if (limit) search.set('limit', String(limit));
+    const suffix = search.toString() ? `?${search.toString()}` : '';
+
+    logger.debug({
+      msg: 'Getting performance metrics',
+      component: 'openevolveApi',
+      entity_type: entityType,
+      limit,
+    });
+
+    return openevolveApiClient.get<{ metrics: PerformanceMetric[]; total: number }>(
+      `/api/analytics/performance-metrics${suffix}`
+    );
+  },
+
+  /**
+   * Get knowledge analytics stats (`GET /analytics/knowledge-stats`).
+   */
+  getAnalyticsKnowledgeStats: async (): Promise<AnalyticsKnowledgeStats> => {
+    logger.debug({
+      msg: 'Getting analytics knowledge stats',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<AnalyticsKnowledgeStats>('/api/analytics/knowledge-stats');
+  },
+
+  /**
+   * Get workflow analytics metrics (`GET /analytics/workflow-metrics`).
+   */
+  getWorkflowMetrics: async (): Promise<{
+    metrics: AnalyticsWorkflowMetric[];
+    total: number;
+  }> => {
+    logger.debug({
+      msg: 'Getting workflow metrics',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{
+      metrics: AnalyticsWorkflowMetric[];
+      total: number;
+    }>('/api/analytics/workflow-metrics');
+  },
+
+  // ==================== Knowledge Base ====================
+
+  /**
+   * List knowledge artifacts (`GET /knowledge/artifacts`).
+   */
+  listKnowledgeArtifacts: async (): Promise<{ artifacts: KnowledgeArtifact[] }> => {
+    logger.debug({
+      msg: 'Listing knowledge artifacts',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ artifacts: KnowledgeArtifact[] }>('/api/knowledge/artifacts');
+  },
+
+  /**
+   * Get a single knowledge artifact (`GET /knowledge/artifacts/{artifact_id}`).
+   */
+  getKnowledgeArtifact: async (artifactId: string): Promise<KnowledgeArtifact> => {
+    logger.debug({
+      msg: 'Getting knowledge artifact',
+      component: 'openevolveApi',
+      artifact_id: artifactId,
+    });
+
+    return openevolveApiClient.get<KnowledgeArtifact>(
+      `/api/knowledge/artifacts/${encodeURIComponent(artifactId)}`
+    );
+  },
+
+  /**
+   * Create a knowledge artifact (`POST /knowledge/artifacts`).
+   */
+  createKnowledgeArtifact: async (
+    payload: Record<string, unknown>
+  ): Promise<KnowledgeArtifact> => {
+    logger.info({
+      msg: 'Creating knowledge artifact',
+      component: 'openevolveApi',
+      artifact_type: payload.artifact_type,
+    });
+
+    return openevolveApiClient.post<KnowledgeArtifact>('/api/knowledge/artifacts', payload);
+  },
+
+  /**
+   * Delete a knowledge artifact (`DELETE /knowledge/artifacts/{artifact_id}`).
+   */
+  deleteKnowledgeArtifact: async (
+    artifactId: string
+  ): Promise<{ success: boolean }> => {
+    logger.info({
+      msg: 'Deleting knowledge artifact',
+      component: 'openevolveApi',
+      artifact_id: artifactId,
+    });
+
+    return openevolveApiClient.delete<{ success: boolean }>(
+      `/api/knowledge/artifacts/${encodeURIComponent(artifactId)}`
+    );
+  },
+
+  /**
+   * Search knowledge base (`POST /knowledge/search`).
+   */
+  searchKnowledge: async (
+    payload: Record<string, unknown>
+  ): Promise<{ results: KnowledgeArtifact[] }> => {
+    logger.debug({
+      msg: 'Searching knowledge',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.post<{ results: KnowledgeArtifact[] }>(
+      '/api/knowledge/search',
+      payload
+    );
+  },
+
+  /**
+   * Get the knowledge graph (`GET /knowledge/graph`).
+   */
+  getKnowledgeGraph: async (): Promise<KnowledgeGraph> => {
+    logger.debug({
+      msg: 'Getting knowledge graph',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<KnowledgeGraph>('/api/knowledge/graph');
+  },
+
+  /**
+   * Get knowledge base stats (`GET /knowledge/stats`).
+   */
+  getKnowledgeStats: async (): Promise<KnowledgeStats> => {
+    logger.debug({
+      msg: 'Getting knowledge stats',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<KnowledgeStats>('/api/knowledge/stats');
+  },
+
+  /**
+   * Get knowledge recommendations (`POST /knowledge/recommendations`).
+   */
+  getKnowledgeRecommendations: async (
+    payload: Record<string, unknown>
+  ): Promise<KnowledgeRecommendations> => {
+    logger.debug({
+      msg: 'Getting knowledge recommendations',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.post<KnowledgeRecommendations>(
+      '/api/knowledge/recommendations',
+      payload
+    );
+  },
+
+  /**
+   * Export the knowledge base (`GET /knowledge/export`).
+   */
+  exportKnowledgeBase: async (): Promise<Record<string, unknown>> => {
+    logger.info({
+      msg: 'Exporting knowledge base',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<Record<string, unknown>>('/api/knowledge/export');
+  },
+
+  /**
+   * Import the knowledge base (`POST /knowledge/import`).
+   */
+  importKnowledgeBase: async (
+    payload: Record<string, unknown>
+  ): Promise<{ success: boolean }> => {
+    logger.info({
+      msg: 'Importing knowledge base',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.post<{ success: boolean }>('/api/knowledge/import', payload);
+  },
+
+  // ==================== CrewAI ====================
+
+  /**
+   * List CrewAI workflows (`GET /crewai/workflows`).
+   */
+  listCrewaiWorkflows: async (): Promise<{
+    workflows: CrewAIWorkflowSummary[];
+    total: number;
+  }> => {
+    logger.debug({
+      msg: 'Listing CrewAI workflows',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{
+      workflows: CrewAIWorkflowSummary[];
+      total: number;
+    }>('/api/crewai/workflows');
+  },
+
+  /**
+   * Get a CrewAI workflow (`GET /crewai/workflows/{workflow_id}`).
+   */
+  getCrewaiWorkflow: async (workflowId: string): Promise<Record<string, unknown>> => {
+    logger.debug({
+      msg: 'Getting CrewAI workflow',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<Record<string, unknown>>(
+      `/api/crewai/workflows/${encodeURIComponent(workflowId)}`
+    );
+  },
+
+  /**
+   * Get CrewAI workflow tickets (`GET /crewai/workflows/{workflow_id}/tickets`).
+   */
+  getCrewaiWorkflowTickets: async (
+    workflowId: string
+  ): Promise<{
+    tickets: CrewAIWorkflowTicket[];
+    total: number;
+    status_breakdown?: Record<string, number>;
+  }> => {
+    logger.debug({
+      msg: 'Getting CrewAI workflow tickets',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<{
+      tickets: CrewAIWorkflowTicket[];
+      total: number;
+      status_breakdown?: Record<string, number>;
+    }>(`/api/crewai/workflows/${encodeURIComponent(workflowId)}/tickets`);
+  },
+
+  // ==================== LeanAide (BubbleLabs integration) ====================
+
+  /**
+   * Get LeanAide status (`GET /bubblelabs/leanaide/status`).
+   */
+  bubblelabsLeanAideStatus: async (): Promise<LeanAideStatusResponse> => {
+    logger.debug({
+      msg: 'Getting LeanAide status',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<LeanAideStatusResponse>('/api/bubblelabs/leanaide/status');
+  },
+
+  /**
+   * Execute a LeanAide task (`POST /bubblelabs/leanaide/execute`).
+   */
+  bubblelabsLeanAideExecute: async (payload: {
+    task_type: string;
+    payload: Record<string, unknown>;
+  }): Promise<LeanAideExecuteResponse> => {
+    logger.info({
+      msg: 'Executing LeanAide task',
+      component: 'openevolveApi',
+      task_type: payload.task_type,
+    });
+
+    return openevolveApiClient.post<LeanAideExecuteResponse>(
+      '/api/bubblelabs/leanaide/execute',
+      payload
+    );
+  },
+
+  /**
+   * List LeanAide proof trees (`GET /bubblelabs/leanaide/trees`).
+   */
+  bubblelabsLeanAideTrees: async (): Promise<LeanAideTreeListResponse> => {
+    logger.debug({
+      msg: 'Listing LeanAide trees',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<LeanAideTreeListResponse>('/api/bubblelabs/leanaide/trees');
+  },
+
+  /**
+   * Get a LeanAide proof tree (`GET /bubblelabs/leanaide/trees/{tree_id}`).
+   */
+  bubblelabsLeanAideTree: async (treeId: string): Promise<LeanAideTreeResponse> => {
+    logger.debug({
+      msg: 'Getting LeanAide tree',
+      component: 'openevolveApi',
+      tree_id: treeId,
+    });
+
+    return openevolveApiClient.get<LeanAideTreeResponse>(
+      `/api/bubblelabs/leanaide/trees/${encodeURIComponent(treeId)}`
+    );
+  },
+
+  /**
+   * List LeanAide proofs (`GET /bubblelabs/leanaide/proofs`).
+   */
+  bubblelabsLeanAideProofs: async (): Promise<LeanAideProofListResponse> => {
+    logger.debug({
+      msg: 'Listing LeanAide proofs',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<LeanAideProofListResponse>('/api/bubblelabs/leanaide/proofs');
+  },
+
+  /**
+   * Get a LeanAide proof (`GET /bubblelabs/leanaide/proofs/{proof_id}`).
+   */
+  bubblelabsLeanAideProof: async (proofId: string): Promise<LeanAideProofResponse> => {
+    logger.debug({
+      msg: 'Getting LeanAide proof',
+      component: 'openevolveApi',
+      proof_id: proofId,
+    });
+
+    return openevolveApiClient.get<LeanAideProofResponse>(
+      `/api/bubblelabs/leanaide/proofs/${encodeURIComponent(proofId)}`
+    );
+  },
+
+  /**
+   * Prove a theorem via LeanAide (`POST /bubblelabs/leanaide/prove`).
+   */
+  bubblelabsLeanAideProve: async (payload: {
+    theorem: string;
+  }): Promise<Record<string, unknown>> => {
+    logger.info({
+      msg: 'Proving theorem via LeanAide',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.post<Record<string, unknown>>(
+      '/api/bubblelabs/leanaide/prove',
+      payload
+    );
+  },
+
+  // ==================== Version Control ====================
+
+  /**
+   * List protocol versions (`GET /version-control/versions`).
+   */
+  listVersions: async (): Promise<{
+    versions: VersionEntry[];
+    current_version_id?: string | null;
+  }> => {
+    logger.debug({
+      msg: 'Listing versions',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{
+      versions: VersionEntry[];
+      current_version_id?: string | null;
+    }>('/api/version-control/versions');
+  },
+
+  /**
+   * Get a protocol version (`GET /version-control/versions/{version_id}`).
+   */
+  getVersion: async (versionId: string): Promise<VersionEntry> => {
+    logger.debug({
+      msg: 'Getting version',
+      component: 'openevolveApi',
+      version_id: versionId,
+    });
+
+    return openevolveApiClient.get<VersionEntry>(
+      `/api/version-control/versions/${encodeURIComponent(versionId)}`
+    );
+  },
+
+  /**
+   * Get the currently loaded version (`GET /version-control/current`).
+   */
+  getCurrentVersion: async (): Promise<{ current: VersionEntry | null }> => {
+    logger.debug({
+      msg: 'Getting current version',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ current: VersionEntry | null }>(
+      '/api/version-control/current'
+    );
+  },
+
+  /**
+   * Create a protocol version (`POST /version-control/versions`).
+   */
+  createVersion: async (payload: {
+    protocol_text: string;
+    version_name?: string;
+    comment?: string;
+    author?: string;
+  }): Promise<{ version_id: string; version: VersionEntry }> => {
+    logger.info({
+      msg: 'Creating version',
+      component: 'openevolveApi',
+      version_name: payload.version_name,
+    });
+
+    return openevolveApiClient.post<{ version_id: string; version: VersionEntry }>(
+      '/api/version-control/versions',
+      payload
+    );
+  },
+
+  /**
+   * Load a protocol version (`POST /version-control/versions/{version_id}/load`).
+   */
+  loadVersion: async (
+    versionId: string
+  ): Promise<{ loaded: boolean; current: VersionEntry | null }> => {
+    logger.info({
+      msg: 'Loading version',
+      component: 'openevolveApi',
+      version_id: versionId,
+    });
+
+    return openevolveApiClient.post<{ loaded: boolean; current: VersionEntry | null }>(
+      `/api/version-control/versions/${encodeURIComponent(versionId)}/load`,
+      {}
+    );
+  },
+
+  /**
+   * Branch a protocol version (`POST /version-control/versions/{version_id}/branch`).
+   */
+  branchVersion: async (
+    versionId: string,
+    payload: { new_version_name: string }
+  ): Promise<{ version_id: string; version: VersionEntry }> => {
+    logger.info({
+      msg: 'Branching version',
+      component: 'openevolveApi',
+      version_id: versionId,
+      new_version_name: payload.new_version_name,
+    });
+
+    return openevolveApiClient.post<{ version_id: string; version: VersionEntry }>(
+      `/api/version-control/versions/${encodeURIComponent(versionId)}/branch`,
+      payload
+    );
+  },
+
+  /**
+   * Compare two protocol versions (`POST /version-control/compare`).
+   */
+  compareVersions: async (payload: {
+    version_id_1: string;
+    version_id_2: string;
+  }): Promise<VersionCompareResult> => {
+    logger.debug({
+      msg: 'Comparing versions',
+      component: 'openevolveApi',
+      version_id_1: payload.version_id_1,
+      version_id_2: payload.version_id_2,
+    });
+
+    return openevolveApiClient.post<VersionCompareResult>(
+      '/api/version-control/compare',
+      payload
+    );
+  },
+
+  /**
+   * Delete a protocol version (`DELETE /version-control/versions/{version_id}`).
+   */
+  deleteVersion: async (versionId: string): Promise<{ deleted: boolean }> => {
+    logger.info({
+      msg: 'Deleting version',
+      component: 'openevolveApi',
+      version_id: versionId,
+    });
+
+    return openevolveApiClient.delete<{ deleted: boolean }>(
+      `/api/version-control/versions/${encodeURIComponent(versionId)}`
+    );
+  },
+
+  // ==================== Validation ====================
+
+  /**
+   * List validation rules (`GET /validation/rules`).
+   */
+  listValidationRules: async (): Promise<{
+    rules: Record<string, ValidationRule>;
+    rule_names: string[];
+  }> => {
+    logger.debug({
+      msg: 'Listing validation rules',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{
+      rules: Record<string, ValidationRule>;
+      rule_names: string[];
+    }>('/api/validation/rules');
+  },
+
+  /**
+   * Get a validation rule (`GET /validation/rules/{rule_name}`).
+   */
+  getValidationRule: async (
+    ruleName: string
+  ): Promise<{ name: string; rule: ValidationRule }> => {
+    logger.debug({
+      msg: 'Getting validation rule',
+      component: 'openevolveApi',
+      rule_name: ruleName,
+    });
+
+    return openevolveApiClient.get<{ name: string; rule: ValidationRule }>(
+      `/api/validation/rules/${encodeURIComponent(ruleName)}`
+    );
+  },
+
+  /**
+   * Create a validation rule (`POST /validation/rules`).
+   */
+  createValidationRule: async (payload: {
+    name: string;
+    max_length?: number | null;
+    min_length?: number | null;
+    required_keywords?: string[];
+    forbidden_patterns?: string[];
+    required_sections?: string[];
+  }): Promise<{ created: boolean; rule_name: string; rule: ValidationRule }> => {
+    logger.info({
+      msg: 'Creating validation rule',
+      component: 'openevolveApi',
+      name: payload.name,
+    });
+
+    return openevolveApiClient.post<{
+      created: boolean;
+      rule_name: string;
+      rule: ValidationRule;
+    }>('/api/validation/rules', payload);
+  },
+
+  /**
+   * Update a validation rule (`PUT /validation/rules/{rule_name}`).
+   */
+  updateValidationRule: async (
+    ruleName: string,
+    payload: {
+      name?: string;
+      max_length?: number | null;
+      min_length?: number | null;
+      required_keywords?: string[] | null;
+      forbidden_patterns?: string[] | null;
+      required_sections?: string[] | null;
+    }
+  ): Promise<{ updated: boolean; rule_name: string; rule: ValidationRule }> => {
+    logger.info({
+      msg: 'Updating validation rule',
+      component: 'openevolveApi',
+      rule_name: ruleName,
+    });
+
+    return openevolveApiClient.put<{
+      updated: boolean;
+      rule_name: string;
+      rule: ValidationRule;
+    }>(`/api/validation/rules/${encodeURIComponent(ruleName)}`, payload);
+  },
+
+  /**
+   * Delete a validation rule (`DELETE /validation/rules/{rule_name}`).
+   */
+  deleteValidationRule: async (
+    ruleName: string
+  ): Promise<{ deleted: boolean; rule_name: string }> => {
+    logger.info({
+      msg: 'Deleting validation rule',
+      component: 'openevolveApi',
+      rule_name: ruleName,
+    });
+
+    return openevolveApiClient.delete<{ deleted: boolean; rule_name: string }>(
+      `/api/validation/rules/${encodeURIComponent(ruleName)}`
+    );
+  },
+
+  /**
+   * Run validation against content (`POST /validation/run`).
+   */
+  runValidation: async (
+    payload: { content: string; rule_names: string[] }
+  ): Promise<ValidationRunResult> => {
+    logger.info({
+      msg: 'Running validation',
+      component: 'openevolveApi',
+      rule_names: payload.rule_names,
+    });
+
+    return openevolveApiClient.post<ValidationRunResult>('/api/validation/run', payload);
+  },
+
+  /**
+   * Run a compliance check (`POST /validation/compliance`).
+   */
+  runComplianceCheck: async (
+    payload: { content: string; framework?: string }
+  ): Promise<ComplianceCheckResult> => {
+    logger.info({
+      msg: 'Running compliance check',
+      component: 'openevolveApi',
+      framework: payload.framework,
+    });
+
+    return openevolveApiClient.post<ComplianceCheckResult>(
+      '/api/validation/compliance',
+      payload
+    );
+  },
+
+  // ==================== Parameters ====================
+
+  /**
+   * Get the full parameter schema (`GET /parameters/schema`).
+   */
+  getParameterSchema: async (): Promise<{ parameters: ParameterDefinition[] }> => {
+    logger.debug({
+      msg: 'Getting parameter schema',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ parameters: ParameterDefinition[] }>(
+      '/api/parameters/schema'
+    );
+  },
+
+  /**
+   * Get default parameter values (`GET /parameters/defaults`).
+   */
+  getParameterDefaults: async (): Promise<Record<string, unknown>> => {
+    logger.debug({
+      msg: 'Getting parameter defaults',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<Record<string, unknown>>('/api/parameters/defaults');
+  },
+
+  /**
+   * Get parameter categories (`GET /parameters/categories`).
+   */
+  getParameterCategories: async (): Promise<{ categories: string[] }> => {
+    logger.debug({
+      msg: 'Getting parameter categories',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<{ categories: string[] }>('/api/parameters/categories');
+  },
+
+  /**
+   * Validate parameter values (`POST /parameters/validate`).
+   */
+  validateParameters: async (
+    payload: Record<string, unknown>
+  ): Promise<ParameterValidationResult> => {
+    logger.debug({
+      msg: 'Validating parameters',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.post<ParameterValidationResult>(
+      '/api/parameters/validate',
+      payload
+    );
+  },
+
+  // ==================== Integrated Run ====================
+
+  /**
+   * Run an integrated workflow (`POST /integrated/run`).
+   */
+  runIntegratedWorkflow: async (
+    payload: IntegratedWorkflowRequest
+  ): Promise<Record<string, unknown>> => {
+    logger.info({
+      msg: 'Running integrated workflow',
+      component: 'openevolveApi',
+      content_type: payload.content_type,
+      max_iterations: payload.max_iterations,
+    });
+
+    return openevolveApiClient.post<Record<string, unknown>>('/api/integrated/run', payload);
   },
 };
 
