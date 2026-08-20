@@ -5,9 +5,18 @@ import type { BubbleName } from '@bubblelab/shared-schemas';
 
 const GauntletOperationSchema = z.enum(['run_gauntlet', 'health_check', 'get_capabilities']);
 
+const resolveBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== 'undefined' && process.env
+      ? process.env.OPENEVOLVE_API_URL || process.env.OPENEVOLVE_API_BASE_URL
+      : undefined) || '';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
+  return base.replace(/\/$/, '');
+};
+
 const GauntletParamsSchema = z.object({
   operation: GauntletOperationSchema,
-  gauntlet_url: z.string().url(),
+  gauntlet_url: z.string().url().default(resolveBaseUrl()),
   timeout: z.number().min(1000).max(300000).default(60000),
   headers: z.record(z.string()).optional(),
   auth_token: z.string().optional(),
@@ -144,7 +153,7 @@ export class OpenEvolveGauntletTestingBubble extends ServiceBubble<
   ): Promise<GauntletResult> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
-    const url = `${this.params.gauntlet_url.replace(/\/$/, '')}${endpoint}`;
+    const url = `${this.params.gauntlet_url}${endpoint}`;
 
     try {
       const response = await fetch(url, {

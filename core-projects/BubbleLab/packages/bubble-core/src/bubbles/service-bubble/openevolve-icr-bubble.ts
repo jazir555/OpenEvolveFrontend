@@ -22,7 +22,7 @@ const resolveBaseUrl = (): string => {
         process.env.OPENEVOLVE_API_URL ||
         process.env.OPENEVOLVE_API_BASE_URL
       : undefined) || '';
-  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8001';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
   return base.replace(/\/$/, '');
 };
 

@@ -24,11 +24,20 @@ const WorkflowOperationSchema = z.enum([
   'chain_workflows',
 ]);
 
+const resolveBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== 'undefined' && process.env
+      ? process.env.OPENEVOLVE_API_URL || process.env.OPENEVOLVE_API_BASE_URL
+      : undefined) || '';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
+  return base.replace(/\/$/, '');
+};
+
 const WorkflowParamsSchema = z.object({
   operation: WorkflowOperationSchema,
   system: WorkflowSystemSchema,
 
-  base_url: z.string().url(),
+  base_url: z.string().url().default(resolveBaseUrl()),
   timeout: z.number().min(1000).max(300000).default(60000),
   headers: z.record(z.string()).optional(),
   auth_token: z.string().optional(),
@@ -195,7 +204,7 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   }
 
   private buildUrl(endpoint: string): string {
-    return `${this.params.base_url.replace(/\/$/, '')}${endpoint}`;
+    return `${this.params.base_url}${endpoint}`;
   }
 
   private async request(

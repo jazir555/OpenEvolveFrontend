@@ -24,9 +24,18 @@ const CrewAIExecutionMethodSchema = z.enum([
   'auto',
 ]);
 
+const resolveBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== 'undefined' && process.env
+      ? process.env.OPENEVOLVE_API_URL || process.env.OPENEVOLVE_API_BASE_URL
+      : undefined) || '';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
+  return base.replace(/\/$/, '');
+};
+
 const CrewAIParamsSchema = z.object({
   operation: CrewAIOperationSchema,
-  base_url: z.string().url(),
+  base_url: z.string().url().default(resolveBaseUrl()),
   timeout: z.number().min(1000).max(300000).default(60000),
   headers: z.record(z.string()).optional(),
   auth_token: z.string().optional(),
@@ -181,7 +190,7 @@ export class OpenEvolveCrewAIBubble extends ServiceBubble<
   ): Promise<CrewAIResult> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
-    const url = `${this.params.base_url.replace(/\/$/, '')}${endpoint}`;
+    const url = `${this.params.base_url}${endpoint}`;
 
     try {
       const response = await fetch(url, {

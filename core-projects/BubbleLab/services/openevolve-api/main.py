@@ -6,19 +6,55 @@ import queue
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 try:
     # Try relative imports first (when run as module)
-    from .api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
+    from .api import (
+        workflows,
+        teams,
+        gauntlets,
+        execution,
+        settings,
+        icr,
+        determinism,
+        decomposition,
+    )
     from .api.openevolve_v1 import router as openevolve_v1_router
+    from .api.parameters import router as parameters_router
+    from .api.monitoring import router as monitoring_router
+    from .api.validation import router as validation_router
+    from .api.analytics import router as analytics_router
+    from .api.crewai import router as crewai_router
+    from .api.version_control import router as version_control_router
+    from .api.evaluators import router as evaluators_router
+    from .api.integrated import router as integrated_router
+    from .api.leanaide import router as leanaide_router
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
-    from api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
+    from api import (
+        workflows,
+        teams,
+        gauntlets,
+        execution,
+        settings,
+        icr,
+        determinism,
+        decomposition,
+    )
     from api.openevolve_v1 import router as openevolve_v1_router
+    from api.parameters import router as parameters_router
+    from api.monitoring import router as monitoring_router
+    from api.validation import router as validation_router
+    from api.analytics import router as analytics_router
+    from api.crewai import router as crewai_router
+    from api.version_control import router as version_control_router
+    from api.evaluators import router as evaluators_router
+    from api.integrated import router as integrated_router
+    from api.leanaide import router as leanaide_router
     from services.execution_service import execution_manager
 
 # Structured logging
@@ -70,6 +106,18 @@ app.include_router(decomposition.router, prefix="/api/decomposition", tags=["dec
 # OpenEvolve /api/v1/* dialect (mirrors openevolve/server_stdlib.py) so the
 # BubbleLab integration bubbles can drive the REAL engine through this service.
 app.include_router(openevolve_v1_router, prefix="/api/v1", tags=["openevolve-v1"])
+
+# UI feature routers (real data where possible). These fill the route groups the
+# BubbleLab client expects but the original service did not implement.
+app.include_router(parameters_router, prefix="/api", tags=["parameters"])
+app.include_router(monitoring_router, prefix="/api", tags=["monitoring"])
+app.include_router(validation_router, prefix="/api", tags=["validation"])
+app.include_router(analytics_router, prefix="/api", tags=["analytics"])
+app.include_router(crewai_router, prefix="/api", tags=["crewai"])
+app.include_router(version_control_router, prefix="/api", tags=["version-control"])
+app.include_router(evaluators_router, prefix="/api", tags=["evaluators"])
+app.include_router(integrated_router, prefix="/api", tags=["integrated"])
+app.include_router(leanaide_router, prefix="/api", tags=["bubblelabs-leanaide"])
 
 # Health check
 @app.get("/health")

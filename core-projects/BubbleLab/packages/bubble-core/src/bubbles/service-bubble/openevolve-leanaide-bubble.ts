@@ -23,9 +23,18 @@ const LeanAideModelSchema = z.enum([
   'openrouter',
 ]);
 
+const resolveBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== 'undefined' && process.env
+      ? process.env.OPENEVOLVE_API_URL || process.env.OPENEVOLVE_API_BASE_URL
+      : undefined) || '';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8000';
+  return base.replace(/\/$/, '');
+};
+
 const LeanAideParamsSchema = z.object({
   operation: LeanAideOperationSchema,
-  base_url: z.string().url(),
+  base_url: z.string().url().default(resolveBaseUrl()),
   timeout: z.number().min(1000).max(600000).default(600000),
   headers: z.record(z.string()).optional(),
   auth_token: z.string().optional(),
@@ -190,7 +199,7 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
   ): Promise<LeanAideResult> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
-    const url = `${this.params.base_url.replace(/\/$/, '')}${endpoint}`;
+    const url = `${this.params.base_url}${endpoint}`;
 
     try {
       const response = await fetch(url, {

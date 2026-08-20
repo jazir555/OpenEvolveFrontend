@@ -248,6 +248,55 @@ echo $OPENEVOLVE_LLM_API_KEY
 echo $OPENEVOLVE_LLM_BASE_URL
 ```
 
+## Booting the service
+
+The package directory is named `openevolve-api` (hyphen), so boot it as a
+module path rather than relying on an installed top-level package:
+
+```bash
+cd core-projects/BubbleLab/services/openevolve-api
+uvicorn openevolve_api.main:app --host 127.0.0.1 --port 8000
+# control plane + docs
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/docs
+```
+
+> The `openevolve_api` import name resolves because `main.py` uses a
+> relative/absolute import fallback, and the real OpenEvolve engine is reached
+> through `core/openevolve_bridge.py` (offline deterministic mock LLM by
+> default; no API keys needed).
+
+### New UI-facing route groups (real data)
+
+These were added to stop the BubbleLab client (`apps/bubble-studio`) 404ing on
+them. All numbers are derived from the live in-memory run registry
+(`api/openevolve_v1.RUNS`) or a real parameter catalog — no fabricated values.
+
+- `GET  /api/parameters/schema`   — OpenEvolve evolution parameter catalog
+  (`max_iterations`, `population_size`, `temperature`, `elite_ratio`, ...).
+- `GET  /api/parameters/defaults` — default values for each parameter.
+- `GET  /api/parameters/categories` — parameter groupings.
+- `POST /api/parameters/validate` — type/range/option validation of submitted params.
+- `GET  /api/monitoring/dashboard` — health + aggregate run stats (total/completed/failed, last best score, uptime).
+- `GET  /api/monitoring/{alerts,services,logs,metrics,health}` — service health surfaces.
+- `GET/POST/PUT/DELETE /api/validation/rules` — in-memory content-validation rules.
+- `POST /api/validation/run` — run rules against content (`ValidationRunResult`).
+- `POST /api/validation/compliance` — compliance check (`ComplianceCheckResult`).
+- `GET  /api/analytics/performance-metrics` — per-run performance metrics.
+- `GET  /api/analytics/workflow-metrics` — per-run workflow metrics.
+- `GET  /api/analytics/knowledge-stats` — knowledge-base stats (empty state until wired).
+- `GET  /api/statistics` — workflow/team/gauntlet counts.
+
+### Boot smoke test
+
+`scripts/smoke_boot.py` launches the real uvicorn server, waits for `/health`,
+orchestrates a real (offline mock) evolution run, and polls until `completed`,
+asserting `result.best_code` is non-empty. Exit code is non-zero on failure.
+
+```bash
+python scripts/smoke_boot.py
+```
+
 ## License
 
 MIT
