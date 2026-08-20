@@ -19,8 +19,8 @@ exports.MetricsCollector = void 0;
 exports.getMetricsCollector = getMetricsCollector;
 exports.resetMetricsCollector = resetMetricsCollector;
 const prom_client_1 = require("prom-client");
-const circuit_breaker_1 = require("../circuit-breaker");
-const logger_1 = require("../logger");
+const { logger } = require('../logger');
+const { CircuitState } = require('../circuit-breaker');
 /**
  * Metrics Collector class
  *
@@ -240,7 +240,7 @@ class MetricsCollector {
      * Update circuit breaker state metric
      */
     setCircuitBreakerState(service, circuit, state) {
-        const stateValue = state === circuit_breaker_1.CircuitState.CLOSED ? 0 : state === circuit_breaker_1.CircuitState.HALF_OPEN ? 1 : 2;
+        const stateValue = state === CircuitState.CLOSED ? 0 : state === CircuitState.HALF_OPEN ? 1 : 2;
         this.circuitBreakerState.set({ service, circuit }, stateValue);
     }
     /**
@@ -382,7 +382,7 @@ function getMetricsCollector() {
     if (!globalMetricsCollector) {
         const prefix = process.env.METRICS_PREFIX || 'openevolve_';
         globalMetricsCollector = new MetricsCollector(prefix);
-        logger_1.logger.info('Metrics collector initialized', {
+        logger.info('Metrics collector initialized', {
             prefix,
         });
     }

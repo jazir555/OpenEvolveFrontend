@@ -28,7 +28,7 @@
  * }
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { retryWithBackoff, RetryConfig } from "../../lib/retry";
 import { getPluginRegistry, type PluginInterface, PluginRegistry } from './plugin-registry';
 
@@ -584,3 +584,4 @@ export function getWorkflowOrchestrator(registry?: PluginRegistry): WorkflowOrch
 
 export { WorkflowOrchestrator };
 export type { StepExecutionResult };
+

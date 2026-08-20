@@ -14,7 +14,7 @@
  * - Knowledge extraction metrics (counter, gauge, histogram)
  */
 import { Registry } from 'prom-client';
-import { CircuitState } from '../circuit-breaker';
+import type { CircuitState as CircuitStateType } from './glue-modules';
 export interface MetricsLabels {
     service: string;
     operation?: string;
@@ -87,7 +87,7 @@ export declare class MetricsCollector {
     /**
      * Update circuit breaker state metric
      */
-    setCircuitBreakerState(service: string, circuit: string, state: CircuitState): void;
+    setCircuitBreakerState(service: string, circuit: string, state: CircuitStateType): void;
     /**
      * Record circuit breaker failure
      */

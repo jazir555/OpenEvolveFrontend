@@ -109,15 +109,13 @@ function formatDuration(ms) {
     if (days > 0) {
         return `${days}d ${hours % 24}h ${minutes % 60}m`;
     }
-    else if (hours > 0) {
+    if (hours > 0) {
         return `${hours}h ${minutes % 60}m`;
     }
-    else if (minutes > 0) {
+    if (minutes > 0) {
         return `${minutes}m ${seconds % 60}s`;
     }
-    else {
-        return `${seconds}s`;
-    }
+    return `${seconds}s`;
 }
 /**
  * Add milliseconds to timestamp
@@ -196,7 +194,7 @@ function fromUnix(unix) {
  */
 function truncateToSeconds(timestamp) {
     const iso = toUtcIso(timestamp);
-    return iso.substring(0, 19) + 'Z';
+    return `${iso.substring(0, 19)}Z`;
 }
 /**
  * Extract date part from timestamp (YYYY-MM-DD)

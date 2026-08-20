@@ -18,7 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AlertRulePresets = exports.AlertManager = void 0;
 exports.getAlertManager = getAlertManager;
 exports.resetAlertManager = resetAlertManager;
-const logger_1 = require("../logger");
+const { logger } = require('../logger');
 /**
  * Alert Manager class
  *
@@ -31,7 +31,7 @@ class AlertManager {
         this.activeAlerts = new Map();
         this.alertHistory = [];
         this.lastTriggered = new Map();
-        logger_1.logger.info('Alert manager initialized', {
+        logger.info('Alert manager initialized', {
             service: serviceName,
         });
     }
@@ -40,7 +40,7 @@ class AlertManager {
      */
     registerRule(rule) {
         this.rules.set(rule.id, rule);
-        logger_1.logger.info('Alert rule registered', {
+        logger.info('Alert rule registered', {
             service: this.serviceName,
             rule_id: rule.id,
             rule_name: rule.name,
@@ -52,7 +52,7 @@ class AlertManager {
      */
     unregisterRule(ruleId) {
         this.rules.delete(ruleId);
-        logger_1.logger.info('Alert rule unregistered', {
+        logger.info('Alert rule unregistered', {
             service: this.serviceName,
             rule_id: ruleId,
         });
@@ -67,7 +67,7 @@ class AlertManager {
         }
         const updatedRule = { ...rule, ...updates };
         this.rules.set(ruleId, updatedRule);
-        logger_1.logger.info('Alert rule updated', {
+        logger.info('Alert rule updated', {
             service: this.serviceName,
             rule_id: ruleId,
         });
@@ -116,7 +116,7 @@ class AlertManager {
             },
         };
         this.activeAlerts.set(alertId, alert);
-        logger_1.logger.warn('Alert triggered', {
+        logger.warn('Alert triggered', {
             alert_id: alertId,
             rule_id: rule.id,
             severity: rule.severity,
@@ -186,13 +186,13 @@ class AlertManager {
                         this.logNotification(alert);
                         break;
                 }
-                logger_1.logger.info('Alert notification sent', {
+                logger.info('Alert notification sent', {
                     alert_id: alert.id,
                     channel_type: channel.type,
                 });
             }
             catch (error) {
-                logger_1.logger.error('Failed to send alert notification', error, {
+                logger.error('Failed to send alert notification', error, {
                     alert_id: alert.id,
                     channel_type: channel.type,
                 });
@@ -203,7 +203,7 @@ class AlertManager {
      * Send webhook notification
      */
     async sendWebhookNotification(alert, config) {
-        const url = config.url;
+        const { url } = config;
         if (!url) {
             throw new Error('Webhook URL not configured');
         }
@@ -228,7 +228,7 @@ class AlertManager {
      */
     async sendEmailNotification(alert, config) {
         // Email sending would be implemented with an email service
-        logger_1.logger.info('Email notification would be sent', {
+        logger.info('Email notification would be sent', {
             alert_id: alert.id,
             to: config.to,
             subject: `[${alert.severity.toUpperCase()}] ${alert.rule_name}`,
@@ -290,12 +290,12 @@ class AlertManager {
      */
     logNotification(alert) {
         const logMethod = {
-            info: logger_1.logger.info.bind(logger_1.logger),
-            warning: logger_1.logger.warn.bind(logger_1.logger),
-            error: logger_1.logger.error.bind(logger_1.logger),
-            critical: logger_1.logger.error.bind(logger_1.logger),
+            info: logger.info.bind(logger),
+            warning: logger.warn.bind(logger),
+            error: logger.error.bind(logger),
+            critical: logger.error.bind(logger),
         }[alert.severity];
-        logMethod(`ALERT: [${alert.severity.toUpperCase()}] ${alert.rule_name}`, {
+        logMethod(`ALERT: [${alert.severity.toUpperCase()}] ${alert.rule_name}`, undefined, {
             alert_id: alert.id,
             message: alert.message,
             data: alert.data,
@@ -310,7 +310,7 @@ class AlertManager {
             throw new Error(`Alert '${alertId}' not found`);
         }
         alert.status = 'acknowledged';
-        logger_1.logger.info('Alert acknowledged', {
+        logger.info('Alert acknowledged', {
             alert_id: alertId,
         });
     }
@@ -329,7 +329,7 @@ class AlertManager {
             historyEntry.resolved_at = new Date().toISOString();
             historyEntry.duration_ms = Date.now() - new Date(alert.timestamp).getTime();
         }
-        logger_1.logger.info('Alert resolved', {
+        logger.info('Alert resolved', {
             alert_id: alertId,
             duration_ms: historyEntry?.duration_ms,
         });
@@ -389,7 +389,7 @@ class AlertManager {
             }
         }
         const cleared = before - this.activeAlerts.size;
-        logger_1.logger.info('Cleared resolved alerts', {
+        logger.info('Cleared resolved alerts', {
             count: cleared,
         });
     }

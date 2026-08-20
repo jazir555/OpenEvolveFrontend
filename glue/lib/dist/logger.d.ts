@@ -92,3 +92,4 @@ export declare const logger: Logger;
  * {"level":"info","msg":"User Sync Started","timestamp":"2025-01-15T10:30:00.000Z","correlation_id":"a1b2c3d4-...","source_service":"crm-adapter","target_service":"user-service","user_id":"12345"}
  * ```
  */
+//# sourceMappingURL=logger.d.ts.map

@@ -21,6 +21,7 @@ exports.resetTracer = resetTracer;
 exports.traceMethod = traceMethod;
 exports.generateServiceMap = generateServiceMap;
 const api_1 = require("@opentelemetry/api");
+const { logger, Logger } = require('../logger');
 /**
  * Tracer class
  *

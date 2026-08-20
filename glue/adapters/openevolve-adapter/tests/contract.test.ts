@@ -86,7 +86,7 @@ interface WorkflowState {
 
 // Test utilities
 const generateTestId = (): string => {
-  return `test-${Date.now()}-${Math.random().toString(36).substring(7)`;
+  return `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 };
 
 const sleep = (ms: number): Promise<void> => {

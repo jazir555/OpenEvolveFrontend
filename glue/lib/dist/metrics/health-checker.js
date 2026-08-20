@@ -18,7 +18,7 @@ exports.HealthEndpointHandler = exports.HealthChecker = void 0;
 exports.createHttpHealthCheck = createHttpHealthCheck;
 exports.createTcpHealthCheck = createTcpHealthCheck;
 exports.createDatabaseHealthCheck = createDatabaseHealthCheck;
-const logger_1 = require("../logger");
+const { logger } = require('../logger');
 /**
  * Health Checker class
  *
@@ -34,7 +34,7 @@ class HealthChecker {
      */
     register(name, checkFn) {
         this.checks.set(name, checkFn);
-        logger_1.logger.info('Health check registered', {
+        logger.info('Health check registered', {
             service: this.serviceName,
             check_name: name,
         });
@@ -44,7 +44,7 @@ class HealthChecker {
      */
     unregister(name) {
         this.checks.delete(name);
-        logger_1.logger.info('Health check unregistered', {
+        logger.info('Health check unregistered', {
             service: this.serviceName,
             check_name: name,
         });
@@ -123,12 +123,10 @@ class HealthChecker {
         if (hasUnhealthy) {
             return 'unhealthy';
         }
-        else if (hasDegraded) {
+        if (hasDegraded) {
             return 'degraded';
         }
-        else {
-            return 'healthy';
-        }
+        return 'healthy';
     }
     /**
      * Get liveness status (is the service running?)
@@ -275,15 +273,13 @@ function createHttpHealthCheck(url, options = {}) {
                     timestamp: new Date().toISOString(),
                 };
             }
-            else {
-                return {
-                    name: url,
-                    status: 'degraded',
-                    message: `Unexpected status: ${response.status}`,
-                    response_time_ms: responseTime,
-                    timestamp: new Date().toISOString(),
-                };
-            }
+            return {
+                name: url,
+                status: 'degraded',
+                message: `Unexpected status: ${response.status}`,
+                response_time_ms: responseTime,
+                timestamp: new Date().toISOString(),
+            };
         }
         catch (error) {
             const responseTime = Date.now() - start;

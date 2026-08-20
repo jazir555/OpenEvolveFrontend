@@ -53,5 +53,8 @@ export declare function createHealthMiddleware(health: HealthChecker): (req: any
  */
 export declare function createRequestTrackingMiddleware(serviceName?: string): (req: any, res: any, next: any) => Promise<void>;
 export { MetricsCollector, getMetricsCollector, HealthChecker, HealthEndpointHandler, Tracer, getTracer, AlertManager, getAlertManager, };
-export type { MetricsLabels, KnowledgeExtractionLabels, HealthStatus, HealthCheckResult, HealthCheckOptions, HealthCheckFunction, TraceOptions, SpanMetadata, AlertSeverity, AlertRule, AlertCondition, NotificationChannel, Alert, AlertHistory, };
+export type { MetricsLabels, KnowledgeExtractionLabels } from './metrics-collector';
+export type { HealthStatus, HealthCheckResult, HealthCheckOptions, HealthCheckFunction, } from './health-checker';
+export type { TraceOptions, SpanMetadata } from './tracer';
+export type { AlertSeverity, AlertRule, AlertCondition, NotificationChannel, Alert, AlertHistory, } from './alert-manager';
 //# sourceMappingURL=index.d.ts.map

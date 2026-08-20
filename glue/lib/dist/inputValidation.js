@@ -97,8 +97,8 @@ function validateUrl(input, fieldName) {
             errors.push(`${fieldName} must use HTTP or HTTPS protocol`);
         }
         // Prevent localhost in production
-        if (process.env.NODE_ENV === 'production' &&
-            (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) {
+        if (process.env.NODE_ENV === 'production'
+            && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) {
             errors.push(`${fieldName} cannot point to localhost in production`);
         }
         return {

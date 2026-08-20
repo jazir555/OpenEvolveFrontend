@@ -197,7 +197,7 @@ function createHealthCheckServer(options) {
                 });
             }
             catch (error) {
-                logger.error('Health check failed', { error: error instanceof Error ? error.message : 'Unknown error' });
+                logger.error('Health check failed', undefined, { error: error instanceof Error ? error.message : 'Unknown error' });
                 res.writeHead(503);
                 res.end(JSON.stringify({
                     status: 'unhealthy',
@@ -265,7 +265,7 @@ function validateRequiredEnv(requiredVars) {
         }
     }
     if (missing.length > 0) {
-        logger.error('CRITICAL: Missing required environment variables', {
+        logger.error('CRITICAL: Missing required environment variables', undefined, {
             missing,
             count: missing.length,
         });

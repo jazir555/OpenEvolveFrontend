@@ -26,7 +26,7 @@ Object.defineProperty(exports, "getTracer", { enumerable: true, get: function ()
 const alert_manager_1 = require("./alert-manager");
 Object.defineProperty(exports, "AlertManager", { enumerable: true, get: function () { return alert_manager_1.AlertManager; } });
 Object.defineProperty(exports, "getAlertManager", { enumerable: true, get: function () { return alert_manager_1.getAlertManager; } });
-const logger_1 = require("../logger");
+const { logger } = require('../logger');
 /**
  * Initialize monitoring system
  */
@@ -46,7 +46,7 @@ async function initializeMonitoring(config) {
         registerDefaultHealthChecks(health);
     }
     // Log initialization
-    logger_1.logger.info('Monitoring system initialized', {
+    logger.info('Monitoring system initialized', {
         service: config.serviceName,
         prometheus_prefix: config.prometheus?.prefix,
         otel_endpoint: config.otel?.endpoint,
@@ -136,7 +136,7 @@ function createMetricsMiddleware() {
                 res.send(metricsText);
             }
             catch (error) {
-                logger_1.logger.error('Failed to collect metrics', error);
+                logger.error('Failed to collect metrics', error);
                 res.status(500).send('Error collecting metrics');
             }
         }

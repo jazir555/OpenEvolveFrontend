@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateEnv = validateEnv;
 exports.validateEnvWithTypes = validateEnvWithTypes;
 exports.getEnv = getEnv;
-var logger_1 = require("./logger");
+const logger_1 = require("./logger");
 /**
  * Validate environment variables
  *
@@ -22,16 +22,15 @@ var logger_1 = require("./logger");
  * @throws Error if validation fails
  */
 function validateEnv(required) {
-    var errors = [];
-    for (var _i = 0, required_1 = required; _i < required_1.length; _i++) {
-        var varName = required_1[_i];
-        var value = process.env[varName];
+    const errors = [];
+    for (const varName of required) {
+        const value = process.env[varName];
         if (!value || value.trim() === '') {
-            errors.push("Missing required environment variable: ".concat(varName));
+            errors.push(`Missing required environment variable: ${varName}`);
         }
     }
     if (errors.length > 0) {
-        var errorMessage = "Environment validation failed:\n".concat(errors.join('\n'));
+        const errorMessage = `Environment validation failed:\n${errors.join('\n')}`;
         logger_1.logger.error(errorMessage, undefined, {
             validation_errors: errors,
             missing_vars: errors.length,
@@ -51,14 +50,13 @@ function validateEnv(required) {
  * @throws Error if validation fails
  */
 function validateEnvWithTypes(vars) {
-    var errors = [];
-    var result = {};
-    for (var _i = 0, vars_1 = vars; _i < vars_1.length; _i++) {
-        var envVar = vars_1[_i];
-        var value = process.env[envVar.name];
+    const errors = [];
+    const result = {};
+    for (const envVar of vars) {
+        const value = process.env[envVar.name];
         // Check if required variable is missing
         if (envVar.required && (!value || value.trim() === '')) {
-            errors.push("Missing required environment variable: ".concat(envVar.name));
+            errors.push(`Missing required environment variable: ${envVar.name}`);
             continue;
         }
         // Use default for optional variables
@@ -76,9 +74,9 @@ function validateEnvWithTypes(vars) {
                     result[envVar.name] = value;
                     break;
                 case 'number':
-                    var num = Number(value);
+                    const num = Number(value);
                     if (isNaN(num)) {
-                        errors.push("".concat(envVar.name, ": \"").concat(value, "\" is not a valid number"));
+                        errors.push(`${envVar.name}: "${value}" is not a valid number`);
                     }
                     else {
                         result[envVar.name] = num;
@@ -92,7 +90,7 @@ function validateEnvWithTypes(vars) {
                         result[envVar.name] = false;
                     }
                     else {
-                        errors.push("".concat(envVar.name, ": \"").concat(value, "\" is not a valid boolean (use true/false or 1/0)"));
+                        errors.push(`${envVar.name}: "${value}" is not a valid boolean (use true/false or 1/0)`);
                     }
                     break;
                 case 'url':
@@ -100,14 +98,14 @@ function validateEnvWithTypes(vars) {
                         new URL(value);
                         result[envVar.name] = value;
                     }
-                    catch (_a) {
-                        errors.push("".concat(envVar.name, ": \"").concat(value, "\" is not a valid URL"));
+                    catch {
+                        errors.push(`${envVar.name}: "${value}" is not a valid URL`);
                     }
                     break;
                 case 'port':
-                    var port = Number(value);
+                    const port = Number(value);
                     if (isNaN(port) || port < 1 || port > 65535) {
-                        errors.push("".concat(envVar.name, ": \"").concat(value, "\" is not a valid port (1-65535)"));
+                        errors.push(`${envVar.name}: "${value}" is not a valid port (1-65535)`);
                     }
                     else {
                         result[envVar.name] = port;
@@ -116,11 +114,11 @@ function validateEnvWithTypes(vars) {
             }
         }
         catch (error) {
-            errors.push("".concat(envVar.name, ": Validation error - ").concat(error instanceof Error ? error.message : String(error)));
+            errors.push(`${envVar.name}: Validation error - ${error instanceof Error ? error.message : String(error)}`);
         }
     }
     if (errors.length > 0) {
-        var errorMessage = "Environment validation failed:\n".concat(errors.join('\n'));
+        const errorMessage = `Environment validation failed:\n${errors.join('\n')}`;
         logger_1.logger.error(errorMessage, undefined, {
             validation_errors: errors,
             error_count: errors.length,
@@ -138,41 +136,40 @@ function validateEnvWithTypes(vars) {
  *
  * Convenience function to get a single required env var with type checking
  */
-function getEnv(name, type) {
-    if (type === void 0) { type = 'string'; }
-    var value = process.env[name];
+function getEnv(name, type = 'string') {
+    const value = process.env[name];
     if (!value || value.trim() === '') {
-        throw new Error("Missing required environment variable: ".concat(name));
+        throw new Error(`Missing required environment variable: ${name}`);
     }
     switch (type) {
         case 'string':
             return value;
         case 'number':
-            var num = Number(value);
+            const num = Number(value);
             if (isNaN(num)) {
-                throw new Error("".concat(name, ": \"").concat(value, "\" is not a valid number"));
+                throw new Error(`${name}: "${value}" is not a valid number`);
             }
             return num;
         case 'boolean':
             if (value.toLowerCase() === 'true' || value === '1') {
                 return true;
             }
-            else if (value.toLowerCase() === 'false' || value === '0') {
+            if (value.toLowerCase() === 'false' || value === '0') {
                 return false;
             }
-            throw new Error("".concat(name, ": \"").concat(value, "\" is not a valid boolean (use true/false or 1/0)"));
+            throw new Error(`${name}: "${value}" is not a valid boolean (use true/false or 1/0)`);
         case 'url':
             try {
                 new URL(value);
                 return value;
             }
-            catch (_a) {
-                throw new Error("".concat(name, ": \"").concat(value, "\" is not a valid URL"));
+            catch {
+                throw new Error(`${name}: "${value}" is not a valid URL`);
             }
         case 'port':
-            var port = Number(value);
+            const port = Number(value);
             if (isNaN(port) || port < 1 || port > 65535) {
-                throw new Error("".concat(name, ": \"").concat(value, "\" is not a valid port (1-65535)"));
+                throw new Error(`${name}: "${value}" is not a valid port (1-65535)`);
             }
             return port;
         default:
@@ -223,3 +220,4 @@ function getEnv(name, type) {
  * }
  * ```
  */
+//# sourceMappingURL=env-validator.js.map

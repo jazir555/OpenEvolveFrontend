@@ -5289,6 +5289,22 @@ def get_improvement_potential(request: SuggestionRequest):
     return {"score": score}
 
 
+@app.middleware("http")
+async def rewrite_api_prefix(request: Request, call_next):
+    """Rewrite /api/<path> to /<path> so clients that prefix routes with /api reach the same handlers.
+
+    The BubbleLab frontend client calls /api/workflows, /api/teams, /api/gauntlets, etc.,
+    while the canonical contract (and the contract tests) use the unprefixed routes. This
+    middleware reconciles the two without duplicating route definitions.
+    """
+    path = request.scope.get("path", "")
+    if path.startswith("/api/"):
+        new_path = path[4:]  # strip the "/api" prefix
+        request.scope["path"] = new_path
+        request.scope["raw_path"] = new_path.encode("utf-8")
+    return await call_next(request)
+
+
 server = None
 
 def start_api_server(

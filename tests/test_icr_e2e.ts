@@ -35,11 +35,13 @@ global.document = {
   body: { appendChild: jest.fn(), removeChild: jest.fn() }
 } as any;
 
+const icrImport = (specifier: any): Promise<any> => import(specifier);
+
 describe('ICR End-to-End Integration Tests', () => {
   
   describe('StateSerializer Core', () => {
     it('should serialize and deserialize state correctly', async () => {
-      const { serialize, deserialize } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/SerializationEngine');
+      const { serialize, deserialize } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/SerializationEngine');
       
       const testState = {
         mode: 'test',
@@ -57,7 +59,7 @@ describe('ICR End-to-End Integration Tests', () => {
     });
     
     it('should sanitize state on import', async () => {
-      const { sanitizeState } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/StateSanitizer');
+      const { sanitizeState } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/StateSanitizer');
       
       const dirtyState = {
         isGenerating: true,
@@ -76,7 +78,7 @@ describe('ICR End-to-End Integration Tests', () => {
   
   describe('MathSolver State Handler', () => {
     it('should export MathSolver state', async () => {
-      const { mathsolverStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/MathSolverStateHandler');
+      const { mathsolverStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/MathSolverStateHandler');
       
       expect(mathsolverStateHandler.modeName).toBe('mathsolver');
       expect(typeof mathsolverStateHandler.getFullState).toBe('function');
@@ -85,7 +87,7 @@ describe('ICR End-to-End Integration Tests', () => {
     });
     
     it('should handle null state gracefully', async () => {
-      const { mathsolverStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/MathSolverStateHandler');
+      const { mathsolverStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/MathSolverStateHandler');
       
       const state = mathsolverStateHandler.getFullState();
       expect(state).toBeNull();
@@ -97,7 +99,7 @@ describe('ICR End-to-End Integration Tests', () => {
   
   describe('GenerativeUI State Handler', () => {
     it('should export GenerativeUI state', async () => {
-      const { generativeUIStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/GenerativeUIStateHandler');
+      const { generativeUIStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/GenerativeUIStateHandler');
       
       expect(generativeUIStateHandler.modeName).toBe('generativeui');
       expect(typeof generativeUIStateHandler.getFullState).toBe('function');
@@ -106,7 +108,7 @@ describe('ICR End-to-End Integration Tests', () => {
     });
     
     it('should dispatch event on render after import', async () => {
-      const { generativeUIStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/GenerativeUIStateHandler');
+      const { generativeUIStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/GenerativeUIStateHandler');
       
       generativeUIStateHandler.renderAfterImport();
       
@@ -118,7 +120,7 @@ describe('ICR End-to-End Integration Tests', () => {
   
   describe('React Mode State Handler', () => {
     it('should export React state', async () => {
-      const { reactStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/ReactStateHandler');
+      const { reactStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/ReactStateHandler');
       
       expect(reactStateHandler.modeName).toBe('react');
       expect(typeof reactStateHandler.getFullState).toBe('function');
@@ -127,7 +129,7 @@ describe('ICR End-to-End Integration Tests', () => {
     });
     
     it('should handle embedded state', async () => {
-      const { reactStateHandler } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/ReactStateHandler');
+      const { reactStateHandler } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/ReactStateHandler');
       
       const embeddedState = reactStateHandler.getEmbeddedState();
       expect(embeddedState).toBeDefined();
@@ -138,8 +140,8 @@ describe('ICR End-to-End Integration Tests', () => {
   
   describe('All Mode Handlers Registration', () => {
     it('should have all 8 mode handlers registered', async () => {
-      await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/index');
-      const { getAllModeHandlers } = await import('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/ModeStateHandler');
+      await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/handlers/index');
+      const { getAllModeHandlers } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/StateSerializer/ModeStateHandler');
       
       const handlers = getAllModeHandlers();
       expect(handlers.length).toBeGreaterThanOrEqual(5); // At least upstream handlers
@@ -155,12 +157,12 @@ describe('ICR End-to-End Integration Tests', () => {
   
   describe('ConfigManager Export/Import', () => {
     it('should have exportConfiguration function', async () => {
-      const { exportConfiguration } = await import('../core-projects/Iterative-Contextual-Refinements/Core/ConfigManager');
+      const { exportConfiguration } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/ConfigManager');
       expect(typeof exportConfiguration).toBe('function');
     });
     
     it('should have handleImportConfiguration function', async () => {
-      const { handleImportConfiguration } = await import('../core-projects/Iterative-Contextual-Refinements/Core/ConfigManager');
+      const { handleImportConfiguration } = await icrImport('../core-projects/Iterative-Contextual-Refinements/Core/ConfigManager');
       expect(typeof handleImportConfiguration).toBe('function');
     });
   });
@@ -446,3 +448,4 @@ describe('ICR Documentation Verification', () => {
     }
   });
 });
+

@@ -24,7 +24,7 @@
  * - search.executed: Search has been executed
  */
 
-import { apiLogger, LogContext } from '../../../glue/lib/structured-logger';
+import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
 import { getEventBus, type EventBus, type EventSubscriber } from "../event-bus";
 import type { PluginInterface } from './plugin-registry';
 import type { WorkflowDefinition, WorkflowExecutionResult } from './workflow-orchestrator';
@@ -600,3 +600,4 @@ export function resetPluginEventIntegration(): void {
 }
 
 export { PluginEventIntegration };
+
