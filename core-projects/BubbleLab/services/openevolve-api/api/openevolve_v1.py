@@ -212,11 +212,29 @@ def _orchestrate_request_to_bridge(body: Dict[str, Any]) -> Dict[str, Any]:
     for key, value in DEFAULT_RUN_CONFIG.items():
         parameters.setdefault(key, value)
 
+    # Optional real-LLM config. The bridge only uses a live model when a name
+    # AND an api_key are supplied; otherwise it falls back to the offline mock.
+    llm = body.get("llm")
+    if isinstance(llm, dict):
+        llm = dict(llm)
+    else:
+        llm = {}
+
+    # Allow a top-level server ``config`` object to carry additional LLM/params
+    # overrides without changing the canonical bridge ``parameters`` shape.
+    config = body.get("config")
+    if isinstance(config, dict):
+        for key in ("max_iterations", "population_size", "temperature", "seed", "log_level"):
+            if key in config and key not in parameters:
+                parameters[key] = config[key]
+        if not llm and isinstance(config.get("llm"), dict):
+            llm = dict(config["llm"])
+
     return {
         "system": system,
         "problem_statement": problem,
         "parameters": parameters,
-        "llm": {},
+        "llm": llm,
     }
 
 

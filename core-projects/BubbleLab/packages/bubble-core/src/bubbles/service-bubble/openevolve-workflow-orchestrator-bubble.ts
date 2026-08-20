@@ -71,6 +71,15 @@ const WorkflowParamsSchema = z.object({
   workflowDefinition: z.record(z.unknown()).optional(),
 
   problemStatement: z.string().optional(),
+
+  // Optional real-LLM wiring. When omitted, the OpenEvolve server defaults to
+  // its offline deterministic mock backend. Supplying `llmApiKey` + `llmModel`
+  // makes the bridge attempt a live model run.
+  llmApiKey: z.string().optional(),
+  llmModel: z.string().optional(),
+  llmApiBase: z.string().optional(),
+  llmProvider: z.string().optional(),
+
   decompositionStrategy: z
     .enum(['hierarchical', 'parallel', 'adaptive'])
     .default('adaptive'),
@@ -353,7 +362,8 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
    * POST {baseUrl}/api/v1/workflows/orchestrate
    *
    * The server accepts camelCase `system` / `problemStatement` / `generations` /
-   * `populationSize` and replies 202 `{ workflowId, status: 'running' }`.
+   * `populationSize` and (optionally) an `llm` object holding real-model config.
+   * Replies 202 `{ workflowId, status: 'running' }`.
    */
   private async startWorkflow(startTime: number): Promise<WorkflowResult> {
     if (
@@ -369,6 +379,22 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
       };
     }
 
+    // Only include `llm` when at least a model is named; the server treats a
+    // missing/absent `llm` as a request for the offline mock backend.
+    const llm: Record<string, string> = {};
+    if (this.params.llmModel) {
+      llm.name = this.params.llmModel;
+    }
+    if (this.params.llmApiKey) {
+      llm.api_key = this.params.llmApiKey;
+    }
+    if (this.params.llmApiBase) {
+      llm.api_base = this.params.llmApiBase;
+    }
+    if (this.params.llmProvider) {
+      llm.provider = this.params.llmProvider;
+    }
+
     return this.request(
       'POST',
       '/api/v1/workflows/orchestrate',
@@ -380,6 +406,7 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
         ...(this.params.parameters
           ? { parameters: this.params.parameters }
           : {}),
+        ...(Object.keys(llm).length > 0 ? { llm } : {}),
       },
       startTime
     );

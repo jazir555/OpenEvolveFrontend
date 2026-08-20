@@ -121,6 +121,30 @@ Once running, access interactive API documentation:
 - **ReDoc**: http://localhost:8000/redoc
 - **OpenAPI Schema**: http://localhost:8000/openapi.json
 
+## LeanAide Proxy (BubbleLabs)
+
+LeanAide is a **separate** service. The OpenEvolve API does not reimplement it;
+it only **proxies** the LeanAide HTTP surface to the BubbleLab client so the UI
+can reach LeanAide without CORS friction. The target is read from the
+`LEANAIDE_API_URL` environment variable (default `http://localhost:7654`).
+
+All routes are mounted under `/api/bubblelabs/leanaide` and forward to the
+same sub-path on `LEANAIDE_API_URL` (best-effort; LeanAide is external):
+
+| Route | Forwards to |
+| --- | --- |
+| `GET  /api/bubblelabs/leanaide/health`   | `{LEANAIDE_API_URL}/health`   |
+| `GET  /api/bubblelabs/leanaide/status`   | `{LEANAIDE_API_URL}/status`   |
+| `POST /api/bubblelabs/leanaide/execute`  | `{LEANAIDE_API_URL}/execute` (body forwarded) |
+| `GET  /api/bubblelabs/leanaide/trees`    | `{LEANAIDE_API_URL}/trees`    |
+| `GET  /api/bubblelabs/leanaide/trees/{tree_id}` | `{LEANAIDE_API_URL}/trees/{tree_id}` |
+| `GET  /api/bubblelabs/leanaide/proofs`   | `{LEANAIDE_API_URL}/proofs`   |
+| `GET  /api/bubblelabs/leanaide/proofs/{proof_id}` | `{LEANAIDE_API_URL}/proofs/{proof_id}` |
+| `POST /api/bubblelabs/leanaide/prove`    | `{LEANAIDE_API_URL}/prove` (body forwarded) |
+
+If LeanAide is unreachable, the proxy returns a `502` (or a degraded
+`{leanaide_available: false}` for `/health`) instead of crashing the server.
+
 ## Usage Examples
 
 ### Create Evolution Workflow
