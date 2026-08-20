@@ -5,7 +5,7 @@
 **Impact**: Complete UI architecture transformation
 **Timeline**: Multi-phase migration
 
-> **REALITY CHECK (2026-08-19):** This is a planning document. The success criteria above were previously marked `[x]` (done) but the project's own progress metrics below show 0% across every phase, and the broader codebase does not build (unresolved git merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken contract tests in `glue/adapters/openevolve-adapter/`, and `bubblelab-converted/` ships no `tsconfig.json` so it cannot be built or type-checked). None of the migration phases have been executed. Treat the `[x]` marks as erroneous.
+> **REALITY CHECK (2026-08-19):** This is a planning document. The success criteria above were previously marked `[x]` (done) but the project's own progress metrics below show 0% across every phase, and the broader codebase does not build (unresolved git merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken contract tests in `glue/adapters/openevolve-adapter/`, and `openevolve-sdk/` ships no `tsconfig.json` so it cannot be built or type-checked). None of the migration phases have been executed. Treat the `[x]` marks as erroneous.
 
 ---
 

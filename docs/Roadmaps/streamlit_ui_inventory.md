@@ -133,7 +133,7 @@ Key endpoints in `api_server.py` to wire into BubbleLab:
 
 ## BubbleLab Target Structure
 
-Root: `bubblelab-converted/src/components/openevolve/main`
+Root: `openevolve-sdk/src/components/openevolve/main`
 - `OpenEvolveApp.tsx` (app shell + tabs)
 - Tabs to implement fully: `AnalyticsDashboardTab`, `MonitoringTab`, `OrchestratorTab`, `OpenEvolveDashboardTab`, `ReportTemplatesTab`, `GithubIntegrationTab`, `TasksTab`, `ModelDashboardTab`.
 

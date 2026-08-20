@@ -1,5 +1,5 @@
 {
-  "name": "@openevolve/bubblelab-components",
+  "name": "openevolve-sdk",
   "version": "1.0.0",
   "description": "Converted OpenEvolve BubbleLab UI components to BubbleLab TypeScript components",
   "main": "dist/index.js",

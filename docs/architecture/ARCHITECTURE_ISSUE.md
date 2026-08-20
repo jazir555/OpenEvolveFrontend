@@ -8,7 +8,7 @@ Frontend/
 │   └── BubbleLab/              ← READ ONLY (Core Project)
 │       └── [original UI code]
 │
-├── bubblelab-converted/         ← ❌ VIOLATION: Should be in glue/
+├── openevolve-sdk/         ← ❌ VIOLATION: Should be in glue/
 │   ├── src/components/
 │   └── [converted UI code]
 │
@@ -30,7 +30,7 @@ According to the **Federation Constitution (CLAUDE.md)**:
 3. **The Glue Layer**: All adapters and integration code should be in `glue/`
 
 **Current violations:**
-- `bubblelab-converted/` exists at root level (should be in `glue/`)
+- `openevolve-sdk/` exists at root level (should be in `glue/`)
 - `bubblelabs-*-plugin/` folders at root (should be in `glue/adapters/`)
 
 ## Correct Architecture
@@ -81,9 +81,9 @@ Frontend/
 Move all integration code into the glue layer:
 
 ```bash
-# Move bubblelab-converted to glue/adapters/bubblelab
-mv bubblelab-converted glue/adapters/bubblelab
+# Move openevolve-sdk to glue/adapters/bubblelab
 
+  mv openevolve-sdk glue/adapters/bubblelab
 # Move plugins to glue/adapters
 mv bubblelabs-ragbits-plugin glue/adapters/ragbits
 mv datapizza-bubblelab-plugin glue/adapters/datapizza
@@ -93,21 +93,21 @@ mv leanaide-bubblelab-plugin glue/adapters/leanaide
 
 ### Option 2: Clarify Purpose
 
-If `bubblelab-converted` is NOT the glue layer but something else, we need to:
+If `openevolve-sdk` is NOT the glue layer but something else, we need to:
 
 1. **Rename it** to clarify its purpose
 2. **Document why it exists** separate from core-projects
-3. **Document the relationship** between core-projects/BubbleLab and bubblelab-converted
+3. **Document the relationship** between core-projects/BubbleLab and openevolve-sdk
 
 ## Questions for User
 
-1. **What IS bubblelab-converted?**
+1. **What IS openevolve-sdk?**
    - Is it a modified/custom version of BubbleLab?
    - Is it OpenEvolve-specific customizations on top of BubbleLab?
    - Why is it separate from core-projects/BubbleLab?
 
 2. **What is the relationship?**
-   - Does bubblelab-converted wrap/core-projects/BubbleLab?
+   - Does openevolve-sdk wrap/core-projects/BubbleLab?
    - Does it import from core-projects/BubbleLab?
    - Or is it a fork/modification?
 
@@ -120,7 +120,7 @@ If `bubblelab-converted` is NOT the glue layer but something else, we need to:
 **STOP** and clarify before proceeding:
 
 1. ✅ Keep `core-projects/BubbleLab` as READ ONLY
-2. ❌ STOP using `bubblelab-converted` at root level
+2. ❌ STOP using `openevolve-sdk` at root level
 3. ✅ Move all integration code to `glue/`
 4. ✅ Document the architecture clearly
 

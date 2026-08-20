@@ -68,7 +68,7 @@ def main():
     
     # Excluded directories
     skip_dirs = {'__pycache__', '.venv', 'node_modules', '.git', '.pytest_cache', 
-                 '.cache', 'bubblelab-converted', 'checkpoints', '.claude', 
+                 '.cache', 'openevolve-sdk', 'checkpoints', '.claude', 
                  '.gemini', '.leanaide_cache', '.c2c_cache', '.openevolve',
                  '.steer', '.tdad'}
     

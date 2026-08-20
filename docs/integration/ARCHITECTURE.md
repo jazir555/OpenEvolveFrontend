@@ -12,10 +12,10 @@ Three moving parts:
 2. **Glue** (`glue/`) — TypeScript integration library (resilience, logging, validation,
    metrics, event bus) consumed by the UI-facing API client.
 3. **UI** — two consumers: the canonical converted component/client package
-   (`bubblelab-converted/`) and the actual React app (`core-projects/BubbleLab/`, a separate
+    (`openevolve-sdk/`) and the actual React app (`core-projects/BubbleLab/`, a separate
    pnpm+turbo monorepo).
 
-The frontend↔backend contract is owned by `bubblelab-converted`, not by the React app.
+The frontend↔backend contract is owned by `openevolve-sdk`, not by the React app.
 
 ## Repo layout
 
@@ -24,7 +24,7 @@ The frontend↔backend contract is owned by `bubblelab-converted`, not by the Re
 | Backend API | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5497). `__main__` just calls it (line 7670). |
 | Glue library | `glue/lib/` | 17 root `.ts` modules + `glue/lib/metrics/`. This is the part that typechecks clean. |
 | Glue (out of typecheck) | `glue/orchestration/`, `glue/schemas/`, `glue/adapters/`, `glue/tests/` | See boundary section — partially pulled in via imports. |
-| Canonical contract | `bubblelab-converted/src/lib/openevolveApi.ts`, `bubblelab-converted/src/lib/types.ts` | Source of truth for response shapes. |
+| Canonical contract | `openevolve-sdk/src/lib/openevolveApi.ts`, `openevolve-sdk/src/lib/types.ts` | Source of truth for response shapes. |
 | React UI | `core-projects/BubbleLab/` | Own `pnpm-workspace.yaml` + `turbo.json`; apps `bubble-studio`, `bubblelab-api`; 6 `packages/*`. |
 | Divergent client | `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts` | 726 lines, separate implementation. Known debt. |
 
@@ -34,7 +34,7 @@ naturally absent from the TS build.
 ## API contract & the `/api` prefix
 
 The canonical client is the functional `openevolveApi` object exported from
-`bubblelab-converted/src/lib/openevolveApi.ts` (~1243 lines). It:
+`openevolve-sdk/src/lib/openevolveApi.ts` (~1243 lines). It:
 
 - issues **unprefixed** paths (`/teams`, `/workflows`, `/evolution/runs`,
   `/bubblelabs/leanaide/trees`, …);
@@ -44,14 +44,14 @@ The canonical client is the functional `openevolveApi` object exported from
   `glue/lib` via relative paths (`../../../glue/lib/...`, lines 95–97);
 - sends `X-API-Key` and `X-Correlation-ID`, and enforces an `AbortController` timeout.
 
-Response shapes live in `bubblelab-converted/src/lib/types.ts`. Examples confirmed:
+Response shapes live in `openevolve-sdk/src/lib/types.ts`. Examples confirmed:
 `KnowledgeExplorerQueryResponse.history` (line 1126),
 `KnowledgeExplorerHistoryResponse.history` (line 1134),
 `LeanAideTreeListResponse.tree_ids` (line 1157),
 `LeanAideProofListResponse.proof_ids` (line 1165),
 `LeanAideStatusResponse.execution_history_count` (line 1148).
 
-**Contract tests: 82 passing, 9 skipped (backend-e2E).** `npx vitest run` in `bubblelab-converted/`
+**Contract tests: 82 passing, 9 skipped (backend-e2E).** `npx vitest run` in `openevolve-sdk/`
 reports `Test Files 5 passed / Tests 82 passed` (plus 1 skipped file with 9 skipIf-guarded tests).
 The 82 span five files:
 
@@ -88,14 +88,14 @@ Measured scope via `tsc --listFiles`: **28 project files**, broken down as
 > `glue/orchestration/event-bus.ts`, `glue/schemas/rese-canonical.ts`. Breaking one of
 > those *will* fail root typecheck.
 
-Nothing in `core-projects/*` (React/UI), `bubblelab-converted/`, or any test file is
+Nothing in `core-projects/*` (React/UI), `openevolve-sdk/`, or any test file is
 covered. Real builds are per-package:
 
 - `core-projects/BubbleLab/` — pnpm workspace (`apps/*`, `packages/*`, `tools/*`, `docs`,
   and `../bubblelabs-ragbits-plugin`) driven by `turbo.json` with `build`, `typecheck`,
   `test`, `lint` tasks, each `dependsOn: ["^build"]`. **There is no `turbo.json` or
   `pnpm-workspace.yaml` at the repo root** — turbo is scoped to the BubbleLab subtree.
-- `bubblelab-converted/` — own `tsc` build (`npm run build`) + vitest.
+- `openevolve-sdk/` — own `tsc` build (`npm run build`) + vitest.
 - Root `npm run build` only builds `glue/orchestration/workflows` and `glue/orchestration`
   (i.e. code the root typecheck largely skips).
 
@@ -130,7 +130,7 @@ tech debt, not architecture.
   is a second, divergent client: it uses `ApiClient` from `@/lib/api`,
   `OPENEVOLVE_API_BASE_URL` from `@/env`, `/api/...` prefixed paths, and its **own local
   types** (`WorkflowResponse`, `ExecutionResponse`, `ExecutionStatus`, `TeamResponse`, …)
-  that duplicate `bubblelab-converted/src/lib/types.ts`. It targets `/api/executions`,
+  that duplicate `openevolve-sdk/src/lib/types.ts`. It targets `/api/executions`,
   which is exactly what keeps both shims alive. Consolidating on the canonical client
   would let both shims be deleted. **Mitigated**: BubbleLab client now has `listExecutions`
   + `getExecution` methods and aligned `ExecutionResponse` fields (`name`, `real_engine`,

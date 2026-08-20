@@ -1,5 +1,5 @@
 #!/bin/bash
-# Validation script for bubblelab-converted fixes
+# Validation script for openevolve-sdk fixes
 # Follows Federation Constitution Section 4: The Proof of Work (Phase 1: The Probe)
 
 set -e
