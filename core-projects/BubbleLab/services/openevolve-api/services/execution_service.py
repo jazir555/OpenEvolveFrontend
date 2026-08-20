@@ -404,6 +404,22 @@ class ExecutionManager:
 
             return executions[:limit]
 
+    async def list_all_executions(self) -> List[Dict[str, Any]]:
+        """
+        List every tracked execution (global, unfiltered by workflow).
+
+        Returns:
+            List of execution records sorted by started_at descending
+        """
+        with self._lock:
+            executions = list(self._executions.values())
+
+        executions.sort(
+            key=lambda e: e["started_at"] if e.get("started_at") else datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True,
+        )
+        return executions
+
     def register_listener(self, execution_id: str) -> queue.Queue:
         """Register a streaming listener for an execution."""
         q: queue.Queue = queue.Queue()

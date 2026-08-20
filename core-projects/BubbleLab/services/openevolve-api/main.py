@@ -33,6 +33,7 @@ try:
     from .api.integrated import router as integrated_router
     from .api.leanaide import router as leanaide_router
     from .api.knowledge import router as knowledge_router
+    from .api.bubblelabs_control import router as bubblelabs_control_router
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
@@ -57,6 +58,7 @@ except ImportError:
     from api.integrated import router as integrated_router
     from api.leanaide import router as leanaide_router
     from api.knowledge import router as knowledge_router
+    from api.bubblelabs_control import router as bubblelabs_control_router
     from services.execution_service import execution_manager
 
 # Structured logging
@@ -121,6 +123,9 @@ app.include_router(evaluators_router, prefix="/api", tags=["evaluators"])
 app.include_router(integrated_router, prefix="/api", tags=["integrated"])
 app.include_router(leanaide_router, prefix="/api", tags=["bubblelabs-leanaide"])
 app.include_router(knowledge_router, prefix="/api", tags=["knowledge"])
+
+# BubbleLabs control plane + workflow definitions/instances lifecycle.
+app.include_router(bubblelabs_control_router, prefix="/bubblelabs", tags=["bubblelabs"])
 
 # Health check
 @app.get("/health")

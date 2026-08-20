@@ -3,6 +3,13 @@
 This note covers how to drive a **real LLM** through the OpenEvolve integration
 instead of the offline mock backend.
 
+## Verify everything
+
+Run the unified harness to exercise all Python + TypeScript suites and print a
+single green/red status: `pwsh core-projects/BubbleLab/scripts/verify_integration.ps1`
+(from the `OpenEvolveFrontend` repo root). It runs each suite independently with
+a 300s timeout, reports `SKIP` for missing tooling, and exits non-zero on `RED`.
+
 ## Default: offline mock (no credentials)
 
 Out of the box, the integration runs fully offline. When no real LLM config is

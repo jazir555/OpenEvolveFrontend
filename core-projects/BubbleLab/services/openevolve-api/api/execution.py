@@ -672,3 +672,55 @@ async def list_workflow_executions(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list workflow executions"
         )
+
+
+def _serialize_execution_for_list(execution: dict) -> dict:
+    """Convert an internal execution record into a JSON-serializable dict."""
+    return {
+        "execution_id": execution.get("execution_id"),
+        "workflow_id": execution.get("workflow_id"),
+        "status": execution.get("status"),
+        "progress": execution.get("progress", 0.0),
+        "started_at": execution.get("started_at").isoformat() if execution.get("started_at") else None,
+        "completed_at": execution.get("completed_at").isoformat() if execution.get("completed_at") else None,
+        "result": execution.get("result"),
+        "error": execution.get("error"),
+        "workflow_type": execution.get("workflow_type"),
+    }
+
+
+@router.get("", status_code=status.HTTP_200_OK)
+async def list_all_executions(
+    limit: int = Query(50, ge=1, le=200, description="Maximum number of executions to return"),
+    offset: int = Query(0, ge=0, description="Number of executions to skip"),
+) -> dict:
+    """
+    List all executions (global, across every workflow).
+
+    Returns a JSON object with a ``executions`` list and a ``total`` count so the
+    BubbleLab client's ``listExecutions`` / ``listExecutionRecords`` stop 404ing.
+    """
+    try:
+        logger.debug("executions_list_requested", limit=limit, offset=offset)
+
+        all_executions = await execution_manager.list_all_executions()
+        paged = all_executions[offset : offset + limit]
+
+        logger.debug("executions_listed", count=len(paged), total=len(all_executions))
+
+        return {
+            "executions": [_serialize_execution_for_list(exec) for exec in paged],
+            "total": len(all_executions),
+        }
+
+    except Exception as e:
+        logger.error(
+            "executions_list_failed",
+            error=str(e),
+            error_type=type(e).__name__,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list executions"
+        )
