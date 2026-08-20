@@ -42,11 +42,20 @@ import { RbacTab } from './RbacTab';
 import { ModelOrchestrationTab } from './ModelOrchestrationTab';
 import { ResourceManagerTab } from './ResourceManagerTab';
 import { BubbleLabsIntegrationTab } from './BubbleLabsIntegrationTab';
+import { BubbleLabsIntegrationsTab } from './BubbleLabsIntegrationsTab';
+import { Web3Tab } from './Web3Tab';
+import { ResearchApprovalTab } from './ResearchApprovalTab';
+import { IcrDashboardTab } from './IcrDashboardTab';
 import { WorkflowLifecycleTab } from './WorkflowLifecycleTab';
 import { MakerStudioTab } from './MakerStudioTab';
 import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
 import { LeanAideTab } from './LeanAideTab';
 import { WorkflowExecutionTab } from './WorkflowExecutionTab';
+import { WorkflowVisualEditorTab } from './WorkflowVisualEditorTab';
+import { RagbitsTab } from './RagbitsTab';
+import { DspyGraphistryTab } from './DspyGraphistryTab';
+import { DeterminismTab } from './DeterminismTab';
+import { CrewaiTab } from './CrewaiTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { apiLogger } from '../../../glue/lib/structuredLogger';
@@ -132,9 +141,13 @@ export const OpenEvolveApp: React.FC = () => {
     );
   }
 
+  const handleNavigate = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      <Sidebar activeTab={activeTab} onNavigate={handleNavigate} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-auto p-6">
@@ -188,6 +201,15 @@ export const OpenEvolveApp: React.FC = () => {
                 <TabsTrigger value="knowledge-explorer">Knowledge Explorer</TabsTrigger>
                 <TabsTrigger value="leanaide">LeanAide</TabsTrigger>
                 <TabsTrigger value="workflow-execution">Workflow Executor</TabsTrigger>
+                <TabsTrigger value="workflow-visual-editor">Workflow Visual Editor</TabsTrigger>
+                <TabsTrigger value="ragbits">RAGBits</TabsTrigger>
+                <TabsTrigger value="dspy-graphistry">DSPy &amp; Graphistry</TabsTrigger>
+                <TabsTrigger value="determinism">Determinism</TabsTrigger>
+                <TabsTrigger value="bubblelabs-integrations">BubbleLabs Integrations</TabsTrigger>
+                <TabsTrigger value="web3">Web3</TabsTrigger>
+                <TabsTrigger value="research-approval">Research Approval</TabsTrigger>
+                <TabsTrigger value="icr-dashboard">ICR Dashboard</TabsTrigger>
+                <TabsTrigger value="crewai">CrewAI</TabsTrigger>
               </TabsList>
               
               <TabsContent value="evolution" className="mt-6">
@@ -382,6 +404,42 @@ export const OpenEvolveApp: React.FC = () => {
 
               <TabsContent value="workflow-execution" className="mt-6">
                 <WorkflowExecutionTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-visual-editor" className="mt-6">
+                <WorkflowVisualEditorTab />
+              </TabsContent>
+
+              <TabsContent value="ragbits" className="mt-6">
+                <RagbitsTab />
+              </TabsContent>
+
+              <TabsContent value="dspy-graphistry" className="mt-6">
+                <DspyGraphistryTab />
+              </TabsContent>
+
+              <TabsContent value="determinism" className="mt-6">
+                <DeterminismTab />
+              </TabsContent>
+
+              <TabsContent value="bubblelabs-integrations" className="mt-6">
+                <BubbleLabsIntegrationsTab />
+              </TabsContent>
+
+              <TabsContent value="web3" className="mt-6">
+                <Web3Tab />
+              </TabsContent>
+
+              <TabsContent value="research-approval" className="mt-6">
+                <ResearchApprovalTab />
+              </TabsContent>
+
+              <TabsContent value="icr-dashboard" className="mt-6">
+                <IcrDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="crewai" className="mt-6">
+                <CrewaiTab />
               </TabsContent>
             </Tabs>
           </div>

@@ -1,0 +1,15 @@
+{
+  "name": "@bubblelab/integrations-openevolve",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenEvolve service-bubble adapters for BubbleLab",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "typescript": "^5.4.0",
+    "zod": "^3.22.0"
+  }
+}

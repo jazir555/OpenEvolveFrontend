@@ -10,8 +10,8 @@ import { QdrantBubble } from './qdrant-bubble';
 import { ElasticsearchBubble } from './elasticsearch-bubble';
 import { HttpBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
-import { generateEmbeddings } from '../../../utils/embeddings'; // Import the real embeddings implementation
-import VectorDBService from '../../../services/vector-db'; // Import the vector DB service
+import { generateEmbeddings } from './_shims/embeddings'; // Local placeholder for the embeddings implementation
+import VectorDBService from './_shims/vector-db'; // Local placeholder for the vector DB service
 
 const KnowledgeBackendSchema = z.enum([
   'qdrant',
@@ -314,10 +314,10 @@ export class KnowledgeEngineBubble {
         });
       }
     } catch (error) {
-      logger.error({
-        "msg": "Failed to initialize vector database service",
-        "error": error instanceof Error ? error.message : String(error),
-        "timestamp": datetime.now(timezone.utc).isoformat()
+      console.error({
+        msg: 'Failed to initialize vector database service',
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
       });
       // Continue without vector DB service if initialization fails
     }
@@ -332,8 +332,10 @@ export class KnowledgeEngineBubble {
    */
   private resolveOpenEvolveApiUrl(): string {
     // Check environment variable (server-side)
+    // OPENEVOLVE_BASE_URL is the canonical override (default http://localhost:8000).
+    // OPENEVOLVE_API_URL is still accepted for backwards compatibility.
     const envUrl = typeof process !== 'undefined' && process.env
-      ? process.env.OPENEVOLVE_API_URL
+      ? (process.env.OPENEVOLVE_BASE_URL || process.env.OPENEVOLVE_API_URL)
       : null;
 
     // Check window.env for client-side (Vite builds)
@@ -352,15 +354,15 @@ export class KnowledgeEngineBubble {
     if (!apiUrl || apiUrl.trim().length === 0) {
       if (isProduction) {
         throw new Error(
-          'CRITICAL: OPENEVOLVE_API_URL environment variable is not set. ' +
-          'This is a required configuration. Please set OPENEVOLVE_API_URL ' +
+          'CRITICAL: OPENEVOLVE_BASE_URL environment variable is not set. ' +
+          'This is a required configuration. Please set OPENEVOLVE_BASE_URL ' +
           'to the OpenEvolve API endpoint (e.g., https://api.openevolve.com).'
         );
       }
 
       // Development: Warn but allow localhost fallback
       console.warn(
-        '[KnowledgeEngineBubble] OPENEVOLVE_API_URL not configured. ' +
+        '[KnowledgeEngineBubble] OPENEVOLVE_BASE_URL not configured. ' +
         'Falling back to http://localhost:8000 for development. ' +
         'This will FAIL in production!'
       );
@@ -372,7 +374,7 @@ export class KnowledgeEngineBubble {
       new URL(apiUrl);
     } catch (error) {
       throw new Error(
-        `CRITICAL: Invalid OPENEVOLVE_API_URL format: "${apiUrl}". ` +
+        `CRITICAL: Invalid OPENEVOLVE_BASE_URL format: "${apiUrl}". ` +
         `URL must be a valid absolute URL (e.g., http://localhost:8000 or https://api.openevolve.com).`
       );
     }
@@ -721,26 +723,36 @@ export class KnowledgeEngineBubble {
 
   public async healthCheck(): Promise<KnowledgeResult> {
     const startTime = Date.now();
+
+    // Health check against the OpenEvolve server (the backend dispatcher).
+    // Per the integration contract this must be a real request and must NOT
+    // fake success: success is derived from the server response.
+    const baseUrl = this.resolveOpenEvolveApiUrl();
     const health: Record<string, any> = {};
 
     try {
-      if (this.qdrant) {
-        const qdrantHealth = await this.qdrant.action();
-        health.qdrant = qdrantHealth.success ? 'healthy' : 'unhealthy';
-      }
-
-      if (this.elasticsearch) {
-        const esHealth = await this.elasticsearch.action();
-        health.elasticsearch = esHealth.success ? 'healthy' : 'unhealthy';
-      }
+      const response = await fetch(`${baseUrl}/api/v1/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const timing = Date.now() - startTime;
+      const ok = response.ok;
+      health.openevolve = ok ? 'healthy' : 'unhealthy';
+
+      let detail: unknown;
+      try {
+        detail = await response.json();
+      } catch {
+        detail = undefined;
+      }
 
       return {
-        success: Object.values(health).every(v => v === 'healthy'),
+        success: ok,
         operation: 'health_check',
         backend: this.params.backend,
-        health,
+        health: { ...health, status: response.status, detail },
+        error: ok ? undefined : `OpenEvolve health check failed: ${response.status}`,
         timing,
       };
     } catch (error) {
@@ -751,8 +763,8 @@ export class KnowledgeEngineBubble {
         success: false,
         operation: 'health_check',
         backend: this.params.backend,
-        health,
-        error: errorMessage,
+        health: { ...health, openevolve: 'unhealthy' },
+        error: `OpenEvolve server unreachable: ${errorMessage}`,
         timing,
       };
     }

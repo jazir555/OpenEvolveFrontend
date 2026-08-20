@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { ServiceBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
 import { ResilienceWrapper, DEFAULT_RESILIENCE_CONFIG } from '../adapters/resilience';
+import { checkOpenEvolveHealth } from './openevolve-health';
 
 // ============================================================================
 // PARAMETER SCHEMAS
@@ -197,30 +198,16 @@ export class LeanAideBubble extends ServiceBubble<LeanAideParams, LeanAideResult
 
   private async healthCheck(): Promise<LeanAideResult> {
     const startTime = Date.now();
-    try {
-      const response = await this.resilience.execute(
-        'leanaide-health',
-        () => this.makeRequest('GET', '/'),
-        { operation: 'health_check' }
-      );
-      const timing = Date.now() - startTime;
-
-      return {
-        success: response.ok,
-        operation: 'health_check',
-        data: response.ok ? { status: 'healthy' } : undefined,
-        error: response.ok ? undefined : `Health check failed: ${response.status}`,
-        timing,
-        metadata: { statusCode: response.status },
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        operation: 'health_check',
-        error: error.message || 'Health check failed',
-        timing: Date.now() - startTime,
-      };
-    }
+    const health = await checkOpenEvolveHealth();
+    const timing = Date.now() - startTime;
+    return {
+      success: health.ok,
+      operation: 'health_check',
+      data: health.data,
+      error: health.error,
+      timing,
+      metadata: { statusCode: health.status },
+    };
   }
 
   private async generateProof(): Promise<LeanAideResult> {
@@ -414,6 +401,14 @@ export class LeanAideBubble extends ServiceBubble<LeanAideParams, LeanAideResult
   // ============================================================================
   // SERVICE BUBBLE EXECUTION
   // ============================================================================
+
+  /**
+   * Public entry point. Routes health_check (and all operations) through the
+   * OpenEvolve-backed execution path.
+   */
+  async action(): Promise<LeanAideResult> {
+    return this.execute();
+  }
 
   async execute(): Promise<LeanAideResult> {
     const operation = this.params.operation;

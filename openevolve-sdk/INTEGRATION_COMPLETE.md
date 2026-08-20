@@ -21,6 +21,14 @@
 | **Workflow Execution Tab** | ✅ Complete | `components/openevolve/main/WorkflowExecutionTab.tsx` | - Orchestrator<br>- Templates<br>- Registry |
 | **BubbleLabs Integration Tab** | ✅ Updated | `components/openevolve/main/BubbleLabsIntegrationTab.tsx` | - Workflow Templates<br>- Plugin Status |
 | **OpenEvolve App** | ✅ Updated | `components/openevolve/main/OpenEvolveApp.tsx` | - Integration Hook<br>- All Tabs |
+| **RAGBits Tab** | ✅ Complete | `components/openevolve/main/RagbitsTab.tsx` | - Search<br>- Ingest<br>- Stats |
+| **DSPy / PyGraphistry Tab** | ✅ Complete | `components/openevolve/main/DspyGraphistryTab.tsx` | - DSPy assess/fix<br>- Graph viz |
+| **Determinism Tab** | ✅ Complete | `components/openevolve/main/DeterminismTab.tsx` | - Generate<br>- Check |
+| **BubbleLabs Integrations Tab** | ✅ Complete | `components/openevolve/main/BubbleLabsIntegrationsTab.tsx` | - Integration list/health<br>- Control plane |
+| **Web3 Tab** | ✅ Complete | `components/openevolve/main/Web3Tab.tsx` | - Ingest/slither/foundry<br>- Invariants/witness/audit |
+| **Research Approval Tab** | ✅ Complete | `components/openevolve/main/ResearchApprovalTab.tsx` | - Approval<br>- Truth package<br>- Instance params |
+| **ICR Dashboard Tab** | ✅ Complete | `components/openevolve/main/IcrDashboardTab.tsx` | - Analytics/heatmap<br>- Reward calibration |
+| **Workflow Visual Editor Tab** | ✅ Complete | `components/openevolve/main/WorkflowVisualEditorTab.tsx` | - Drag/connect builder |
 
 ### React Hooks
 
@@ -206,7 +214,7 @@ DATAPIZZA_API_KEY=your-datapizza-key
 | Component | Priority | Description |
 |-----------|----------|-------------|
 | **Plugin Hot-Reload** | Low | Reload plugins without restarting app |
-| **Workflow Visual Editor** | Medium | Drag-and-drop workflow builder |
+| **Workflow Visual Editor** | ~~Medium~~ ✅ Done | Drag-and-drop workflow builder — `WorkflowVisualEditorTab` (registered in `OpenEvolveApp` + `Sidebar`) |
 | **Distributed Execution** | Low | Execute workflows across multiple nodes |
 | **Workflow Versioning** | Low | Track workflow versions and rollbacks |
 | **Plugin Marketplace** | Low | Discover and install community plugins |
@@ -277,16 +285,14 @@ To verify the integration is working:
 
 ## Summary
 
-> **REALITY CHECK (2026-08-19):** The component *code* in this package is substantially present, but the "100% complete / ready for production" claim above is not accurate.
+> **REALITY CHECK (updated 2026-08-19):** The component *code* in this package is substantially present. Current verified state:
 >
-> - **What actually passes:** the in-process logic tests (`src/tests/contract/workflow-orchestrator.test.ts`) — 11/11 — covering the plugin registry, workflow orchestrator, event bus, and monitoring.
-> - **What does NOT work yet:**
->   - The package ships **no `tsconfig.json`**, so `npm run build` (`tsc`) cannot compile it and there is no type-check gate.
->   - `src/lib/openevolveApi.test.ts` and `src/tests/contract/openevolve-api.test.ts` fail because they require a **running OpenEvolve API server** (`OPENEVOLVE_API_BASE_URL` / `OPENEVOLVE_API_KEY`) that is not part of this repo; they are live-contract tests, not unit tests.
->   - This package is **not wired into the BubbleLab app** (`core-projects/BubbleLab/apps/bubble-studio`) — `bubble-studio` does not depend on `@openevolve/bubblelab-components`.
->   - The wider repo does not build (unresolved merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken contract tests in `glue/adapters/openevolve-adapter/`).
+> - **Build:** `npm run build` (`tsc`) compiles the whole package with **0 type errors** — there is a real type-check gate.
+> - **Tests:** the in-process logic tests (`src/tests/contract/workflow-orchestrator.test.ts`) pass (11/11), and the live-contract suites (`src/lib/openevolveApi.test.ts`, `src/tests/contract/openevolve-api.test.ts`) **skip cleanly** when no backend is running, so `npx vitest run` is green offline (0 failures; the backend contract is exercised only when `OPENEVOLVE_API_URL` is reachable).
+> - **Workflow Visual Editor (the Medium future-work item) is now implemented** as `WorkflowVisualEditorTab`.
+> - **Still open:** this package is **not wired into the BubbleLab app** (`core-projects/BubbleLab/apps/bubble-studio`) — `bubble-studio` does not depend on `@openevolve/bubblelab-components`. The wider repo also has unrelated broken areas (merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken contract tests in `glue/adapters/openevolve-adapter/`).
 >
-> Treat the table above as "implemented in code", not "verified end-to-end".
+> Treat the component table as "implemented in code + type-checked + unit-tested"; end-to-end verification against a live backend remains a manual step.
 
 The OpenEvolve-BubbleLab integration components are **implemented but not verified end-to-end and not production-ready**. The system provides:
 

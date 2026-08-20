@@ -57,6 +57,10 @@ class Program:
     timestamp: float = field(default_factory=time.time)
     iteration_found: int = 0  # Track which iteration this program was found
 
+    # Human-readable summary of the change that produced this program.
+    # Referenced by controller.py, evolution_trace.py and from_dict() below.
+    changes_description: Optional[str] = None
+
     # Performance metrics
     metrics: Dict[str, float] = field(default_factory=dict)
     score: Optional[float] = None
@@ -537,8 +541,7 @@ class ProgramDatabase:
         ]
 
         logger.debug(
-            f"Sampled parent {parent.id} and {len(inspirations)} inspirations from island {island_id} "
-            f"(mode: {sampling_mode}, rand_val: {rand_val:.3f})"
+            f"Sampled parent {parent.id} and {len(inspirations)} inspirations from island {island_id}"
         )
         return parent, inspirations
 

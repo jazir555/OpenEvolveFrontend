@@ -163,7 +163,7 @@ export class RedisBubble extends ServiceBubble<RedisParams, RedisResult> {
     this.client = new Redis(this.params.connectionString, {
       password: this.params.password,
       db: this.params.database,
-      retryStrategy: (times) => {
+      retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
@@ -172,7 +172,7 @@ export class RedisBubble extends ServiceBubble<RedisParams, RedisResult> {
     });
 
     // Handle connection errors
-    this.client.on('error', (error) => {
+    this.client.on('error', (error: Error) => {
       console.error('Redis connection error:', error);
     });
   }

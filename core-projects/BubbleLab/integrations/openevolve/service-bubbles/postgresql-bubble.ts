@@ -66,6 +66,10 @@ const PostgresResultSchema = z.object({
     name: z.string(),
     type: z.string(),
     nullable: z.boolean(),
+    maxLength: z.number().optional(),
+    precision: z.number().optional(),
+    scale: z.number().optional(),
+    default: z.string().optional(),
   })).optional(),
   backupPath: z.string().optional(),
   error: z.string().optional(),
@@ -84,7 +88,7 @@ export class PostgreSQLBubbleExtended extends PostgreSQLBubble {
       query: params.query || 'SELECT 1',
       params: params.params,
       connectionPool: {
-        max: params.poolSize,
+        max: params.poolSize ?? 10,
         idleTimeoutMillis: 30000,
       },
     }, context);

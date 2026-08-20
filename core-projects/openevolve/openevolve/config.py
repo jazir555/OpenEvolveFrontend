@@ -475,17 +475,6 @@ class Config:
             except re.error as e:
                 raise ValueError(f"Invalid regex pattern in diff_pattern: {e}")
 
-        # Update top-level fields
-        for key, value in config_dict.items():
-            if key not in [
-                "llm",
-                "prompt",
-                "database",
-                "evaluator",
-                "evolution_trace",
-            ] and hasattr(config, key):
-                setattr(config, key, value)
-
         # Update nested configs
         if "llm" in config_dict:
             if "temperature" in config_dict["llm"] and config_dict["llm"]["temperature"] is None:

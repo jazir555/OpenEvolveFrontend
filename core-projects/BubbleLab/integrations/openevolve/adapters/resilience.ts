@@ -742,7 +742,7 @@ export class StructuredLogger {
       level,
       service: this.serviceName,
       ...data,
-      ...(error && { error: sanitizeError(error) }),
+      ...(error ? { error: sanitizeError(error) } : {}),
     };
 
     console.log(JSON.stringify(logEntry));

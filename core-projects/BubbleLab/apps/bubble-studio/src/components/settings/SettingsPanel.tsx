@@ -1,13 +1,35 @@
 /**
  * Settings Panel Component
  * Application and LLM configuration settings
+ *
+ * BACKEND CAVEAT: the OpenEvolve backend (`engines/other/api_server.py`) exposes no
+ * `/settings` routes, so the `apiClient` getters and updaters for LLM, ICR,
+ * determinism and decomposition defaults cannot succeed. While
+ * `SETTINGS_API_AVAILABLE` is `false` this panel:
+ *   - skips the load requests on mount (no 404 storm / no error toasts),
+ *   - disables the server "Save ..." buttons and shows a "not available" note,
+ *   - keeps every field editable, persisted in the local config store only.
+ * Remove the guards once the backend gains real `/settings` endpoints.
  */
 
 import { useEffect, useState } from 'react';
 import { useConfigStore, useLLMConfig, useICRConfig, useDefaultsConfig } from '../../stores/configStore';
 import { LLMProvider } from '../../types/api';
-import apiClient from '../../lib/api-client';
+import apiClient, {
+  SETTINGS_API_AVAILABLE,
+  SETTINGS_UNAVAILABLE_MESSAGE,
+} from '../../lib/api-client';
 import { notify } from '../common/Notifications';
+
+/** Inline banner rendered in each section backed by a missing `/settings/*` route. */
+function SettingsUnavailableNote() {
+  return (
+    <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+      <span className="font-medium">Not available:</span> {SETTINGS_UNAVAILABLE_MESSAGE}
+    </div>
+  );
+}
+
 
 export function SettingsPanel() {
   const {
@@ -80,6 +102,16 @@ export function SettingsPanel() {
   }));
 
   useEffect(() => {
+    // The backend has no `/settings/*` routes: skip the fetches entirely rather
+    // than firing three requests that can only 404. Values shown below come from
+    // the locally persisted config store.
+    if (!SETTINGS_API_AVAILABLE) {
+      setIsLoading(false);
+      setIsLoadingIcr(false);
+      setIsLoadingDefaults(false);
+      return;
+    }
+
     let isMounted = true;
 
     const loadConfig = async () => {
@@ -188,6 +220,14 @@ export function SettingsPanel() {
   }, [decomposition_defaults.mdap_config]);
 
   const handleSave = async () => {
+    if (!SETTINGS_API_AVAILABLE) {
+      notify({
+        type: 'info',
+        title: 'Stored locally',
+        message: SETTINGS_UNAVAILABLE_MESSAGE,
+      });
+      return;
+    }
     setIsSaving(true);
     try {
       const updated = await apiClient.updateLLMConfig({
@@ -224,6 +264,14 @@ export function SettingsPanel() {
   };
 
   const handleSaveIcr = async () => {
+    if (!SETTINGS_API_AVAILABLE) {
+      notify({
+        type: 'info',
+        title: 'Stored locally',
+        message: SETTINGS_UNAVAILABLE_MESSAGE,
+      });
+      return;
+    }
     setIsSavingIcr(true);
     try {
       const cleanedProvider =
@@ -299,6 +347,14 @@ export function SettingsPanel() {
   };
 
   const handleSaveDeterminismDefaults = async () => {
+    if (!SETTINGS_API_AVAILABLE) {
+      notify({
+        type: 'info',
+        title: 'Stored locally',
+        message: SETTINGS_UNAVAILABLE_MESSAGE,
+      });
+      return;
+    }
     setIsSavingDeterminismDefaults(true);
     try {
       const configObject = parseJsonField(determinismConfigJson, 'determinism config JSON');
@@ -335,6 +391,14 @@ export function SettingsPanel() {
   };
 
   const handleSaveDecompositionDefaults = async () => {
+    if (!SETTINGS_API_AVAILABLE) {
+      notify({
+        type: 'info',
+        title: 'Stored locally',
+        message: SETTINGS_UNAVAILABLE_MESSAGE,
+      });
+      return;
+    }
     setIsSavingDecompositionDefaults(true);
     try {
       const makerConfig = parseJsonField(decompositionMakerConfigJson, 'maker config JSON');
@@ -378,6 +442,8 @@ export function SettingsPanel() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           LLM Configuration
         </h2>
+
+        {!SETTINGS_API_AVAILABLE && <SettingsUnavailableNote />}
 
         <div className="space-y-4">
           {/* Provider Selection */}
@@ -543,7 +609,8 @@ export function SettingsPanel() {
           <div className="pt-4">
             <button
               onClick={handleSave}
-              disabled={isSaving || isLoading}
+              disabled={!SETTINGS_API_AVAILABLE || isSaving || isLoading}
+              title={SETTINGS_API_AVAILABLE ? undefined : SETTINGS_UNAVAILABLE_MESSAGE}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : isLoading ? 'Loading...' : 'Save Settings'}
@@ -610,6 +677,8 @@ export function SettingsPanel() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Integration Defaults
         </h2>
+
+        {!SETTINGS_API_AVAILABLE && <SettingsUnavailableNote />}
 
         <div className="space-y-8">
           <div className="space-y-4">
@@ -808,7 +877,10 @@ export function SettingsPanel() {
             <div className="pt-2">
               <button
                 onClick={handleSaveDeterminismDefaults}
-                disabled={isSavingDeterminismDefaults || isLoadingDefaults}
+                disabled={
+                  !SETTINGS_API_AVAILABLE || isSavingDeterminismDefaults || isLoadingDefaults
+                }
+                title={SETTINGS_API_AVAILABLE ? undefined : SETTINGS_UNAVAILABLE_MESSAGE}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSavingDeterminismDefaults
@@ -967,7 +1039,10 @@ export function SettingsPanel() {
             <div className="pt-2">
               <button
                 onClick={handleSaveDecompositionDefaults}
-                disabled={isSavingDecompositionDefaults || isLoadingDefaults}
+                disabled={
+                  !SETTINGS_API_AVAILABLE || isSavingDecompositionDefaults || isLoadingDefaults
+                }
+                title={SETTINGS_API_AVAILABLE ? undefined : SETTINGS_UNAVAILABLE_MESSAGE}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSavingDecompositionDefaults
@@ -986,6 +1061,8 @@ export function SettingsPanel() {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           ICR Configuration
         </h2>
+
+        {!SETTINGS_API_AVAILABLE && <SettingsUnavailableNote />}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -1121,7 +1198,8 @@ export function SettingsPanel() {
           <div className="pt-2">
             <button
               onClick={handleSaveIcr}
-              disabled={isSavingIcr || isLoadingIcr}
+              disabled={!SETTINGS_API_AVAILABLE || isSavingIcr || isLoadingIcr}
+              title={SETTINGS_API_AVAILABLE ? undefined : SETTINGS_UNAVAILABLE_MESSAGE}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSavingIcr

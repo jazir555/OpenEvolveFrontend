@@ -9,12 +9,14 @@ from typing import Dict, List
 
 from openevolve.llm.base import LLMInterface
 from openevolve.llm.openai import OpenAILLM
+from openevolve.llm.mock import MockLLM, is_mock_model
 from openevolve.config import LLMModelConfig
 
 logger = logging.getLogger(__name__)
 
 _PROVIDER_REGISTRY = {
     "openai": lambda cfg: OpenAILLM(cfg),
+    "mock": lambda cfg: MockLLM(cfg),
 }
 
 try:
@@ -25,11 +27,20 @@ except ImportError:
 
 
 def _create_model(model_cfg: LLMModelConfig) -> LLMInterface:
+    """Instantiate the LLM backend requested by a model config."""
     if model_cfg.init_client:
         return model_cfg.init_client(model_cfg)
+
     provider = getattr(model_cfg, "provider", None)
-    if provider and provider in _PROVIDER_REGISTRY:
-        return _PROVIDER_REGISTRY[provider](model_cfg)
+    if provider:
+        provider_key = str(provider).strip().lower()
+        if provider_key in _PROVIDER_REGISTRY:
+            return _PROVIDER_REGISTRY[provider_key](model_cfg)
+
+    # Offline/deterministic backend selected purely by model name ("mock", "mock-gpt", ...)
+    if is_mock_model(model_cfg):
+        return MockLLM(model_cfg)
+
     return OpenAILLM(model_cfg)
 
 
@@ -39,18 +50,17 @@ class LLMEnsemble:
     def __init__(self, models_cfg: List[LLMModelConfig]):
         self.models_cfg = models_cfg
 
-        # Initialize models from the configuration
-        self.models = [
-            model_cfg.init_client(model_cfg)
-            if model_cfg.init_client
-            else OpenAILLM(model_cfg)
-            for model_cfg in models_cfg
-        ]
+        # Initialize models from the configuration (honors provider registry,
+        # custom init_client hooks and the offline mock backend)
+        self.models = [_create_model(model_cfg) for model_cfg in models_cfg]
 
         # Extract and normalize model weights
         self.weights = [model.weight for model in models_cfg]
         total = sum(self.weights)
-        self.weights = [w / total for w in self.weights]
+        if total > 0:
+            self.weights = [w / total for w in self.weights]
+        elif self.weights:
+            self.weights = [1.0 / len(self.weights)] * len(self.weights)
 
         # Set up random state for deterministic model selection
         self.random_state = random.Random()

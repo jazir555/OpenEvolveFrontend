@@ -94,6 +94,48 @@ import type {
   ExecutionListResponse,
   ExecutionLogsResponse,
   ExecutionCreateRequest,
+  RagbitsSearchRequest,
+  RagbitsSearchResponse,
+  RagbitsIngestRequest,
+  RagbitsIngestResponse,
+  RagbitsStats,
+  DspyAssessmentRequest,
+  DspyAssessmentResponse,
+  DspyFixRequest,
+  DspyFixResponse,
+  PygraphistryVisualizeRequest,
+  PygraphistryVisualizeResponse,
+  DeterminismGenerateRequest,
+  DeterminismGenerateResponse,
+  DeterminismCheckRequest,
+  DeterminismCheckResponse,
+  BubbleLabsIntegrationsListResponse,
+  BubbleLabsIntegrationHealthResponse,
+  BubbleLabsControlDiscoveryRequest,
+  BubbleLabsControlActionRequest,
+  Web3StatusResponse,
+  Web3IngestStackRequest,
+  Web3IngestSlitherRequest,
+  Web3IngestFoundryRequest,
+  Web3InvariantTranslateRequest,
+  Web3ExploitWitnessRequest,
+  Web3AuditExploitRequest,
+  Web3ActionResponse,
+  WorkflowInstanceParametersRequest,
+  IcrRefinementEvent,
+  IcrRefinementEventListResponse,
+  IcrRewardCalibrationRequestPayload,
+  IcrRewardCalibrationResponsePayload,
+  IcrRewardCalibrationNextResponse,
+  IcrRewardCalibrationResponseResponse,
+  IcrHeatmapSnapshot,
+  IcrHeatmapSnapshotResponse,
+  IcrVlmConfigResponse,
+  IcrPatternAnalyticsResponse,
+  IcrVlmAnalyticsResponse,
+  IcrHeatmapAnalyticsResponse,
+  IcrConfigResponse,
+  IcrDashboardResponse,
 } from "./types";
 
 import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
@@ -535,6 +577,65 @@ export const openevolveApi = {
     request<IcrComponents>("/icr/analytics/components", {}, config),
   getIcrRefinements: (config?: ApiConfig) =>
     request<IcrRefinements>("/icr/analytics/refinements", {}, config),
+
+  // ICR analytics breadth (events, reward-calibration, heatmap, vlm, dashboard, config)
+  emitIcrRefinementNeeded: (payload: IcrRefinementEvent, config?: ApiConfig) =>
+    request<{ queued: boolean }>(
+      "/icr/events/refinement-needed",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getIcrRefinementNeededEvents: (limit = 5, config?: ApiConfig) =>
+    request<IcrRefinementEventListResponse>(
+      `/icr/events/refinement-needed?limit=${limit}`,
+      {},
+      config,
+    ),
+  requestIcrRewardCalibration: (
+    payload: IcrRewardCalibrationRequestPayload,
+    config?: ApiConfig,
+  ) =>
+    request<{ queued: boolean; request_id: string }>(
+      "/icr/reward-calibration/request",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getIcrRewardCalibrationNext: (config?: ApiConfig) =>
+    request<IcrRewardCalibrationNextResponse>("/icr/reward-calibration/next", {}, config),
+  respondIcrRewardCalibration: (
+    payload: IcrRewardCalibrationResponsePayload,
+    config?: ApiConfig,
+  ) =>
+    request<{ received: boolean; request_id: string }>(
+      "/icr/reward-calibration/respond",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getIcrRewardCalibrationResponse: (requestId: string, config?: ApiConfig) =>
+    request<IcrRewardCalibrationResponseResponse>(
+      `/icr/reward-calibration/response/${encodeURIComponent(requestId)}`,
+      {},
+      config,
+    ),
+  submitIcrHeatmapSnapshot: (payload: IcrHeatmapSnapshot, config?: ApiConfig) =>
+    request<IcrHeatmapSnapshotResponse>(
+      "/icr/heatmap/snapshot",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getIcrVlmConfig: (config?: ApiConfig) =>
+    request<IcrVlmConfigResponse>("/icr/vlm/config", {}, config),
+  getIcrAnalyticsPatterns: (config?: ApiConfig) =>
+    request<IcrPatternAnalyticsResponse>("/icr/analytics/patterns", {}, config),
+  getIcrAnalyticsVlm: (config?: ApiConfig) =>
+    request<IcrVlmAnalyticsResponse>("/icr/analytics/vlm", {}, config),
+  getIcrAnalyticsHeatmap: (config?: ApiConfig) =>
+    request<IcrHeatmapAnalyticsResponse>("/icr/analytics/heatmap", {}, config),
+  getIcrConfig: (config?: ApiConfig) =>
+    request<IcrConfigResponse>("/icr/config", {}, config),
+  getIcrDashboard: (config?: ApiConfig) =>
+    request<IcrDashboardResponse>("/icr/dashboard", {}, config),
+
   getAdaptiveMdapHealth: (config?: ApiConfig) =>
     request<{ status: string; version?: string; details?: any }>("/adaptive-mdap/health", {}, config),
   getAdaptiveMdapDashboard: (config?: ApiConfig) =>
@@ -913,6 +1014,35 @@ export const openevolveApi = {
       config,
     ),
 
+  // Workflow research-approval, truth-package, instance-parameters
+  submitResearchApproval: (
+    workflowId: string,
+    stageId: number,
+    payload?: Record<string, unknown>,
+    config?: ApiConfig,
+  ) =>
+    request<Record<string, unknown>>(
+      `/workflows/${encodeURIComponent(workflowId)}/research-approval/${stageId}`,
+      { method: "POST", body: payload ? JSON.stringify(payload) : undefined },
+      config,
+    ),
+  createTruthPackage: (workflowId: string, payload?: Record<string, unknown>, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      `/workflows/${encodeURIComponent(workflowId)}/truth-package`,
+      { method: "POST", body: payload ? JSON.stringify(payload) : undefined },
+      config,
+    ),
+  updateWorkflowInstanceParameters: (
+    instanceId: string,
+    payload: WorkflowInstanceParametersRequest,
+    config?: ApiConfig,
+  ) =>
+    request<Record<string, unknown>>(
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/parameters`,
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
   // Sovereign dashboard
   getSovereignHealth: (config?: ApiConfig) =>
     request<Record<string, unknown>>("/sovereign/health", {}, config),
@@ -1071,6 +1201,74 @@ export const openevolveApi = {
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
+
+  // BubbleLabs integrations + control plane
+  listBubblelabsIntegrations: (config?: ApiConfig) =>
+    request<BubbleLabsIntegrationsListResponse>("/bubblelabs/integrations", {}, config),
+  getBubblelabsIntegrationHealth: (name: string, config?: ApiConfig) =>
+    request<BubbleLabsIntegrationHealthResponse>(
+      `/bubblelabs/integrations/${encodeURIComponent(name)}/health`,
+      {},
+      config,
+    ),
+  bubblelabsControlCatalog: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/bubblelabs/control/catalog", {}, config),
+  bubblelabsControlDiscover: (
+    payload: BubbleLabsControlDiscoveryRequest,
+    config?: ApiConfig,
+  ) =>
+    request<Record<string, unknown>>(
+      "/bubblelabs/control/discover",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  bubblelabsControlExecute: (payload: BubbleLabsControlActionRequest, config?: ApiConfig) =>
+    request<Record<string, unknown>>(
+      "/bubblelabs/control/execute",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Web3 audit stack (BubbleLabs-prefixed routes mirror /web3/*)
+  web3Status: (config?: ApiConfig) => request<Web3StatusResponse>("/web3/status", {}, config),
+  web3Ingest: (payload: Web3IngestStackRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/ingest",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3IngestSlither: (payload: Web3IngestSlitherRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/ingest/slither",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3IngestFoundry: (payload: Web3IngestFoundryRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/ingest/foundry",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3InvariantsTranslate: (payload: Web3InvariantTranslateRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/invariants/translate",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3ExploitsSymbolicWitness: (payload: Web3ExploitWitnessRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/exploits/symbolic-witness",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3AuditExploitVerification: (payload: Web3AuditExploitRequest, config?: ApiConfig) =>
+    request<Web3ActionResponse>(
+      "/web3/audit/exploit-verification",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  web3McpToolInventory: (config?: ApiConfig) =>
+    request<Record<string, unknown>>("/web3/mcp-tool-inventory", {}, config),
 
   // Maker integration
   getMakerStatus: (config?: ApiConfig) => request<{ available: boolean }>("/maker/status", {}, config),
@@ -1289,4 +1487,55 @@ export const openevolveApi = {
       config,
     );
   },
+
+  // RAGBits integration (backend: /openevolve/ragbits/*)
+  ragbitsSearch: (payload: RagbitsSearchRequest, config?: ApiConfig) =>
+    request<RagbitsSearchResponse>(
+      "/openevolve/ragbits/search",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  ragbitsIngest: (payload: RagbitsIngestRequest, config?: ApiConfig) =>
+    request<RagbitsIngestResponse>(
+      "/openevolve/ragbits/ingest",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  getRagbitsStats: (config?: ApiConfig) =>
+    request<RagbitsStats>("/openevolve/ragbits/stats", {}, config),
+
+  // DSPy assessment / fix + PyGraphistry visualization
+  // (backend paths declared WITH /api)
+  assessDspy: (payload: DspyAssessmentRequest, config?: ApiConfig) =>
+    request<DspyAssessmentResponse>(
+      "/api/openevolve/assess/dspy",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  fixDspy: (payload: DspyFixRequest, config?: ApiConfig) =>
+    request<DspyFixResponse>(
+      "/api/openevolve/fix/dspy",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  visualizePygraphistry: (payload: PygraphistryVisualizeRequest, config?: ApiConfig) =>
+    request<PygraphistryVisualizeResponse>(
+      "/api/openevolve/visualize/pygraphistry",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+
+  // Determinism (backend: /determinism/generate, /determinism/check)
+  generateDeterminism: (payload: DeterminismGenerateRequest, config?: ApiConfig) =>
+    request<DeterminismGenerateResponse>(
+      "/determinism/generate",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  checkDeterminism: (payload: DeterminismCheckRequest, config?: ApiConfig) =>
+    request<DeterminismCheckResponse>(
+      "/determinism/check",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
 };

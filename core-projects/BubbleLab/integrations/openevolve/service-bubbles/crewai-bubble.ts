@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { ServiceBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
 import { ResilienceWrapper, DEFAULT_RESILIENCE_CONFIG } from '../adapters/resilience';
+import { checkOpenEvolveHealth } from './openevolve-health';
 
 // ============================================================================
 // PARAMETER SCHEMAS
@@ -138,30 +139,15 @@ export class CrewAIBubble extends ServiceBubble<CrewAIParams, CrewAIResult> {
 
   private async healthCheck(): Promise<CrewAIResult> {
     const startTime = Date.now();
-    try {
-      const response = await this.resilience.execute(
-        'crewai-health',
-        () => this.makeRequest('GET', '/api/crewai/health'),
-        { operation: 'health_check' }
-      );
-      const timing = Date.now() - startTime;
-      const data = await response.json();
-      return {
-        success: response.ok,
-        operation: 'health_check',
-        data,
-        error: response.ok ? undefined : data.error || 'Unknown error',
-        timing,
-      };
-    } catch (error) {
-      const timing = Date.now() - startTime;
-      return {
-        success: false,
-        operation: 'health_check',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timing,
-      };
-    }
+    const health = await checkOpenEvolveHealth();
+    const timing = Date.now() - startTime;
+    return {
+      success: health.ok,
+      operation: 'health_check',
+      data: health.data,
+      error: health.error,
+      timing,
+    };
   }
 
   private async getCapabilities(): Promise<CrewAIResult> {

@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { ServiceBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
 import { ResilienceWrapper, DEFAULT_RESILIENCE_CONFIG } from '../adapters/resilience';
+import { checkOpenEvolveHealth } from './openevolve-health';
 
 // ============================================================================
 // QDRANT-SPECIFIC PARAMETER SCHEMAS

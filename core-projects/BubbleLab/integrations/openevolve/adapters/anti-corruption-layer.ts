@@ -30,16 +30,16 @@ import CanonicalModels, {
  * Protocol Adapter Interface
  */
 interface IProtocolAdapter {
-  normalizeRequest(request: unknown): Promise<CanonicalRequest>;
-  normalizeResponse(response: unknown): Promise<CanonicalResponse>;
-  transformErrors(error: unknown): CanonicalError;
+  normalizeRequest(request: any): Promise<CanonicalRequest>;
+  normalizeResponse(response: any): Promise<CanonicalResponse>;
+  transformErrors(error: any): CanonicalError;
 }
 
 /**
  * HTTP Protocol Adapter
  */
 class HttpProtocolAdapter implements IProtocolAdapter {
-  async normalizeRequest(request: unknown): Promise<CanonicalRequest> {
+  async normalizeRequest(request: any): Promise<CanonicalRequest> {
     const startTime = Date.now();
 
     try {
@@ -66,7 +66,7 @@ class HttpProtocolAdapter implements IProtocolAdapter {
     }
   }
 
-  async normalizeResponse(response: unknown): Promise<CanonicalResponse> {
+  async normalizeResponse(response: any): Promise<CanonicalResponse> {
     try {
       if (this.isHttpResponse(response)) {
         return {
@@ -139,7 +139,7 @@ class HttpProtocolAdapter implements IProtocolAdapter {
  * gRPC Protocol Adapter
  */
 class GrpcProtocolAdapter implements IProtocolAdapter {
-  async normalizeRequest(request: unknown): Promise<CanonicalRequest> {
+  async normalizeRequest(request: any): Promise<CanonicalRequest> {
     try {
       if (this.isGrpcRequest(request)) {
         return {
@@ -158,7 +158,7 @@ class GrpcProtocolAdapter implements IProtocolAdapter {
     }
   }
 
-  async normalizeResponse(response: unknown): Promise<CanonicalResponse> {
+  async normalizeResponse(response: any): Promise<CanonicalResponse> {
     try {
       if (this.isGrpcResponse(response)) {
         return {
@@ -260,7 +260,7 @@ class KnowledgeDataTransformer implements IDataTransformer {
       throw new Error(`Qdrant to canonical transformation failed: ${validation.error}`);
     }
 
-    return validation.data;
+    return validation.data as unknown as CanonicalData;
   }
 
   private async elasticsearchToCanonical(source: unknown): Promise<CanonicalData> {
@@ -277,7 +277,7 @@ class KnowledgeDataTransformer implements IDataTransformer {
       throw new Error(`Elasticsearch to canonical transformation failed: ${validation.error}`);
     }
 
-    return validation.data;
+    return validation.data as unknown as CanonicalData;
   }
 
   private async bedrockToCanonical(source: unknown): Promise<CanonicalData> {

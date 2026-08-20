@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@bubblelab/bubble-core": ["./types/bubble-core.d.ts"]
+    }
+  },
+  "include": [
+    "index.ts",
+    "service-bubbles/knowledge-engine-bubble.ts",
+    "service-bubbles/workflow-orchestrator-bubble.ts",
+    "service-bubbles/crewai-bubble.ts",
+    "service-bubbles/leanaide-bubble.ts",
+    "service-bubbles/z3prover-bubble.ts",
+    "service-bubbles/qdrant-bubble.ts",
+    "service-bubbles/elasticsearch-bubble.ts",
+    "service-bubbles/postgresql-bubble.ts",
+    "service-bubbles/redis-bubble.ts",
+    "service-bubbles/ace-tools-bubble.ts",
+    "tool-bubbles/log-parser-tool.ts",
+    "tool-bubbles/metrics-collector-tool.ts",
+    "schemas/canonical-models.ts",
+    "schemas/maker-config.ts",
+    "adapters/anti-corruption-layer.ts",
+    "adapters/resilience.ts",
+    "types/bubble-core.d.ts",
+    "types/shims.d.ts",
+    "types/ioredis.d.ts"
+  ],
+  "exclude": ["**/*.test.ts", "probes/**", "tests/**", "docs/**", "scripts/**"]
+}

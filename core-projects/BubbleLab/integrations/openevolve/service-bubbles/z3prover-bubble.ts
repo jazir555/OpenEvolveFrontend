@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { ServiceBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
 import { ResilienceWrapper, DEFAULT_RESILIENCE_CONFIG } from '../adapters/resilience';
+import { checkOpenEvolveHealth } from './openevolve-health';
 
 // ============================================================================
 // PARAMETER SCHEMAS
@@ -98,12 +99,12 @@ export type Z3Result = z.output<typeof Z3ResultSchema>;
 
 export class Z3ProverBubble extends ServiceBubble<Z3Params, Z3Result> {
   static readonly service = 'openevolve';
-  static readonly authType = null as const; // No auth needed (local library)
+  static readonly authType = null; // No auth needed (local library)
   static readonly bubbleName = 'z3prover' as const;
   static readonly type = 'service' as const;
   static readonly schema = Z3ParamsSchema;
   static readonly resultSchema = Z3ResultSchema;
-  static readonly credentialType = null as const;
+  static readonly credentialType = null;
 
   static readonly shortDescription = 'Z3 SMT solver integration';
   static readonly longDescription = `
@@ -170,31 +171,15 @@ export class Z3ProverBubble extends ServiceBubble<Z3Params, Z3Result> {
 
   private async healthCheck(): Promise<Z3Result> {
     const startTime = Date.now();
-    try {
-      const response = await this.resilience.execute(
-        'z3-health',
-        () => this.makeRequest('GET', '/health'),
-        { operation: 'health_check' }
-      );
-
-      const timing = Date.now() - startTime;
-      const data = await response.json();
-
-      return {
-        success: response.ok && data.status === 'ok',
-        operation: 'health_check',
-        data: data.z3_available ? { available: true, version: data.version } : undefined,
-        error: response.ok ? undefined : `Health check failed: ${response.status}`,
-        timing,
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        operation: 'health_check',
-        error: error.message || 'Health check failed',
-        timing: Date.now() - startTime,
-      };
-    }
+    const health = await checkOpenEvolveHealth();
+    const timing = Date.now() - startTime;
+    return {
+      success: health.ok,
+      operation: 'health_check',
+      data: health.data,
+      error: health.error,
+      timing,
+    };
   }
 
   private async solveSMT(): Promise<Z3Result> {
@@ -485,6 +470,14 @@ export class Z3ProverBubble extends ServiceBubble<Z3Params, Z3Result> {
   // ============================================================================
   // SERVICE BUBBLE EXECUTION
   // ============================================================================
+
+  /**
+   * Public entry point. Routes health_check (and all operations) through the
+   * OpenEvolve-backed execution path.
+   */
+  async action(): Promise<Z3Result> {
+    return this.execute();
+  }
 
   async execute(): Promise<Z3Result> {
     const operation = this.params.operation;

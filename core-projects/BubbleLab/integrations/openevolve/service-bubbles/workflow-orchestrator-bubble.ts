@@ -111,20 +111,26 @@ export class WorkflowOrchestratorBubble {
   private http: HttpBubble;
   private params: WorkflowParams;
   private context?: BubbleContext;
+  private baseUrl: string;
 
   constructor(params: WorkflowParamsInput, context?: BubbleContext) {
     this.params = WorkflowParamsSchema.parse(params);
     this.context = context;
 
+    // OPENEVOLVE_BASE_URL overrides the configured baseUrl (default http://localhost:8000)
+    this.baseUrl =
+      (typeof process !== 'undefined' && process.env?.OPENEVOLVE_BASE_URL) ||
+      this.params.baseUrl;
+
     this.http = new HttpBubble({
-      url: this.params.baseUrl,
+      url: this.baseUrl,
       method: 'GET',
       timeout: this.params.timeout,
     }, context);
   }
 
   private buildUrl(endpoint: string): string {
-    return `${this.params.baseUrl}${endpoint}`;
+    return `${this.baseUrl}${endpoint}`;
   }
 
   private async request(method: string, endpoint: string, body?: unknown): Promise<WorkflowResult> {
@@ -258,24 +264,48 @@ export class WorkflowOrchestratorBubble {
     return this.request('POST', `/api/workflows/${this.params.workflowId}/stop`);
   }
 
+  /**
+   * GET the status of a run from the OpenEvolve server.
+   * Maps to GET /api/v1/runs/{run_id}.
+   */
   public async getStatus(): Promise<WorkflowResult> {
     if (!this.params.workflowId) {
       throw new Error('workflowId is required for get_status operation');
     }
 
-    return this.request('GET', `/api/workflows/${this.params.workflowId}/status`);
+    return this.request('GET', `/api/v1/runs/${this.params.workflowId}`);
   }
 
+  /**
+   * GET the results of a run from the OpenEvolve server.
+   * Maps to GET /api/v1/runs/{run_id}.
+   */
   public async getResults(): Promise<WorkflowResult> {
     if (!this.params.workflowId) {
       throw new Error('workflowId is required for get_results operation');
     }
 
-    return this.request('GET', `/api/workflows/${this.params.workflowId}/results`);
+    return this.request('GET', `/api/v1/runs/${this.params.workflowId}`);
   }
 
+  /**
+   * Start an orchestrated workflow via the OpenEvolve server.
+   * Maps to POST /api/v1/workflows/orchestrate.
+   */
+  public async startOrchestrateWorkflow(): Promise<WorkflowResult> {
+    return this.request('POST', '/api/v1/workflows/orchestrate', {
+      system: this.params.system,
+      problemStatement: this.params.problemStatement,
+      ...this.params.parameters,
+    });
+  }
+
+  /**
+   * Health check against the OpenEvolve server.
+   * Maps to GET /api/v1/health.
+   */
   public async healthCheck(): Promise<WorkflowResult> {
-    return this.request('GET', '/api/workflows/health');
+    return this.request('GET', '/api/v1/health');
   }
 
   public async configure(): Promise<WorkflowResult> {
@@ -314,7 +344,7 @@ export class WorkflowOrchestratorBubble {
   public async action(): Promise<WorkflowResult> {
     switch (this.params.operation) {
       case 'start_workflow':
-        return this.startWorkflow();
+        return this.startOrchestrateWorkflow();
       case 'stop_workflow':
         return this.stopWorkflow();
       case 'get_status':

@@ -45,6 +45,14 @@ export interface TelemetryConfig {
   storageKey?: string;
 }
 
+/**
+ * Safely access localStorage. Returns null when running outside a browser
+ * (e.g. Node test environment) so callers can no-op without throwing.
+ */
+function safeLocalStorage(): Storage | null {
+  return typeof localStorage !== 'undefined' && localStorage ? localStorage : null;
+}
+
 class WorkflowMonitor {
   private config: TelemetryConfig;
   private workflowMetrics = new Map<string, WorkflowMetrics>();
@@ -418,12 +426,14 @@ class WorkflowMonitor {
    * Save metrics to localStorage
    */
   private saveToStorage(): void {
+    const store = safeLocalStorage();
+    if (!store) return;
     try {
       const data = {
         workflowMetrics: Array.from(this.workflowMetrics.entries()),
         stepMetrics: Array.from(this.stepMetrics.entries())
       };
-      localStorage.setItem(this.config.storageKey!, JSON.stringify(data));
+      store.setItem(this.config.storageKey!, JSON.stringify(data));
     } catch (error) {
       apiLogger.error('Failed to save metrics to localStorage', error as Error, this.correlationContext);
     }
@@ -433,8 +443,10 @@ class WorkflowMonitor {
    * Load metrics from localStorage
    */
   private loadFromStorage(): void {
+    const store = safeLocalStorage();
+    if (!store) return;
     try {
-      const data = localStorage.getItem(this.config.storageKey!);
+      const data = store.getItem(this.config.storageKey!);
       if (data) {
         const parsed = JSON.parse(data);
         this.workflowMetrics = new Map(parsed.workflowMetrics || []);

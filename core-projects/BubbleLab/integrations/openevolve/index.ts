@@ -12,6 +12,14 @@ import { WorkflowOrchestratorBubble } from './service-bubbles/workflow-orchestra
 import { CrewAIBubble } from './service-bubbles/crewai-bubble';
 import { LeanAideBubble } from './service-bubbles/leanaide-bubble';
 import { Z3ProverBubble } from './service-bubbles/z3prover-bubble';
+import { QdrantBubble } from './service-bubbles/qdrant-bubble';
+import { ElasticsearchBubble } from './service-bubbles/elasticsearch-bubble';
+import { PostgreSQLBubbleExtended as PostgreSQLBubble } from './service-bubbles/postgresql-bubble';
+import { RedisBubble } from './service-bubbles/redis-bubble';
+import { ACEToolsBubble } from './service-bubbles/ace-tools-bubble';
+import { LogParserTool } from './tool-bubbles/log-parser-tool';
+import { MetricsCollectorTool } from './tool-bubbles/metrics-collector-tool';
+import AntiCorruptionLayer from './adapters/anti-corruption-layer';
 
 // ============================================================================
 // SERVICE BUBBLES
@@ -147,62 +155,98 @@ export async function createOpenEvolveIntegration(
 /**
  * Validate integration configuration
  */
+export type OpenEvolveIntegration = {
+  knowledgeEngine: KnowledgeEngineBubble;
+  workflowOrchestrator: WorkflowOrchestratorBubble;
+  crewai: CrewAIBubble;
+  z3prover: Z3ProverBubble;
+  acl: AntiCorruptionLayer;
+};
+
 export async function validateIntegration(
-  integration: ReturnType<typeof createOpenEvolveIntegration>
+  integration: OpenEvolveIntegration
 ): Promise<{
   valid: boolean;
-  services: Record<string, boolean>;
+  services: Record<string, { status: boolean; error?: string; timing?: number }>;
   errors: string[];
 }> {
-  const results: Record<string, boolean> = {};
+  const results: Record<string, { status: boolean; error?: string; timing?: number }> = {};
   const errors: string[] = [];
 
   try {
     const knowledgeHealth = await integration.knowledgeEngine.action();
-    results.knowledgeEngine = knowledgeHealth.success;
+    results.knowledgeEngine = {
+      status: knowledgeHealth.success,
+      error: knowledgeHealth.error,
+      timing: knowledgeHealth.timing,
+    };
     if (!knowledgeHealth.success) {
       errors.push(`Knowledge engine: ${knowledgeHealth.error || 'Unknown error'}`);
     }
   } catch (error) {
-    results.knowledgeEngine = false;
+    results.knowledgeEngine = {
+      status: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
     errors.push(`Knowledge engine: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   try {
     const workflowHealth = await integration.workflowOrchestrator.action();
-    results.workflowOrchestrator = workflowHealth.success;
+    results.workflowOrchestrator = {
+      status: workflowHealth.success,
+      error: workflowHealth.error,
+      timing: workflowHealth.timing,
+    };
     if (!workflowHealth.success) {
       errors.push(`Workflow orchestrator: ${workflowHealth.error || 'Unknown error'}`);
     }
   } catch (error) {
-    results.workflowOrchestrator = false;
+    results.workflowOrchestrator = {
+      status: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
     errors.push(`Workflow orchestrator: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   try {
     const crewaiHealth = await integration.crewai.action();
-    results.crewai = crewaiHealth.success;
+    results.crewai = {
+      status: crewaiHealth.success,
+      error: crewaiHealth.error,
+      timing: crewaiHealth.timing,
+    };
     if (!crewaiHealth.success) {
       errors.push(`CrewAI: ${crewaiHealth.error || 'Unknown error'}`);
     }
   } catch (error) {
-    results.crewai = false;
+    results.crewai = {
+      status: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
     errors.push(`CrewAI: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   try {
     const z3proverHealth = await integration.z3prover.action();
-    results.z3prover = z3proverHealth.success;
+    results.z3prover = {
+      status: z3proverHealth.success,
+      error: z3proverHealth.error,
+      timing: z3proverHealth.timing,
+    };
     if (!z3proverHealth.success) {
       errors.push(`Z3 Prover: ${z3proverHealth.error || 'Unknown error'}`);
     }
   } catch (error) {
-    results.z3prover = false;
+    results.z3prover = {
+      status: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
     errors.push(`Z3 Prover: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
   return {
-    valid: Object.values(results).every(v => v === true),
+    valid: Object.values(results).every(v => v.status === true),
     services: results,
     errors,
   };
@@ -212,7 +256,7 @@ export async function validateIntegration(
  * Get integration health report
  */
 export async function getHealthReport(
-  integration: ReturnType<typeof createOpenEvolveIntegration>
+  integration: OpenEvolveIntegration
 ): Promise<{
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
@@ -224,7 +268,7 @@ export async function getHealthReport(
 }> {
   const validation = await validateIntegration(integration);
 
-  const healthyCount = Object.values(validation.services).filter(v => v).length;
+  const healthyCount = Object.values(validation.services).filter(v => v.status).length;
   const totalCount = Object.keys(validation.services).length;
 
   let status: 'healthy' | 'degraded' | 'unhealthy';

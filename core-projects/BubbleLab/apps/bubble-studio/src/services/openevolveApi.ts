@@ -9,6 +9,19 @@
  * - Clean REST API interface
  * - Full OpenAPI documentation at /docs
  *
+ * PATH CONTRACT: the backend (`engines/other/api_server.py`) declares canonical
+ * unprefixed routes (`/workflows`, `/teams`, `/gauntlets`, `/executions`, ...) and an
+ * `@app.middleware("http")` hook (`rewrite_api_prefix`) that strips a leading `/api`,
+ * so the `/api/...` paths used below resolve to those handlers. Paths that are already
+ * unprefixed here (`/health`, `/bubblelabs/...`) are declared unprefixed on the backend
+ * too and must NOT gain an `/api` prefix.
+ *
+ * SECOND CLIENT: `src/lib/api-client.ts` is a separate fetch-based client used by
+ * `use-workflows-api.ts`, `use-teams-api.ts`, `use-gauntlets-api.ts` and
+ * `SettingsPanel.tsx`. Keep the two in sync: teams/gauntlets are addressed by NAME,
+ * and neither client may call `PUT /workflows/{id}`, `POST /workflows/{id}/start`,
+ * `POST /workflows/{id}/stop` or any `/settings` route, because the backend has none.
+ *
  * @see BubbleLab/services/openevolve-api/README.md
  */
 
@@ -449,27 +462,35 @@ export const openevolveApi = {
   },
 
   /**
-   * Update a workflow
+   * Update a workflow — NOT SUPPORTED BY THE BACKEND.
    *
-   * NOTE: the backend currently exposes no `PUT /workflows/{workflow_id}` route
-   * (only `PUT /workflows/{workflow_id}/decomposition-plan`), so this call is
-   * expected to fail with 404/405 until the backend adds the endpoint.
+   * `engines/other/api_server.py` exposes no `PUT /workflows/{workflow_id}` route:
+   * the workflow routes are `POST /workflows` (create), `GET /workflows` (list),
+   * `GET /workflows/{id}`, `POST /workflows/{id}/pause`, `POST /workflows/{id}/resume`,
+   * `GET /workflows/{id}/results` and `DELETE /workflows/{id}`. The only mutable part
+   * of a workflow is its decomposition plan
+   * (`PUT /workflows/{workflow_id}/decomposition-plan`), exposed here as
+   * `updateWorkflowPlan`.
+   *
+   * Rather than firing a request that can only 404/405, this rejects locally with an
+   * actionable message. The method is kept (not deleted) so existing imports and the
+   * client's public surface stay stable.
    */
   updateWorkflow: async (
     workflowId: string,
     updates: Partial<Pick<WorkflowCreate, 'name' | 'description' | 'parameters'>>
   ): Promise<WorkflowResponse> => {
-    logger.debug({
-      msg: 'Updating workflow',
+    logger.warn({
+      msg: 'Workflow update is not supported by the OpenEvolve backend; no request sent',
       component: 'openevolveApi',
       workflow_id: workflowId,
+      attempted_fields: Object.keys(updates ?? {}).join(','),
     });
 
-    return normalizeWorkflow(
-      await openevolveApiClient.put<RawWorkflowResponse>(
-        `/api/workflows/${encodeURIComponent(workflowId)}`,
-        updates
-      )
+    throw new Error(
+      `Workflow update is not supported by the OpenEvolve backend (no PUT /workflows/${workflowId} route). ` +
+        'Use openevolveApi.updateWorkflowPlan() to edit the decomposition plan, or ' +
+        'openevolveApi.createDecompositionWorkflow() to create a replacement workflow.'
     );
   },
 

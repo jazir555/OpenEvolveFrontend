@@ -407,7 +407,7 @@ const workflow: WorkflowDefinition = {
 
 Potential future improvements:
 
-- Workflow visual editor
+- Workflow visual editor ✅ Done (`WorkflowVisualEditorTab`)
 - Workflow versioning and rollback
 - Workflow scheduling and cron jobs
 - Plugin hot-reloading

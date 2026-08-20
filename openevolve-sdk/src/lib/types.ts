@@ -1243,3 +1243,300 @@ export interface ExecutionCreateRequest {
   workflow_id?: string;
   [key: string]: unknown;
 }
+
+// =============================================================================
+// RAGBits integration (backend: /openevolve/ragbits/*)
+// =============================================================================
+
+export interface RagbitsSearchRequest {
+  query: string;
+  top_k?: number;
+  filters?: Record<string, unknown> | null;
+  min_score?: number;
+}
+
+export interface RagbitsSearchResponse {
+  status: string;
+  results: Array<Record<string, unknown>>;
+  total_results: number;
+  query: string;
+}
+
+export interface RagbitsIngestRequest {
+  content: string;
+  metadata?: Record<string, unknown> | null;
+  source?: string;
+}
+
+export interface RagbitsIngestResponse {
+  status: string;
+  document_id?: string;
+  chunks_ingested?: number;
+  processing_time?: number;
+  error?: string | null;
+}
+
+export interface RagbitsStats {
+  status: string;
+  processor?: Record<string, unknown>;
+  retriever?: Record<string, unknown>;
+}
+
+// =============================================================================
+// DSPy assessment / fix + PyGraphistry visualization
+// (backend: /api/openevolve/assess/dspy, /api/openevolve/fix/dspy,
+//          /api/openevolve/visualize/pygraphistry)
+// =============================================================================
+
+export interface DspyAssessmentRequest {
+  content: string;
+  content_type?: string;
+  assessment_type?: string;
+}
+
+export interface DspyAssessmentResponse {
+  status: string;
+  assessment_result?: Record<string, unknown> | null;
+  confidence_score?: number | null;
+  issues_found?: number | null;
+  recommendations?: string[] | null;
+  message?: string | null;
+}
+
+export interface DspyFixRequest {
+  content: string;
+  content_type?: string;
+  issues?: Array<Record<string, unknown>> | null;
+}
+
+export interface DspyFixResponse {
+  status: string;
+  fixed_content?: string | null;
+  suggested_fixes?: Array<Record<string, unknown>> | null;
+  confidence_score?: number | null;
+  fixes_applied?: number | null;
+  message?: string | null;
+}
+
+export interface PygraphistryVisualizeRequest {
+  nodes: Array<Record<string, unknown>>;
+  edges: Array<Record<string, unknown>>;
+  config?: Record<string, unknown> | null;
+}
+
+export interface PygraphistryVisualizeResponse {
+  status: string;
+  visualization_url?: string | null;
+  message?: string | null;
+}
+
+// =============================================================================
+// Determinism (backend: /determinism/generate, /determinism/check)
+// =============================================================================
+
+export interface DeterminismGenerateRequest {
+  prompt: string;
+  schema?: Record<string, unknown> | null;
+  constraints?: string | null;
+  context_document?: string | null;
+  mode?: string;
+  cloud_provider?: string | null;
+  cloud_model?: string | null;
+  cloud_api_key?: string | null;
+  cloud_base_url?: string | null;
+  local_provider?: string | null;
+  local_model?: string | null;
+  local_device?: string | null;
+  local_dtype?: string | null;
+  config?: Record<string, unknown> | null;
+  detllm_backend?: string | null;
+  detllm_model?: string | null;
+}
+
+export interface DeterminismGenerateResponse {
+  [key: string]: unknown;
+}
+
+export interface DeterminismCheckRequest {
+  prompt: string;
+  tier?: number;
+  runs?: number;
+  provider?: string | null;
+  model?: string | null;
+  api_key?: string | null;
+  base_url?: string | null;
+  detllm_backend?: string | null;
+  detllm_model?: string | null;
+  device?: string | null;
+  dtype?: string | null;
+}
+
+export interface DeterminismCheckResponse {
+  [key: string]: unknown;
+}
+
+// =============================================================================
+// BubbleLabs integrations + control plane (backend: /bubblelabs/integrations,
+// /bubblelabs/integrations/{name}/health, /bubblelabs/control/*)
+// =============================================================================
+
+export interface BubbleLabsIntegrationsListResponse {
+  integrations: Array<Record<string, unknown>>;
+}
+
+export type BubbleLabsIntegrationHealthResponse = Record<string, unknown>;
+
+export interface BubbleLabsControlCatalogResponse extends Record<string, unknown> {}
+
+export interface BubbleLabsControlDiscoveryRequest {
+  force?: boolean;
+}
+
+export interface BubbleLabsControlActionRequest {
+  component: string;
+  action: string;
+  payload?: Record<string, unknown>;
+}
+
+export type BubbleLabsControlResponse = Record<string, unknown>;
+
+// =============================================================================
+// Web3 audit stack (backend: /bubblelabs/web3/* and /web3/*)
+// =============================================================================
+
+export type Web3StatusResponse = Record<string, unknown>;
+
+export interface Web3IngestStackRequest {
+  project_path?: string;
+  run_fuzzing?: boolean;
+  slither_timeout_seconds?: number;
+  forge_timeout_seconds?: number;
+}
+
+export interface Web3IngestSlitherRequest {
+  project_path?: string;
+  timeout_seconds?: number;
+  extra_args?: string[];
+}
+
+export interface Web3IngestFoundryRequest {
+  project_path?: string;
+  timeout_seconds?: number;
+  match_contract?: string | null;
+  match_test?: string | null;
+  fork_url?: string | null;
+  extra_args?: string[];
+}
+
+export interface Web3InvariantTranslateRequest {
+  statement: string;
+  non_negative_target?: boolean;
+  max_withdraw_expr?: string | null;
+  verify_translation?: boolean;
+  assume_non_negative_amount?: boolean;
+}
+
+export interface Web3ExploitWitnessRequest {
+  additional_constraints?: string[];
+  timeout_seconds?: number;
+}
+
+export interface Web3AuditExploitRequest {
+  project_path?: string;
+  statement?: string | null;
+  run_fuzzing?: boolean;
+  verify_translation?: boolean;
+  timeout_seconds?: number;
+  additional_constraints?: string[];
+  non_negative_target?: boolean;
+  max_withdraw_expr?: string | null;
+  assume_non_negative_amount?: boolean;
+}
+
+export type Web3ActionResponse = Record<string, unknown>;
+
+// =============================================================================
+// Workflow research-approval, truth-package, instance-parameters
+// (backend: /workflows/{id}/research-approval/{stage_id},
+//          /workflows/{id}/truth-package,
+//          /bubblelabs/workflow-instances/{id}/parameters)
+// =============================================================================
+
+export type ResearchApprovalResponse = Record<string, unknown>;
+
+export type TruthPackageResponse = Record<string, unknown>;
+
+export interface WorkflowInstanceParametersRequest {
+  parameters: Record<string, unknown>;
+}
+
+export type WorkflowInstanceParametersResponse = Record<string, unknown>;
+
+// =============================================================================
+// ICR analytics breadth (backend: /icr/*)
+// =============================================================================
+
+export interface IcrRefinementEvent {
+  reason?: string | null;
+  overall_score?: number | null;
+  weaknesses?: string[] | null;
+  friction_points?: string[] | null;
+  auto_refine?: boolean | null;
+}
+
+export type IcrRefinementEventListResponse = Array<Record<string, unknown>>;
+
+export interface IcrRewardCalibrationRequestPayload {
+  request_id?: string | null;
+  option_a: string;
+  option_b: string;
+  confidence?: number | null;
+  prompt?: string | null;
+}
+
+export interface IcrRewardCalibrationResponsePayload {
+  request_id?: string | null;
+  choice: string;
+}
+
+export type IcrRewardCalibrationNextResponse = Record<string, unknown>;
+
+export type IcrRewardCalibrationResponseResponse = Record<string, unknown>;
+
+export interface IcrHeatmapPoint {
+  x: number;
+  y: number;
+  intensity?: number;
+  dwellMs?: number | null;
+  timestamp?: number | null;
+  type?: string | null;
+}
+
+export interface IcrHeatmapSnapshot {
+  snapshot_id?: string | null;
+  timestamp?: number | null;
+  screen_html: string;
+  heatmap_data_url?: string | null;
+  composite_data_url?: string | null;
+  points?: IcrHeatmapPoint[];
+  manual_code_delta?: number | null;
+  context_text?: string | null;
+  auto_refine?: boolean | null;
+}
+
+export type IcrHeatmapSnapshotResponse = Record<string, unknown>;
+
+export type IcrVlmConfigResponse = Record<string, unknown>;
+
+export type IcrPatternAnalyticsResponse = Record<string, unknown>;
+
+export type IcrVlmAnalyticsResponse = Record<string, unknown>;
+
+export interface IcrHeatmapAnalyticsResponse {
+  points: Array<Record<string, unknown>>;
+  total_snapshots: number;
+}
+
+export type IcrConfigResponse = Record<string, unknown>;
+
+export type IcrDashboardResponse = Record<string, unknown>;

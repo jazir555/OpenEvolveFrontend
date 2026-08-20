@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { HttpBubble, AIAgentBubble } from '@bubblelab/bubble-core';
 import type { BubbleContext } from '@bubblelab/bubble-core';
+import { checkOpenEvolveHealth } from './openevolve-health';
 
 const ACEOperationSchema = z.enum([
   'analytics',
@@ -235,7 +236,16 @@ export class ACEToolsBubble {
   }
 
   public async healthCheck(): Promise<ACEToolsResult> {
-    return this.request('/api/ace/health');
+    const startTime = Date.now();
+    const health = await checkOpenEvolveHealth();
+    const timing = Date.now() - startTime;
+    return {
+      success: health.ok,
+      operation: 'health_check',
+      data: health.data,
+      error: health.error,
+      timing,
+    };
   }
 
   public async action(): Promise<ACEToolsResult> {

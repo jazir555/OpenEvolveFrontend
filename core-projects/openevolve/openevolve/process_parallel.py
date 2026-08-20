@@ -5,6 +5,8 @@ Process-based parallel controller for true parallelism
 import asyncio
 import logging
 import multiprocessing as mp
+import os
+import sys
 import time
 import threading
 from concurrent.futures import (
@@ -60,8 +62,20 @@ def _worker_init(
 
     _worker_log_queue = log_queue
 
-    # Store config for later use
-    # Reconstruct Config object from nested dictionaries
+    # Store config for later use. The worker functions (and the in-process path)
+    # expect a Config whose .database is a DatabaseConfig, .llm is an LLMConfig,
+    # etc. Reconstruct it from the serialized dict to guarantee that shape.
+    _worker_config = _build_config_from_dict(config_dict)
+    _worker_evaluation_file = evaluation_file
+
+
+def _build_config_from_dict(config_dict: dict):
+    """Reconstruct a :class:`openevolve.config.Config` from a serialized dict.
+
+    Shared by the multiprocessing worker initializer and the in-process path so
+    both end up with the exact same config shape (a Config whose nested
+    ``database`` is a ``DatabaseConfig`` rather than the top-level ``Config``).
+    """
     from openevolve.config import (
         Config,
         DatabaseConfig,
@@ -88,7 +102,7 @@ def _worker_init(
     database_config = DatabaseConfig(**config_dict["database"])
     evaluator_config = EvaluatorConfig(**config_dict["evaluator"])
 
-    _worker_config = Config(
+    return Config(
         llm=llm_config,
         prompt=prompt_config,
         database=database_config,
@@ -99,8 +113,6 @@ def _worker_init(
             if k not in ["llm", "prompt", "database", "evaluator"]
         },
     )
-    _worker_evaluation_file = evaluation_file
-
     # These will be lazily initialized on first use
     _worker_evaluator = None
     _worker_llm_ensemble = None
@@ -143,6 +155,24 @@ def _lazy_init_worker_components():
         )
 
 
+def _run_async(coro):
+    """Run an async coroutine whether or not an event loop is already running.
+
+    In the multiprocessing path this is called from a fresh worker process
+    (no running loop, so ``asyncio.run`` is fine). In the in-process path it is
+    called from inside the controller's ``asyncio.run`` loop, where a nested
+    ``asyncio.run`` would raise; reusing the running loop avoids that.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop is not None:
+        # Must run on the running loop; use the loop's own runner.
+        return loop.run_until_complete(coro)
+    return asyncio.run(coro)
+
+
 def _log_to_queue(message: str, level: str = "INFO") -> None:
     """Put a log message into the queue if it exists"""
     if _worker_log_queue:
@@ -168,6 +198,10 @@ def _run_iteration_worker(
 
         parent = programs[parent_id]
         inspirations = [programs[pid] for pid in inspiration_ids if pid in programs]
+
+        # Description of the change that produced the parent, used to seed the
+        # evolution prompt (and to seed changes_description diffing when enabled).
+        parent_changes_desc = getattr(parent, "changes_description", None) or ""
 
         # Get parent artifacts if available
         parent_artifacts = db_snapshot["artifacts"].get(parent_id)
@@ -219,7 +253,7 @@ def _run_iteration_worker(
         # Generate code modification (sync wrapper for async)
         try:
             _log_to_queue(f"Generating code for iteration {iteration}")
-            llm_response = asyncio.run(
+            llm_response = _run_async(
                 _worker_llm_ensemble.generate_with_context(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
@@ -239,6 +273,7 @@ def _run_iteration_worker(
             )
 
         # Parse response based on evolution mode
+        child_changes_desc = getattr(parent, "changes_description", None) or ""
         if _worker_config.diff_based_evolution:
             from openevolve.utils.code_utils import (
                 extract_diffs,
@@ -321,7 +356,7 @@ def _run_iteration_worker(
 
         child_id = str(uuid.uuid4())
         _log_to_queue(f"Evaluating child program {child_id} for iteration {iteration}")
-        child_metrics = asyncio.run(
+        child_metrics = _run_async(
             _worker_evaluator.evaluate_program(child_code, child_id)
         )
 
@@ -351,7 +386,7 @@ def _run_iteration_worker(
         # Get target island from snapshot (where child should be placed)
         target_island = db_snapshot.get("sampling_island")
 
-        return SerializableResult(
+        result = SerializableResult(
             child_program_dict=child_program.to_dict(),
             parent_id=parent.id,
             iteration_time=iteration_time,
@@ -361,6 +396,7 @@ def _run_iteration_worker(
             iteration=iteration,
             target_island=target_island,
         )
+        return result
 
     except Exception as e:
         _log_to_queue(f"Error in worker iteration {iteration}: {e}", level="ERROR")
@@ -443,9 +479,22 @@ class ProcessParallelController:
         self.shutdown_event = mp.Event()
         self.early_stopping_triggered = False
 
-        # Number of worker processes
+        # Number of worker processes. When <= 1 (or forced via
+        # OPENEVOLVE_INPLACE=1) the controller runs iterations in-process instead
+        # of spawning worker processes, which is far more robust for tests and on
+        # platforms where multiprocessing startup is fragile.
         self.num_workers = config.evaluator.parallel_evaluations
         self.num_islands = config.database.num_islands
+        self.in_process = self.num_workers <= 1 or os.environ.get(
+            "OPENEVOLVE_INPLACE", ""
+        ).lower() in ("1", "true", "yes")
+
+        # Round-robin mapping of worker index -> island index so that workers
+        # spread their sampling across islands instead of all hitting island 0.
+        self.worker_island_map = {
+            worker_idx: worker_idx % max(1, self.num_islands)
+            for worker_idx in range(max(1, self.num_workers))
+        }
 
         logger.info(
             f"Initialized process parallel controller with {self.num_workers} workers"
@@ -487,29 +536,48 @@ class ProcessParallelController:
         }
 
     def start(self) -> None:
-        """Start the process pool"""
+        """Start the (process-pool or in-process) worker backend."""
+        # In-process mode avoids spawning worker processes entirely. This is far
+        # more robust for tests and on platforms where multiprocessing startup
+        # is fragile (e.g. Windows spawn re-importing the heavy package graph).
+        if self.in_process:
+            logger.info(
+                "Running evolution in-process (no worker processes). "
+                "Set evaluator.parallel_evaluations > 1 to enable the process pool."
+            )
+            self.executor = object()  # truthy sentinel so run_evolution proceeds
+            # Establish the module-level worker globals (normally done in
+            # _worker_init, which we bypass in in-process mode) before lazily
+            # initializing the expensive components.
+            global _worker_config, _worker_evaluation_file, _worker_evaluator
+            global _worker_llm_ensemble, _worker_prompt_sampler, _worker_log_queue
+            config_dict = self._serialize_config(self.config)
+            _worker_config = _build_config_from_dict(config_dict)
+            _worker_evaluation_file = self.evaluation_file
+            _worker_log_queue = self.log_queue
+            _worker_evaluator = None
+            _worker_llm_ensemble = None
+            _worker_prompt_sampler = None
+            _lazy_init_worker_components()
+            return
+
         # Convert config to dict for pickling
         # We need to be careful with nested dataclasses
         config_dict = self._serialize_config(self.config)
 
         # Pass current environment to worker processes
-        import os
-
         current_env = dict(os.environ)
 
         # Create process pool with initializer
-        self.executor = ProcessPoolExecutor(
-            max_workers=self.num_workers,
-            initializer=_worker_init,
-            initargs=(config_dict, self.evaluation_file, current_env, self.log_queue),
-        )
-
-        current_env = dict(os.environ)
-
         executor_kwargs = {
             "max_workers": self.num_workers,
             "initializer": _worker_init,
-            "initargs": (config_dict, self.evaluation_file, current_env),
+            "initargs": (
+                config_dict,
+                self.evaluation_file,
+                current_env,
+                self.log_queue,
+            ),
         }
         if sys.version_info >= (3, 11):
             logger.info(f"Set max {self.config.max_tasks_per_child} tasks per child")
@@ -526,12 +594,13 @@ class ProcessParallelController:
         logger.info(f"Started process pool with {self.num_workers} processes")
 
     def stop(self) -> None:
-        """Stop the process pool"""
+        """Stop the worker backend (process pool or in-process)."""
         self.shutdown_event.set()
 
         executor = self.executor
         self.executor = None
-        if executor:
+        # In-process mode uses a truthy sentinel object, not a real pool.
+        if executor and isinstance(executor, ProcessPoolExecutor):
             _terminate_process_pool(executor)
 
         logger.info("Stopped process pool")
@@ -673,9 +742,16 @@ class ProcessParallelController:
             # Process completed result
             future = pending_futures.pop(completed_iteration)
 
+            # Use evaluator timeout + buffer to gracefully handle stuck workers
+            # (used by both the multiprocessing and in-process paths).
+            timeout_seconds = self.config.evaluator.timeout + 30
+
             try:
-                # Use evaluator timeout + buffer to gracefully handle stuck processes
-                timeout_seconds = self.config.evaluator.timeout + 30
+                result = future.result(timeout=timeout_seconds)
+                logger.debug(
+                    f"[result] iteration {completed_iteration}: error={result.error!r} "
+                    f"has_child={result.child_program_dict is not None}"
+                )
                 result = future.result(timeout=timeout_seconds)
 
                 if result.error:
@@ -955,8 +1031,13 @@ class ProcessParallelController:
     def _submit_iteration(
         self, iteration: int, island_id: Optional[int] = None
     ) -> Optional[Future]:
-        """Submit an iteration to the process pool, optionally pinned to a specific island"""
+        """Submit an iteration to the worker backend, optionally pinned to an island."""
         try:
+            # In-process mode needs the worker components initialized in this
+            # process (the multiprocessing path initializes them in the worker).
+            if self.in_process:
+                _lazy_init_worker_components()
+
             # Use specified island or current island
             target_island = (
                 island_id if island_id is not None else self.database.current_island
@@ -977,6 +1058,37 @@ class ProcessParallelController:
             db_snapshot["sampling_island"] = (
                 target_island  # Mark which island this is for
             )
+
+            # In-process mode: run the worker synchronously and hand back an
+            # In-process mode: run the (blocking, asyncio.run-using) worker in a
+            # dedicated worker thread with its own event loop. This mirrors the
+            # multiprocessing path (each worker gets its own loop, so
+            # asyncio.run() inside the worker works) while keeping the main
+            # controller event loop responsive. The thread result is surfaced
+            # via the controller's loop using run_in_executor.
+            if self.in_process:
+                from concurrent.futures import Future as _Future
+
+                loop = asyncio.get_event_loop()
+                completed = _Future()
+
+                def _run_in_thread():
+                    try:
+                        result = _run_iteration_worker(
+                            iteration,
+                            db_snapshot,
+                            parent.id,
+                            [insp.id for insp in inspirations],
+                        )
+                    except Exception as e:  # never let a worker error kill the loop
+                        logger.error(f"Error in worker iteration {iteration}: {e}")
+                        result = SerializableResult(error=str(e), iteration=iteration)
+                    loop.call_soon_threadsafe(completed.set_result, result)
+
+                import threading
+
+                threading.Thread(target=_run_in_thread, daemon=True).start()
+                return completed
 
             # Submit to process pool
             future = self.executor.submit(

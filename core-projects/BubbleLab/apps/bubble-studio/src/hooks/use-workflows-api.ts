@@ -125,6 +125,12 @@ export function useCreateWorkflow() {
 // Update Workflow
 // ============================================================================
 
+/**
+ * NOT SUPPORTED BY THE BACKEND: there is no `PUT /api/workflows/{id}` route, so
+ * `apiClient.updateWorkflow` rejects immediately with an `UnsupportedEndpointError`
+ * (surfaced through `setError`) instead of issuing a request. Kept for API
+ * stability; use `openevolveApi.updateWorkflowPlan` to edit a decomposition plan.
+ */
 export function useUpdateWorkflow() {
   const queryClient = useQueryClient();
   const setIsUpdating = useWorkflowStore((state) => state.setIsUpdating);
@@ -200,6 +206,13 @@ export function useDeleteWorkflow() {
 // Workflow Execution Actions
 // ============================================================================
 
+/**
+ * NOT SUPPORTED BY THE BACKEND: there is no `POST /api/workflows/{id}/start` route.
+ * `apiClient.startWorkflow` rejects immediately (message surfaced via `setError`).
+ * Launch a run with `openevolveApi.executeWorkflow` (`POST /api/executions`) instead.
+ * Kept exported so existing imports keep working; the UI
+ * (`components/execution/ExecutionControls.tsx`) renders Start disabled.
+ */
 export function useStartWorkflow() {
   const queryClient = useQueryClient();
   const setError = useWorkflowStore((state) => state.setError);
@@ -284,6 +297,13 @@ export function useResumeWorkflow() {
   });
 }
 
+/**
+ * NOT SUPPORTED BY THE BACKEND: there is no `POST /api/workflows/{id}/stop` route.
+ * `apiClient.stopWorkflow` rejects immediately (message surfaced via `setError`).
+ * Cancel the underlying run with `openevolveApi.cancelExecution`
+ * (`POST /api/executions/{id}/cancel`) instead. Kept exported for API stability;
+ * the UI renders Stop disabled.
+ */
 export function useStopWorkflow() {
   const queryClient = useQueryClient();
   const setError = useWorkflowStore((state) => state.setError);

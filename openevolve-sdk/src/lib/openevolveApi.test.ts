@@ -14,10 +14,54 @@ import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { openevolveApi, ApiConfig } from './openevolveApi';
 
 // Test configuration - should be injected via environment
+const API_URL = process.env.OPENEVOLVE_API_BASE_URL || 'http://localhost:8000';
+const API_KEY = process.env.OPENEVOLVE_API_KEY || 'test-key';
+const PROBE_TIMEOUT_MS = Number(process.env.OPENEVOLVE_CONTRACT_PROBE_TIMEOUT_MS || 5000);
+const LOG_PREFIX = '[openevolveApi contract]';
+const AUTH_STATUSES = [401, 403, 422];
+
 const TEST_CONFIG: ApiConfig = {
-  baseUrl: process.env.OPENEVOLVE_API_BASE_URL || 'http://localhost:8000',
-  apiKey: process.env.OPENEVOLVE_API_KEY || 'test-key',
+  baseUrl: API_URL,
+  apiKey: API_KEY,
   timeout: 30000,
+};
+
+let backendLive = false;
+let skipReason = 'backend not probed';
+
+async function timedFetch(path: string, init: RequestInit = {}, timeoutMs = PROBE_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(`${API_URL}${path}`, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+beforeAll(async () => {
+  try {
+    const probe = await timedFetch('/health', {}, PROBE_TIMEOUT_MS);
+    if (AUTH_STATUSES.includes(probe.status)) {
+      skipReason = `backend at ${API_URL} rejected the API key on GET /health (HTTP ${probe.status}). Set OPENEVOLVE_API_KEY.`;
+    } else {
+      backendLive = true;
+    }
+  } catch (error) {
+    skipReason = `backend unreachable at ${API_URL} (${error instanceof Error ? error.message : String(error)}). Start the API server or set OPENEVOLVE_API_BASE_URL.`;
+  }
+  if (!backendLive) {
+    console.warn(`${LOG_PREFIX} skipping suite: ${skipReason}`);
+  }
+});
+
+const liveBackend = (ctx: { skip: () => void }): boolean => {
+  if (!backendLive) {
+    console.warn(`${LOG_PREFIX} ${skipReason}`);
+    ctx.skip();
+    return false;
+  }
+  return true;
 };
 
 describe('OpenEvolve API Contract Tests', () => {
@@ -29,7 +73,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Health Check', () => {
-    it('should return health status object', async () => {
+    it('should return health status object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getHealth(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -42,7 +87,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Teams API', () => {
-    it('listTeams should return teams array and total', async () => {
+    it('listTeams should return teams array and total', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listTeams(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -51,7 +97,8 @@ describe('OpenEvolve API Contract Tests', () => {
       expect(typeof response.total).toBe('number');
     });
 
-    it('getTeam should return team object with required fields', async () => {
+    it('getTeam should return team object with required fields', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       // First list to get a valid team name
       const listResponse = await openevolveApi.listTeams(TEST_CONFIG);
       if (listResponse.teams.length === 0) {
@@ -70,7 +117,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Workflows API', () => {
-    it('listWorkflows should return workflows array and total', async () => {
+    it('listWorkflows should return workflows array and total', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listWorkflows(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -79,7 +127,8 @@ describe('OpenEvolve API Contract Tests', () => {
       expect(typeof response.total).toBe('number');
     });
 
-    it('createWorkflow should return workflow ID and status', async () => {
+    it('createWorkflow should return workflow ID and status', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const payload = {
         name: 'contract-test-workflow',
         description: 'Contract test workflow',
@@ -104,7 +153,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Gauntlets API', () => {
-    it('listGauntlets should return gauntlets array and total', async () => {
+    it('listGauntlets should return gauntlets array and total', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listGauntlets(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -115,7 +165,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Evolution API', () => {
-    it('startEvolutionRun should return run ID and initial status', async () => {
+    it('startEvolutionRun should return run ID and initial status', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const payload = {
         content: '# Test Protocol\n\nThis is a contract test for evolution.',
         content_type: 'markdown',
@@ -138,7 +189,8 @@ describe('OpenEvolve API Contract Tests', () => {
       }
     });
 
-    it('listEvolutionRuns should return runs array', async () => {
+    it('listEvolutionRuns should return runs array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listEvolutionRuns(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -148,7 +200,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Adversarial Testing API', () => {
-    it('startAdversarialRun should return run ID and initial status', async () => {
+    it('startAdversarialRun should return run ID and initial status', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const payload = {
         content: '# Test Protocol\n\nThis is a contract test for adversarial testing.',
         content_type: 'markdown',
@@ -170,7 +223,8 @@ describe('OpenEvolve API Contract Tests', () => {
       }
     });
 
-    it('listAdversarialRuns should return runs array', async () => {
+    it('listAdversarialRuns should return runs array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listAdversarialRuns(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -180,7 +234,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Knowledge Base API', () => {
-    it('listKnowledgeArtifacts should return artifacts array', async () => {
+    it('listKnowledgeArtifacts should return artifacts array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listKnowledgeArtifacts(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -188,7 +243,8 @@ describe('OpenEvolve API Contract Tests', () => {
       expect(Array.isArray(response.artifacts)).toBe(true);
     });
 
-    it('getKnowledgeStats should return statistics object', async () => {
+    it('getKnowledgeStats should return statistics object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getKnowledgeStats(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -201,7 +257,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Providers API', () => {
-    it('listProviders should return providers array', async () => {
+    it('listProviders should return providers array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listProviders(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -211,7 +268,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Version Control API', () => {
-    it('listVersions should return versions array', async () => {
+    it('listVersions should return versions array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listVersions(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -221,7 +279,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('BubbleLabs Integration API', () => {
-    it('getBubblelabsStatus should return status object', async () => {
+    it('getBubblelabsStatus should return status object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getBubblelabsStatus(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -231,7 +290,8 @@ describe('OpenEvolve API Contract Tests', () => {
       }
     });
 
-    it('listWorkflowDefinitions should return definitions array', async () => {
+    it('listWorkflowDefinitions should return definitions array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listWorkflowDefinitions(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -241,14 +301,16 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Maker Integration API', () => {
-    it('getMakerStatus should return availability status', async () => {
+    it('getMakerStatus should return availability status', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getMakerStatus(TEST_CONFIG);
 
       expect(response).toBeDefined();
       expect(typeof response.available).toBe('boolean');
     });
 
-    it('listMakerTools should return tools array', async () => {
+    it('listMakerTools should return tools array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listMakerTools({}, TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -258,7 +320,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Knowledge Explorer API', () => {
-    it('bubblelabsKnowledgeStatus should return status object', async () => {
+    it('bubblelabsKnowledgeStatus should return status object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.bubblelabsKnowledgeStatus(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -266,7 +329,8 @@ describe('OpenEvolve API Contract Tests', () => {
       expect(typeof response.query_history_count).toBe('number');
     });
 
-    it('bubblelabsKnowledgeQueryHistory should return history array', async () => {
+    it('bubblelabsKnowledgeQueryHistory should return history array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.bubblelabsKnowledgeQueryHistory(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -276,14 +340,16 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('LeanAide API', () => {
-    it('bubblelabsLeanAideStatus should return status object', async () => {
+    it('bubblelabsLeanAideStatus should return status object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.bubblelabsLeanAideStatus(TEST_CONFIG);
 
       expect(response).toBeDefined();
       expect(typeof response).toBe('object');
     });
 
-    it('bubblelabsLeanAideTrees should return trees array', async () => {
+    it('bubblelabsLeanAideTrees should return trees array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.bubblelabsLeanAideTrees(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -293,14 +359,16 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Monitoring API', () => {
-    it('getMonitoringDashboard should return metrics object', async () => {
+    it('getMonitoringDashboard should return metrics object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getMonitoringDashboard(TEST_CONFIG);
 
       expect(response).toBeDefined();
       expect(typeof response).toBe('object');
     });
 
-    it('getMonitoringAlerts should return alerts array', async () => {
+    it('getMonitoringAlerts should return alerts array', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getMonitoringAlerts(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -310,14 +378,16 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Analytics API', () => {
-    it('getStatistics should return statistics summary', async () => {
+    it('getStatistics should return statistics summary', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getStatistics(TEST_CONFIG);
 
       expect(response).toBeDefined();
       expect(typeof response).toBe('object');
     });
 
-    it('getPerformanceMetrics should return metrics array and total', async () => {
+    it('getPerformanceMetrics should return metrics array and total', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getPerformanceMetrics(undefined, 10, TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -328,7 +398,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Validation API', () => {
-    it('listValidationRules should return rules object', async () => {
+    it('listValidationRules should return rules object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listValidationRules(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -340,7 +411,8 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Auto-Approval API', () => {
-    it('getAutoApprovalConfig should return config object', async () => {
+    it('getAutoApprovalConfig should return config object', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getAutoApprovalConfig(TEST_CONFIG);
 
       expect(response).toBeDefined();
@@ -353,13 +425,15 @@ describe('OpenEvolve API Contract Tests', () => {
   });
 
   describe('Error Handling', () => {
-    it('should throw error with 404 status for non-existent team', async () => {
+    it('should throw error with 404 status for non-existent team', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       await expect(
         openevolveApi.getTeam('non-existent-team-12345', TEST_CONFIG)
       ).rejects.toThrow();
     });
 
-    it('should throw error with 404 status for non-existent workflow', async () => {
+    it('should throw error with 404 status for non-existent workflow', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       await expect(
         openevolveApi.getWorkflow('non-existent-workflow-id', TEST_CONFIG)
       ).rejects.toThrow();
@@ -369,7 +443,8 @@ describe('OpenEvolve API Contract Tests', () => {
   describe('Execution Controls', () => {
     let executionId: string;
 
-    it('should create an execution via createExecution', async () => {
+    it('should create an execution via createExecution', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.createExecution(
         { name: 'contract-test-exec', workflow_id: 'test-workflow' },
         TEST_CONFIG,
@@ -383,7 +458,8 @@ describe('OpenEvolve API Contract Tests', () => {
       executionId = response.id;
     });
 
-    it('should list executions and include the created one', async () => {
+    it('should list executions and include the created one', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.listExecutions(undefined, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(Array.isArray(response.executions)).toBe(true);
@@ -392,35 +468,40 @@ describe('OpenEvolve API Contract Tests', () => {
       expect(found).toBe(true);
     });
 
-    it('should retrieve the execution by id', async () => {
+    it('should retrieve the execution by id', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getExecution(executionId, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(response.id).toBe(executionId);
       expect(typeof response.status).toBe('string');
     });
 
-    it('should pause the execution', async () => {
+    it('should pause the execution', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.pauseExecution(executionId, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(response.id).toBe(executionId);
       expect(response.status).toBe('paused');
     });
 
-    it('should resume the execution', async () => {
+    it('should resume the execution', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.resumeExecution(executionId, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(response.id).toBe(executionId);
       expect(response.status).toBe('running');
     });
 
-    it('should cancel the execution', async () => {
+    it('should cancel the execution', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.cancelExecution(executionId, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(response.id).toBe(executionId);
       expect(response.status).toBe('cancelled');
     });
 
-    it('should get execution logs', async () => {
+    it('should get execution logs', async (ctx) => {
+      if (!liveBackend(ctx)) return;
       const response = await openevolveApi.getExecutionLogs(executionId, undefined, TEST_CONFIG);
       expect(response).toBeDefined();
       expect(typeof response.execution_id).toBe('string');
