@@ -267,6 +267,7 @@ export type BubbleName =
   | 'url-validator-tool'
   | 'vector-search-tool'
   | 'xml-parser-tool'
+  | 'pdf-generator-tool'
   | 'api-aggregator-workflow'
   | 'backup-restore-workflow'
   | 'data-enrichment-workflow'

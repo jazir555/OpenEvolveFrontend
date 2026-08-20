@@ -85,7 +85,7 @@ class TestRuntimeConfigUpdater:
         new_temp = 0.9
 
         success = await updater.update_parameter(
-            "llm.temperature",
+            "llm.default_temperature",
             new_temp
         )
 
@@ -238,6 +238,7 @@ llm:
     def test_register_callback(self, watcher):
         """Test registering callbacks"""
         callback = Mock()
+        callback.__name__ = "mock_callback"
         watcher.register_callback(callback)
 
         assert len(watcher.callbacks) == 1
@@ -246,6 +247,7 @@ llm:
     def test_unregister_callback(self, watcher):
         """Test unregistering callbacks"""
         callback = Mock()
+        callback.__name__ = "mock_callback"
         watcher.register_callback(callback)
         watcher.unregister_callback(callback)
 
@@ -579,10 +581,11 @@ class TestResourceAwareConfigurator:
         """Create resource-aware configurator"""
         return ResourceAwareConfigurator()
 
-    @patch('openevolve.config.resource_config.psutil')
-    def test_detect_resources(self, mock_psutil, resource_config):
+    def test_detect_resources(self, resource_config):
         """Test resource detection"""
-        # Mock psutil responses
+        # psutil is imported locally inside detect_resources, so patch it in
+        # sys.modules to intercept the `import psutil` call.
+        mock_psutil = Mock()
         mock_psutil.cpu_count.return_value = 8
         mock_psutil.cpu_percent.return_value = 45.0
 
@@ -596,7 +599,8 @@ class TestResourceAwareConfigurator:
         mock_disk.free = 100 * (1024 ** 3)
         mock_psutil.disk_usage.return_value = mock_disk
 
-        resources = resource_config.detect_resources()
+        with patch.dict('sys.modules', {'psutil': mock_psutil}):
+            resources = resource_config.detect_resources()
 
         assert resources.cpu_count == 8
         assert resources.memory_total_gb == pytest.approx(16.0, rel=0.1)

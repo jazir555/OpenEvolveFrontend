@@ -403,8 +403,12 @@ class RuntimeConfigUpdater:
 
     def _restore_snapshot(self, snapshot: UnifiedEvolutionConfig) -> None:
         """Restore configuration from snapshot"""
-        # Deep copy to avoid reference issues
-        self.current_config = copy.deepcopy(snapshot)
+        # Deep copy to avoid reference issues, then copy field values into the
+        # existing current_config object in place so external references to it
+        # (e.g. fixtures or held config objects) remain valid after rollback.
+        new_config = copy.deepcopy(snapshot)
+        for name in type(self.current_config).model_fields:
+            setattr(self.current_config, name, getattr(new_config, name))
 
 
 class ConfigWatcherCallback:

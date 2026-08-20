@@ -152,13 +152,13 @@ llm:
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write(yaml_content)
-            f.flush()
+            temp_path = f.name
 
-            try:
-                config = Config.from_yaml(f.name)
-                self.assertEqual(config.llm.api_key, self.test_api_key)
-            finally:
-                os.unlink(f.name)
+        try:
+            config = Config.from_yaml(temp_path)
+            self.assertEqual(config.llm.api_key, self.test_api_key)
+        finally:
+            os.unlink(temp_path)
 
     def test_mixed_api_key_sources(self):
         """Test mixing direct api_key and ${VAR} in same config"""

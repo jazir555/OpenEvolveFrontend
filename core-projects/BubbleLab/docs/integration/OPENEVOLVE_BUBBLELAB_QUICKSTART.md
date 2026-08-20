@@ -58,6 +58,65 @@ curl -X POST http://localhost:8000/api/v1/workflows/orchestrate \
   }'
 ```
 
+## Docker (launch the OpenEvolve backend via compose)
+
+The root `docker-compose.yml` (at `core-projects/BubbleLab`) brings up the
+OpenEvolve API service in one command. The service directory is named
+`openevolve-api` (hyphen), so the compose entrypoint creates a thin
+`openevolve_api` package stub and launches uvicorn with `PYTHONPATH` covering
+the stub, the service, and the real OpenEvolve engine library (mounted
+read-only from `../openevolve`). This is the same workaround used by
+`scripts/launch_demo.py` and `scripts/proxy_path_test.py`.
+
+```bash
+# from core-projects/BubbleLab
+cp .env.example .env        # if a sample exists; otherwise create one (see vars below)
+docker compose build        # image build not yet executed in CI; run before first up
+docker compose up -d        # openevolve-api on ${OPENEVOLVE_API_PORT:-8000}
+docker compose ps           # verify "health" check passes
+curl http://localhost:8000/health
+```
+
+### `.env` variables
+
+The compose file reads `.env` and passes through these (with defaults shown):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `OPENEVOLVE_API_PORT` | `8000` | Host port the service is published on (container always `8000`). |
+| `OPENEVOLVE_LLM_PROVIDER` | `openai` | LLM provider for live runs. |
+| `OPENEVOLVE_LLM_MODEL` | `gpt-4` | Model name. |
+| `OPENEVOLVE_LLM_BASE_URL` | `https://api.openai.com/v1` | Provider base URL. |
+| `OPENEVOLVE_LLM_API_KEY` | _(empty)_ | Provider key; empty => offline mock backend. |
+| `OPENAI_API_KEY` | _(empty)_ | OpenAI key. |
+| `ANTHROPIC_API_KEY` | _(empty)_ | Anthropic key. |
+| `OPENEVOLVE_MAX_WORKERS` | `5` | Concurrent execution workers. |
+| `OPENEVOLVE_EXECUTION_TIMEOUT` | `300` | Per-execution timeout (s). |
+| `OPENEVOLVE_LOG_LEVEL` | `INFO` | Logging verbosity. |
+| `LEANAIDE_API_URL` | `http://host.docker.internal:7654` | LeanAide sidecar URL. |
+
+With no LLM key the service still boots and serves the offline mock path (this
+is what `proxy_path_test.py` exercises).
+
+### BubbleLab API proxy runs separately
+
+The BubbleLab API proxy (`apps/bubblelab-api`, a bun/Hono app) is **intentionally
+omitted** from the compose file — it needs a separate bun toolchain/build. Run
+it on its own, pointing it at the compose-published backend:
+
+```bash
+# apps/bubblelab-api
+OPENEVOLVE_API_URL=http://localhost:${OPENEVOLVE_API_PORT:-8000} bun run dev
+```
+
+The proxy (`src/routes/openevolve.ts`) is fully passive: it forwards every
+`/api/v1/*` and `/api/*` request verbatim (method + body + path) to
+`OPENEVOLVE_API_URL` and returns the upstream status/body unchanged. So the
+"UI → proxy → backend" path succeeds whenever the backend contract holds — which
+`services/openevolve-api/scripts/proxy_path_test.py` verifies
+(`/api/v1/health` → 200, `/api/v1/workflows/orchestrate` → 202,
+`/api/v1/runs/{id}` → completed).
+
 ## Limitations
 
 - A **real** run requires a valid `api_key` **and** network access to the

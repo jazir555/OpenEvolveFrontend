@@ -13,9 +13,14 @@
  * routers are mounted ALREADY prefixed (`/api/workflows`, `/api/teams`, `/api/gauntlets`,
  * `/api/executions`, `/api/monitoring`, ...). There is NO `rewrite_api_prefix`
  * middleware: the `/api/...` paths used below ARE the canonical, final routes and are
- * sent as-is (no upstream path rewriting). The control-plane routes (`/health`,
- * `/bubblelabs/...`) are served unprefixed by the same service and must NOT gain an
- * `/api` prefix.
+ * sent as-is (no upstream path rewriting). The only unprefixed routes this service
+ * actually mounts are `/health`, `/icr`, `/determinism`, and `/stream/...`.
+ *
+ * GAP NOTE: the `/bubblelabs/control/*`, `/bubblelabs/workflow-definitions*`, and
+ * `/bubblelabs/workflow-instances*` calls in this client are CLIENT-VS-BACKEND GAPS —
+ * the OpenEvolve service does NOT mount any router for them (the only `/bubblelabs`
+ * route group it serves is `/api/bubblelabs/leanaide`). They are intentionally left
+ * un-prefixed and un-repointed: there is no equivalent OpenEvolve route to target.
  *
  * A separate library server (`core-projects/openevolve/openevolve/server_stdlib.py`)
  * also exists and exposes `/api/v1/...` routes that wrap the real engine. This client

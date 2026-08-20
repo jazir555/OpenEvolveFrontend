@@ -3,6 +3,7 @@ import { z } from 'zod';
 // Define available models with provider/name combinations
 export const AvailableModels = z.enum([
   // OpenAI models
+  'openai/gpt-4',
   'openai/gpt-5',
   'openai/gpt-5-mini',
   'openai/gpt-5.1',
