@@ -1,0 +1,56 @@
+# Root stack compose for BubbleLab + OpenEvolve integration.
+#
+# Brings up the OpenEvolve API service with a single command:
+#     docker compose up -d
+#
+# Notes:
+#   * The service directory is named `openevolve-api` (hyphen), so the module
+#     import path `openevolve_api` is provided at runtime via a thin package
+#     stub (same trick used by scripts/launch_demo.py) plus PYTHONPATH.
+#   * The real OpenEvolve engine library is mounted read-only from
+#     ../openevolve into /openevolve_lib and added to PYTHONPATH.
+#   * The BubbleLab API proxy (bun/x) is intentionally omitted here because it
+#     needs a separate bun toolchain/build; run it separately per its own docs.
+#     The proxy reaches this service via OPENEVOLVE_API_URL / OPENEVOLVE_BASE_URL.
+#   * This file is structurally valid. The docker image build was NOT executed
+#     in this environment; run `docker compose build` before first `up`.
+version: "3.8"
+
+services:
+  openevolve-api:
+    build:
+      context: ./services/openevolve-api
+      dockerfile: Dockerfile
+    container_name: openevolve-api
+    # Create the `openevolve_api` package stub so `uvicorn openevolve_api.main:app`
+    # resolves, then launch with PYTHONPATH covering the service, stub, and lib.
+    command: >
+      bash -c "mkdir -p /stub/openevolve_api &&
+      printf '__path__ = [\"/app\"]\n' > /stub/openevolve_api/__init__.py &&
+      exec env PYTHONPATH=/stub:/app:/openevolve_lib
+      uvicorn openevolve_api.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env
+    environment:
+      - OPENEVOLVE_LLM_PROVIDER=${OPENEVOLVE_LLM_PROVIDER:-openai}
+      - OPENEVOLVE_LLM_MODEL=${OPENEVOLVE_LLM_MODEL:-gpt-4}
+      - OPENEVOLVE_LLM_BASE_URL=${OPENEVOLVE_LLM_BASE_URL:-https://api.openai.com/v1}
+      - OPENEVOLVE_LLM_API_KEY=${OPENEVOLVE_LLM_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENEVOLVE_MAX_WORKERS=${OPENEVOLVE_MAX_WORKERS:-5}
+      - OPENEVOLVE_EXECUTION_TIMEOUT=${OPENEVOLVE_EXECUTION_TIMEOUT:-300}
+      - OPENEVOLVE_LOG_LEVEL=${OPENEVOLVE_LOG_LEVEL:-INFO}
+      - LEANAIDE_API_URL=${LEANAIDE_API_URL:-http://host.docker.internal:7654}
+    ports:
+      - "${OPENEVOLVE_API_PORT:-8000}:8000"
+    volumes:
+      - ./services/openevolve-api/data:/app/data
+      - ../openevolve:/openevolve_lib:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

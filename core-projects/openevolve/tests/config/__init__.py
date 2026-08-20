@@ -1,5 +1,3 @@
-"""config package."""
-
-from .test_runtime_config import TestRuntimeConfig
+"""config package tests."""
 
 __all__ = ['test_runtime_config']

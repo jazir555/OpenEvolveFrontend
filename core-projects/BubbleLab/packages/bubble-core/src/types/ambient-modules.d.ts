@@ -47,6 +47,8 @@ declare module 'pdfkit' {
 declare module 'xml2js' {
   export type Parser = any;
   export const Parser: any;
+  export type Builder = any;
+  export const Builder: any;
   export const parseString: any;
   const _default: any;
   export default _default;

@@ -32,6 +32,7 @@ if _config_path.exists():
     DatabaseConfig = config_module.DatabaseConfig
     EvaluatorConfig = config_module.EvaluatorConfig
     EvolutionTraceConfig = config_module.EvolutionTraceConfig
+    _resolve_env_var = config_module._resolve_env_var
 
 # Import new runtime config modules
 from .runtime_config import RuntimeConfigUpdater, ConfigUpdate, ConfigWatcherCallback, SimpleConfigValidator, ValidationResult
@@ -51,6 +52,7 @@ __all__ = [
     "DatabaseConfig",
     "EvaluatorConfig",
     "EvolutionTraceConfig",
+    "_resolve_env_var",
 
     # Runtime config
     "RuntimeConfigUpdater",

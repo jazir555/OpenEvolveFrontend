@@ -406,7 +406,7 @@ export class QdrantBubble extends ServiceBubble<QdrantBubbleParams, QdrantBubble
   private async searchPoints(client: QdrantClient): Promise<any> {
     const params = this.params as z.output<typeof SearchPointsParamsSchema>;
 
-    const searchResult = await client.search(params.collectionName, {
+    const searchResult = await (client as any).search(params.collectionName, {
       vector: params.vector,
       limit: params.limit,
       score_threshold: params.scoreThreshold,

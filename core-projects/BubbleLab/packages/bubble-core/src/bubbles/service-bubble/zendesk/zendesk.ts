@@ -171,7 +171,7 @@ export class ZendeskBubble<
     if (options?.binary) {
       headers['Content-Type'] =
         options.contentType ?? 'application/octet-stream';
-      requestInit.body = options.binary;
+      requestInit.body = options.binary as BodyInit;
     } else {
       headers['Content-Type'] = 'application/json';
       if (body && method !== 'GET') {

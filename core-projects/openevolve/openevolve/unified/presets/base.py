@@ -7,7 +7,7 @@ Provides the foundation for all preset configurations.
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 @dataclass
@@ -242,7 +242,3 @@ class BasePreset(BaseModel):
             "population_size": self.population_size,
             "llm_model": self.llm_model,
         }
-
-
-# Import Field after BaseModel to avoid circular dependency
-from pydantic import Field

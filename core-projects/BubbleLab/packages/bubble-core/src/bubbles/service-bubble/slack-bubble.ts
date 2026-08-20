@@ -560,9 +560,9 @@ export class SlackBubble extends ServiceBubble<SlackBubbleParams, SlackBubbleRes
     formData.append('filename', params.filename);
 
     if (typeof params.fileContent === 'string') {
-      formData.append('file', new Blob([params.fileContent]), params.filename);
+      formData.append('file', new Blob([params.fileContent as BlobPart]), params.filename);
     } else {
-      formData.append('file', new Blob([params.fileContent]), params.filename);
+      formData.append('file', new Blob([params.fileContent as BlobPart]), params.filename);
     }
 
     if (params.filetype) {

@@ -245,7 +245,7 @@ export class EventHandlerWorkflow extends WorkflowBubble<
 
         const slackBubble = new SlackBubble(
           {
-            operation: 'send_message',
+            operation: 'sendMessage',
             channel: config.channel || '#events',
             text: config.message,
             credentials: this.params.credentials,

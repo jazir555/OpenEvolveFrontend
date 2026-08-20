@@ -421,7 +421,7 @@ export class MultiStepApprovalWorkflow extends WorkflowBubble<
       try {
         const slackBubble = new SlackBubble(
           {
-            operation: 'send_message',
+            operation: 'sendMessage',
             channel: approver.name, // In production, use actual user/channel
             text: message,
             credentials: this.params.credentials,
@@ -461,7 +461,7 @@ export class MultiStepApprovalWorkflow extends WorkflowBubble<
     try {
       const slackBubble = new SlackBubble(
         {
-          operation: 'send_message',
+          operation: 'sendMessage',
           channel: workflow.requester,
           text: message,
           credentials: this.params.credentials,

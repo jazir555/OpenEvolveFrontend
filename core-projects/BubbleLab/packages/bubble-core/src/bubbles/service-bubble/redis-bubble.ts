@@ -396,7 +396,7 @@ export class RedisBubble extends ServiceBubble<RedisBubbleParams, RedisBubbleRes
     return {
       key: params.key,
       ttl: params.ttl,
-      success: result === true || (typeof result === 'number' && result === 1),
+      success: result === 1,
     };
   }
 

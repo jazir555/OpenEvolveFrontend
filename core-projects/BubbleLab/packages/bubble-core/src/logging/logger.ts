@@ -5,7 +5,7 @@
  * log levels, and multiple transport options
  */
 
-import winston from 'winston';
+import winston, { type Logger, type transport } from 'winston';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
 
 export interface LogContext {
@@ -103,7 +103,7 @@ function generateCorrelationId(): string {
 // ============================================================================
 
 class BubbleLogger {
-  private logger: winston.Logger;
+  private logger: Logger;
   private correlationId: string | undefined;
 
   constructor(options?: {
@@ -119,7 +119,7 @@ class BubbleLogger {
       elasticsearchIndex = 'bubblelab-logs'
     } = options || {};
 
-    const transports: winston.transport[] = [];
+    const transports: transport[] = [];
 
     // Console transport
     transports.push(
@@ -156,7 +156,7 @@ class BubbleLogger {
           },
           index: elasticsearchIndex,
           dataStream: true
-        }) as winston.transport
+        }) as transport
       );
     }
 

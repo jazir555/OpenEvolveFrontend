@@ -146,7 +146,7 @@ const KnowledgeCaptureParamsSchema = z.object({
   /**
    * Workflow execution data
    */
-  execution: WorkflowExecutionConfigSchema.describe('Workflow execution data'),
+  execution: WorkflowExecutionSchema.describe('Workflow execution data'),
 
   /**
    * Outcome data
@@ -385,8 +385,20 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
     console.log(`[KnowledgeCapture] Workflow type: ${this.params.execution.workflowType}`);
     console.log(`[KnowledgeCapture] Correlation ID: ${correlationId}`);
 
-    const patternConfig = this.params.patternExtraction || {};
-    const storageConfig = this.params.storage || {};
+    const patternConfig: z.infer<typeof PatternExtractionConfigSchema> = {
+      extractSuccessPatterns: true,
+      extractFailurePatterns: false,
+      extractOptimizationOpportunities: true,
+      minConfidence: 0.7,
+      ...this.params.patternExtraction,
+    };
+    const storageConfig: z.infer<typeof StorageConfigSchema> = {
+      storeInRAGBits: true,
+      storeInGraphiti: false,
+      storeInVectorDB: true,
+      updateExisting: true,
+      ...this.params.storage,
+    };
 
     try {
       // Phase 1: Extract patterns from workflow execution
@@ -639,11 +651,11 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
     storageConfig: z.infer<typeof StorageConfigSchema>
   ): Promise<CapturedKnowledge> {
     const id = this.generateKnowledgeId(pattern);
-    const endpoints = this.params.endpoints || {};
+    const endpoints: NonNullable<KnowledgeCaptureParams['endpoints']> = this.params.endpoints || {};
 
     const captured: CapturedKnowledge = {
       id,
-      type: pattern.type,
+      type: this.mapPatternType(pattern.type),
       content: pattern.description,
       confidence: pattern.confidence,
       source: this.params.execution.workflowType,
@@ -742,7 +754,7 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
     execution: z.infer<typeof WorkflowExecutionSchema>,
     outcomes: z.infer<typeof OutcomeSchema>[]
   ): Promise<void> {
-    const endpoints = this.params.endpoints || {};
+    const endpoints: NonNullable<KnowledgeCaptureParams['endpoints']> = this.params.endpoints || {};
 
     // Calculate average outcome scores
     const avgSuccess = outcomes.reduce((acc, o) => acc + (o.success ? 1 : 0), 0) / outcomes.length;
@@ -790,7 +802,7 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
     inputData: Record<string, unknown>,
     outcomes: z.infer<typeof OutcomeSchema>[]
   ): Promise<void> {
-    const endpoints = this.params.endpoints || {};
+    const endpoints: NonNullable<KnowledgeCaptureParams['endpoints']> = this.params.endpoints || {};
 
     if (!endpoints.graphiti) {
       console.log('[KnowledgeCapture] Graphiti endpoint not configured, skipping input-outcome linkage');
@@ -856,8 +868,8 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
   private async generateLearningSummary(
     captured: CapturedKnowledge[]
   ): Promise<LearningSummary> {
-    const successPatterns = captured.filter(c => c.type === 'success').length;
-    const failurePatterns = captured.filter(c => c.type === 'failure').length;
+    const successPatterns = captured.filter(c => c.type === 'pattern').length;
+    const failurePatterns = captured.filter(c => c.type === 'error-prevention').length;
     const optimizationOpportunities = captured.filter(c => c.type === 'optimization').length;
 
     const avgConfidence =
@@ -889,6 +901,24 @@ export class KnowledgeCaptureWorkflow extends WorkflowBubble<
       `${pattern.type}-${pattern.description}-${Date.now()}`
     ).toString('base64');
     return `knowledge-${hash.substring(0, 16)}`;
+  }
+
+  /**
+   * Map a pattern category to the corresponding captured-knowledge category
+   */
+  private mapPatternType(
+    patternType: Pattern['type']
+  ): CapturedKnowledge['type'] {
+    switch (patternType) {
+      case 'success':
+        return 'pattern';
+      case 'failure':
+        return 'error-prevention';
+      case 'optimization':
+        return 'optimization';
+      case 'anomaly':
+        return 'insight';
+    }
   }
 
   /**

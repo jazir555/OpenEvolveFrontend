@@ -147,7 +147,7 @@ export class SQLQueryTool extends ToolBubble<
           rowCount: 0,
           executionTime,
           success: false,
-          error: result.error,
+          error: result.error ?? 'Query failed',
         };
       }
 

@@ -110,7 +110,12 @@ export class WebSearchTool extends ToolBubble<
       const limitedResults = Math.ceil(limit / 10) * 10;
 
       // Build search parameters according to Firecrawl API with defaults
-      const searchOptions: Omit<SearchRequest, 'query'> = {
+      const searchOptions: {
+        limit: number;
+        sources: Array<'web' | 'news' | 'images'>;
+        timeout: number;
+        location?: string;
+      } = {
         limit: limitedResults,
         // Default sources to web search
         sources: ['web'],

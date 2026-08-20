@@ -837,7 +837,7 @@ export class GoogleDriveBubble extends ServiceBubble<
           'Authorization': `Bearer ${token}`,
           'Content-Type': params.mimeType || 'application/octet-stream',
         },
-        body: content,
+        body: content as BodyInit,
         signal: AbortSignal.timeout(UPLOAD_TIMEOUT),
       }
     );

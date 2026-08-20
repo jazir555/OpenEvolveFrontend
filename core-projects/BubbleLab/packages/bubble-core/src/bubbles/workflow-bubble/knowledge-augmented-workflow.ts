@@ -237,7 +237,7 @@ const KnowledgeAugmentedWorkflowResultSchema = z.object({
   /**
    * Improvement metrics
    */
-  improvement: ImprovementSchema.optional().describe('Improvement metrics'),
+  improvement: ImprovementMetricSchema.optional().describe('Improvement metrics'),
 
   /**
    * Execution metadata
@@ -309,8 +309,24 @@ export class KnowledgeAugmentedWorkflow extends WorkflowBubble<
     console.log(`[KnowledgeAugmentedWorkflow] Query: ${this.params.query.substring(0, 100)}...`);
     console.log(`[KnowledgeAugmentedWorkflow] Correlation ID: ${correlationId}`);
 
-    const knowledgeConfig = this.params.knowledgeAugmentation || {};
-    const learningConfig = this.params.learningCapture || {};
+    const knowledgeConfig: z.infer<typeof KnowledgeAugmentationConfigSchema> = {
+      sources: {
+        ragbits: true,
+        graphiti: true,
+        vectordb: true,
+        ...this.params.knowledgeAugmentation?.sources,
+      },
+      maxKnowledgeResults: this.params.knowledgeAugmentation?.maxKnowledgeResults ?? 10,
+      minConfidence: this.params.knowledgeAugmentation?.minConfidence ?? 0.6,
+      augmentationStrategy: this.params.knowledgeAugmentation?.augmentationStrategy ?? 'prepend',
+    };
+    const learningConfig: z.infer<typeof LearningCaptureConfigSchema> = {
+      enabled: true,
+      storeSuccessPatterns: true,
+      storeFailurePatterns: false,
+      minConfidenceToStore: 0.7,
+      ...this.params.learningCapture,
+    };
 
     try {
       // Phase 1: Pre-workflow knowledge retrieval
@@ -463,7 +479,7 @@ export class KnowledgeAugmentedWorkflow extends WorkflowBubble<
     knowledgeResults: any[],
     config: z.infer<typeof KnowledgeAugmentationConfigSchema>
   ): Promise<Record<string, unknown>> {
-    if (!config?.applyKnowledge || knowledgeResults.length === 0) {
+    if (this.params.workflow?.applyKnowledge === false || knowledgeResults.length === 0) {
       return workflowParams;
     }
 

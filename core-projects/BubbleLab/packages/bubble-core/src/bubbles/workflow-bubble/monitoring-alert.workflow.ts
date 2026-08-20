@@ -308,7 +308,7 @@ export class MonitoringAlertWorkflow extends WorkflowBubble<
       try {
         const slackBubble = new SlackBubble(
           {
-            operation: 'send_message',
+            operation: 'sendMessage',
             channel: notifConfig.slack.channel || '#alerts',
             text: this.formatSlackMessage(alertId, severity, triggeredMetrics),
             credentials: this.params.credentials,

@@ -17,6 +17,10 @@ The unified config provides:
 from .config import (
     UnifiedEvolutionConfig,
     CommonConfig,
+    LLMConfig,
+    LLMModelConfig,
+    DatabaseConfig,
+    EvaluatorConfig,
     PESConfig,
     QDConfig,
     MOConfig,
@@ -42,6 +46,10 @@ __all__ = [
     # Main config classes
     "UnifiedEvolutionConfig",
     "CommonConfig",
+    "LLMConfig",
+    "LLMModelConfig",
+    "DatabaseConfig",
+    "EvaluatorConfig",
     "PESConfig",
     "QDConfig",
     "MOConfig",

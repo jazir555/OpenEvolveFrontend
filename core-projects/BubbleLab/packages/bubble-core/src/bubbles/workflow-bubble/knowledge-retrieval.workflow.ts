@@ -335,8 +335,19 @@ export class KnowledgeRetrievalWorkflow extends WorkflowBubble<
     // Validate environment configuration (Law of Configuration Explicitness)
     const endpoints = this.validateAndGetEndpoints();
 
-    const sources = this.params.sources || {};
-    const options = this.params.options || {};
+    const sources: z.infer<typeof KnowledgeSourceSchema> = {
+      ragbits: true,
+      graphiti: true,
+      vectordb: true,
+      ...this.params.sources,
+    };
+    const options: z.infer<typeof QueryOptionsSchema> = {
+      topK: 10,
+      minScore: 0.7,
+      filters: {},
+      timeout: 10000,
+      ...this.params.options,
+    };
     const allResults: KnowledgeResult[] = [];
     const sourceStats: NonNullable<KnowledgeRetrievalResult['sources']> = {};
     let totalSourcesQueried = 0;

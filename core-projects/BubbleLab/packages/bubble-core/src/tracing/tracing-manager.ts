@@ -21,7 +21,7 @@ import { Resource } from '@opentelemetry/resources';
 import {
   SemanticResourceAttributes,
 } from '@opentelemetry/semantic-conventions';
-import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
+import { AsyncHookContextManager } from '@opentelemetry/context-async-hooks';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import type { TracingConfig, SpanAttributes, SpanContext } from './types.js';
 import { TraceExporter, ExporterType } from './trace-exporter.js';
@@ -77,8 +77,8 @@ export class TracingManager {
       });
 
       // Set up context manager for async context propagation
-      this.contextManager = new AsyncLocalStorageContextManager();
-      this.contextManager.enable();
+      this.contextManager = new AsyncHookContextManager();
+      this.contextManager?.enable();
 
       // Set up propagator (W3C Trace Context)
       propagation.setGlobalPropagator(new W3CTraceContextPropagator());
