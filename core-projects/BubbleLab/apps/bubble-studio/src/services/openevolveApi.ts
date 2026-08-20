@@ -82,8 +82,10 @@ export interface WorkflowResponse {
 export interface WorkflowListResponse {
   workflows: WorkflowResponse[];
   total: number;
-  page: number;
-  page_size: number;
+  // NOTE: the backend `GET /workflows` handler returns only `{ workflows, total }`.
+  // It does not paginate, so these are optional rather than guaranteed.
+  page?: number;
+  page_size?: number;
 }
 
 export interface WorkflowInputs {
@@ -100,11 +102,19 @@ export interface ExecutionResponse {
   completed_at?: string;
   result?: Record<string, unknown>;
   error?: string;
+  name?: string;
+  real_engine?: boolean;
+  real_engine_available?: boolean;
+  best_score?: number;
+  result_summary?: string;
 }
 
 export interface ExecutionLogsResponse {
   logs: Array<Record<string, unknown>>;
-  total: number;
+  // The backend `GET /executions/{id}/logs` handler returns
+  // `{ execution_id, logs, since }` and does not include a `total`.
+  execution_id?: string;
+  total?: number;
   since?: string;
 }
 
@@ -225,6 +235,51 @@ export interface BubbleLabsWorkflowInstanceDetail {
   parameters: Record<string, unknown>;
 }
 
+// ==================== Backend Response Normalization ====================
+
+/**
+ * The OpenEvolve backend (engines/other/api_server.py) uses different identifier
+ * field names on the wire than this client's public contract:
+ *
+ *  - Workflow endpoints return `workflow_id` (see the `WorkflowResponse` pydantic
+ *    model), but this client and its consumers read `.id`.
+ *  - Execution endpoints return `id` (see `POST /executions`), but this client and
+ *    its consumers read `.execution_id`.
+ *
+ * Without normalization, `workflow.id` / `execution.execution_id` silently evaluate
+ * to `undefined`, which then gets interpolated into follow-up request URLs. These
+ * helpers map the wire format onto the declared contract at the client boundary so
+ * that consumers (and the declared TypeScript types) stay correct.
+ */
+type RawWorkflowResponse = Partial<WorkflowResponse> & {
+  workflow_id?: string;
+  current_stage?: string;
+  progress?: number;
+};
+
+const normalizeWorkflow = (raw: RawWorkflowResponse): WorkflowResponse => ({
+  ...(raw as WorkflowResponse),
+  id: raw.id ?? raw.workflow_id ?? '',
+});
+
+type RawExecutionResponse = Partial<ExecutionResponse> & { id?: string };
+
+const normalizeExecution = (raw: RawExecutionResponse): ExecutionResponse => ({
+  ...(raw as ExecutionResponse),
+  execution_id: raw.execution_id ?? raw.id ?? '',
+  progress: raw.progress ?? 0,
+});
+
+type RawExecutionListResponse = {
+  executions?: RawExecutionResponse[];
+  total?: number;
+};
+
+const normalizeExecutionList = (raw: RawExecutionListResponse) => ({
+  executions: (raw.executions ?? []).map(normalizeExecution),
+  total: raw.total ?? 0,
+});
+
 // ==================== API Client ====================
 
 /**
@@ -269,7 +324,9 @@ export const openevolveApi = {
       name: workflow.name,
     });
 
-    return openevolveApiClient.post<WorkflowResponse>('/api/workflows', workflow);
+    return normalizeWorkflow(
+      await openevolveApiClient.post<RawWorkflowResponse>('/api/workflows', workflow)
+    );
   },
 
   /**
@@ -283,9 +340,18 @@ export const openevolveApi = {
       page_size: pageSize,
     });
 
-    return openevolveApiClient.get<WorkflowListResponse>(
-      `/api/workflows?page=${page}&page_size=${pageSize}`
-    );
+    const response = await openevolveApiClient.get<{
+      workflows?: RawWorkflowResponse[];
+      total?: number;
+      page?: number;
+      page_size?: number;
+    }>(`/api/workflows?page=${page}&page_size=${pageSize}`);
+
+    return {
+      ...response,
+      workflows: (response.workflows ?? []).map(normalizeWorkflow),
+      total: response.total ?? 0,
+    };
   },
 
   /**
@@ -298,11 +364,19 @@ export const openevolveApi = {
       workflow_id: workflowId,
     });
 
-    return openevolveApiClient.get<WorkflowResponse>(`/api/workflows/${workflowId}`);
+    return normalizeWorkflow(
+      await openevolveApiClient.get<RawWorkflowResponse>(
+        `/api/workflows/${encodeURIComponent(workflowId)}`
+      )
+    );
   },
 
   /**
    * Update a workflow
+   *
+   * NOTE: the backend currently exposes no `PUT /workflows/{workflow_id}` route
+   * (only `PUT /workflows/{workflow_id}/decomposition-plan`), so this call is
+   * expected to fail with 404/405 until the backend adds the endpoint.
    */
   updateWorkflow: async (
     workflowId: string,
@@ -314,9 +388,11 @@ export const openevolveApi = {
       workflow_id: workflowId,
     });
 
-    return openevolveApiClient.put<WorkflowResponse>(
-      `/api/workflows/${workflowId}`,
-      updates
+    return normalizeWorkflow(
+      await openevolveApiClient.put<RawWorkflowResponse>(
+        `/api/workflows/${encodeURIComponent(workflowId)}`,
+        updates
+      )
     );
   },
 
@@ -330,7 +406,9 @@ export const openevolveApi = {
       workflow_id: workflowId,
     });
 
-    return openevolveApiClient.delete<{ message: string }>(`/api/workflows/${workflowId}`);
+    return openevolveApiClient.delete<{ message: string }>(
+      `/api/workflows/${encodeURIComponent(workflowId)}`
+    );
   },
 
   // ==================== Execution ====================
@@ -349,12 +427,11 @@ export const openevolveApi = {
       problem_statement_length: inputs.problem_statement.length,
     });
 
-    return openevolveApiClient.post<ExecutionResponse>(
-      `/api/executions`,
-      {
+    return normalizeExecution(
+      await openevolveApiClient.post<RawExecutionResponse>(`/api/executions`, {
         workflow_id: workflowId,
         ...inputs,
-      }
+      })
     );
   },
 
@@ -368,7 +445,37 @@ export const openevolveApi = {
       execution_id: executionId,
     });
 
-    return openevolveApiClient.get<ExecutionResponse>(`/api/executions/${executionId}`);
+    return normalizeExecution(
+      await openevolveApiClient.get<RawExecutionResponse>(
+        `/api/executions/${encodeURIComponent(executionId)}`
+      )
+    );
+  },
+
+  /**
+   * Get a single execution by ID
+   */
+  getExecution: async (executionId: string): Promise<ExecutionResponse> => {
+    return normalizeExecution(
+      await openevolveApiClient.get<RawExecutionResponse>(
+        `/api/executions/${encodeURIComponent(executionId)}`
+      )
+    );
+  },
+
+  /**
+   * List all executions with optional limit/offset
+   */
+  listExecutions: async (
+    params?: { limit?: number; offset?: number }
+  ): Promise<{ executions: ExecutionResponse[]; total: number }> => {
+    const search = new URLSearchParams();
+    if (params?.limit !== undefined) search.set('limit', String(params.limit));
+    if (params?.offset !== undefined) search.set('offset', String(params.offset));
+    const suffix = search.toString() ? `?${search.toString()}` : '';
+    return normalizeExecutionList(
+      await openevolveApiClient.get<RawExecutionListResponse>(`/api/executions${suffix}`)
+    );
   },
 
   /**
@@ -381,9 +488,11 @@ export const openevolveApi = {
       execution_id: executionId,
     });
 
-    return openevolveApiClient.post<ExecutionResponse>(
-      `/api/executions/${executionId}/pause`,
-      {}
+    return normalizeExecution(
+      await openevolveApiClient.post<RawExecutionResponse>(
+        `/api/executions/${encodeURIComponent(executionId)}/pause`,
+        {}
+      )
     );
   },
 
@@ -397,9 +506,11 @@ export const openevolveApi = {
       execution_id: executionId,
     });
 
-    return openevolveApiClient.post<ExecutionResponse>(
-      `/api/executions/${executionId}/resume`,
-      {}
+    return normalizeExecution(
+      await openevolveApiClient.post<RawExecutionResponse>(
+        `/api/executions/${encodeURIComponent(executionId)}/resume`,
+        {}
+      )
     );
   },
 
@@ -413,9 +524,11 @@ export const openevolveApi = {
       execution_id: executionId,
     });
 
-    return openevolveApiClient.post<ExecutionResponse>(
-      `/api/executions/${executionId}/cancel`,
-      {}
+    return normalizeExecution(
+      await openevolveApiClient.post<RawExecutionResponse>(
+        `/api/executions/${encodeURIComponent(executionId)}/cancel`,
+        {}
+      )
     );
   },
 
@@ -432,9 +545,8 @@ export const openevolveApi = {
       execution_id: executionId,
     });
 
-    const url = since
-      ? `/api/executions/${executionId}/logs?since=${since}`
-      : `/api/executions/${executionId}/logs`;
+    const basePath = `/api/executions/${encodeURIComponent(executionId)}/logs`;
+    const url = since ? `${basePath}?since=${encodeURIComponent(since)}` : basePath;
 
     return openevolveApiClient.get<ExecutionLogsResponse>(url);
   },
@@ -469,6 +581,9 @@ export const openevolveApi = {
 
   /**
    * Get a specific team
+   *
+   * NOTE: the backend route is `GET /teams/{team_name}` — it looks teams up by
+   * name, not by an opaque id, so `teamId` must be the team's name.
    */
   getTeam: async (teamId: string): Promise<TeamResponse> => {
     logger.debug({
@@ -477,7 +592,9 @@ export const openevolveApi = {
       team_id: teamId,
     });
 
-    return openevolveApiClient.get<TeamResponse>(`/api/teams/${teamId}`);
+    return openevolveApiClient.get<TeamResponse>(
+      `/api/teams/${encodeURIComponent(teamId)}`
+    );
   },
 
   // ==================== Gauntlets ====================
@@ -512,6 +629,9 @@ export const openevolveApi = {
 
   /**
    * Get a specific gauntlet
+   *
+   * NOTE: the backend route is `GET /gauntlets/{gauntlet_name}` — it looks gauntlets
+   * up by name, not by an opaque id, so `gauntletId` must be the gauntlet's name.
    */
   getGauntlet: async (gauntletId: string): Promise<GauntletResponse> => {
     logger.debug({
@@ -520,7 +640,9 @@ export const openevolveApi = {
       gauntlet_id: gauntletId,
     });
 
-    return openevolveApiClient.get<GauntletResponse>(`/api/gauntlets/${gauntletId}`);
+    return openevolveApiClient.get<GauntletResponse>(
+      `/api/gauntlets/${encodeURIComponent(gauntletId)}`
+    );
   },
 
   // ==================== BubbleLabs Control Plane ====================

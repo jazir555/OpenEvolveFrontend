@@ -90,6 +90,10 @@ import type {
   AdversarialRunResponse,
   AdversarialRunStatus,
   AdversarialRunListResponse,
+  ExecutionRecord,
+  ExecutionListResponse,
+  ExecutionLogsResponse,
+  ExecutionCreateRequest,
 } from "./types";
 
 import { apiLogger, LogContext } from '../../../glue/lib/structuredLogger';
@@ -1240,4 +1244,49 @@ export const openevolveApi = {
     request<AdversarialRunStatus>(`/adversarial/runs/${encodeURIComponent(runId)}`, {}, config),
   stopAdversarialRun: (runId: string, config?: ApiConfig) =>
     request<{ status: string }>(`/adversarial/runs/${encodeURIComponent(runId)}/stop`, { method: "POST" }, config),
+
+  // Execution controls (backend compatibility surface at /executions)
+  createExecution: (payload: ExecutionCreateRequest, config?: ApiConfig) =>
+    request<ExecutionRecord>(
+      "/executions",
+      { method: "POST", body: JSON.stringify(payload) },
+      config,
+    ),
+  listExecutions: (params?: { limit?: number; offset?: number }, config?: ApiConfig) => {
+    const search = new URLSearchParams();
+    if (params?.limit !== undefined) search.set("limit", String(params.limit));
+    if (params?.offset !== undefined) search.set("offset", String(params.offset));
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<ExecutionListResponse>(`/executions${suffix}`, {}, config);
+  },
+  getExecution: (executionId: string, config?: ApiConfig) =>
+    request<ExecutionRecord>(`/executions/${encodeURIComponent(executionId)}`, {}, config),
+  pauseExecution: (executionId: string, config?: ApiConfig) =>
+    request<ExecutionRecord>(
+      `/executions/${encodeURIComponent(executionId)}/pause`,
+      { method: "POST" },
+      config,
+    ),
+  resumeExecution: (executionId: string, config?: ApiConfig) =>
+    request<ExecutionRecord>(
+      `/executions/${encodeURIComponent(executionId)}/resume`,
+      { method: "POST" },
+      config,
+    ),
+  cancelExecution: (executionId: string, config?: ApiConfig) =>
+    request<ExecutionRecord>(
+      `/executions/${encodeURIComponent(executionId)}/cancel`,
+      { method: "POST" },
+      config,
+    ),
+  getExecutionLogs: (executionId: string, since?: string, config?: ApiConfig) => {
+    const search = new URLSearchParams();
+    if (since) search.set("since", since);
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return request<ExecutionLogsResponse>(
+      `/executions/${encodeURIComponent(executionId)}/logs${suffix}`,
+      {},
+      config,
+    );
+  },
 };

@@ -365,4 +365,67 @@ describe('OpenEvolve API Contract Tests', () => {
       ).rejects.toThrow();
     });
   });
+
+  describe('Execution Controls', () => {
+    let executionId: string;
+
+    it('should create an execution via createExecution', async () => {
+      const response = await openevolveApi.createExecution(
+        { name: 'contract-test-exec', workflow_id: 'test-workflow' },
+        TEST_CONFIG,
+      );
+      expect(response).toBeDefined();
+      expect(typeof response.id).toBe('string');
+      expect(response.id.startsWith('exec-')).toBe(true);
+      expect(typeof response.status).toBe('string');
+      expect(typeof response.created_at).toBe('string');
+      expect(typeof response.real_engine_available).toBe('boolean');
+      executionId = response.id;
+    });
+
+    it('should list executions and include the created one', async () => {
+      const response = await openevolveApi.listExecutions(undefined, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(Array.isArray(response.executions)).toBe(true);
+      expect(typeof response.total).toBe('number');
+      const found = response.executions.some((e) => e.id === executionId);
+      expect(found).toBe(true);
+    });
+
+    it('should retrieve the execution by id', async () => {
+      const response = await openevolveApi.getExecution(executionId, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(response.id).toBe(executionId);
+      expect(typeof response.status).toBe('string');
+    });
+
+    it('should pause the execution', async () => {
+      const response = await openevolveApi.pauseExecution(executionId, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(response.id).toBe(executionId);
+      expect(response.status).toBe('paused');
+    });
+
+    it('should resume the execution', async () => {
+      const response = await openevolveApi.resumeExecution(executionId, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(response.id).toBe(executionId);
+      expect(response.status).toBe('running');
+    });
+
+    it('should cancel the execution', async () => {
+      const response = await openevolveApi.cancelExecution(executionId, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(response.id).toBe(executionId);
+      expect(response.status).toBe('cancelled');
+    });
+
+    it('should get execution logs', async () => {
+      const response = await openevolveApi.getExecutionLogs(executionId, undefined, TEST_CONFIG);
+      expect(response).toBeDefined();
+      expect(typeof response.execution_id).toBe('string');
+      expect(response.execution_id).toBe(executionId);
+      expect(Array.isArray(response.logs)).toBe(true);
+    });
+  });
 });

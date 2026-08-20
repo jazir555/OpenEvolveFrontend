@@ -367,10 +367,9 @@ export function createHttpHealthCheck(
 export function createTcpHealthCheck(
   host: string,
   port: number,
-  options: { timeout?: number } = {}
+  _options: { timeout?: number } = {}
 ): HealthCheckFunction {
   return async (): Promise<HealthCheckResult> => {
-    const timeout = options.timeout || 5000;
     const start = Date.now();
 
     return {
@@ -391,7 +390,7 @@ export function createTcpHealthCheck(
  */
 export function createDatabaseHealthCheck(
   checkFn: () => Promise<void>,
-  options: { timeout?: number } = {}
+  _options: { timeout?: number } = {}
 ): HealthCheckFunction {
   return async (): Promise<HealthCheckResult> => {
     const start = Date.now();

@@ -205,11 +205,9 @@ export function createHealthMiddleware(health: HealthChecker) {
  */
 export function createRequestTrackingMiddleware(serviceName?: string) {
   const metrics = getMetricsCollector();
-  const tracer = getTracer();
 
   return async (req: any, res: any, next: any) => {
     const start = Date.now();
-    const correlationId = req.headers['x-correlation-id'] || req.headers['x-request-id'] || undefined;
 
     // Increment in-progress requests
     metrics.setHttpRequestsInProgress(serviceName || 'api', 1);

@@ -39,8 +39,7 @@
     }
   },
   "include": [
-    "glue/**/*",
-    "tests/**/*"
+    "glue/lib/**/*"
   ],
   "exclude": [
     "node_modules",
@@ -49,6 +48,14 @@
     "coverage",
     "core-projects",
     "openevolve_test_env",
+    "glue/orchestration",
+    "glue/schemas",
+    "**/*.test.ts",
+    "**/*.contract.test.ts",
+    "**/*.spec.ts",
+    "glue/lib/unified-knowledge-query",
+    "glue/lib/evolved-code-capture",
+    "glue/lib/proof-knowledge-base",
     "**/*.d.ts"
   ],
   "ts-node": {

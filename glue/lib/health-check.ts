@@ -188,7 +188,6 @@ export async function checkEnvVariables(
  * Create a health check HTTP server
  */
 export function createHealthCheckServer(options: HealthCheckOptions) {
-  const startTime = Date.now();
   const checks = options.checks || [];
 
   const server = http.createServer(async (req, res) => {

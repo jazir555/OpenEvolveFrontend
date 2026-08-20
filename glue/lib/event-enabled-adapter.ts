@@ -193,7 +193,7 @@ export class EventEnabledAdapter {
       if (this.dlq && this.isLogicFailure(err)) {
         await this.dlq.enqueue(
           createBaseEvent(
-            eventType || `${operationName}.Failed`,
+            (eventType || `${operationName}.Failed`) as Event['type'],
             this.adapterName,
             correlationId,
             {
@@ -233,7 +233,7 @@ export class EventEnabledAdapter {
     }
 
     const event = createBaseEvent(
-      eventType,
+      eventType as Event['type'],
       this.adapterName,
       correlationId || randomUUID(),
       data

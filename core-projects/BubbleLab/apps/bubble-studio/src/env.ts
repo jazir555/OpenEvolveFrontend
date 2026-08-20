@@ -18,7 +18,7 @@ export const API_BASE_URL: string = resolveApiBaseUrl();
 
 // OpenEvolve API Configuration (new FastAPI service)
 export const OPENEVOLVE_API_BASE_URL: string = (
-  import.meta.env.VITE_OPENEVOLVE_API_URL || 'http://localhost:8001'
+  import.meta.env.VITE_OPENEVOLVE_API_URL || 'http://localhost:8000'
 ).replace(/\/$/, '');
 export const EVOLUTION_API_BASE_URL: string = OPENEVOLVE_API_BASE_URL;
 export const OPENEVOLVE_API_KEY: string | undefined = import.meta.env

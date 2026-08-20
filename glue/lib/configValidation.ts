@@ -13,13 +13,6 @@ export interface EnvConfigSchema {
   };
 }
 
-interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-  warnings: string[];
-  config: Record<string, any>;
-}
-
 class ConfigValidator {
   private schema: EnvConfigSchema;
   private serviceName: string;

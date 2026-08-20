@@ -2096,12 +2096,119 @@ def get_legacy_evolution(evolution_id: str):
     return record
 
 
+# ---------------------------------------------------------------------------
+# /executions compatibility surface (BubbleLab frontend execution controls)
+# ---------------------------------------------------------------------------
+# REAL ENGINE ENTRY POINT:
+#   The canonical OpenEvolve library API is `openevolve.api.run_evolution(
+#       initial_program, evaluator, config=None, iterations=None,
+#       output_dir=None, cleanup=True)` (see
+#       core-projects/openevolve/openevolve/api.py). It requires:
+#     - an `initial_program` (file path / code string with EVOLVE-BLOCK markers)
+#     - an `evaluator` (file path or callable returning a metrics dict)
+#     - LLM model configuration (config with models / API keys)
+#   Because those inputs and secrets are NOT available to this API in most
+#   deployments, the handlers below attempt to start a REAL run only when the
+#   engine is importable AND the request carries engine-capable fields
+#   (`initial_program`/`code` + `evaluator`). Otherwise they fall back to an
+#   in-memory compatibility stub that is explicitly flagged `real_engine=False`.
+#   We NEVER overwrite a real run's status with faked success.
+# ---------------------------------------------------------------------------
+
+# Probe for the real engine once at import time. In this deployment the
+# `openevolve` package lives under core-projects/openevolve and is not on the
+# PYTHONPATH used to launch the server, so this is expected to be False unless
+# the caller's environment makes `openevolve` importable.
+try:
+    from openevolve.api import run_evolution as _oe_run_evolution
+
+    OPENEVOLVE_ENGINE_AVAILABLE = True
+except Exception:  # pragma: no cover - depends on deployment environment
+    _oe_run_evolution = None
+    OPENEVOLVE_ENGINE_AVAILABLE = False
+
 _executions: Dict[str, dict] = {}
+# execution_id -> live engine handle / background thread
+_execution_threads: Dict[str, threading.Thread] = {}
+# execution_id -> cancellation event for best-effort interruption
+_execution_cancel: Dict[str, threading.Event] = {}
+# execution_id -> list of log entries
+_execution_logs: Dict[str, List[dict]] = {}
+
+
+def _add_log(execution_id: str, level: str, message: str, data: Optional[dict] = None) -> None:
+    logs = _execution_logs.setdefault(execution_id, [])
+    logs.append({
+        "timestamp": datetime.utcnow().isoformat(),
+        "level": level,
+        "message": message,
+        "data": data,
+    })
+
+
+def _maybe_start_real_evolution(execution_id: str, payload: dict) -> bool:
+    """Best-effort: start a real OpenEvolve evolution in a background thread.
+
+    Returns True if a real engine run was launched, False otherwise (in which
+    case the caller keeps the in-memory compatibility stub). The status of the
+    in-memory record is updated to "completed"/"failed" by the thread based on
+    the REAL engine outcome -- it is never faked.
+    """
+    if not OPENEVOLVE_ENGINE_AVAILABLE:
+        return False
+
+    program = payload.get("initial_program") or payload.get("code")
+    evaluator = payload.get("evaluator")
+    if not program or not evaluator:
+        # No engine-capable inputs -> stay on the in-memory stub.
+        return False
+
+    cancel_event = threading.Event()
+    _execution_cancel[execution_id] = cancel_event
+
+    def _run():
+        record = _executions.get(execution_id)
+        try:
+            result = _oe_run_evolution(
+                initial_program=program,
+                evaluator=evaluator,
+                iterations=payload.get("iterations", 10),
+                output_dir=payload.get("output_dir"),
+                cleanup=bool(payload.get("cleanup", True)),
+            )
+            if record is not None:
+                record["status"] = "completed"
+                record["best_score"] = getattr(result, "best_score", None)
+                record["result_summary"] = repr(result)
+            _add_log(execution_id, "info", "Real engine run completed", {
+                "best_score": getattr(result, "best_score", None),
+            })
+        except Exception as exc:  # surface real failure, do not fake success
+            logger.error("Real OpenEvolve run %s failed: %s", execution_id, exc)
+            if record is not None:
+                record["status"] = "failed"
+                record["error"] = str(exc)
+            _add_log(execution_id, "error", f"Real engine run failed: {exc}")
+        finally:
+            _execution_threads.pop(execution_id, None)
+            _execution_cancel.pop(execution_id, None)
+
+    _add_log(execution_id, "info", "Real engine run started")
+
+    thread = threading.Thread(target=_run, daemon=True)
+    _execution_threads[execution_id] = thread
+    thread.start()
+    return True
 
 
 @app.post("/executions")
 async def create_execution(request: Request):
-    """Compatibility endpoint for the BubbleLab frontend execution controls."""
+    """Compatibility endpoint for the BubbleLab frontend execution controls.
+
+    Attempts to kick off a REAL OpenEvolve evolution when the engine is
+    available and the request carries engine-capable fields; otherwise falls
+    back to an in-memory compat stub (flagged `real_engine=False`).
+    """
     try:
         payload = await request.json()
     except Exception:
@@ -2113,15 +2220,22 @@ async def create_execution(request: Request):
     name = payload.get("name") or payload.get("workflow_id") or "execution"
     now = datetime.utcnow().isoformat()
     execution_id = f"exec-{uuid.uuid4().hex[:12]}"
+
+    real_engine = _maybe_start_real_evolution(execution_id, payload)
     record = {
         "id": execution_id,
         "name": name,
+        # status stays "running" until the real engine thread resolves it
+        # (completed/failed) or, for the stub, remains "running" while tracked.
         "status": "running",
         "workflow_id": payload.get("workflow_id"),
+        "real_engine": real_engine,
+        "real_engine_available": OPENEVOLVE_ENGINE_AVAILABLE,
         "created_at": now,
         "updated_at": now,
     }
     _executions[execution_id] = record
+    _add_log(execution_id, "info", "Execution created")
     return record
 
 
@@ -2149,8 +2263,14 @@ def pause_execution(execution_id: str):
     record = _executions.get(execution_id)
     if record is None:
         return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    terminal = {"completed", "failed", "cancelled"}
+    if record["status"] in terminal:
+        return JSONResponse(status_code=409, content={
+            "error": f"Cannot pause execution in '{record['status']}' state",
+        })
     record["status"] = "paused"
     record["updated_at"] = datetime.utcnow().isoformat()
+    _add_log(execution_id, "info", "Execution paused")
     return record
 
 
@@ -2159,8 +2279,13 @@ def resume_execution(execution_id: str):
     record = _executions.get(execution_id)
     if record is None:
         return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    if record["status"] != "paused":
+        return JSONResponse(status_code=409, content={
+            "error": f"Cannot resume execution in '{record['status']}' state (must be 'paused')",
+        })
     record["status"] = "running"
     record["updated_at"] = datetime.utcnow().isoformat()
+    _add_log(execution_id, "info", "Execution resumed")
     return record
 
 
@@ -2169,14 +2294,29 @@ def cancel_execution(execution_id: str):
     record = _executions.get(execution_id)
     if record is None:
         return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    terminal = {"completed", "failed", "cancelled"}
+    if record["status"] in terminal:
+        return JSONResponse(status_code=409, content={
+            "error": f"Cannot cancel execution in '{record['status']}' state",
+        })
+    cancel = _execution_cancel.get(execution_id)
+    if cancel is not None:
+        cancel.set()
     record["status"] = "cancelled"
     record["updated_at"] = datetime.utcnow().isoformat()
+    _add_log(execution_id, "info", "Execution cancelled")
     return record
 
 
 @app.get("/executions/{execution_id}/logs")
 def execution_logs(execution_id: str, since: str = None):
-    return {"execution_id": execution_id, "logs": [], "since": since}
+    if execution_id not in _executions:
+        return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    logs = _execution_logs.get(execution_id, [])
+    if since:
+        logs = [entry for entry in logs if entry["timestamp"] > since]
+    logs = logs[-1000:]
+    return {"execution_id": execution_id, "logs": logs, "since": since}
 
 
 @app.get("/adversarial-runs")

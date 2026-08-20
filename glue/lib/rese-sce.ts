@@ -27,8 +27,6 @@ import { CircuitBreaker, CircuitState } from './circuit-breaker';
 import {
   EpistemicAuditResult,
   TacitAssumption,
-  ContradictionDetection,
-  ConstraintCategory,
   LogicalFallacy,
 } from '../schemas/rese-canonical';
 

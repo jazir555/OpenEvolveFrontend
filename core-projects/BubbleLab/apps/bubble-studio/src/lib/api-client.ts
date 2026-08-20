@@ -33,7 +33,7 @@ import { OPENEVOLVE_API_BASE_URL, OPENEVOLVE_API_KEY } from '../env';
 const API_BASE_URL =
   OPENEVOLVE_API_BASE_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  'http://localhost:8001';
+  'http://localhost:8000';
 const API_TIMEOUT = 30000; // 30 seconds
 
 const resolveOpenEvolveApiKey = (): string | undefined => {

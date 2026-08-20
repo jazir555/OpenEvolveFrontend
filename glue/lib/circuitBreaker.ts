@@ -154,7 +154,7 @@ export class CircuitBreaker {
     this.openedAt = Date.now();
     this.nextAttemptAt = Date.now() + this.config.timeoutMs;
 
-    apiLogger.error('Circuit breaker opened', {
+    apiLogger.error('Circuit breaker opened', undefined, {
       ...context,
       failure_count: this.failureCount,
       opened_at: new Date(this.openedAt).toISOString(),

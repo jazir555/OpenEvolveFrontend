@@ -154,6 +154,11 @@ export interface ExecutionResponse {
   completed_at?: string;
   result?: Record<string, unknown>;
   error?: string;
+  name?: string;
+  real_engine?: boolean;
+  real_engine_available?: boolean;
+  best_score?: number;
+  result_summary?: string;
 }
 
 /**

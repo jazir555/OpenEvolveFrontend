@@ -16,7 +16,7 @@
 
 import { trace, context, Context, Span, SpanStatusCode, SpanKind } from '@opentelemetry/api';
 import type { Logger as LoggerType } from './glue-modules';
-const { logger, Logger } = require('../logger');
+const { Logger } = require('../logger');
 
 export interface TraceOptions {
   name: string;
@@ -195,7 +195,7 @@ export class Tracer {
   /**
    * Extract context from carrier
    */
-  extractContext(carrier: Record<string, string>): Context {
+  extractContext(_carrier: Record<string, string>): Context {
     // This would use the propagator from OpenTelemetry
     // Simplified version here
     return context.active();
@@ -429,7 +429,7 @@ export function traceMethod(options: {
             class: target.constructor.name,
           },
         },
-        async (span) => {
+        async (_span) => {
           return originalMethod.apply(this, args);
         }
       );

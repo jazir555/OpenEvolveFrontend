@@ -14,7 +14,7 @@ async function verify() {
   // 1. Test initialization
   console.log('✅ Testing initialization...');
   try {
-    const monitoring = await initializeMonitoring({
+    await initializeMonitoring({
       serviceName: 'test-service',
       prometheus: {
         prefix: 'test_',

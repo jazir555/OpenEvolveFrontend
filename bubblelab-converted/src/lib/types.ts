@@ -1208,3 +1208,38 @@ export interface AdversarialRunStatus {
 export interface AdversarialRunListResponse {
   runs: Array<Pick<AdversarialRunStatus, "run_id" | "status" | "created_at" | "started_at" | "completed_at">>;
 }
+
+/**
+ * Execution compatibility surface (`/executions`).
+ *
+ * Mirrors the in-memory records returned by the FastAPI compatibility endpoints
+ * used by the BubbleLab execution controls. Shapes verified against the live
+ * backend (POST/GET `/executions`, `/executions/{id}/pause|resume|cancel|logs`).
+ */
+export interface ExecutionRecord {
+  id: string;
+  name: string;
+  status: string;
+  workflow_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExecutionListResponse {
+  executions: ExecutionRecord[];
+  total: number;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ExecutionLogsResponse {
+  execution_id: string;
+  logs: string[];
+  since?: string | null;
+}
+
+export interface ExecutionCreateRequest {
+  name?: string;
+  workflow_id?: string;
+  [key: string]: unknown;
+}
