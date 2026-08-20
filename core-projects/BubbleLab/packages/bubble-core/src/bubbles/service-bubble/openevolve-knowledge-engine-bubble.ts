@@ -11,6 +11,17 @@ const KnowledgeBackendSchema = z.enum([
   'hybrid',
 ]);
 
+const resolveOpenEvolveBaseUrl = (): string => {
+  const envUrl =
+    (typeof process !== 'undefined' && process.env
+      ? process.env.OPENEVOLVE_KNOWLEDGE_API_URL ||
+        process.env.OPENEVOLVE_API_URL ||
+        process.env.OPENEVOLVE_API_BASE_URL
+      : undefined) || '';
+  const base = envUrl.trim().length > 0 ? envUrl : 'http://localhost:8001';
+  return base.replace(/\/$/, '');
+};
+
 const KnowledgeOperationSchema = z.enum([
   'search',
   'semantic_search',
@@ -409,13 +420,52 @@ export class OpenEvolveKnowledgeEngineBubble extends ServiceBubble<
   }
 
   private async healthCheck(startTime: number): Promise<KnowledgeEngineResult> {
-    return {
-      success: true,
-      operation: this.params.operation,
-      backend: this.params.backend,
-      data: { status: 'ok' },
-      timing: Date.now() - startTime,
-    };
+    // Health must reflect the real OpenEvolve backend: never fake success.
+    // `success` is derived from the HTTP response, and transport failures
+    // (unreachable server, timeout/abort) resolve to success: false.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.params.timeout);
+    const url = `${resolveOpenEvolveBaseUrl()}/health`;
+    // `backend` carries a zod default, so narrow it to a plain string here.
+    const backend = this.params.backend ?? 'qdrant';
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      const detail = await response.json().catch(() => undefined);
+
+      return {
+        success: response.ok,
+        operation: this.params.operation,
+        backend,
+        data: {
+          status: response.ok ? 'ok' : 'unhealthy',
+          http_status: response.status,
+          url,
+          detail,
+        },
+        error: response.ok
+          ? undefined
+          : `OpenEvolve health check failed: ${response.status} ${response.statusText}`,
+        timing: Date.now() - startTime,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return {
+        success: false,
+        operation: this.params.operation,
+        backend,
+        data: { status: 'unhealthy', url },
+        error: `OpenEvolve server unreachable: ${message}`,
+        timing: Date.now() - startTime,
+      };
+    }
   }
 
   private getQdrantConfig() {

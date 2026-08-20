@@ -339,6 +339,39 @@ npm run test:integration
 npm run test:coverage
 ```
 
+### E2E HTTP contract test
+
+`tests/e2e_contract.mjs` is a plain Node ESM script (no TS build step) that proves the
+service bubbles' HTTP contract works against the **real** OpenEvolve Python server:
+
+```bash
+npm run test:e2e
+# or: node tests/e2e_contract.mjs
+```
+
+What it does:
+
+1. Spawns `python -m openevolve.server_stdlib` (cwd = `core-projects/openevolve`) and polls
+   `GET /api/v1/health` until it returns 200.
+2. `POST /api/v1/workflows/orchestrate` with `{ system, problemStatement, generations, populationSize }`
+   and captures the returned `workflowId`.
+3. Polls `GET /api/v1/runs/{workflowId}` until `status === "completed"`.
+4. Asserts `status: "healthy"`, a non-empty `workflowId`, and a completed run whose non-null
+   `result` contains `best_code`. Prints a PASS/FAIL summary and sets `process.exitCode`.
+   The Python child process is always killed in a `finally` block (process-tree kill on Windows).
+
+Requirements:
+
+- **Python 3.11 on PATH** with the `openevolve` library importable (the script runs the server
+  with `cwd`/`PYTHONPATH` set to `core-projects/openevolve`; if `import openevolve` fails, run
+  `pip install -e core-projects/openevolve`).
+- No API keys: the server defaults to the deterministic offline **mock LLM**, so evolution runs
+  complete in well under a second.
+- Port `8000` free. If a server is already listening there, the script reuses it instead of spawning.
+
+Env overrides: `OPENEVOLVE_BASE_URL` (default `http://127.0.0.1:8000`), `OPENEVOLVE_REPO`,
+`PYTHON`, `E2E_BOOT_TIMEOUT_MS` (default 20000), `E2E_RUN_TIMEOUT_MS` (default 30000).
+
 ## License
 
 MIT

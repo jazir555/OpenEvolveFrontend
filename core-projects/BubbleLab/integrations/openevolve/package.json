@@ -5,7 +5,8 @@
   "type": "module",
   "description": "OpenEvolve service-bubble adapters for BubbleLab",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "node tests/e2e_contract.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.12.0",

@@ -38,6 +38,7 @@ import joinWaitlistRoutes from './routes/join-waitlist.js';
 import { startCronScheduler } from './services/cron-scheduler.js';
 import aiRoutes from './routes/ai.js';
 import templateSubmissionRoutes from './routes/template-submission.js';
+import openEvolveRoutes from './routes/openevolve.js';
 import browserbaseRoutes from './routes/browserbase.js';
 import { getBubbleFactory } from './services/bubble-factory-instance.js';
 
@@ -89,6 +90,7 @@ app.route('/join-waitlist', joinWaitlistRoutes);
 app.route('/ai', aiRoutes);
 app.route('/template-submission', templateSubmissionRoutes);
 app.route('/browserbase', browserbaseRoutes);
+app.route('/', openEvolveRoutes);
 
 // OpenAPI documentation endpoint
 app.doc('/doc', {

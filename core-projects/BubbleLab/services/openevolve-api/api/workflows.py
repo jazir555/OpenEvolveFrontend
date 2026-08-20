@@ -9,6 +9,7 @@ import structlog
 import json
 import sqlite3
 import os
+import asyncio
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,9 +28,36 @@ from ..models import (
 )
 from ..services.execution_service import execution_manager
 
+# Optional bridge to the REAL openevolve library. Guarded so the service still
+# starts (and every non-evolution path keeps working) when it is not installed.
+try:
+    from ..core.openevolve_bridge import OpenEvolveBridgeError, run_openevolve_workflow
+
+    OPENEVOLVE_BRIDGE_AVAILABLE = True
+    _OPENEVOLVE_IMPORT_ERROR: Optional[str] = None
+except ImportError as _bridge_import_error:  # pragma: no cover - env dependent
+    OpenEvolveBridgeError = RuntimeError  # type: ignore[assignment,misc]
+    run_openevolve_workflow = None  # type: ignore[assignment]
+    OPENEVOLVE_BRIDGE_AVAILABLE = False
+    _OPENEVOLVE_IMPORT_ERROR = str(_bridge_import_error)
+
 
 logger = structlog.get_logger()
 router = APIRouter()
+
+if not OPENEVOLVE_BRIDGE_AVAILABLE:
+    logger.warning(
+        "openevolve_bridge_unavailable",
+        error=_OPENEVOLVE_IMPORT_ERROR,
+        fallback="legacy EvolutionEngine via execution_manager",
+    )
+
+# Set OPENEVOLVE_BRIDGE_ENABLED=0 to force the legacy in-service evolution path.
+OPENEVOLVE_BRIDGE_ENABLED = os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+)
 
 # Persistent storage using SQLite
 DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "./data/workflows.db"))
@@ -38,6 +66,86 @@ _db_connection: Optional[sqlite3.Connection] = None
 # In-memory cache for active workflows
 _workflows: Dict[str, WorkflowResponse] = {}
 _workflow_executions: Dict[str, str] = {}
+
+# Latest REAL openevolve engine result per workflow, surfaced through
+# GET /{workflow_id}/results and the POST /{workflow_id}/start response.
+_workflow_openevolve_results: Dict[str, Dict[str, Any]] = {}
+
+
+def _should_use_openevolve(workflow: WorkflowResponse) -> bool:
+    """True when this workflow should be driven by the real openevolve engine."""
+    if not (OPENEVOLVE_BRIDGE_AVAILABLE and OPENEVOLVE_BRIDGE_ENABLED):
+        return False
+    return normalize_workflow_type(workflow.workflow_type) == "evolution"
+
+
+def _build_bridge_request(
+    workflow: WorkflowResponse,
+    problem_statement: str,
+    context: Optional[str],
+) -> Dict[str, Any]:
+    """Translate a stored workflow into the openevolve bridge request contract."""
+    parameters = dict(workflow.parameters or {})
+    # Never feed a previous run's result back in as an input parameter.
+    parameters.pop("openevolve", None)
+    return {
+        "system": "evolutionary",
+        "workflow_type": normalize_workflow_type(workflow.workflow_type),
+        "workflow_id": workflow.id,
+        "problem_statement": problem_statement,
+        "context": context,
+        "parameters": parameters,
+        "llm": parameters.get("llm") or parameters.get("llm_config") or {},
+    }
+
+
+async def _run_openevolve_for_workflow(
+    workflow: WorkflowResponse,
+    problem_statement: str,
+    context: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    """Run the REAL openevolve engine for an evolutionary workflow.
+
+    Executed off the event loop. Returns the bridge result, or ``None`` when the
+    bridge is unavailable/disabled or the run failed (the legacy
+    execution_manager path remains the source of truth in that case).
+    """
+    if not _should_use_openevolve(workflow):
+        return None
+
+    bridge_request = _build_bridge_request(workflow, problem_statement, context)
+
+    try:
+        result = await asyncio.to_thread(run_openevolve_workflow, bridge_request)
+    except OpenEvolveBridgeError as e:
+        logger.error(
+            "openevolve_bridge_run_failed",
+            workflow_id=workflow.id,
+            error=str(e),
+            fallback="legacy EvolutionEngine result",
+        )
+        return None
+    except Exception as e:  # pragma: no cover - defensive
+        logger.error(
+            "openevolve_bridge_unexpected_error",
+            workflow_id=workflow.id,
+            error=str(e),
+            error_type=type(e).__name__,
+            exc_info=True,
+        )
+        return None
+
+    _workflow_openevolve_results[workflow.id] = result
+
+    logger.info(
+        "openevolve_bridge_result_attached",
+        workflow_id=workflow.id,
+        best_score=result.get("best_score"),
+        generations=result.get("generations"),
+        llm_mode=result.get("llm_mode"),
+    )
+
+    return result
 
 
 def _get_db() -> sqlite3.Connection:
@@ -481,7 +589,20 @@ async def start_workflow(
         workflow.started_at = now
         workflow.updated_at = now
         _workflow_executions[workflow_id] = execution["execution_id"]
-        
+
+        # Drive the REAL openevolve engine for evolutionary workflows. The result
+        # is attached to the workflow payload (and to GET /{id}/results) without
+        # changing the response model.
+        openevolve_result = await _run_openevolve_for_workflow(
+            workflow, problem_statement, context
+        )
+        if openevolve_result:
+            workflow.parameters = {
+                **(workflow.parameters or {}),
+                "openevolve": openevolve_result,
+            }
+            workflow.updated_at = datetime.now(timezone.utc)
+
         # Save to database
         _save_workflow_to_db(workflow)
         _save_execution_mapping(workflow_id, execution["execution_id"])
@@ -489,7 +610,8 @@ async def start_workflow(
         logger.info(
             "workflow_execution_started",
             workflow_id=workflow_id,
-            execution_id=execution["execution_id"]
+            execution_id=execution["execution_id"],
+            openevolve_engine=bool(openevolve_result),
         )
 
         return workflow
@@ -718,6 +840,7 @@ async def delete_workflow(workflow_id: str) -> Dict[str, str]:
         workflow_name = _workflows[workflow_id].name
         del _workflows[workflow_id]
         _workflow_executions.pop(workflow_id, None)
+        _workflow_openevolve_results.pop(workflow_id, None)
         
         # Delete from database
         _delete_workflow_from_db(workflow_id)
@@ -755,6 +878,16 @@ def _build_execution_result(workflow: WorkflowResponse, execution: Dict[str, Any
         duration_seconds = (completed_at - started_at).total_seconds()
 
     raw_result = execution.get("result") or {}
+
+    # Merge in the REAL openevolve engine result when this workflow was driven
+    # by the bridge, so /results reports the actual evolved program.
+    openevolve_result = _workflow_openevolve_results.get(workflow.id)
+    if openevolve_result:
+        if isinstance(raw_result, dict):
+            raw_result = {**raw_result, "openevolve": openevolve_result}
+        else:
+            raw_result = {"legacy_result": raw_result, "openevolve": openevolve_result}
+
     try:
         final_solution = json.dumps(raw_result, indent=2)
     except (TypeError, ValueError):

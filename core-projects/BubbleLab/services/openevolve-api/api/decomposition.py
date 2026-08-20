@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
 import structlog
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from ..database import get_setting

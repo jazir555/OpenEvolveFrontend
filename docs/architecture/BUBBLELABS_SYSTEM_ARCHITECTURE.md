@@ -73,12 +73,18 @@ The OpenEvolve BubbleLabs Integration creates a comprehensive workflow managemen
 
 #### OpenEvolve API Proxy
 - **Technology**: Bun, Hono
-- **Purpose**: Mediates communication between BubbleLabs and OpenEvolve
+- **Location**: `apps/bubblelab-api/src/routes/openevolve.ts`
+- **Purpose**: Optional mediation layer between BubbleLabs and the OpenEvolve backend
 - **Key Features**:
-  - Request/response transformation
-  - Authentication forwarding
-  - Error handling and retry logic
-  - Request caching for optimization
+  - Passive reverse proxy to `OPENEVOLVE_API_URL` (default `http://localhost:8000`)
+  - Forwards documented routes (`GET /api/v1/health`, `POST /api/v1/evolve`,
+    `GET /api/v1/runs/:id`, `POST /api/v1/workflows/orchestrate`) and a `/api/*`
+    catch-all verbatim to the upstream
+  - Returns the upstream status + body unchanged; fails per-request with a 502
+    (not at startup) if the backend is unreachable
+  - NOTE: The UI currently talks to the FastAPI service **directly** via
+    `OPENEVOLVE_API_BASE_URL`; this proxy is available for mediation but is not
+    required by the current client path contract.
 
 #### Bubble Runtime Engine
 - **Technology**: TypeScript, Custom runtime
@@ -99,6 +105,19 @@ The OpenEvolve BubbleLabs Integration creates a comprehensive workflow managemen
   - Secure credential storage
 
 ### 3. OpenEvolve Backend Services
+
+> **Backend reality (path contract):** The primary OpenEvolve backend is
+> `services/openevolve-api` (FastAPI). Its routers are mounted **already prefixed**
+> (`/api/workflows`, `/api/teams`, `/api/gauntlets`, `/api/executions`,
+> `/api/monitoring`, `/api/analytics`, ...). There is **no** `rewrite_api_prefix`
+> middleware — clients send the `/api/...` paths as-is. The control-plane routes
+> (`/health`, `/bubblelabs/...`) are served unprefixed.
+>
+> A **separate** library server (`core-projects/openevolve/openevolve/server_stdlib.py`)
+> also exists and exposes `/api/v1/...` routes that wrap the real engine. The
+> BubbleLab Hono proxy (`apps/bubblelab-api/src/routes/openevolve.ts`) can forward
+> to either, but the UI today calls the FastAPI service directly. There is no
+> non-existent proxy or `rewrite_api_prefix` middleware in the request path.
 
 #### Evolution Engine
 - **Technology**: Python, Custom evolutionary algorithms
@@ -141,11 +160,13 @@ The OpenEvolve BubbleLabs Integration creates a comprehensive workflow managemen
 
 ### 2. API Gateway Integration
 - **Location**: `apps/bubblelab-api/src/routes/openevolve.ts`
-- **Purpose**: Routes OpenEvolve-specific requests
+- **Purpose**: Optional Hono proxy that forwards OpenEvolve-specific requests to the
+  FastAPI backend (`OPENEVOLVE_API_URL`, default `http://localhost:8000`)
 - **Implementation**:
-  - Proxy to OpenEvolve backend services
-  - Request/response transformation
-  - Authentication handling
+  - Passive proxy for `/api/*` (and `/api/v1/*`) routes — no path rewriting
+  - Returns upstream status + body unchanged; 502 on unreachable backend
+  - The UI may bypass this and call the FastAPI service directly (see backend
+    reality note in §3)
 
 ### 3. UI Component Integration
 - **Location**: `apps/bubble-studio/src/components/`

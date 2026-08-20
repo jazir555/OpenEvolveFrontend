@@ -9,12 +9,20 @@
  * - Clean REST API interface
  * - Full OpenAPI documentation at /docs
  *
- * PATH CONTRACT: the backend (`engines/other/api_server.py`) declares canonical
- * unprefixed routes (`/workflows`, `/teams`, `/gauntlets`, `/executions`, ...) and an
- * `@app.middleware("http")` hook (`rewrite_api_prefix`) that strips a leading `/api`,
- * so the `/api/...` paths used below resolve to those handlers. Paths that are already
- * unprefixed here (`/health`, `/bubblelabs/...`) are declared unprefixed on the backend
- * too and must NOT gain an `/api` prefix.
+ * PATH CONTRACT: the OpenEvolve backend is `services/openevolve-api` (FastAPI). Its
+ * routers are mounted ALREADY prefixed (`/api/workflows`, `/api/teams`, `/api/gauntlets`,
+ * `/api/executions`, `/api/monitoring`, ...). There is NO `rewrite_api_prefix`
+ * middleware: the `/api/...` paths used below ARE the canonical, final routes and are
+ * sent as-is (no upstream path rewriting). The control-plane routes (`/health`,
+ * `/bubblelabs/...`) are served unprefixed by the same service and must NOT gain an
+ * `/api` prefix.
+ *
+ * A separate library server (`core-projects/openevolve/openevolve/server_stdlib.py`)
+ * also exists and exposes `/api/v1/...` routes that wrap the real engine. This client
+ * targets the FastAPI service directly via `OPENEVOLVE_API_BASE_URL` (default
+ * http://localhost:8000). The BubbleLab Hono proxy
+ * (`apps/bubblelab-api/src/routes/openevolve.ts`) can mediate these calls, but the
+ * contract (already-prefixed `/api/...`) is unchanged.
  *
  * SECOND CLIENT: `src/lib/api-client.ts` is a separate fetch-based client used by
  * `use-workflows-api.ts`, `use-teams-api.ts`, `use-gauntlets-api.ts` and

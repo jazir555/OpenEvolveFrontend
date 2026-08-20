@@ -156,7 +156,7 @@ export class WorkflowOrchestratorBubble {
         success: response.ok,
         operation: this.params.operation,
         system: this.params.system,
-        workflowId: data.workflow_id || this.params.workflowId,
+        workflowId: data.workflowId || data.workflow_id || this.params.workflowId,
         status: data.status,
         results: data.results,
         metrics: data.metrics,

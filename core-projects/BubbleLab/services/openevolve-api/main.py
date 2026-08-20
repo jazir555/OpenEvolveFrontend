@@ -13,10 +13,12 @@ from fastapi.responses import StreamingResponse
 try:
     # Try relative imports first (when run as module)
     from .api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
+    from .api.openevolve_v1 import router as openevolve_v1_router
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
     from api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
+    from api.openevolve_v1 import router as openevolve_v1_router
     from services.execution_service import execution_manager
 
 # Structured logging
@@ -64,6 +66,10 @@ app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
 app.include_router(icr.router, prefix="/icr", tags=["icr"])
 app.include_router(determinism.router, prefix="/determinism", tags=["determinism"])
 app.include_router(decomposition.router, prefix="/api/decomposition", tags=["decomposition"])
+
+# OpenEvolve /api/v1/* dialect (mirrors openevolve/server_stdlib.py) so the
+# BubbleLab integration bubbles can drive the REAL engine through this service.
+app.include_router(openevolve_v1_router, prefix="/api/v1", tags=["openevolve-v1"])
 
 # Health check
 @app.get("/health")

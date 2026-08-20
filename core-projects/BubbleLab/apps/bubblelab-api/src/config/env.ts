@@ -92,6 +92,7 @@ export const env = {
   POSTHOG_ENABLED: process.env.POSTHOG_ENABLED === 'true',
   WISPR_API_KEY: process.env.WISPR_API_KEY,
   HACKATHON_COUPON_CODES: process.env.HACKATHON_COUPON_CODES || '',
+  OPENEVOLVE_API_URL: process.env.OPENEVOLVE_API_URL || 'http://localhost:8000',
   // BrowserBase credentials (system-level)
   BROWSERBASE_API_KEY: process.env.BROWSERBASE_API_KEY,
   BROWSERBASE_PROJECT_ID: process.env.BROWSERBASE_PROJECT_ID,
