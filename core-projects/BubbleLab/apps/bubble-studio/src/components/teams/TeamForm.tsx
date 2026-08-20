@@ -37,7 +37,6 @@ interface TeamFormProps {
 /** Coerce empty optional string fields to `undefined` for the wire payload. */
 function normalizeMember(member: ModelConfig): ModelConfig {
   const next: ModelConfig = { ...member };
-  if (next.api_key === '') next.api_key = undefined;
   if (next.api_base === '') next.api_base = undefined;
   return next;
 }

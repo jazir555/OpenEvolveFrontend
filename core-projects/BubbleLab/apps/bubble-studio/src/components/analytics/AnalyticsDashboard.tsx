@@ -9,7 +9,7 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
-  ArrowPathIcon,
+  RefreshCw,
   BarChart3,
   BookOpen,
   CheckCircle2,
@@ -228,7 +228,7 @@ export function AnalyticsDashboard() {
           disabled={isRefreshing}
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
-          <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
