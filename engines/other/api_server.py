@@ -2096,6 +2096,89 @@ def get_legacy_evolution(evolution_id: str):
     return record
 
 
+_executions: Dict[str, dict] = {}
+
+
+@app.post("/executions")
+async def create_execution(request: Request):
+    """Compatibility endpoint for the BubbleLab frontend execution controls."""
+    try:
+        payload = await request.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Invalid JSON request body"})
+
+    if not isinstance(payload, dict):
+        return JSONResponse(status_code=400, content={"error": "Request body must be a JSON object"})
+
+    name = payload.get("name") or payload.get("workflow_id") or "execution"
+    now = datetime.utcnow().isoformat()
+    execution_id = f"exec-{uuid.uuid4().hex[:12]}"
+    record = {
+        "id": execution_id,
+        "name": name,
+        "status": "running",
+        "workflow_id": payload.get("workflow_id"),
+        "created_at": now,
+        "updated_at": now,
+    }
+    _executions[execution_id] = record
+    return record
+
+
+@app.get("/executions")
+def list_executions(limit: int = 100, offset: int = 0):
+    """Compatibility endpoint for the BubbleLab frontend execution controls."""
+    safe_limit = max(0, min(limit, 500))
+    safe_offset = max(0, offset)
+    items = sorted(_executions.values(), key=lambda e: e.get("created_at", ""), reverse=True)
+    paged = items[safe_offset : safe_offset + safe_limit]
+    return {"executions": paged, "total": len(items), "limit": safe_limit, "offset": safe_offset}
+
+
+@app.get("/executions/{execution_id}")
+def get_execution(execution_id: str):
+    """Compatibility endpoint for the BubbleLab frontend execution controls."""
+    record = _executions.get(execution_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    return record
+
+
+@app.post("/executions/{execution_id}/pause")
+def pause_execution(execution_id: str):
+    record = _executions.get(execution_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    record["status"] = "paused"
+    record["updated_at"] = datetime.utcnow().isoformat()
+    return record
+
+
+@app.post("/executions/{execution_id}/resume")
+def resume_execution(execution_id: str):
+    record = _executions.get(execution_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    record["status"] = "running"
+    record["updated_at"] = datetime.utcnow().isoformat()
+    return record
+
+
+@app.post("/executions/{execution_id}/cancel")
+def cancel_execution(execution_id: str):
+    record = _executions.get(execution_id)
+    if record is None:
+        return JSONResponse(status_code=404, content={"error": f"Execution '{execution_id}' not found"})
+    record["status"] = "cancelled"
+    record["updated_at"] = datetime.utcnow().isoformat()
+    return record
+
+
+@app.get("/executions/{execution_id}/logs")
+def execution_logs(execution_id: str, since: str = None):
+    return {"execution_id": execution_id, "logs": [], "since": since}
+
+
 @app.get("/adversarial-runs")
 def list_legacy_adversarial_runs():
     """Compatibility endpoint for legacy BubbleLab contract tests."""
