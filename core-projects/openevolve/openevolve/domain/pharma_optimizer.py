@@ -30,6 +30,7 @@ Date: 2026-01-30
 from typing import Dict, Any, Optional, List
 from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, QDConfig, LLMConfig, EvaluatorConfig, DatabaseConfig, MOConfig
 from .base import DomainOptimizer
+from .heuristics import clamp, saturating
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based molecular optimization
 try:
@@ -62,6 +63,24 @@ class PharmaOptimizer(DomainOptimizer):
     """
 
     domain_name = "pharma"
+
+    # SMILES motifs used as structural alerts / metabolic soft spots by the
+    # deterministic descriptor scorer (see _calculate_pharma_metrics)
+    STRUCTURAL_ALERTS = [
+        "[N+](=O)[O-]",   # nitro
+        "N=[N+]=[N-]",    # azide
+        "C1OC1",          # epoxide
+        "N=N",            # azo
+        "S(=O)(=O)Cl",    # sulfonyl chloride
+        "C(=O)Cl",        # acyl chloride
+    ]
+    SOFT_SPOTS = [
+        "OC(=O)",         # ester
+        "NC(=O)",         # amide
+        "SC",             # thioether
+        "OC",             # ether / O-dealkylation
+        "N(C)C",          # N-dealkylation
+    ]
 
     def __init__(self, sub_domain: str = "general", use_adaptive_mdap: bool = True):
         """
@@ -445,28 +464,105 @@ class PharmaOptimizer(DomainOptimizer):
 
     def _parse_molecule(self, solution: str) -> Dict[str, Any]:
         """
-        Parse molecule from solution
+        Parse molecule from solution and compute cheap descriptors
+
+        The descriptors are computed directly from the SMILES string with the
+        standard library only (no RDKit): element counts give an approximate
+        molecular weight, N/O counts give hydrogen-bond donors/acceptors and a
+        polar surface proxy, ring-closure digits give the ring count, and an
+        additive scheme estimates logP.
 
         Args:
             solution: SMILES string or molecular structure
 
         Returns:
-            Molecular properties
+            Molecular descriptors
         """
-        # Placeholder: Parse SMILES
-        molecule = {
+        import re
+
+        molecule: Dict[str, Any] = {
             "smiles": "",
-            "molecular_weight": 0,
-            "logp": 0,
+            "molecular_weight": 0.0,
+            "logp": 0.0,
             "hbd": 0,  # Hydrogen bond donors
             "hba": 0   # Hydrogen bond acceptors
         }
 
-        # Extract SMILES
-        import re
-        smiles_match = re.search(r'(SMILES:?\s*)?([A-Za-z0-9@+\-\[\]\(\)\\=#$]+)', solution)
-        if smiles_match:
-            molecule["smiles"] = smiles_match.group(2)
+        # Extract the most SMILES-like token in the text
+        candidates = re.findall(r'[A-Za-z0-9@+\-\[\]\(\)\\/=#$%.]{2,}', solution or "")
+        smiles = ""
+        for candidate in candidates:
+            if not re.search(r'[CNOSPFIBcnos]', candidate):
+                continue
+            if re.fullmatch(r'[A-Za-z0-9@+\-\[\]\(\)\\/=#$%.]+', candidate) and len(candidate) > len(smiles):
+                smiles = candidate
+        molecule["smiles"] = smiles
+
+        # Element counts (two-letter elements first so Cl/Br are not split)
+        counts = {
+            "Cl": len(re.findall(r'Cl', smiles)),
+            "Br": len(re.findall(r'Br', smiles)),
+        }
+        stripped = smiles.replace("Cl", "").replace("Br", "")
+        for element in ("C", "N", "O", "S", "P", "F", "I"):
+            counts[element] = len(re.findall(element, stripped))
+        for aromatic in ("c", "n", "o", "s"):
+            counts[aromatic] = len(re.findall(aromatic, stripped))
+
+        carbons = counts["C"] + counts["c"]
+        nitrogens = counts["N"] + counts["n"]
+        oxygens = counts["O"] + counts["o"]
+        sulfurs = counts["S"] + counts["s"]
+        halogens = counts["F"] + counts["Cl"] + counts["Br"] + counts["I"]
+
+        heavy_atoms = carbons + nitrogens + oxygens + sulfurs + counts["P"] + halogens
+        rings = len(re.findall(r'\d', re.sub(r'\[[^\]]*\]', '', smiles)))  # ring-closure digits
+        rings = rings // 2
+        aromatic_atoms = counts["c"] + counts["n"] + counts["o"] + counts["s"]
+
+        # Approximate hydrogen count: saturated backbone minus rings/unsaturation
+        double_bonds = smiles.count("=") + 2 * smiles.count("#")
+        hydrogens = max(0, 2 * carbons + 2 - 2 * rings - 2 * double_bonds - halogens)
+
+        atomic_weights = {
+            "C": 12.011, "N": 14.007, "O": 15.999, "S": 32.06, "P": 30.974,
+            "F": 18.998, "Cl": 35.45, "Br": 79.904, "I": 126.904,
+        }
+        molecular_weight = (
+            carbons * atomic_weights["C"]
+            + nitrogens * atomic_weights["N"]
+            + oxygens * atomic_weights["O"]
+            + sulfurs * atomic_weights["S"]
+            + counts["P"] * atomic_weights["P"]
+            + counts["F"] * atomic_weights["F"]
+            + counts["Cl"] * atomic_weights["Cl"]
+            + counts["Br"] * atomic_weights["Br"]
+            + counts["I"] * atomic_weights["I"]
+            + hydrogens * 1.008
+        )
+
+        # Additive logP estimate (Crippen-style, coarse)
+        logp = (
+            0.30 * carbons
+            + 0.60 * halogens
+            - 0.45 * (nitrogens + oxygens)
+            - 0.10 * sulfurs
+        )
+
+        molecule.update({
+            "counts": counts,
+            "heavy_atoms": heavy_atoms,
+            "rings": rings,
+            "aromatic_atoms": aromatic_atoms,
+            "halogens": halogens,
+            "stereocenters": smiles.count("@@") + smiles.count("@"),
+            "molecular_weight": molecular_weight,
+            "logp": logp,
+            # N/O bearing hydrogens are donors; all N/O are acceptors
+            "hbd": len(re.findall(r'(?:^|[^\[])([NO])(?![a-z(])', smiles)) + smiles.count("OH") + smiles.count("NH"),
+            "hba": nitrogens + oxygens,
+            "tpsa": 20.0 * (nitrogens + oxygens) + 8.0 * sulfurs,
+        })
 
         return molecule
 
@@ -477,42 +573,128 @@ class PharmaOptimizer(DomainOptimizer):
         constraints: Optional[Dict[str, Any]] = None
     ) -> Dict[str, float]:
         """
-        Calculate pharma metrics
+        Calculate pharma metrics from the parsed molecular descriptors
+
+        Deterministic rule-based scorer (no docking or ADMET service required):
+        drug-likeness is Lipinski compliance, solubility/permeability follow
+        logP and the polar surface proxy, synthetic accessibility follows size and
+        stereochemistry, and the liability metrics use structural alerts.
 
         Args:
-            molecule: Molecular properties
+            molecule: Descriptors from :meth:`_parse_molecule`
             problem: Problem description
-            constraints: Constraints
+            constraints: Constraints (max_toxicity, min_solubility, ...)
 
         Returns:
-            Dictionary of metrics
-
-        Note: This is a placeholder. In production, integrate with:
-        - Molecular docking software (AutoDock, Glide)
-        - ADMET predictors (QikProp, ADMET Predictor)
-        - Quantum chemistry packages (Psi4, RDKit)
+            Dictionary of metrics (normalized 0-1, higher is better unless noted)
         """
-        # Placeholder metrics (normalized 0-1, higher is better unless noted)
-        metrics = {
-            "binding_affinity": 0.85,         # 85% of ideal binding
-            "solubility": 0.70,              # 70% solubility
-            "toxicity": 0.30,                # 30% toxicity (lower is better)
-            "synthetic_accessibility": 0.75, # 75% ease of synthesis
-            "drug_likeness": 0.80,           # 80% drug-like
-            "bioavailability": 0.65,         # 65% oral bioavailability
-            "permeability": 0.72,            # 72% Caco-2 permeability
-            "metabolic_stability": 0.68,     # 68% metabolic stability
-            "hERG_blockade": 0.15,           # 15% hERG blockade (lower is better)
-            "cyp_inhibition": 0.25           # 25% CYP inhibition (lower is better)
+        import re
+
+        smiles = molecule.get("smiles", "")
+
+        if not smiles:
+            # Nothing chemically meaningful was expressed
+            return {
+                "binding_affinity": 0.0,
+                "solubility": 0.0,
+                "toxicity": 1.0,
+                "synthetic_accessibility": 0.0,
+                "drug_likeness": 0.0,
+                "bioavailability": 0.0,
+                "permeability": 0.0,
+                "metabolic_stability": 0.0,
+                "hERG_blockade": 1.0,
+                "cyp_inhibition": 1.0,
+            }
+
+        molecular_weight = float(molecule.get("molecular_weight", 0.0))
+        logp = float(molecule.get("logp", 0.0))
+        hbd = int(molecule.get("hbd", 0))
+        hba = int(molecule.get("hba", 0))
+        heavy_atoms = int(molecule.get("heavy_atoms", 0))
+        rings = int(molecule.get("rings", 0))
+        aromatic_atoms = int(molecule.get("aromatic_atoms", 0))
+        halogens = int(molecule.get("halogens", 0))
+        stereocenters = int(molecule.get("stereocenters", 0))
+        tpsa = float(molecule.get("tpsa", 0.0))
+
+        # Lipinski rule of five compliance
+        lipinski = [
+            molecular_weight <= 500.0,
+            logp <= 5.0,
+            hbd <= 5,
+            hba <= 10,
+        ]
+        drug_likeness = sum(1.0 for rule in lipinski if rule) / len(lipinski)
+
+        # Solubility falls with lipophilicity and size
+        solubility = clamp(1.0 - 0.12 * max(0.0, logp) - saturating(molecular_weight, 900.0) * 0.4)
+
+        # Permeability peaks for logP ~2 and low polar surface
+        logp_fit = clamp(1.0 - abs(logp - 2.0) / 5.0)
+        permeability = clamp(0.6 * logp_fit + 0.4 * (1.0 - saturating(tpsa, 160.0)))
+
+        # Binding affinity: enough heavy atoms and aromatic contacts, not bloated
+        size_fit = clamp(1.0 - abs(heavy_atoms - 27) / 27.0)
+        binding_affinity = clamp(
+            0.45 * size_fit
+            + 0.25 * saturating(aromatic_atoms, 12)
+            + 0.2 * saturating(hba, 6)
+            + 0.1 * saturating(rings, 3)
+        )
+
+        # Structural alerts (lower toxicity is better)
+        alerts = 0
+        for alert in self.STRUCTURAL_ALERTS:
+            if alert in smiles:
+                alerts += 1
+        toxicity = clamp(
+            0.1
+            + 0.15 * alerts
+            + 0.08 * max(0.0, logp - 4.0)
+            + 0.1 * saturating(halogens, 6)
+        )
+
+        # Synthetic accessibility falls with size, rings and stereochemistry
+        synthetic_accessibility = clamp(
+            1.0
+            - 0.4 * saturating(heavy_atoms, 45)
+            - 0.3 * saturating(rings, 5)
+            - 0.3 * saturating(stereocenters, 4)
+        )
+
+        # Metabolic soft spots reduce stability; halogen blocking increases it
+        soft_spots = sum(1 for motif in self.SOFT_SPOTS if motif in smiles)
+        metabolic_stability = clamp(
+            0.75 - 0.15 * soft_spots + 0.1 * saturating(halogens, 4)
+        )
+
+        # Liability proxies (lower is better)
+        basic_amine = bool(re.search(r'N(?![=#])', smiles))
+        herg_blockade = clamp(
+            0.05 + 0.1 * max(0.0, logp - 3.0) + (0.15 if basic_amine else 0.0)
+        )
+        cyp_inhibition = clamp(
+            0.05 + 0.08 * saturating(aromatic_atoms, 12) * 2.0 + 0.06 * max(0.0, logp - 3.0)
+        )
+
+        bioavailability = clamp(
+            0.3 * permeability + 0.3 * solubility + 0.25 * drug_likeness
+            + 0.15 * metabolic_stability
+        )
+
+        return {
+            "binding_affinity": binding_affinity,
+            "solubility": solubility,
+            "toxicity": toxicity,                   # lower is better
+            "synthetic_accessibility": synthetic_accessibility,
+            "drug_likeness": drug_likeness,
+            "bioavailability": bioavailability,
+            "permeability": permeability,
+            "metabolic_stability": metabolic_stability,
+            "hERG_blockade": herg_blockade,         # lower is better
+            "cyp_inhibition": cyp_inhibition,       # lower is better
         }
-
-        # In production, would run:
-        # 1. Molecular docking (binding affinity)
-        # 2. ADMET predictions
-        # 3. Quantum chemistry calculations
-        # 4. Synthetic accessibility scoring
-
-        return metrics
 
     # ========================================================================
     # UTILITY METHODS

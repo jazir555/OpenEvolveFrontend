@@ -11,6 +11,8 @@ Status: [OK] Complete
 """
 
 import os
+import re
+import sys
 import importlib
 import inspect
 import logging
@@ -324,6 +326,29 @@ class IntegrationRegistry:
                     "features": ["pc", "ges", "lingam", "fci", "independence_tests"]
                 },
                 grpc_target="localhost:50059"
+            ),
+
+            # BubbleLabs - Workflow Visualization & Control
+            IntegrationInfo(
+                name="bubblelabs",
+                type=IntegrationType.VISUALIZATION,
+                module_path="integrations.bubblelabs.adapter",
+                class_name="BubbleLabsAdapter",
+                config_path=os.path.join(integrations_dir, "bubblelabs", "config.yaml"),
+                dependencies=["integrations.bubblelabs"],
+                version="1.0.0",
+                description="BubbleLabs workflow visualization, lifecycle control, and canvas export",
+                interface=VisualizationInterface,
+                metadata={
+                    "priority": "P2",
+                    "features": [
+                        "workflow_definitions",
+                        "workflow_lifecycle",
+                        "canvas_export",
+                        "status_rendering",
+                    ],
+                    "notes": "Ships with thin stubs for absent sibling modules; see integrations.bubblelabs.STUB_MODULES"
+                }
             ),
         ]
 

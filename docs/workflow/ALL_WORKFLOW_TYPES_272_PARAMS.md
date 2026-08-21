@@ -298,3 +298,12 @@ Users now have complete control over all OpenEvolve workflow types through the B
 ---
 
 *End of Documentation*
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Duplicate of docs/workflows/ALL_WORKFLOW_TYPES_272_PARAMS.md (identical content).
+- VERIFICATION: Same '272 parameters' claim; no supporting code found in core-projects/BubbleLab (grep = 0).
+- STATUS: DUPLICATE + DESIGN-ONLY/UNVERIFIED (see docs/workflows counterpart).
+

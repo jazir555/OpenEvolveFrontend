@@ -1,0 +1,54 @@
+# BubbleLabs Integration Configuration
+# This file configures the bubblelabs adapter for workflow visualization and control
+
+project:
+  name: bubblelabs
+  version: 1.0.0
+  enabled: true
+
+# Connection settings for the bubble-studio front-end (optional)
+connection:
+  # Base URL of a running bubble-studio instance. When unset, exported canvas
+  # documents are returned as local file paths instead of studio deep links.
+  studio_url: ${BUBBLELAB_STUDIO_URL}
+
+# Feature flags
+features:
+  # Register and instantiate BubbleLab workflow definitions
+  workflow_definitions: true
+
+  # Expose start/pause/resume/stop lifecycle control
+  workflow_lifecycle: true
+
+  # Export graphs as bubblelab.canvas/v1 JSON documents
+  canvas_export: true
+
+  # Render workflow status/metrics panes through the headless UI shim
+  status_rendering: true
+
+  # Embeddings and clustering are intentionally NOT provided here.
+  # Use the pygraphistry integration for those capabilities.
+  embeddings: false
+  clustering: false
+
+# Integration settings
+integration:
+  # Directory for exported canvas documents.
+  # Defaults to <repo>/data/bubblelabs_exports when unset.
+  export_dir:
+
+  # Fall back to a local export when no studio_url is configured
+  fallback_on_error: true
+
+# Visualization settings
+visualization:
+  # Default canvas layout (force_directed, circular, hierarchical, dagre)
+  default_layout: force_directed
+
+# Logging settings
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: INFO
+
+  # Log exported canvas paths / studio URLs
+  log_urls: true

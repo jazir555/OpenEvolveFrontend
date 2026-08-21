@@ -92,6 +92,14 @@ export const CREDENTIAL_CONFIGURATION_MAP: Record<
   [CredentialType.MEMBERFUL_CRED]: {},
   [CredentialType.ZOOM_CRED]: {},
   [CredentialType.CREDENTIAL_WILDCARD]: {}, // Wildcard marker, not a real credential
+  [CredentialType.OAUTH_TOKEN]: {},
+  [CredentialType.ELASTICSEARCH_CRED]: {},
+  [CredentialType.GITHUB_CRED]: {},
+  [CredentialType.POSTGRESQL_CRED]: {},
+  [CredentialType.QDRANT_CRED]: {},
+  [CredentialType.REDIS_CRED]: {},
+  [CredentialType.SENDGRID_CRED]: {},
+  [CredentialType.TWILIO_CRED]: {},
 };
 
 // Fixed list of bubble names that need context injection

@@ -46,7 +46,24 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Red Team / Gold Team judging for Rounds 2 and 3
+from .llm_judge import (
+    GauntletJudge,
+    aggregate_verdicts,
+    consensus_score,
+    describe_attacks,
+    probe_solution,
+    robustness_from_probes,
+    successful_attacks,
+    verify_solution,
+)
+
 logger = logging.getLogger(__name__)
+
+# Blend of LLM judge verdict vs. deterministic static analysis in each round
+JUDGE_WEIGHT = 0.5
+STATIC_WEIGHT = 0.5
+VERIFICATION_WEIGHT = 0.2
 
 
 class RoundStatus(Enum):
@@ -294,6 +311,10 @@ class MultiRoundConfig:
     consensus_threshold: int = 2  # Minimum rounds to consider something consensus
     conflict_detection: bool = True
 
+    # Judge LLM used by Round 2 (Red Team) and Round 3 (Gold Team).
+    # None selects the offline deterministic mock backend (no API key needed).
+    judge_llm_config: Optional[Dict[str, Any]] = None
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -481,15 +502,18 @@ class MultiRoundGauntletOrchestrator:
             )
 
             # Store result
+            # LoongFlowGauntletEvaluator reports "overall_score"; other Round 1
+            # evaluators expose a plain "score"
             state.round1_result = Round1Result(
-                score=result.score,
+                score=getattr(result, 'overall_score', getattr(result, 'score', 0.0)),
                 confidence=result.confidence,
                 feedback=result.feedback,
                 strengths=result.strengths,
                 weaknesses=result.weaknesses,
                 suggestions=result.suggestions,
-                execution_time=result.execution_time,
-                raw_data=result.metadata
+                robustness_score=getattr(result, 'robustness_score', 0.0),
+                execution_time=result.evaluation_time,
+                raw_data=getattr(result, 'artifacts', {})
             )
 
             # Normalize score (already 0-1 from LoongFlow)
@@ -515,38 +539,68 @@ class MultiRoundGauntletOrchestrator:
         """
         Execute Round 2: Red Team Adversarial Attack
 
-        Adversarial testing to find flaws and edge cases.
+        Adversarial testing to find flaws and edge cases. Two real signals are
+        combined: deterministic static attack probes (:func:`probe_solution`) and
+        an LLM judge prompted to adversarially critique the candidate
+        (:class:`GauntletJudge`, offline mock backend when no API key is set).
         """
         logger.info("Executing Round 2: Red Team Adversarial Attack")
 
-        try:
-            # Import red team evaluator
-            # This is a placeholder - integrate with your actual red team system
-            from ..evaluators.red_team import RedTeamEvaluator
+        round_start = time.time()
 
+        try:
             if self._round2_evaluator is None:
-                self._round2_evaluator = RedTeamEvaluator(
-                    domain=state.domain,
-                    max_vulnerabilities=self.config.max_vulnerabilities
+                self._round2_evaluator = GauntletJudge(
+                    llm_config=self.config.judge_llm_config
                 )
 
-            # Run adversarial testing
-            result = await self._round2_evaluator.attack(
+            language = state.context.get('language', 'python')
+
+            # 1. Deterministic attack vectors
+            probes = probe_solution(state.solution, language=language)
+            static_robustness = robustness_from_probes(probes)
+            vulnerabilities = describe_attacks(probes)
+            edge_cases = [probe['name'] for probe in probes]
+
+            attacks_attempted = len(probes)
+            attacks_successful = len(successful_attacks(probes))
+
+            # 2. LLM red team critique
+            verdict = await self._round2_evaluator.red_team(
                 solution=state.solution,
                 problem=state.problem,
-                context=state.context
+                domain=state.domain,
+                language=language,
+                prior_findings=vulnerabilities
             )
+
+            vulnerabilities = vulnerabilities + list(verdict.findings)
+            attacks_attempted += max(1, len(verdict.findings))
+            attacks_successful += len(verdict.findings)
+
+            # 3. Blend both signals into the round score (0-100 scale). The
+            # robustness_score keeps the deterministic probe outcome.
+            if verdict.parsed:
+                blended = STATIC_WEIGHT * static_robustness + JUDGE_WEIGHT * verdict.score
+            else:
+                blended = static_robustness
 
             # Store result
             state.round2_result = Round2Result(
-                score=result.score,  # 0-100 scale
-                attacks_attempted=result.attacks_attempted,
-                attacks_successful=result.attacks_successful,
-                vulnerabilities_found=result.vulnerabilities,
-                edge_cases_tested=result.edge_cases,
-                robustness_score=result.robustness_score,
-                execution_time=result.execution_time,
-                raw_data=result.metadata
+                score=blended * 100.0,  # 0-100 scale
+                attacks_attempted=attacks_attempted,
+                attacks_successful=attacks_successful,
+                vulnerabilities_found=vulnerabilities,
+                edge_cases_tested=edge_cases,
+                robustness_score=static_robustness,
+                execution_time=time.time() - round_start,
+                raw_data={
+                    'static_robustness': static_robustness,
+                    'judge_score': verdict.score if verdict.parsed else None,
+                    'judge_model': verdict.model,
+                    'judge_feedback': verdict.feedback,
+                    'probes': probes
+                }
             )
 
             # Normalize score (0-100 -> 0-1)
@@ -556,14 +610,15 @@ class MultiRoundGauntletOrchestrator:
             state.round2_decision = await self.make_decision(2, state)
 
         except Exception as e:
-            logger.error(f"Round 2 error: {e}")
+            logger.error(f"Round 2 error: {e}", exc_info=True)
             # Create fallback result
             state.round2_result = Round2Result(
                 score=50.0,  # Neutral score
                 attacks_attempted=0,
                 attacks_successful=0,
-                feedback=f"Red team evaluation error: {str(e)}",
-                execution_time=0.0
+                robustness_score=0.5,
+                execution_time=time.time() - round_start,
+                raw_data={'error': f"Red team evaluation error: {str(e)}"}
             )
             state.round2_normalized_score = 0.5
             state.round2_decision = "continue"  # Give benefit of doubt on error
@@ -574,43 +629,74 @@ class MultiRoundGauntletOrchestrator:
         """
         Execute Round 3: Gold Team Consensus Verification
 
-        Multi-judge evaluation with consensus checking and optional formal verification.
+        Multi-judge evaluation with consensus checking plus static verification.
+        Every judge model in the ensemble votes, and :func:`verify_solution`
+        replaces Lean 4 formal verification, which is unavailable offline.
         """
         logger.info("Executing Round 3: Gold Team Consensus Verification")
 
-        try:
-            # Import gold team evaluator
-            # This is a placeholder - integrate with your actual gold team system
-            from ..evaluators.gold_team import GoldTeamEvaluator
+        round_start = time.time()
 
+        try:
             if self._round3_evaluator is None:
-                self._round3_evaluator = GoldTeamEvaluator(
-                    domain=state.domain,
-                    min_consensus=self.config.min_consensus,
-                    require_formal_verification=self.config.require_formal_verification
+                self._round3_evaluator = GauntletJudge(
+                    llm_config=self.config.judge_llm_config
                 )
 
-            # Run consensus evaluation
-            result = await self._round3_evaluator.verify(
+            language = state.context.get('language', 'python')
+
+            # 1. Static verification (stands in for Lean 4)
+            verification = verify_solution(state.solution, language=language)
+            formal_verification_passed = bool(verification['passed'])
+
+            # 2. Certification votes, informed by the Round 2 findings
+            prior_findings = (
+                state.round2_result.vulnerabilities_found if state.round2_result else []
+            )
+            votes = await self._round3_evaluator.gold_team(
                 solution=state.solution,
                 problem=state.problem,
-                previous_rounds={
-                    'round1': state.round1_result,
-                    'round2': state.round2_result
-                },
-                context=state.context
+                domain=state.domain,
+                language=language,
+                prior_findings=prior_findings
+            )
+
+            usable_votes = [vote for vote in votes if vote.parsed]
+
+            if usable_votes:
+                judge_score = sum(vote.score for vote in usable_votes) / len(usable_votes)
+                consensus = consensus_score(usable_votes)
+            else:
+                checks = verification['checks']
+                judge_score = (
+                    sum(1.0 for passed in checks.values() if passed) / len(checks)
+                    if checks else 0.0
+                )
+                consensus = judge_score
+
+            normalized = (
+                (1.0 - VERIFICATION_WEIGHT) * judge_score
+                + VERIFICATION_WEIGHT * (1.0 if formal_verification_passed else 0.0)
+            )
+
+            robustness = (
+                state.round2_result.robustness_score if state.round2_result else normalized
             )
 
             # Store result
             state.round3_result = Round3Result(
-                score=result.score,  # 0-10 scale
-                consensus_score=result.consensus_score,
-                formal_verification_passed=result.formal_verification_passed,
-                judge_scores=result.judge_scores,
-                judge_feedback=result.judge_feedback,
-                robustness_score=result.robustness_score,
-                execution_time=result.execution_time,
-                raw_data=result.metadata
+                score=normalized * 10.0,  # 0-10 scale
+                consensus_score=consensus,
+                formal_verification_passed=formal_verification_passed,
+                judge_scores=[vote.score for vote in votes],
+                judge_feedback=[vote.feedback for vote in votes],
+                robustness_score=robustness,
+                execution_time=time.time() - round_start,
+                raw_data={
+                    'judge_score': judge_score,
+                    'verification': verification,
+                    'votes': [vote.to_dict() for vote in votes]
+                }
             )
 
             # Normalize score (0-10 -> 0-1)
@@ -620,14 +706,14 @@ class MultiRoundGauntletOrchestrator:
             state.round3_decision = await self.make_decision(3, state)
 
         except Exception as e:
-            logger.error(f"Round 3 error: {e}")
+            logger.error(f"Round 3 error: {e}", exc_info=True)
             # Create fallback result
             state.round3_result = Round3Result(
                 score=5.0,  # Neutral score
                 consensus_score=0.5,
                 formal_verification_passed=False,
-                feedback=f"Gold team evaluation error: {str(e)}",
-                execution_time=0.0
+                execution_time=time.time() - round_start,
+                raw_data={'error': f"Gold team evaluation error: {str(e)}"}
             )
             state.round3_normalized_score = 0.5
             state.round3_decision = "terminate"  # Fail on error in final round
@@ -1343,15 +1429,25 @@ Last Round: {state.current_round}
             else:
                 metrics.trend = "stable"
 
-        # Estimation of evaluations (placeholder)
-        # This would be populated by actual evaluation counts from the evaluators
-        metrics.total_evaluations = sum(
-            state.round_times.get(r, 0) * 10  # Rough estimate
-            for r in state.rounds_completed
-        )
+        # Evaluation counts actually reported by the rounds
+        metrics.evaluations_per_round = {}
+        llm_calls = 0
 
-        # Cost estimation (placeholder: $0.001 per evaluation)
-        metrics.cost_estimate = metrics.total_evaluations * 0.001
+        if state.round1_result is not None:
+            metrics.evaluations_per_round[1] = 1
+            llm_calls += 1
+        if state.round2_result is not None:
+            metrics.evaluations_per_round[2] = max(1, state.round2_result.attacks_attempted)
+            llm_calls += 1  # one red team judge call
+        if state.round3_result is not None:
+            votes = len(state.round3_result.judge_scores) or 1
+            metrics.evaluations_per_round[3] = votes
+            llm_calls += votes
+
+        metrics.total_evaluations = sum(metrics.evaluations_per_round.values())
+
+        # Cost estimate: only the LLM judge calls incur API cost (~$0.001 each)
+        metrics.cost_estimate = llm_calls * 0.001
 
         # Termination info
         if state.status == "terminated":
@@ -1410,7 +1506,7 @@ Last Round: {state.current_round}
 
             try:
                 # Get judge models from evaluator
-                judge_models = getattr(self._round3_evaluator, 'judge_models', ['default'])
+                judge_models = getattr(self._round3_evaluator, 'model_names', ['default'])
 
                 # Create evaluation tasks
                 tasks = [
@@ -1439,13 +1535,40 @@ Last Round: {state.current_round}
         model: str,
         state: GauntletState
     ) -> Dict[str, Any]:
-        """Evaluate solution with a single judge (for parallel execution)."""
-        # This would call the actual judge evaluation
-        # Placeholder implementation
+        """
+        Evaluate solution with a single judge model (for parallel execution).
+
+        Builds a :class:`GauntletJudge` scoped to one model so several judges can
+        vote concurrently. Scores are returned on the Round 3 (0-10) scale.
+        """
+        llm_config = self.config.judge_llm_config
+
+        if model and model != 'default':
+            scoped = dict(llm_config) if isinstance(llm_config, dict) else {}
+            scoped['name'] = model
+            llm_config = scoped
+
+        judge = GauntletJudge(llm_config=llm_config)
+
+        prior_findings = (
+            state.round2_result.vulnerabilities_found if state.round2_result else []
+        )
+        verdict = aggregate_verdicts(
+            await judge.gold_team(
+                solution=state.solution,
+                problem=state.problem,
+                domain=state.domain,
+                language=state.context.get('language', 'python'),
+                prior_findings=prior_findings
+            )
+        )
+
         return {
             'model': model,
-            'score': 7.5,
-            'feedback': f"Evaluation by {model}"
+            'score': verdict.score * 10.0,
+            'feedback': verdict.feedback,
+            'findings': verdict.findings,
+            'parsed': verdict.parsed
         }
 
     def _aggregate_gold_team_results(

@@ -481,3 +481,12 @@ class BubbleLabsNode(ABC):
 **Last Updated:** 2026-02-02  
 **Version:** 3.0  
 **Next Review:** 2026-02-09
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Updated ICR status report claiming ~95%, /icr/heatmap/snapshot endpoint, RoutingManager merge resolved.
+- VERIFICATION: icr.router is mounted at /icr in main.py (confirmed). The heatmap/snapshot endpoint and RoutingManager specifics were not re-verified in this pass.
+- STATUS: IMPLEMENTED (icr router mounted) — remaining '~95%' sub-claims UNVERIFIED.
+

@@ -4,6 +4,7 @@ package openevolve.grpc;
 
 import "common.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 // Node type enumeration
 enum NodeType {

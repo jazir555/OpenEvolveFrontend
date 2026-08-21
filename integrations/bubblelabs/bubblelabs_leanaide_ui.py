@@ -19,7 +19,7 @@ Author: OpenEvolve
 Created: 2025-01-03
 """
 
-from ui_shim import ui as st
+from .ui_shim import ui as st
 import json
 import time
 import threading
@@ -27,7 +27,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 try:
-    from bubblelabs_leanaide_integration import (
+    from .bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         LeanAideTaskType,
         LeanAideIntegrationBridge,

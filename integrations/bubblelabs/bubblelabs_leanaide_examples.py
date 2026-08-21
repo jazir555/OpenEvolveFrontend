@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    from bubblelabs_leanaide_integration import (
+    from .bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         LeanAideTaskType,
         initialize_leanaide_integration,

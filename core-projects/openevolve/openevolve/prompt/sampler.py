@@ -16,6 +16,40 @@ from openevolve.utils.metrics_utils import (
 logger = logging.getLogger(__name__)
 
 
+def build_meta_prompt(base_prompt: str, weight: float = 0.1) -> str:
+    """
+    Wrap a base prompt with a self-reflection / instruction-optimization step.
+
+    When meta-prompting is enabled, the model is asked to first reflect on the
+    task instructions: restate the core goal, identify the single most valuable
+    improvement to the task specification, and only then follow the optimized
+    understanding to produce the final answer. This is a purely textual, offline
+    transformation requiring no network access.
+
+    Args:
+        base_prompt: The original prompt text (typically the user message).
+        weight: Relative weight (0-1) of the reflection step, surfaced to the
+            model as guidance for how much to lean on the optimization step.
+
+    Returns:
+        The meta-wrapped prompt string.
+    """
+    header = (
+        "You are an expert at optimizing instructions. Before solving the task "
+        "below, take a brief moment to reflect on the instructions: restate the "
+        "core goal, identify the single most important improvement to the task "
+        "specification, and then follow your optimized understanding to produce "
+        "the answer.\n\n"
+        "--- BEGIN TASK INSTRUCTIONS ---\n"
+    )
+    footer = (
+        "\n--- END TASK INSTRUCTIONS ---\n\n"
+        f"[Reflection / instruction-optimization weight: {weight:.2f}] "
+        "Apply your reflection and now solve the task above."
+    )
+    return header + base_prompt + footer
+
+
 class PromptSampler:
     """Generates prompts for code evolution"""
 
@@ -182,6 +216,13 @@ class PromptSampler:
             ).format(
                 user_message=user_message,
                 changes_description=current_changes_description.rstrip(),
+            )
+
+        # Meta-prompting: wrap the assembled user prompt with a self-reflection
+        # / instruction-optimization step (offline, no network access).
+        if self.config.use_meta_prompting:
+            user_message = build_meta_prompt(
+                user_message, self.config.meta_prompt_weight
             )
 
         return {

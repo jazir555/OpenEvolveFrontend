@@ -1,0 +1,1 @@
+Error reading PDF: [Errno 2] No such file or directory: 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\smart contracts\\2024-07-04_Quantstamp_v1.2.0.pdf'

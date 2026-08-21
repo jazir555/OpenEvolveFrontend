@@ -34,7 +34,17 @@ from .adversarial_import_resolver import (
     get_red_team_strategy,
     get_default_strategy,
 )
-from .config_provider import ConfigProvider
+# NOTE: config_provider.py does not exist in this package. The only
+# ConfigProvider in the repo is engines/config/config_provider.py, which is an
+# empty stub (`class ConfigProvider: pass`) and does NOT implement the
+# get_env()/validate_config() API that test_fixes.py exercises. The import is
+# therefore optional so the four working adapters above remain importable.
+# Do not treat ConfigProvider as available until a real implementation lands.
+try:
+    from .config_provider import ConfigProvider
+    _HAS_CONFIG_PROVIDER = True
+except ImportError:  # pragma: no cover - module is currently missing
+    _HAS_CONFIG_PROVIDER = False
 
 __all__ = [
     'CrewAIConfigOverride',
@@ -44,5 +54,7 @@ __all__ = [
     'RedTeamStrategyProxy',
     'get_red_team_strategy',
     'get_default_strategy',
-    'ConfigProvider',
 ]
+
+if _HAS_CONFIG_PROVIDER:
+    __all__.append('ConfigProvider')

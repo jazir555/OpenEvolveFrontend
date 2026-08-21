@@ -1839,7 +1839,6 @@ class MLKnowledgeExtraction:
         embedding_model: str = 'all-MiniLM-L6-v2',
         clustering_algorithm: str = 'dbscan',
         enable_deepke: bool = True,
-        enable_deepke: bool = True,
         enable_oneke: bool = True,
         enable_karateclub: bool = True,
         enable_kggen: bool = True

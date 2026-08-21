@@ -12,7 +12,7 @@ from typing import Dict, Any
 
 # Import security components
 try:
-    from bubblelabs_security import (
+    from .bubblelabs_security import (
         validate_uuid,
         validate_workflow_action,
         auth_manager

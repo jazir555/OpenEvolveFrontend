@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # **LEAN INTEGRATION**: Real Lean client for formal verification
 try:
-    from leanaide_client import LeanAideClient
+    from .leanaide_client import LeanAideClient
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False

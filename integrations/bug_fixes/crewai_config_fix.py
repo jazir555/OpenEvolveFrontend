@@ -198,3 +198,10 @@ def get_crewai_config() -> Dict[str, Any]:
     """
     override = CrewAIConfigOverride()
     return override.get_fixed_config()
+
+
+# Deprecated legacy alias. The package __init__ and README have always
+# documented `crewaiConfigOverride` as a backwards-compatible alias of
+# `CrewAIConfigOverride`, but the alias itself was never defined here, which
+# made `import integrations.bug_fixes` fail with ImportError.
+crewaiConfigOverride = CrewAIConfigOverride

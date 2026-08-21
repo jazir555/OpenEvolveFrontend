@@ -41,6 +41,7 @@ from ..unified.config import (
     MOConfig,
 )
 from .base import DomainOptimizer
+from .heuristics import clamp, code_structure_score, saturating, signal_coverage
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based simulation allocation
 try:
@@ -73,6 +74,28 @@ class EngineeringOptimizer(DomainOptimizer):
     """
 
     domain_name = "engineering"
+
+    # Signals used by the deterministic metric calculations
+    ANALYSIS_SIGNALS = [
+        "fea", "finite_element", "mesh", "stress", "strain", "modal",
+        "simulation", "spice", "transfer_function", "bode", "cfd"
+    ]
+    ROBUSTNESS_SIGNALS = [
+        "safety_factor", "margin", "fatigue", "tolerance", "derating",
+        "redundan", "failure_mode", "fmea", "worst_case", "monte_carlo"
+    ]
+    MANUFACTURING_SIGNALS = [
+        "tolerance", "machin", "weld", "assembly", "dfm", "standard_part",
+        "extrusion", "casting", "additive", "fastener"
+    ]
+    THERMAL_SIGNALS = [
+        "thermal", "heat", "conduct", "convect", "temperature",
+        "cooling", "dissipat", "ambient"
+    ]
+    MATERIAL_SIGNALS = [
+        "steel", "aluminum", "aluminium", "titanium", "composite",
+        "carbon_fiber", "concrete", "polymer", "copper", "abs"
+    ]
 
     def __init__(self, sub_domain: str = "general", use_adaptive_mdap: bool = True):
         """
@@ -464,20 +487,28 @@ class EngineeringOptimizer(DomainOptimizer):
             solution: Design code or specification
 
         Returns:
-            Design components
+            Design components (including the raw text for scoring)
         """
-        # Placeholder: Parse design parameters
-        design = {
+        import re
+
+        design: Dict[str, Any] = {
+            "source": solution or "",
             "parameters": {},
             "geometry": {},
             "materials": []
         }
 
         # Extract parameters
-        import re
-        params = re.findall(r'(\w+)\s*[=:]\s*([0-9.]+)', solution)
+        params = re.findall(r'(\w+)\s*[=:]\s*([0-9]*\.?[0-9]+)', solution)
         if params:
             design["parameters"] = {name: float(value) for name, value in params}
+
+        # Materials referenced by the design
+        design["materials"] = [
+            material
+            for material in self.MATERIAL_SIGNALS
+            if material in solution.lower()
+        ]
 
         return design
 
@@ -488,36 +519,102 @@ class EngineeringOptimizer(DomainOptimizer):
         constraints: Optional[Dict[str, Any]] = None
     ) -> Dict[str, float]:
         """
-        Calculate engineering metrics
+        Calculate engineering metrics from the design specification
+
+        Deterministic heuristic scorer (no FEA/SPICE solver required): safety
+        margin is taken from the declared safety factor (or inferred from the
+        margin/tolerance signals), and the remaining metrics are derived from the
+        analysis, robustness and manufacturability signals present in the design,
+        checked against the supplied constraints.
 
         Args:
-            design: Design components
+            design: Design components from :meth:`_parse_design`
             problem: Problem description
-            constraints: Constraints
+            constraints: Constraints (max_weight, min_safety_factor, max_cost, ...)
 
         Returns:
-            Dictionary of metrics
-
-        Note: This is a placeholder. In production, integrate with:
-        - FEA simulation software
-        - Circuit simulators (SPICE)
-        - Control system analysis tools
+            Dictionary of metrics (``safety_margin`` is a factor, not a ratio)
         """
-        # Placeholder metrics
-        metrics = {
-            "performance": 0.85,        # 85% performance target
-            "safety_margin": 2.5,       # 2.5x safety factor
-            "cost": 0.70,              # 70% of budget
-            "weight": 0.65,            # 65% of max weight
-            "reliability": 0.95,        # 95% reliability
-            "efficiency": 0.88,         # 88% efficiency
-            "manufacturability": 0.80,  # 80% manufacturability score
-            "thermal_performance": 0.75 # 75% thermal performance
+        source = design.get("source", "")
+        parameters = design.get("parameters", {})
+
+        analysis = signal_coverage(source, self.ANALYSIS_SIGNALS)
+        robustness = signal_coverage(source, self.ROBUSTNESS_SIGNALS)
+        manufacturing = signal_coverage(source, self.MANUFACTURING_SIGNALS)
+        thermal = signal_coverage(source, self.THERMAL_SIGNALS)
+        structure = code_structure_score(source)
+
+        # Safety factor: declared explicitly, else inferred from the signals
+        declared_safety = None
+        for key, value in parameters.items():
+            if any(token in key.lower() for token in ("safety", "sf", "margin")):
+                declared_safety = float(value)
+                break
+
+        if declared_safety is None:
+            safety_margin = 1.0 + 1.5 * robustness + 0.5 * analysis
+        else:
+            safety_margin = max(0.0, declared_safety)
+
+        min_safety = float((constraints or {}).get("min_safety_factor", 2.0))
+        safety_compliance = clamp(safety_margin / min_safety if min_safety > 0 else 1.0)
+
+        # Weight and cost: measured against their budgets when declared
+        weight = self._budget_utilization(parameters, ("weight", "mass"), (constraints or {}).get("max_weight"))
+        cost = self._budget_utilization(parameters, ("cost", "price", "budget"), (constraints or {}).get("max_cost"))
+
+        performance = clamp(
+            0.35 * analysis + 0.25 * robustness + 0.2 * structure + 0.2 * safety_compliance
+        )
+        reliability = clamp(0.3 + 0.4 * robustness + 0.3 * safety_compliance)
+        efficiency = clamp(0.25 + 0.35 * analysis + 0.2 * (1.0 - weight) + 0.2 * (1.0 - cost))
+        manufacturability = clamp(
+            0.25 + 0.5 * manufacturing + 0.25 * saturating(len(design.get("materials", [])), 3)
+        )
+        thermal_performance = clamp(0.3 + 0.5 * thermal + 0.2 * analysis)
+
+        return {
+            "performance": performance,
+            "safety_margin": safety_margin,   # safety factor (x), higher is better
+            "cost": cost,                     # fraction of budget used (lower is better)
+            "weight": weight,                 # fraction of weight budget (lower is better)
+            "reliability": reliability,
+            "efficiency": efficiency,
+            "manufacturability": manufacturability,
+            "thermal_performance": thermal_performance,
         }
 
-        # In production, would run simulations
+    @staticmethod
+    def _budget_utilization(
+        parameters: Dict[str, float],
+        keys: tuple,
+        budget: Optional[float]
+    ) -> float:
+        """
+        Fraction of a budget consumed by the matching design parameter
 
-        return metrics
+        Args:
+            parameters: Parsed numeric design parameters
+            keys: Parameter name fragments to look for
+            budget: Budget for the quantity (None when unconstrained)
+
+        Returns:
+            Utilization in ``[0.0, 1.0]`` (0.5 when nothing is declared)
+        """
+        value = None
+        for name, parameter in parameters.items():
+            if any(key in name.lower() for key in keys):
+                value = float(parameter)
+                break
+
+        if value is None:
+            return 0.5  # unknown: neutral utilization
+
+        if not budget:
+            # No budget declared: normalize on a decade scale so it stays bounded
+            return clamp(value / (value + 1000.0))
+
+        return clamp(value / float(budget))
 
     # ========================================================================
     # UTILITY METHODS

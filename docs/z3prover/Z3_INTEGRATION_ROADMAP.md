@@ -62,3 +62,12 @@ To integrate the **Z3 SMT Solver** as a high-speed logic verification layer betw
 
 ## **Final State**
 Z3 functions as the **Deterministic Sieve** of OpenEvolve. No conjecture reaches the simulation or proof stage unless it has first passed the Z3 "Satisfiability Test," ensuring 100% logical integrity for every discovered technological artifact.
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Roadmap for Z3 as a logic filter; references integrations/z3/adapter.py and probes/check_z3.py.
+- VERIFICATION: integrations/z3/adapter.py does NOT exist in this distribution. Z3 is implemented instead as the BubbleLab z3prover ServiceBubble (see Z3_INTEGRATION_PLAN.md reconciliation note).
+- STATUS: DESIGN-ONLY roadmap — documented adapter path absent; see actual z3prover bubble.
+

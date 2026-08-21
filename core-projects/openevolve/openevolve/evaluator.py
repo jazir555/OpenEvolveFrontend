@@ -358,6 +358,10 @@ class Evaluator:
             Exception: If evaluation function raises an exception
         """
 
+        # Optional sandboxed execution of untrusted generated programs.
+        if getattr(self.config, "secure_execution", False):
+            return await self._secure_evaluate(program_path, stage=None)
+
         # Create a coroutine that runs the evaluation function in an executor
         async def run_evaluation():
             loop = asyncio.get_event_loop()
@@ -371,6 +375,85 @@ class Evaluator:
         # Return result as-is to be processed by _process_evaluation_result
         # This supports both dict and EvaluationResult returns, just like _cascade_evaluate
         return result
+
+    async def _secure_evaluate(
+        self,
+        program_path: str,
+        stage: Optional[str] = None,
+    ) -> Union[Dict[str, float], EvaluationResult]:
+        """
+        Evaluate a program by running the (user-provided) evaluation function
+        inside an isolated, resource-limited subprocess via SecureCodeExecutor.
+
+        The untrusted program is imported/executed *only* inside that subprocess,
+        so runaway loops, OOM, or crashes cannot take down the parent evaluator.
+
+        Args:
+            program_path: Path to the untrusted program under evaluation.
+            stage: Optional cascade stage name (evaluate / evaluate_stage1 ...).
+
+        Returns:
+            EvaluationResult produced by the sandboxed evaluation function.
+        """
+        from openevolve.secure_executor import (
+            SecureCodeExecutor,
+            SecureExecutorConfig,
+        )
+
+        eval_file = os.path.abspath(self.evaluation_file)
+        prog_file = os.path.abspath(program_path)
+        func_name = stage if stage else "evaluate"
+
+        bootstrap = (
+            "import json, sys\n"
+            "sys.path.insert(0, sys.argv[1])\n"
+            "mod = __import__('evaluation_module')\n"
+            "fn = getattr(mod, " + repr(func_name) + ", None)\n"
+            "if fn is None:\n"
+            "    print(json.dumps({'__error__': 'no " + func_name + " in eval file'}))\n"
+            "else:\n"
+            "    out = fn(sys.argv[2])\n"
+            "    if hasattr(out, 'to_dict'):\n"
+            "        out = out.to_dict()\n"
+            "    print(json.dumps({'__result__': out}))\n"
+        )
+
+        runner = SecureCodeExecutor(
+            SecureExecutorConfig(
+                timeout=self.config.timeout,
+                memory_limit_mb=self.config.memory_limit_mb,
+                cpu_time_limit=self.config.cpu_limit,
+                validate_static=False,
+            )
+        )
+
+        try:
+            res = await runner.execute_code(bootstrap)
+        except Exception as e:  # pragma: no cover - defensive
+            raise RuntimeError(f"Secure evaluation failed: {e}") from e
+
+        if res.timed_out:
+            raise asyncio.TimeoutError(
+                f"Secure evaluation timed out after {self.config.timeout}s"
+            )
+        if res.oom:
+            raise RuntimeError("Secure evaluation ran out of memory")
+        if not res.success:
+            raise RuntimeError(
+                f"Secure evaluation failed: {res.error or res.stderr}"
+            )
+
+        try:
+            payload = json.loads(res.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"Secure evaluation returned invalid output: {res.stdout!r}"
+            ) from exc
+
+        if "__error__" in payload:
+            raise RuntimeError(f"Secure evaluation: {payload['__error__']}")
+
+        return self._process_evaluation_result(payload.get("__result__", {}))
 
     async def _cascade_evaluate(
         self, program_path: str
@@ -764,9 +847,135 @@ class Evaluator:
         Returns:
             List of metric dictionaries
         """
+        if self.config.distributed:
+            return await self._evaluate_distributed(programs)
+
         tasks = [
             self.task_pool.create_task(self.evaluate_program, program_code, program_id)
             for program_code, program_id in programs
         ]
 
         return await asyncio.gather(*tasks)
+
+    async def _evaluate_distributed(
+        self,
+        programs: List[Tuple[str, str]],
+    ) -> List[Dict[str, float]]:
+        """
+        Evaluate programs across a process pool, falling back to sequential.
+
+        Uses ``multiprocessing.Pool`` (spawn context) to parallelize the
+        CPU-bound evaluation work across cores. If process creation or pickling
+        fails (e.g. an unpicklable config, or platform constraints), we
+        transparently fall back to the standard sequential/async evaluation path.
+        """
+        import multiprocessing
+
+        args = [
+            (program_code, program_id, self.evaluation_file, self.config)
+            for program_code, program_id in programs
+        ]
+        try:
+            ctx = multiprocessing.get_context("spawn")
+            with ctx.Pool() as pool:
+                return pool.map(_distributed_eval_task, args)
+        except Exception as exc:  # pragma: no cover - defensive fallback
+            logger.warning(
+                f"Distributed evaluation unavailable ({exc}); using sequential fallback"
+            )
+            return await asyncio.gather(
+                *[
+                    self.evaluate_program(program_code, program_id)
+                    for program_code, program_id in programs
+                ]
+            )
+
+
+def _distributed_eval_task(args):
+    """Picklable worker for distributed (multiprocessing.Pool) evaluation.
+
+    Runs an entire program evaluation in a fresh process so the CPU-bound
+    evaluation work is parallelized across cores. Exceptions are swallowed and
+    reported as ``{"error": 0.0}`` so a single bad program does not abort the
+    whole pool.
+    """
+    program_code, program_id, eval_file, config = args
+    try:
+        return _sync_evaluate_program(program_code, eval_file, config)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning(f"Distributed evaluation failed for {program_id}: {exc}")
+        return {"error": 0.0}
+
+
+def _sync_evaluate_program(program_code, eval_file, config):
+    """Synchronous single-program evaluation used by the distributed worker.
+
+    Mirrors the functional parts of :meth:`Evaluator.evaluate_program` (direct
+    evaluation + optional secure execution) without the async/LLM/artifact
+    machinery so it can be pickled and run in a separate process.
+    """
+    import importlib.util
+    import json
+    import os
+    import sys
+    import tempfile
+
+    from openevolve.evaluation_result import EvaluationResult
+
+    with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as tf:
+        tf.write(program_code.encode("utf-8"))
+        path = tf.name
+    try:
+        if getattr(config, "secure_execution", False):
+            from openevolve.secure_executor import (
+                SecureCodeExecutor,
+                SecureExecutorConfig,
+            )
+
+            eval_file_abs = os.path.abspath(eval_file)
+            bootstrap = (
+                "import json, sys\n"
+                "sys.path.insert(0, sys.argv[1])\n"
+                "mod = __import__('evaluation_module')\n"
+                "fn = getattr(mod, 'evaluate', None)\n"
+                "if fn is None:\n"
+                "    print(json.dumps({'__error__': 'no evaluate in eval file'}))\n"
+                "else:\n"
+                "    out = fn(sys.argv[2])\n"
+                "    if hasattr(out, 'to_dict'):\n"
+                "        out = out.to_dict()\n"
+                "    print(json.dumps({'__result__': out}))\n"
+            )
+            runner = SecureCodeExecutor(
+                SecureExecutorConfig(
+                    timeout=config.timeout,
+                    memory_limit_mb=config.memory_limit_mb,
+                    cpu_time_limit=config.cpu_limit,
+                    validate_static=False,
+                )
+            )
+            res = runner.execute_code_blocking(bootstrap)
+            if not res.success:
+                raise RuntimeError(res.error or res.stderr)
+            payload = json.loads(res.stdout)
+            if "__error__" in payload:
+                raise RuntimeError(payload["__error__"])
+            return EvaluationResult.from_dict(payload.get("__result__", {})).metrics
+
+        # Non-secure: run the user evaluation function in-process.
+        eval_dir = os.path.dirname(os.path.abspath(eval_file))
+        if eval_dir not in sys.path:
+            sys.path.insert(0, eval_dir)
+        spec = importlib.util.spec_from_file_location("evaluation_module", eval_file)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Failed to load spec from {eval_file}")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["evaluation_module"] = module
+        spec.loader.exec_module(module)
+        out = module.evaluate(path)
+        if hasattr(out, "to_dict"):
+            out = out.to_dict()
+        return EvaluationResult.from_dict(out).metrics
+    finally:
+        if os.path.exists(path):
+            os.unlink(path)

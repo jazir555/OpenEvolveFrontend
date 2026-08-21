@@ -335,3 +335,12 @@ class RefinementPattern:
 **Last Updated:** 2026-02-01  
 **Version:** 2.0  
 **Next Review:** 2026-02-08
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Status report claiming ICR ~85-90% integrated, incl. BubbleLab/services/openevolve-api/api/icr.py complete.
+- VERIFICATION: core-projects/BubbleLab/services/openevolve-api/api/icr.py EXISTS and IS mounted (pp.include_router(icr.router, prefix='/icr') in main.py; icr imported from .api).
+- STATUS: IMPLEMENTED (core API claim verified). Broader '75+ files' claims only partially verifiable here.
+

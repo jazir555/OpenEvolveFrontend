@@ -1,0 +1,34 @@
+Adversarially evaluate the following candidate solution (gauntlet Round 2: Red Team).
+
+# Problem
+{problem}
+
+# Domain
+{domain}
+
+# Current Program
+```{language}
+{current_program}
+```
+
+# Attacks already executed by the static probes
+{prior_findings}
+
+Attack the candidate on every axis you can justify from the code above:
+1. Correctness: inputs or states for which the candidate produces a wrong result
+2. Edge cases: empty, degenerate, extreme or malformed inputs
+3. Robustness: failure modes, silent failures, unhandled errors, resource exhaustion
+4. Security: injection, unsafe execution sinks, leaked credentials, unsafe defaults
+5. Operability: hidden assumptions that break under realistic conditions
+
+Score how well the candidate survived: 1.0 means every attack was repelled, 0.0 means the
+candidate collapsed under the first attack. Do not reward untested optimism.
+
+Return your verdict as a JSON object with the following format:
+{{
+    "robustness_score": [score between 0.0 and 1.0],
+    "correctness": [score between 0.0 and 1.0],
+    "security": [score between 0.0 and 1.0],
+    "vulnerabilities": ["[short description of each successful attack]"],
+    "reasoning": "[brief explanation of the score]"
+}}

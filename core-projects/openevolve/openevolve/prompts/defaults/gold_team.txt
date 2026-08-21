@@ -1,0 +1,35 @@
+Verify and certify the following candidate solution (gauntlet Round 3: Gold Team).
+
+# Problem
+{problem}
+
+# Domain
+{domain}
+
+# Current Program
+```{language}
+{current_program}
+```
+
+# Issues raised by the earlier rounds
+{prior_findings}
+
+Decide whether this candidate can be certified as the final answer:
+1. Correctness: does it actually solve the stated problem, including the reported issues?
+2. Robustness: does it hold up under the adversarial findings listed above?
+3. Verifiability: are its invariants stated and checkable (assertions, guards, contracts)?
+4. Maintainability: is the implementation clear enough to own long term?
+5. Residual risk: what would still block a production sign-off?
+
+Be calibrated: certify only what the code demonstrates.
+
+Return your verdict as a JSON object with the following format:
+{{
+    "overall_score": [score between 0.0 and 1.0],
+    "correctness": [score between 0.0 and 1.0],
+    "robustness": [score between 0.0 and 1.0],
+    "verifiability": [score between 0.0 and 1.0],
+    "certified": [true or false],
+    "outstanding_risks": ["[short description of each remaining risk]"],
+    "reasoning": "[brief explanation of the score]"
+}}

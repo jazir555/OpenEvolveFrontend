@@ -6,6 +6,7 @@ import "common.proto";
 import "decomposition.proto";
 import "math.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 // Gauntlet type
 enum GauntletType {

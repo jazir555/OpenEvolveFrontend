@@ -298,3 +298,12 @@ Users now have complete control over all OpenEvolve workflow types through the B
 ---
 
 *End of Documentation*
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Claims all 3 workflow types support 'ALL 272 parameters' via BubbleLabs UI.
+- VERIFICATION: Scoped grep for '272', 'EvolutionConfiguration', 'openevolve_sovereign' in core-projects/BubbleLab returned no matches; the 272-parameter manager and the three workflow-type IDs are not present/confirmed in this distribution.
+- STATUS: DESIGN-ONLY / UNVERIFIED — numeric '272 parameters' claim not backed by code found here.
+

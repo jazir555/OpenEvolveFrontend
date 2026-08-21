@@ -156,3 +156,12 @@
 
 ### P3 - Low Priority (Nice to Have)
 61-74. Utility files, logging, session management, etc.
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Duplicate of docs/workflows/ALL_WORKFLOW_FILES_ANALYSIS.md (identical content).
+- VERIFICATION: Same planning/gap analysis; not independently re-verified.
+- STATUS: DUPLICATE + PLANNING/ANALYSIS doc.
+

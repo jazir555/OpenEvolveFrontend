@@ -30,7 +30,7 @@ export async function initializeBubbleRunnerTracing(serviceName: string = 'bubbl
       options: {
         host: process.env.JAEGER_HOST || 'localhost',
         port: parseInt(process.env.JAEGER_PORT || '6832'),
-      },
+      } as any,
     },
     batchExport: {
       exportIntervalMillis: 5000,

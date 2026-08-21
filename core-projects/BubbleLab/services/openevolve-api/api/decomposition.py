@@ -19,15 +19,27 @@ from ..models import DecompositionDefaults
 logger = structlog.get_logger()
 router = APIRouter()
 
-# Ensure repo root is on sys.path so decomposition modules can be imported
-_REPO_ROOT = Path(__file__).resolve().parents[4]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.append(str(_REPO_ROOT))
+# Ensure the decomposition modules (which live at <repo_root>/engines/other)
+# are importable. The module file is located in:
+#   core-projects/BubbleLab/services/openevolve-api/api/decomposition.py
+# so parents[5] is the repository root (OpenEvolveFrontend) and the engines
+# package lives at <repo_root>/engines/other.
+_SERVICE_DIR = Path(__file__).resolve().parents[1]  # .../services/openevolve-api
+_REPO_ROOT = Path(__file__).resolve().parents[5]    # OpenEvolveFrontend
+_ENGINES_OTHER = _REPO_ROOT / "engines" / "other"
+# Source tree of the openevolve library (its ``openevolve`` package lives here).
+_OPEVOLVE_SRC = _REPO_ROOT / "core-projects" / "openevolve"
+
+# Prepend (highest priority) so these modules shadow any other same-named
+# modules on the path.
+for _p in (str(_ENGINES_OTHER), str(_OPEVOLVE_SRC), str(_REPO_ROOT), str(_SERVICE_DIR)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 try:
     from problem_analyzer import ProblemAnalyzer
     from decomposition_engine import DecompositionEngine
-except Exception as exc:
+except Exception as exc:  # pragma: no cover - depends on engine source tree
     logger.warning("decomposition_modules_unavailable", error=str(exc))
     ProblemAnalyzer = None
     DecompositionEngine = None
@@ -83,6 +95,32 @@ class DecompositionPlanRequest(BaseModel):
 _DECOMPOSITION_DEFAULTS_KEY = "decomposition_defaults"
 
 
+def _json_safe(value: Any, _depth: int = 0) -> Any:
+    """Recursively convert a value into something JSON-serializable.
+
+    The decomposition engine may attach live tool objects / callables (e.g. from
+    ``get_mcp_tool_inventory``) into the analysis metadata. FastAPI cannot
+    serialize those, so we downgrade callables and other exotic types to
+    descriptive strings instead of crashing the endpoint with a 500.
+    """
+    if _depth > 50:
+        return str(value)
+    if callable(value) and not isinstance(value, type):
+        return f"<callable:{getattr(value, '__name__', type(value).__name__)}>"
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v, _depth + 1) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(v, _depth + 1) for v in value]
+    if hasattr(value, "to_dict"):
+        try:
+            return _json_safe(value.to_dict(), _depth + 1)
+        except Exception:
+            pass
+    return str(value)
+
+
 def _get_decomposition_defaults() -> DecompositionDefaults:
     config_data = get_setting(_DECOMPOSITION_DEFAULTS_KEY)
     if config_data:
@@ -94,8 +132,30 @@ def _get_decomposition_defaults() -> DecompositionDefaults:
 
 
 def _ensure_decomposition_available() -> None:
-    if ProblemAnalyzer is None or DecompositionEngine is None:
-        raise HTTPException(status_code=503, detail="Decomposition engine is not available")
+    """Verify the decomposition engine modules imported and are usable.
+
+    Returns HTTP 501 (not implemented) with a clear message when the engine
+    modules are genuinely unavailable, instead of failing later with a 500 or
+    silently returning empty analysis.
+    """
+    missing = []
+    if not callable(ProblemAnalyzer):
+        missing.append("problem_analyzer.ProblemAnalyzer")
+    if not callable(DecompositionEngine):
+        missing.append("decomposition_engine.DecompositionEngine")
+    if missing:
+        logger.warning(
+            "decomposition_engine_unavailable",
+            missing=missing,
+            engines_dir=str(_ENGINES_OTHER),
+        )
+        raise HTTPException(
+            status_code=501,
+            detail=(
+                "Decomposition engine is not available. Missing: "
+                + ", ".join(missing)
+            ),
+        )
 
 
 def _normalize_domain_hint(domain_hint: Optional[str]) -> Optional[str]:
@@ -290,8 +350,8 @@ async def create_decomposition_plan(request: DecompositionPlanRequest):
         plan.metadata.setdefault("entanglement_matrix", entanglement_matrix)
 
     return {
-        "problem": problem.to_dict(),
-        "plan": plan.to_dict(),
+        "problem": _json_safe(problem.to_dict()),
+        "plan": _json_safe(plan.to_dict()),
     }
 
 

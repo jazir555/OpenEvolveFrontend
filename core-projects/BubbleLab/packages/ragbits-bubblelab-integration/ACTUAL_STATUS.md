@@ -19,16 +19,16 @@ The package did NOT compile originally; errors were all type-only (no logic was 
 
 ## Build / tests
 - **Build:** passes (`npm run build`).
-- **Tests:** NONE in the package. `package.json` declares `"test": "vitest"` but there are no `*.test.ts`/`*.spec.ts` files and no vitest config. `npm test` would report "no test files". No test coverage exists.
+- **Tests:** GREEN. `src/__tests__/ragbits-bubblelab-integration.test.ts` (vitest) covers the facade: `getInstance()` singleton, `createWorkflowEngine()` delegation, `runWorkflow()` execution + `getWorkflowStatus()`, `listWorkflows()`/`listExecutions()`, and the auxiliary `createDocumentProcessor()` / `getMonitoringService()` factories. `npx vitest run` → **7 passed**. Tests run fully offline (engines operate in mock mode; `ragbits` peer dep is never imported). `npx tsc --noEmit` passes.
 
 ## External dependencies needed
 - Peer: `@bubblelab/core` and `ragbits` (^2.0.0). `ragbits` is NOT installed; it is only referenced as a string inside generated code templates in `config_generator.ts`, so it is required at runtime by the generated output, not by the package's own compiled output.
 - Workspace deps `@bubblelab/bubble-core` / `@bubblelab/shared-schemas` are present via `node_modules` (workspace symlinks) and resolved fine.
 
 ## Honest readiness
-**NOT PRODUCTION-READY / UNVERIFIED AT RUNTIME.** It now type-checks and builds, but:
-1. There are **no tests** — correctness is unverified beyond compilation.
-2. The headline public API documented in `README.md` — `import { RagbitsBubbleLabIntegration } from 'ragbits-bubblelab-integration'` and `RagbitsBubbleLabIntegration.getInstance()` — **does not exist anywhere in `src/`** (grep confirms 0 matches). The real exports are `RAGBitsWorkflowEngine`, `RAGBitsDocumentProcessor`, the four bubble classes, and `createBubble`. The README's primary example will fail for users.
-3. It depends on an external `ragbits` package that is not present in this repo.
+**GREEN (compile-clean, tested, documented facade exists).** It type-checks, builds, and now has passing unit tests:
+1. The previously-missing headline public API is implemented: `src/RagbitsBubbleLabIntegration.ts` exports `RagbitsBubbleLabIntegration` with `getInstance()` (singleton) and `createWorkflowEngine(workflowConfig)` matching the README example, plus `runWorkflow()` / `getWorkflowStatus()` / `listWorkflows()` / `listExecutions()` / `disposeWorkflow()` delegation, and `createDocumentProcessor()` / `setDocumentProcessor()` / `getMonitoringService()` helpers. It is re-exported from `src/index.ts`, so `import { RagbitsBubbleLabIntegration } from 'ragbits-bubblelab-integration'` resolves.
+2. Tests are present and pass offline (`npx vitest run` → 7 passed) without requiring the optional `ragbits` peer package.
+3. It depends on an external `ragbits` package that is not present in this repo; this is still true, but `ragbits` is only referenced as a string inside generated-code templates and is never imported by the compiled package or tests, so it is not required to build, test, or run the facade in mock mode.
 
-Recommendation: treat as a compile-clean but untested scaffold; fix the README facade claim and add at least unit tests before claiming integration completeness.
+Recommendation: the README facade claim is now real and verified; remaining work is optional hardening (real `ragbits` wiring, broader test coverage of bubbles).

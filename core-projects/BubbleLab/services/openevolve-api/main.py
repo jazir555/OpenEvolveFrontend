@@ -135,6 +135,74 @@ app.include_router(knowledge_router, prefix="/api", tags=["knowledge"])
 # BubbleLabs control plane + workflow definitions/instances lifecycle.
 app.include_router(bubblelabs_control_router, prefix="/bubblelabs", tags=["bubblelabs"])
 
+# PES Enhanced router. The module lives at the repo root
+# (openevolve_pes_enhanced/) and is NOT part of this service package, so it is
+# imported defensively. If the package is importable we mount its real router
+# (it internally degrades to HTTP 503 when its own heavy deps, e.g. LoongFlow /
+# torch, are absent). If the package itself cannot be imported we still register
+# a fallback router so the /api/pes-enhanced group is reachable (HTTP 501) and
+# honest instead of returning 404.
+_pes_router = None
+_pes_unavailable_reason = None
+try:
+    import os as _os
+    import sys as _sys
+
+    _pes_base = _os.path.dirname(_os.path.abspath(__file__))
+    _pes_root = _pes_base
+    for _ in range(6):
+        if _os.path.isdir(_os.path.join(_pes_root, "openevolve_pes_enhanced")):
+            break
+        _parent = _os.path.dirname(_pes_root)
+        if _parent == _pes_root:
+            break
+        _pes_root = _parent
+
+    if _pes_root not in _sys.path:
+        _sys.path.insert(0, _pes_root)
+
+    if _os.path.isdir(_os.path.join(_pes_root, "openevolve_pes_enhanced")):
+        from openevolve_pes_enhanced.api_routes import router as _pes_router
+    else:
+        _pes_unavailable_reason = "openevolve_pes_enhanced package not found on path"
+except Exception as _pes_exc:
+    _pes_router = None
+    _pes_unavailable_reason = str(_pes_exc)
+
+if _pes_router is not None:
+    app.include_router(_pes_router, prefix="/api", tags=["pes-enhanced"])
+else:
+    from fastapi import APIRouter as _PESFallbackRouter
+    from fastapi.responses import JSONResponse as _PESJSONResponse
+
+    _pes_fallback = _PESFallbackRouter(prefix="/api/pes-enhanced", tags=["pes-enhanced"])
+
+    async def _pes_unavailable():
+        return _PESJSONResponse(
+            status_code=501,
+            content={
+                "error": "PES enhanced unavailable",
+                "detail": (
+                    "PES enhanced unavailable: missing dependency "
+                    f"{_pes_unavailable_reason or 'unknown'}"
+                ),
+            },
+        )
+
+    for _pes_path in (
+        "/health",
+        "/runs",
+        "/cost-estimate",
+        "/recommend-strategy",
+        "/runs/{run_id}",
+        "/runs/{run_id}/budget",
+        "/runs/{run_id}/stop",
+    ):
+        _pes_fallback.add_api_route(
+            _pes_path, _pes_unavailable, methods=["GET", "POST"]
+        )
+    app.include_router(_pes_fallback, tags=["pes-enhanced"])
+
 # Health check
 @app.get("/health")
 async def health_check():

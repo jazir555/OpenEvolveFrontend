@@ -76,7 +76,7 @@ def validate_range(value: int, min_value: int, max_value: int, param_name: str) 
 
 # Import security layer
 try:
-    from bubblelabs_security import (
+    from .bubblelabs_security import (
         validate_uuid,
         validate_workflow_type,
         validate_workflow_action,
@@ -93,8 +93,8 @@ except ImportError:
 
 # Import BubbleLabs integration
 try:
-    from bubblelabs_integration import BubbleLabsIntegration, BubbleWorkflowDefinition
-    from openevolve_bubblelabs_api import (
+    from .bubblelabs_integration import BubbleLabsIntegration, BubbleWorkflowDefinition
+    from .openevolve_bubblelabs_api import (
         OpenEvolveBubbleLabsIntegration,
         WorkflowStatus,
         WorkflowMetrics

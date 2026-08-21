@@ -34,6 +34,15 @@ from .multi_round_orchestrator import (
     FusedArtifacts,
 )
 
+from .llm_judge import (
+    GauntletJudge,
+    JudgeVerdict,
+    build_judge_ensemble,
+    probe_solution,
+    robustness_from_probes,
+    verify_solution,
+)
+
 __all__ = [
     # LoongFlow Gauntlet
     'LoongFlowGauntletEvaluator',
@@ -52,4 +61,12 @@ __all__ = [
     'MultiRoundGauntletOrchestrator',
     'GauntletState',
     'FusedArtifacts',
+
+    # Red Team / Gold Team judging
+    'GauntletJudge',
+    'JudgeVerdict',
+    'build_judge_ensemble',
+    'probe_solution',
+    'robustness_from_probes',
+    'verify_solution',
 ]

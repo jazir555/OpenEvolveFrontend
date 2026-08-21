@@ -751,6 +751,89 @@ export const CREDENTIAL_TYPE_CONFIG: Record<CredentialType, CredentialConfig> =
       namePlaceholder: '',
       credentialConfigurations: {},
     },
+    [CredentialType.OAUTH_TOKEN]: {
+      label: 'Generic OAuth Token',
+      description:
+        'Generic OAuth access token for services not otherwise configured (used by OpenEvolve integrations)',
+      placeholder: 'Enter your OAuth access token...',
+      namePlaceholder: 'My OAuth Token',
+      credentialConfigurations: {},
+    },
+    [CredentialType.ELASTICSEARCH_CRED]: {
+      label: 'Elasticsearch',
+      description:
+        'Connection string for Elasticsearch (e.g. https://user:pass@host:9200)',
+      placeholder: 'https://user:pass@host:9200',
+      namePlaceholder: 'My Elasticsearch Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.GITHUB_CRED]: {
+      label: 'GitHub (Alt)',
+      description:
+        'Alternate GitHub credential type for API access (repos, PRs, issues)',
+      placeholder: 'github_pat...',
+      namePlaceholder: 'My GitHub Credential',
+      credentialConfigurations: {},
+    },
+    [CredentialType.POSTGRESQL_CRED]: {
+      label: 'PostgreSQL (Alt)',
+      description:
+        'Alternate PostgreSQL connection string for database access',
+      placeholder: 'postgresql://user:pass@host:port/dbname',
+      namePlaceholder: 'My PostgreSQL Database',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.QDRANT_CRED]: {
+      label: 'Qdrant',
+      description:
+        'Connection string for Qdrant vector database (e.g. https://host:6333)',
+      placeholder: 'https://host:6333',
+      namePlaceholder: 'My Qdrant Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.REDIS_CRED]: {
+      label: 'Redis',
+      description: 'Connection string for Redis (e.g. redis://host:6379)',
+      placeholder: 'redis://host:6379',
+      namePlaceholder: 'My Redis Connection',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
+    [CredentialType.SENDGRID_CRED]: {
+      label: 'SendGrid',
+      description: 'API key for SendGrid email delivery services',
+      placeholder: 'SG...',
+      namePlaceholder: 'My SendGrid API Key',
+      credentialConfigurations: {},
+    },
+    [CredentialType.TWILIO_CRED]: {
+      label: 'Twilio',
+      description: 'API credentials for Twilio (account SID + auth token)',
+      placeholder: '',
+      namePlaceholder: 'My Twilio Credentials',
+      credentialConfigurations: {},
+      fields: [
+        {
+          key: 'accountSid',
+          label: 'Account SID',
+          placeholder: 'AC...',
+          type: 'text',
+        },
+        {
+          key: 'authToken',
+          label: 'Auth Token',
+          placeholder: 'Your Twilio auth token',
+          type: 'password',
+        },
+      ],
+    },
   } as const satisfies Record<CredentialType, CredentialConfig>;
 
 /**
@@ -833,6 +916,14 @@ export const CREDENTIAL_ENV_MAP: Record<CredentialType, string> = {
   [CredentialType.MEMBERFUL_CRED]: '', // Multi-field credential (subdomain + apiKey), no single env var
   [CredentialType.ZOOM_CRED]: '', // OAuth credential, no env var
   [CredentialType.CREDENTIAL_WILDCARD]: '', // Wildcard marker, not a real credential
+  [CredentialType.OAUTH_TOKEN]: '', // Generic OAuth token, no env var
+  [CredentialType.ELASTICSEARCH_CRED]: 'ELASTICSEARCH_URL',
+  [CredentialType.GITHUB_CRED]: 'GITHUB_TOKEN',
+  [CredentialType.POSTGRESQL_CRED]: 'POSTGRESQL_URL',
+  [CredentialType.QDRANT_CRED]: 'QDRANT_URL',
+  [CredentialType.REDIS_CRED]: 'REDIS_URL',
+  [CredentialType.SENDGRID_CRED]: 'SENDGRID_API_KEY',
+  [CredentialType.TWILIO_CRED]: '', // Multi-field credential (accountSid + authToken), no single env var
 };
 
 /** Used by bubblelab studio */
@@ -3089,6 +3180,58 @@ export const BUBBLE_CREDENTIAL_OPTIONS: Record<
   memberful: [CredentialType.MEMBERFUL_CRED],
   luma: [],
   zoom: [CredentialType.ZOOM_CRED],
+  'ace-tools': [],
+  elasticsearch: [],
+  qdrant: [],
+  redis: [],
+  sendgrid: [],
+  twilio: [],
+  'workflow-orchestrator': [],
+  'code-formatter-tool': [],
+  'csv-processor-tool': [],
+  'data-transformer-tool': [],
+  'email-validator-tool': [],
+  'file-processor-tool': [],
+  'image-processor-tool': [],
+  'json-validator-tool': [],
+  'log-parser-tool': [],
+  'metrics-collector-tool': [],
+  'text-analyzer-tool': [],
+  'url-validator-tool': [],
+  'vector-search-tool': [],
+  'xml-parser-tool': [],
+  'pdf-generator-tool': [],
+  'api-aggregator-workflow': [],
+  'backup-restore-workflow': [],
+  'data-enrichment-workflow': [],
+  'etl-pipeline-workflow': [],
+  'event-handler-workflow': [],
+  'monitoring-alert-workflow': [],
+  'multi-step-approval-workflow': [],
+  'scheduled-task-workflow': [],
+  'webhook-repeater-workflow': [],
+  'openevolve-ace-tools': [],
+  'openevolve-crewai': [],
+  'openevolve-decomposition': [],
+  'openevolve-decomposition-workflow': [],
+  'openevolve-determinism': [],
+  'openevolve-execution': [],
+  'openevolve-gauntlet': [],
+  'openevolve-gauntlet-testing': [],
+  'openevolve-icr': [],
+  'openevolve-knowledge-engine': [],
+  'openevolve-leanaide': [],
+  'openevolve-settings': [],
+  'openevolve-team': [],
+  'openevolve-workflow': [],
+  'openevolve-workflow-orchestrator': [],
+  'openevolve-z3prover': [],
+  'ragbits-ingest': [],
+  'ragbits-search': [],
+  'ragbits-index': [],
+  'ragbits-generation': [],
+  'crewai-orchestration': [],
+  'crewai-research': [],
 };
 
 export interface CredentialSiblingEntry {

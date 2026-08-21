@@ -198,7 +198,7 @@ def create_rag_workflow_definition(
     nodes.extend([ingest, search, gen, index])
     
     # Create edges
-    from bubblelabs_gauntlet_bubbles import create_bubble_edge
+    from .bubblelabs_gauntlet_bubbles import create_bubble_edge
     
     edges.append(create_bubble_edge(ingest["id"], search["id"]))
     edges.append(create_bubble_edge(search["id"], gen["id"]))

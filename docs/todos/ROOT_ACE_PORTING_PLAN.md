@@ -1667,3 +1667,12 @@ print(f"Accuracy: {results['accuracy']:.3f}")
 3. **Set up development environment** with Core-Project ACE
 4. **Start with Answer Extraction** (Day 1)
 5. **Track progress** in Phase 1 checklist above
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Gap-analysis / porting plan (Root ACE -> core-project ACE).
+- VERIFICATION: Root ACE IS present in this distribution (ce/ace/ace.py, ce_checkpoints/) and integrations/other/steer_context_engine.py, steer_crewai_bridge.py, steer_mcp_tools.py exist. The plan's checklists (e.g. create ce/evaluation.py, scripts/train_ace.py) appear as UNCHECKED planning items.
+- STATUS: PARTIALLY IMPLEMENTED — ACE + steer modules present; the porting checklist tasks are DESIGN-ONLY / not confirmed complete.
+

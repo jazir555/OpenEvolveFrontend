@@ -20,6 +20,7 @@ from ..unified.config import (
     AdversarialConfig,
     OpenEvolveConfig
 )
+from .config_metrics import compute_adaptive_metrics
 
 
 logger = logging.getLogger(__name__)
@@ -267,15 +268,50 @@ class DynamicStrategySwitcher:
 
     async def _capture_current_state(self) -> Dict:
         """Capture current evolutionary state"""
-        # This would integrate with the actual evolution system
-        # For now, return a placeholder
-        return {
+        state = {
             "strategy": self.current_strategy.value,
             "timestamp": datetime.utcnow().isoformat(),
             "population": [],
             "archive": [],
-            "metrics": {}
+            "metrics": {},
         }
+
+        # Derive real metrics from any state available in the current run when
+        # the actual evolution system has populated it (fitness history etc.).
+        current = self.current_state or {}
+        fitness_history = current.get("fitness_history")
+        if fitness_history:
+            metrics = compute_adaptive_metrics(
+                fitness_history,
+                current.get("population_scores"),
+            )
+            state["metrics"] = {
+                "stagnation_index": metrics.stagnation_index,
+                "diversity": metrics.diversity,
+                "improvement_rate": metrics.improvement_rate,
+                "stagnation_generations": metrics.stagnation_generations,
+            }
+
+        return state
+
+    def select_strategy(
+        self,
+        stagnation_index: float,
+        diversity: float = 0.0,
+        iteration: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Select an evolutionary strategy / parameters for the next phase.
+
+        Thin wrapper around :func:`select_strategy` using the switcher's
+        current strategy as the baseline.
+        """
+        return select_strategy(
+            stagnation_index=stagnation_index,
+            diversity=diversity,
+            iteration=iteration,
+            current_strategy=self.current_strategy,
+        )
 
     async def _load_migrated_state(self, state: Dict) -> None:
         """Load migrated state into new strategy"""
@@ -535,3 +571,71 @@ class StateMigrator:
             }
 
         return grid_archive
+
+
+def select_strategy(
+    stagnation_index: float,
+    diversity: float = 0.0,
+    iteration: Optional[int] = None,
+    current_strategy: Optional[SystemMode] = None,
+) -> Dict[str, Any]:
+    """
+    Dynamically select an evolutionary strategy and its parameters.
+
+    This is deterministic and dependency-free: given the same inputs it always
+    returns the same result, so it can be used safely mid-run.
+
+    Inputs:
+        stagnation_index: adaptive metric in [0, 1] (higher = more stagnation).
+            Produced by ``config_metrics.compute_adaptive_metric``.
+        diversity: coefficient of variation of the current population (0..inf,
+            typically 0..1 for normalized scores). Higher = more spread out.
+        iteration: current generation index (kept for call-site symmetry).
+        current_strategy: the strategy currently in use (defaults to OPENEVOLVE).
+
+    Logic:
+        - Exploration pressure scales linearly with ``stagnation_index``:
+          more stagnation -> higher mutation rate, lower selection pressure.
+        - When stagnated *and* the population has collapsed to low diversity,
+          switch to a diversity-seeking mode (QD, then MO) to escape the local
+          optimum. Otherwise keep the current strategy and exploit progress.
+
+    Returns:
+        A concrete strategy/parameter dict with keys: ``strategy`` (SystemMode),
+        ``mutation_rate``, ``crossover_rate``, ``selection_pressure``,
+        ``exploration`` and ``reason``.
+    """
+    stagnation_index = max(0.0, min(1.0, float(stagnation_index)))
+    diversity = max(0.0, float(diversity))
+    exploration = stagnation_index
+
+    mutation_rate = 0.05 + 0.45 * exploration
+    crossover_rate = 0.9 - 0.3 * exploration
+    selection_pressure = 0.5 + 0.5 * (1.0 - exploration)
+
+    if current_strategy is None:
+        current_strategy = SystemMode.OPENEVOLVE
+    chosen = current_strategy
+
+    reasons = []
+    if stagnation_index >= 0.5:
+        reasons.append("stagnation detected; increasing exploration")
+    else:
+        reasons.append("progress detected; exploiting")
+
+    if stagnation_index >= 0.6 and diversity < 0.15:
+        if current_strategy == SystemMode.OPENEVOLVE:
+            chosen = SystemMode.QD
+            reasons.append("low diversity under stagnation -> switch to QD")
+        elif current_strategy == SystemMode.QD:
+            chosen = SystemMode.MO
+            reasons.append("low diversity under stagnation -> broaden to MO")
+
+    return {
+        "strategy": chosen,
+        "mutation_rate": round(mutation_rate, 4),
+        "crossover_rate": round(crossover_rate, 4),
+        "selection_pressure": round(selection_pressure, 4),
+        "exploration": round(exploration, 4),
+        "reason": "; ".join(reasons),
+    }

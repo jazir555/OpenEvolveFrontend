@@ -9,7 +9,7 @@ This module defines the complete unified configuration system that combines:
 Total Parameters Documented: 322+
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Sequence, Tuple
 from pathlib import Path
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -30,7 +30,9 @@ class EvolutionMode(str, Enum):
     STANDARD = "standard"
     HYBRID = "hybrid"
     OPENEVOLVE = "openevolve"
+    NEUROEVOLUTION = "neuroevolution"
     AUTO = "auto"
+    SYMBOLIC_REGRESSION = "symbolic_regression"
 
 
 class DomainType(str, Enum):
@@ -859,7 +861,7 @@ class MOConfig(BaseModel):
     # === Selection Configuration (4 parameters) ===
     selection_method: str = Field(
         default="nsga2",
-        description="Multi-objective selection: nsga2, nsga3, spea2, moead"
+        description="Multi-objective selection: nsga2, nsga3, spea2, moead, novelty_search, neat"
     )
     tournament_size: int = Field(
         default=2,
@@ -892,6 +894,51 @@ class MOConfig(BaseModel):
         default=None,
         description="Reference point for scalarization methods"
     )
+
+    @field_validator("selection_method")
+    @classmethod
+    def _validate_selection_method(cls, v: str) -> str:
+        normalized = v.strip().lower().replace("-", "").replace(" ", "")
+        mapping = {
+            "nsga2": "nsga2",
+            "nsga3": "nsga3",
+            "nsgaiii": "nsga3",
+            "spea2": "spea2",
+            "moead": "moead",
+            "noveltysearch": "novelty_search",
+            "novelty_search": "novelty_search",
+            "novelty": "novelty_search",
+            "neat": "neat",
+            "neuroevolution": "neat",
+        }
+        if normalized not in mapping:
+            raise ValueError(
+                f"Invalid selection_method {v!r}. "
+                "Allowed: nsga2, nsga3 (nsga-iii), spea2, moead, novelty_search, neat"
+            )
+        return mapping[normalized]
+
+    def select(
+        self,
+        objectives: "np.ndarray",
+        population_size: int,
+        divisions: Union[int, Sequence[int]] = 4,
+        random_state: Optional[int] = None,
+    ) -> List[int]:
+        """Dispatch environmental selection using this config's selection_method.
+
+        Routes `nsga2` to the crowding-distance NSGA-II routine and `nsga3`
+        to the reference-point NSGA-III routine in `openevolve.selection`.
+        """
+        from openevolve.selection import select_mo
+
+        return select_mo(
+            objectives,
+            population_size,
+            method=self.selection_method,
+            divisions=divisions,
+            random_state=random_state,
+        )
 
 
 class AdversarialConfig(BaseModel):
@@ -1236,6 +1283,254 @@ class OpenEvolveConfig(BaseModel):
         )
 
 
+class NoveltySearchConfig(BaseModel):
+    """Novelty Search (Quality-Diversity) Configuration.
+
+    Selectable as a standalone QD variant via ``MOConfig.selection_method =
+    "novelty_search"`` (mirrors how ``nsga3`` is wired into the MO path).
+    Behavior descriptors are fixed-length feature vectors extracted per
+    solution (see the `feature_bins` / `distance_metric` conventions used by
+    the MAP-Elites grid in `openevolve.database`).
+    """
+
+    # Enable the novelty-search QD variant
+    enabled: bool = Field(
+        default=False,
+        description="Enable novelty search as a standalone QD variant"
+    )
+
+    # === Archive / novelty parameters ===
+    k_neighbors: int = Field(
+        default=10,
+        ge=1,
+        description="Number of nearest neighbors for novelty calculation"
+    )
+    novelty_threshold: float = Field(
+        default=0.5,
+        ge=0.0,
+        description="Minimum novelty required to add a behavior to the archive"
+    )
+    archive_size_limit: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Maximum archive size (None = unbounded)"
+    )
+    distance_metric: str = Field(
+        default="euclidean",
+        description="Behavior distance: euclidean, manhattan, cosine"
+    )
+
+    # === Behavior descriptor extraction ===
+    feature_bins: Union[int, Dict[str, int]] = Field(
+        default=10,
+        description="Bins per feature dimension for behavior descriptors"
+    )
+    behavior_dimensions: List[str] = Field(
+        default_factory=lambda: ["complexity", "diversity"],
+        description="Feature dimensions used to build behavior descriptors"
+    )
+
+    @field_validator("distance_metric")
+    @classmethod
+    def _validate_distance_metric(cls, v: str) -> str:
+        allowed = {"euclidean", "l2", "manhattan", "l1", "cosine"}
+        key = (v or "").strip().lower()
+        if key not in allowed:
+            raise ValueError(
+                f"Invalid distance_metric {v!r}. Allowed: {sorted(allowed)}"
+            )
+        return key
+
+
+class NEATConfig(BaseModel):
+    """NEAT (NeuroEvolution of Augmenting Topologies) configuration.
+
+    Selectable as a standalone neuroevolution engine via
+    ``MOConfig.selection_method = "neat"`` (mirrors how ``nsga3`` and
+    ``novelty_search`` are wired into the MO / selection path). The real engine
+    lives in ``openevolve.neat`` and accepts these same parameters.
+    """
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable NEAT neuroevolution as the selection/engine method"
+    )
+
+    # Population / evolution
+    population_size: int = Field(
+        default=150, ge=1, description="Number of genomes per generation"
+    )
+    generations: int = Field(
+        default=100, ge=1, description="Number of evolution generations"
+    )
+
+    # Network shape
+    n_inputs: int = Field(
+        default=2, ge=1, description="Number of input nodes"
+    )
+    n_outputs: int = Field(
+        default=1, ge=1, description="Number of output nodes"
+    )
+
+    # Speciation
+    compatibility_threshold: float = Field(
+        default=3.0, gt=0.0,
+        description="Genomic distance threshold for speciation"
+    )
+    excess_coefficient: float = Field(
+        default=1.0, description="Weight of excess genes in compatibility distance"
+    )
+    disjoint_coefficient: float = Field(
+        default=1.0, description="Weight of disjoint genes in compatibility distance"
+    )
+    weight_coefficient: float = Field(
+        default=0.4, description="Weight of weight differences in compatibility distance"
+    )
+
+    # Reproduction
+    elitism: int = Field(
+        default=2, ge=0, description="Elite genomes preserved per species"
+    )
+    survival_threshold: float = Field(
+        default=0.2, ge=0.0, le=1.0,
+        description="Fraction of top species members eligible as parents"
+    )
+    max_stagnation: int = Field(
+        default=15, ge=1, description="Generations a species may stagnate before extinction"
+    )
+
+    # Mutation
+    mutate_weight_prob: float = Field(
+        default=0.9, ge=0.0, le=1.0,
+        description="Probability of applying weight mutation to a child"
+    )
+    perturb_prob: float = Field(
+        default=0.75, ge=0.0, le=1.0,
+        description="Probability of perturbing (vs resetting) a weight"
+    )
+    weight_reset_prob: float = Field(
+        default=0.1, ge=0.0, le=1.0,
+        description="Probability of fully resetting a weight during mutation"
+    )
+    add_connection_prob: float = Field(
+        default=0.05, ge=0.0, le=1.0,
+        description="Probability of adding a new connection mutation"
+    )
+    add_node_prob: float = Field(
+        default=0.03, ge=0.0, le=1.0,
+        description="Probability of adding a new node mutation"
+    )
+    weight_std_dev: float = Field(
+        default=0.5, gt=0.0,
+        description="Standard deviation of weight perturbations"
+    )
+    random_state: Optional[int] = Field(
+        default=None, description="Random seed for reproducible runs"
+    )
+
+    def to_engine(self) -> dict:
+        """Return the kwargs understood by ``openevolve.neat.NEAT``."""
+        return {
+            "n_inputs": self.n_inputs,
+            "n_outputs": self.n_outputs,
+            "population_size": self.population_size,
+            "compatibility_threshold": self.compatibility_threshold,
+            "excess_coefficient": self.excess_coefficient,
+            "disjoint_coefficient": self.disjoint_coefficient,
+            "weight_coefficient": self.weight_coefficient,
+            "elitism": self.elitism,
+            "survival_threshold": self.survival_threshold,
+            "max_stagnation": self.max_stagnation,
+            "mutate_weight_prob": self.mutate_weight_prob,
+            "perturb_prob": self.perturb_prob,
+            "weight_reset_prob": self.weight_reset_prob,
+            "add_connection_prob": self.add_connection_prob,
+            "add_node_prob": self.add_node_prob,
+            "weight_std_dev": self.weight_std_dev,
+            "random_state": self.random_state,
+        }
+
+
+class SymbolicRegressionConfig(BaseModel):
+    """Genetic Programming symbolic-regression configuration.
+
+    Selectable as a standalone mode via ``evolution_mode =
+    "symbolic_regression"`` (mirrors how ``nsga3`` / ``novelty_search`` are
+    wired into the selection path). Drives the pure-Python GP engine in
+    :mod:`openevolve.symbolic_regression`.
+    """
+
+    # Enable the symbolic-regression mode
+    enabled: bool = Field(
+        default=False,
+        description="Enable Genetic Programming symbolic regression"
+    )
+
+    # === GP parameters ===
+    function_set: List[str] = Field(
+        default_factory=lambda: ["+", "-", "*", "/", "sin", "cos", "exp", "log"],
+        description="Operators available to the GP: + - * / sin cos exp log",
+    )
+    const_range: Tuple[float, float] = Field(
+        default=(-1.0, 1.0),
+        description="Range for random constant terminals",
+    )
+    init_depth: Tuple[int, int] = Field(
+        default=(2, 6),
+        description="Min/max depth of trees created during ramped half-and-half init",
+    )
+    max_depth: int = Field(
+        default=10,
+        ge=1,
+        description="Maximum tree depth for mutation/subtree replacement",
+    )
+    tournament_size: int = Field(
+        default=3,
+        ge=2,
+        description="Tournament size for parent selection",
+    )
+    p_crossover: float = Field(default=0.8, ge=0.0, le=1.0, description="Crossover probability")
+    p_mutation: float = Field(default=0.15, ge=0.0, le=1.0, description="Mutation probability")
+    p_reproduction: float = Field(default=0.05, ge=0.0, le=1.0, description="Reproduction probability")
+    parsimony_coefficient: float = Field(
+        default=0.001,
+        ge=0.0,
+        description="Penalty per tree node added to fitness (parsimony pressure)",
+    )
+
+    @field_validator("const_range", "init_depth")
+    @classmethod
+    def _validate_pairs(cls, v):
+        return tuple(v)
+
+    def run(
+        self,
+        X: Sequence[Sequence[float]],
+        y: Sequence[float],
+        generations: int = 100,
+        pop_size: int = 200,
+        random_state: Optional[int] = None,
+    ) -> Any:
+        """Fit a symbolic expression to (X, y) using the GP engine."""
+        from openevolve.selection import run_symbolic_regression
+
+        return run_symbolic_regression(
+            data=(X, y),
+            generations=generations,
+            pop_size=pop_size,
+            function_set=self.function_set,
+            const_range=self.const_range,
+            init_depth=self.init_depth,
+            max_depth=self.max_depth,
+            tournament_size=self.tournament_size,
+            p_crossover=self.p_crossover,
+            p_mutation=self.p_mutation,
+            p_reproduction=self.p_reproduction,
+            parsimony_coefficient=self.parsimony_coefficient,
+            random_state=random_state,
+        )
+
+
 class UnifiedEvolutionConfig(BaseModel):
     """
     Unified Configuration for All Evolutionary Modes
@@ -1279,7 +1574,7 @@ class UnifiedEvolutionConfig(BaseModel):
     )
     evolution_mode: EvolutionMode = Field(
         default=EvolutionMode.OPENEVOLVE,
-        description="Evolution mode: openevolve, pes, qd, mo, adversarial, hybrid"
+        description="Evolution mode: openevolve, pes, qd, mo, adversarial, hybrid, neuroevolution"
     )
     enable_modes: List[Union[EvolutionMode, str]] = Field(
         default_factory=lambda: [EvolutionMode.OPENEVOLVE],
@@ -1312,6 +1607,18 @@ class UnifiedEvolutionConfig(BaseModel):
     mo: Optional[MOConfig] = Field(
         default=None,
         description="Multi-Objective optimization configuration"
+    )
+    novelty_search: Optional[NoveltySearchConfig] = Field(
+        default=None,
+        description="Novelty Search (Quality-Diversity) configuration"
+    )
+    symbolic_regression: Optional[SymbolicRegressionConfig] = Field(
+        default=None,
+        description="Genetic Programming symbolic regression configuration"
+    )
+    neuroevolution: Optional[NEATConfig] = Field(
+        default=None,
+        description="NEAT neuroevolution configuration"
     )
     adversarial: Optional[AdversarialConfig] = Field(
         default=None,
@@ -1430,6 +1737,7 @@ class UnifiedEvolutionConfig(BaseModel):
             "pes": self.pes.model_dump() if self.pes else None,
             "qd": self.qd.model_dump() if self.qd else None,
             "mo": self.mo.model_dump() if self.mo else None,
+            "neuroevolution": self.neuroevolution.model_dump() if self.neuroevolution else None,
             "adversarial": self.adversarial.model_dump() if self.adversarial else None,
             "openevolve": self.openevolve.model_dump() if self.openevolve else None,
             "metadata": self.metadata,
@@ -1455,6 +1763,7 @@ class UnifiedEvolutionConfig(BaseModel):
         pes = PESConfig(**config_dict["pes"]) if config_dict.get("pes") else None
         qd = QDConfig(**config_dict["qd"]) if config_dict.get("qd") else None
         mo = MOConfig(**config_dict["mo"]) if config_dict.get("mo") else None
+        neuroevolution = NEATConfig(**config_dict["neuroevolution"]) if config_dict.get("neuroevolution") else None
         adversarial = AdversarialConfig(**config_dict["adversarial"]) if config_dict.get("adversarial") else None
         openevolve = OpenEvolveConfig(**config_dict["openevolve"]) if config_dict.get("openevolve") else None
 
@@ -1472,6 +1781,7 @@ class UnifiedEvolutionConfig(BaseModel):
             pes=pes,
             qd=qd,
             mo=mo,
+            neuroevolution=neuroevolution,
             adversarial=adversarial,
             openevolve=openevolve,
             metadata=config_dict.get("metadata", {})

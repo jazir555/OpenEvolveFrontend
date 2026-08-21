@@ -275,7 +275,10 @@ class PromptConfig:
     template_variations: Dict[str, List[str]] = field(default_factory=dict)
 
     # Meta-prompting
-    # Note: meta-prompting features not implemented
+    # When True, the assembled user prompt is wrapped by ``build_meta_prompt()``
+    # (openevolve.prompt) which prepends a self-reflection / instruction-
+    # optimization step so the model first reflects on and improves the task
+    # instructions before solving. Purely textual and offline.
     use_meta_prompting: bool = False
     meta_prompt_weight: float = 0.1
 
@@ -382,10 +385,16 @@ class EvaluatorConfig:
     timeout: int = 300  # Maximum evaluation time in seconds
     max_retries: int = 3
 
-    # Resource limits for evaluation
-    # Note: resource limits not implemented
+    # Resource limits for evaluation. Forwarded to SecureCodeExecutor when
+    # ``secure_execution`` is enabled: evaluated programs are bounded by the
+    # configured virtual-memory budget (memory_limit_mb, in MB) and CPU-time
+    # budget (cpu_limit, in seconds). No-ops unless secure_execution is also True.
     memory_limit_mb: Optional[int] = None
     cpu_limit: Optional[float] = None
+
+    # Run generated programs in an isolated, resource-limited subprocess via
+    # SecureCodeExecutor instead of in-process (defence against runaway code).
+    secure_execution: bool = False
 
     # Evaluation strategies
     cascade_evaluation: bool = True
@@ -393,7 +402,10 @@ class EvaluatorConfig:
 
     # Parallel evaluation
     parallel_evaluations: int = 1
-    # Note: distributed evaluation not implemented
+    # Distributed evaluation. When True, ``Evaluator.evaluate_multiple()`` runs
+    # candidate programs across a ``multiprocessing.Pool`` instead of sequentially,
+    # falling back to sequential evaluation when process creation/pickling fails
+    # (e.g. Windows with an unpicklable config).
     distributed: bool = False
 
     # LLM-based feedback

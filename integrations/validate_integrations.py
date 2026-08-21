@@ -28,7 +28,9 @@ def validate_stage(stage_num: int) -> bool:
         elif stage_num == 5:
             from integrations.stage5 import Stage5Integration
             integration = Stage5Integration()
-            assert hasattr(integration, 'validate_solution')
+            # Stage5Integration exposes validate_candidate(); the earlier
+            # 'validate_solution' name never existed on this class.
+            assert hasattr(integration, 'validate_candidate')
         elif stage_num == 6:
             from integrations.stage6 import Stage6Integration
             integration = Stage6Integration()

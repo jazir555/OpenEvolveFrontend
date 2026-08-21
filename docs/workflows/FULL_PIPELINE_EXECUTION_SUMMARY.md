@@ -332,3 +332,12 @@ The pipeline demonstrates that the theoretical integration of RESE and E2E works
 - `run_full_rese_e2e_pipeline.py` - Pipeline execution script
 - `full_pipeline_execution_report.json` - Complete execution trace
 - `FULL_PIPELINE_EXECUTION_SUMMARY.md` - This document
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Demonstration report of a RESE+E2E pipeline run (piezoelectric harvester).
+- VERIFICATION: Narrative report; the specific pipeline/metrics are not confirmable as persistent code features via grep in this distribution. Treated as a one-off execution log.
+- STATUS: DESIGN/REPORT — not a verifiable persistent feature; claims UNVERIFIED.
+

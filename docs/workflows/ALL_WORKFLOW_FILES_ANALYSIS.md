@@ -156,3 +156,12 @@
 
 ### P3 - Low Priority (Nice to Have)
 61-74. Utility files, logging, session management, etc.
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: File-by-file integration analysis (mixed EXCELLENT / NEEDS REVIEW flags).
+- VERIFICATION: Descriptive gap analysis referencing root-level modules (blue_team.py, workflow_engine.py, etc.); many are planning/gap notes rather than verified-implemented state. Not independently re-verified in this pass.
+- STATUS: PLANNING/ANALYSIS doc — reflects intended state, not confirmed implementation.
+

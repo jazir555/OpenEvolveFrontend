@@ -27,9 +27,17 @@ Author: AI Architecture Team
 Date: 2026-01-30
 """
 
+import math
 from typing import Dict, Any, Optional, List
 from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, MOConfig, PESConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
 from .base import DomainOptimizer
+from .heuristics import (
+    PERIODS_PER_YEAR,
+    clamp,
+    portfolio_moments,
+    return_statistics,
+    synthetic_returns,
+)
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based backtest allocation
 try:
@@ -434,7 +442,7 @@ class FinanceOptimizer(DomainOptimizer):
         # Parse solution to extract portfolio
         portfolio = self._parse_portfolio(solution)
 
-        # Run financial metrics (placeholder - integrate with backtesting engine)
+        # Run a deterministic synthetic backtest over the parsed portfolio
         metrics = self._calculate_financial_metrics(
             portfolio,
             problem,
@@ -453,30 +461,30 @@ class FinanceOptimizer(DomainOptimizer):
         Returns:
             Dictionary of asset -> weight
         """
-        # Placeholder: Parse portfolio weights from solution
-        # In production, would integrate with backtesting engine
-
-        # Simple parsing: look for common patterns
-        portfolio = {}
-
-        # Pattern 1: Dictionary format
-        if "{" in solution and "}" in solution:
-            # Extract dictionary
-            import re
-            dict_pattern = r'\{[^}]+\}'
-            match = re.search(dict_pattern, solution)
-            if match:
-                # Try to eval safely
-                try:
-                    portfolio = eval(match.group(0))
-                except:
-                    pass
-
-        # Pattern 2: Assignment format
-        # Look for lines like "AAPL = 0.3"
+        import ast
         import re
-        assignments = re.findall(r'(\w+)\s*=\s*([0-9.]+)', solution)
-        if assignments:
+
+        portfolio: Dict[str, float] = {}
+
+        # Pattern 1: Dictionary format, e.g. {"AAPL": 0.3, "MSFT": 0.7}
+        if "{" in solution and "}" in solution:
+            for match in re.finditer(r'\{[^{}]+\}', solution):
+                try:
+                    candidate = ast.literal_eval(match.group(0))
+                except (ValueError, SyntaxError):
+                    continue
+                if isinstance(candidate, dict):
+                    parsed = {
+                        str(asset): float(weight)
+                        for asset, weight in candidate.items()
+                        if isinstance(weight, (int, float))
+                    }
+                    if parsed:
+                        portfolio.update(parsed)
+
+        # Pattern 2: Assignment format, e.g. "AAPL = 0.3"
+        if not portfolio:
+            assignments = re.findall(r'(\w+)\s*=\s*([0-9]*\.?[0-9]+)', solution)
             portfolio = {asset: float(weight) for asset, weight in assignments}
 
         return portfolio
@@ -488,45 +496,105 @@ class FinanceOptimizer(DomainOptimizer):
         constraints: Optional[Dict[str, Any]] = None
     ) -> Dict[str, float]:
         """
-        Calculate financial metrics
+        Calculate financial metrics from a deterministic synthetic backtest
+
+        The portfolio is priced with the synthetic asset model in
+        :mod:`openevolve.domain.heuristics`: every asset name maps to a stable
+        expected return/volatility and every pair to a stable correlation, so
+        diversification and concentration have real, reproducible effects. A
+        daily return series is then generated from the resulting portfolio
+        moments and the standard statistics are computed from that series.
 
         Args:
             portfolio: Asset weights
             problem: Problem description
-            constraints: Constraints
+            constraints: Constraints (max_assets, max_weight, ...)
 
         Returns:
-            Dictionary of metrics
-
-        Note: This is a placeholder. In production, integrate with:
-        - Backtesting engine (e.g., Backtrader, Zipline)
-        - Market data provider
-        - Risk calculation library
+            Dictionary of metrics (no external market data required)
         """
-        # Placeholder metrics - replace with real calculations
-        metrics = {
-            "sharpe_ratio": 1.5,      # Risk-adjusted return
-            "sortino_ratio": 2.0,     # Downside risk-adjusted return
-            "max_drawdown": 0.15,     # Maximum loss from peak
-            "volatility": 0.20,       # Annualized volatility
-            "annual_return": 0.12,    # Annual return
-            "var_95": 0.05,           # Value at risk at 95% confidence
-            "cvar_95": 0.08           # Conditional VaR at 95%
+        if not portfolio:
+            # Nothing investable was expressed: report a fully penalized result
+            return {
+                "sharpe_ratio": 0.0,
+                "sortino_ratio": 0.0,
+                "max_drawdown": 1.0,
+                "volatility": 1.0,
+                "annual_return": 0.0,
+                "var_95": 1.0,
+                "cvar_95": 1.0,
+            }
+
+        expected_return, volatility = portfolio_moments(portfolio)
+
+        # Constraint violations directly degrade the risk profile
+        penalty = self._constraint_penalty(portfolio, constraints)
+        expected_return *= (1.0 - 0.5 * penalty)
+        volatility *= (1.0 + penalty)
+
+        # Deterministic daily series with the portfolio's own moments
+        daily_drift = expected_return / PERIODS_PER_YEAR
+        daily_vol = max(1e-4, volatility / math.sqrt(PERIODS_PER_YEAR))
+        seed = "|".join(f"{asset}:{weight:.6f}" for asset, weight in sorted(portfolio.items()))
+        returns = synthetic_returns(
+            seed, periods=PERIODS_PER_YEAR, drift=daily_drift, volatility=daily_vol
+        )
+
+        stats = return_statistics(returns)
+
+        return {
+            "sharpe_ratio": stats["sharpe_ratio"],
+            "sortino_ratio": stats["sortino_ratio"],
+            "max_drawdown": stats["max_drawdown"],
+            "volatility": stats["volatility"],
+            "annual_return": stats["annual_return"],
+            "var_95": stats["var_95"],
+            "cvar_95": stats["cvar_95"],
         }
 
-        # In production, would run:
-        # 1. Backtest portfolio with historical data
-        # 2. Calculate returns
-        # 3. Compute metrics from returns
+    def _constraint_penalty(
+        self,
+        portfolio: Dict[str, float],
+        constraints: Optional[Dict[str, Any]] = None
+    ) -> float:
+        """
+        Penalty in ``[0.0, 1.0]`` for violated portfolio constraints
 
-        # Example backtesting flow:
-        # returns = backtest(portfolio, market_data, constraints)
-        # metrics['sharpe_ratio'] = calculate_sharpe(returns)
-        # metrics['sortino_ratio'] = calculate_sortino(returns)
-        # metrics['max_drawdown'] = calculate_max_drawdown(returns)
-        # metrics['volatility'] = returns.std() * np.sqrt(252)
+        Args:
+            portfolio: Asset weights
+            constraints: Constraints dictionary
 
-        return metrics
+        Returns:
+            Penalty factor (0.0 == fully compliant)
+        """
+        if not constraints or not portfolio:
+            return 0.0
+
+        total = sum(abs(w) for w in portfolio.values()) or 1.0
+        weights = {asset: abs(w) / total for asset, w in portfolio.items()}
+
+        violations = 0
+        checks = 0
+
+        if "max_assets" in constraints:
+            checks += 1
+            if len(weights) > int(constraints["max_assets"]):
+                violations += 1
+
+        if "min_weight" in constraints:
+            checks += 1
+            if any(weight < float(constraints["min_weight"]) for weight in weights.values()):
+                violations += 1
+
+        if "max_weight" in constraints:
+            checks += 1
+            if any(weight > float(constraints["max_weight"]) for weight in weights.values()):
+                violations += 1
+
+        if checks == 0:
+            return 0.0
+
+        return clamp(violations / checks)
 
     # ========================================================================
     # UTILITY METHODS

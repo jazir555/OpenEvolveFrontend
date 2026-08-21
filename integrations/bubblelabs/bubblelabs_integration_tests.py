@@ -12,12 +12,28 @@ import time
 from unittest.mock import Mock, patch, MagicMock
 import json
 
-from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
-from parameter_sync_manager import ParameterSyncManager
-from workflow_lifecycle_controller import WorkflowLifecycleController
-from analytics_monitoring_dashboard import AnalyticsMonitoringDashboard
-from workflow_visualization import OpenEvolveVisualizer
-from workflow_structures import WorkflowState
+# This module lives in the `integrations.bubblelabs` package and uses
+# package-relative imports. When it is executed as a plain script
+# (`python integrations/bubblelabs/bubblelabs_integration_tests.py`) there is no
+# parent package, so bootstrap one: put the repo root on sys.path, import the
+# package, and declare __package__ before the relative imports below run.
+if __package__ in (None, ""):  # pragma: no cover - script-execution bootstrap
+    import os
+    import sys
+
+    _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if _REPO_ROOT not in sys.path:
+        sys.path.insert(0, _REPO_ROOT)
+    __package__ = "integrations.bubblelabs"
+    import integrations.bubblelabs  # noqa: F401
+
+from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+from .parameter_sync_manager import ParameterSyncManager
+from .workflow_lifecycle_controller import WorkflowLifecycleController
+from .analytics_monitoring_dashboard import AnalyticsMonitoringDashboard
+from .workflow_visualization import OpenEvolveVisualizer
+from .workflow_structures import WorkflowState
+from .ui_shim import ui as _ui
 
 
 class TestOpenEvolveBubbleLabsAPI(unittest.TestCase):
@@ -396,7 +412,7 @@ class TestIntegration(unittest.TestCase):
     def test_parameter_sync_integration(self):
         """Test that parameter synchronization works with workflow creation."""
         # Simulate parameters in UI session state
-        from ui_shim import ui as st
+        st = _ui
         st.session_state["temperature"] = 0.8
         st.session_state["max_iterations"] = 25
         st.session_state["population_size"] = 25

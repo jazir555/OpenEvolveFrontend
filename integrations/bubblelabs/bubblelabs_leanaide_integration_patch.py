@@ -15,7 +15,7 @@ Created: 2025-01-03
 # =============================================================================
 
 try:
-    from bubblelabs_leanaide_ui import LeanAideUIComponent
+    from .bubblelabs_leanaide_ui import LeanAideUIComponent
     LEANAIDE_UI_AVAILABLE = True
 except ImportError:
     LEANAIDE_UI_AVAILABLE = False
@@ -42,7 +42,7 @@ def _render_leanaide_integration(self):
     col1, col2, col3 = st.columns(3)
 
     try:
-        from bubblelabs_leanaide_integration import (
+        from .bubblelabs_leanaide_integration import (
             LEANAIDE_AVAILABLE,
             MCTS_AVAILABLE,
             MDAP_AVAILABLE,
@@ -87,7 +87,7 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
 
     This provides a streamlined interface integrated with BubbleLabs workflows.
     """
-    from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
+    from .bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
     st.markdown("### Quick Actions")
 
@@ -244,13 +244,13 @@ def add_leanaide_to_sidebar():
     This can be called from the main BubbleLabs app.
     """
     try:
-        from bubblelabs_leanaide_integration import get_leanaide_bridge
+        from .bubblelabs_leanaide_integration import get_leanaide_bridge
 
         bridge = get_leanaide_bridge()
         status = bridge.get_status()
 
         # Add sidebar status indicator
-        from ui_shim import ui as st
+        from .ui_shim import ui as st
 
         with st.sidebar:
             st.markdown("---")
@@ -282,7 +282,7 @@ def register_leanaide_workflow_nodes():
     Call this during BubbleLabs initialization.
     """
     try:
-        from bubblelabs_leanaide_integration import (
+        from .bubblelabs_leanaide_integration import (
             LEANAIDE_AVAILABLE,
             MCTS_AVAILABLE,
             MDAP_AVAILABLE
@@ -407,7 +407,7 @@ def register_leanaide_workflow_nodes():
 
 def _execute_translate_node(**kwargs):
     """Execute translate theorem node."""
-    from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
+    from .bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
     bridge = get_leanaide_bridge()
     result = bridge.execute_task(
@@ -431,7 +431,7 @@ def _execute_translate_node(**kwargs):
 
 def _execute_proof_node(**kwargs):
     """Execute generate proof node."""
-    from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
+    from .bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
     bridge = get_leanaide_bridge()
     result = bridge.execute_task(
@@ -455,7 +455,7 @@ def _execute_proof_node(**kwargs):
 
 def _execute_mcts_node(**kwargs):
     """Execute MCTS search node."""
-    from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
+    from .bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
     bridge = get_leanaide_bridge()
     result = bridge.execute_task(
@@ -483,7 +483,7 @@ def _execute_mcts_node(**kwargs):
 
 def _execute_verify_node(**kwargs):
     """Execute verify node."""
-    from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
+    from .bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
     bridge = get_leanaide_bridge()
     result = bridge.execute_task(
@@ -515,12 +515,12 @@ def example_integrated_workflow():
 
     This demonstrates how LeanAide nodes can be used in BubbleLabs workflows.
     """
-    from ui_shim import ui as st
+    from .ui_shim import ui as st
 
     st.title("BubbleLabs + LeanAide Integrated Workflow")
 
     # Initialize LeanAide bridge
-    from bubblelabs_leanaide_integration import (
+    from .bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         initialize_leanaide_integration,
         LeanAideTaskType

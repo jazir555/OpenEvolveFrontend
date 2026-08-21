@@ -187,6 +187,13 @@ class EvaluatorConfig(BaseModel):
         description="Max artifact storage (bytes)"
     )
 
+    # Run generated programs in an isolated, resource-limited subprocess via
+    # SecureCodeExecutor instead of in-process (defence against runaway code).
+    secure_execution: bool = Field(
+        default=False,
+        description="Execute generated programs in a resource-limited subprocess"
+    )
+
     # Early stopping (LoongFlow PES)
     early_stopping: bool = Field(default=True, description="Enable early stopping on improvement")
     early_stopping_patience: int = Field(default=5, ge=1, description="Attempts before giving up")

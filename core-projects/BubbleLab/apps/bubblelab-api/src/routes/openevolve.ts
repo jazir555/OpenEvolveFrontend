@@ -127,10 +127,14 @@ app.post('/api/v1/workflows/orchestrate', (c) =>
   handleProxy(c, '/api/v1/workflows/orchestrate')
 );
 
-// --- Catch-all: proxy any other `/api/*` path verbatim ----------------------
-// Covers `/api/workflows`, `/api/teams`, `/api/executions`, `/api/monitoring`,
-// `/api/gauntlets`, etc. served by `services/openevolve-api` (FastAPI).
+// --- Catch-all: proxy any other path verbatim -------------------------------
+// Proxied prefixes (mirrors `services/openevolve-api/main.py` mounted routers):
+//   /api, /api/v1, /api/workflows, /api/teams, /api/gauntlets,
+//   /api/executions, /api/settings, /api/decomposition, /api/parameters,
+//   /api/monitoring, /api/validation, /api/analytics, /api/crewai,
+//   /api/version-control, /api/evaluators, /api/integrated, /api/leanaide,
+//   /api/knowledge, /bubblelabs, /icr, /determinism, /stream, /health, /
 // Registered last so the explicit routes above take precedence.
-app.all('/api/*', (c) => handleProxy(c, c.req.path));
+app.all('/*', (c) => handleProxy(c, c.req.path));
 
 export default app;

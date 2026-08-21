@@ -22,8 +22,23 @@ from datetime import datetime, UTC
 from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 
+from openevolve.gauntlets.llm_judge import (
+    GauntletJudge,
+    consensus_score,
+    describe_attacks,
+    probe_solution,
+    robustness_from_probes,
+    successful_attacks,
+    verify_solution,
+)
+
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Blend of LLM judge verdict vs. deterministic static analysis in each round
+JUDGE_WEIGHT = 0.5
+STATIC_WEIGHT = 0.5
+VERIFICATION_WEIGHT = 0.2
 
 
 class GauntletRound(Enum):
@@ -337,25 +352,63 @@ class ThreeRoundGauntletOrchestrator:
 
     def _initialize_evaluators(self):
         """Initialize evaluators for each round"""
-        try:
-            # Round 1: LoongFlow
-            if self.config.round1_enabled:
+        # Round 1: LoongFlow. The external adapter is optional; when it is not
+        # importable the in-library evaluator (which has its own degraded mode) is
+        # used so Rounds 2 and 3 still get to run.
+        if self.config.round1_enabled:
+            try:
                 from evaluators.loongflow_adapter import create_loongflow_evaluator
+
                 self.round1_evaluator = create_loongflow_evaluator(
                     llm_config=self.config.round1_config.get('llm_config', {}),
                     timeout=self.config.round1_config.get('timeout', 60)
                 )
                 logger.info("Round 1 (LoongFlow) evaluator initialized")
+            except Exception as e:
+                logger.warning(
+                    f"External LoongFlow adapter unavailable ({e}); "
+                    "using the in-library LoongFlow evaluator"
+                )
+                try:
+                    from openevolve.gauntlets.loongflow_gauntlet import (
+                        LoongFlowGauntletConfig,
+                        LoongFlowGauntletEvaluator,
+                    )
 
-            # Round 2: Red Team
+                    self.round1_evaluator = LoongFlowGauntletEvaluator(
+                        LoongFlowGauntletConfig(
+                            quality_threshold=self.config.round1_threshold,
+                            # Screening decision is score-based; confidence is only
+                            # informative when LoongFlow itself is degraded
+                            confidence_threshold=0.0,
+                            evaluation_timeout=self.config.round1_config.get('timeout', 60),
+                        )
+                    )
+                except Exception as fallback_error:
+                    # run_round1 reports "not initialized" and the round is skipped
+                    self.round1_evaluator = None
+                    logger.warning(f"Round 1 evaluator unavailable: {fallback_error}")
+
+        try:
+            # Round 2: Red Team - LLM judge + deterministic adversarial probes
             if self.config.round2_enabled:
-                # Placeholder for red team evaluator
-                logger.info("Round 2 (Red Team) evaluator configured")
+                self.round2_evaluator = GauntletJudge(
+                    llm_config=self.config.round2_config.get('llm_config')
+                )
+                logger.info(
+                    "Round 2 (Red Team) judge initialized with models: "
+                    f"{self.round2_evaluator.model_names}"
+                )
 
-            # Round 3: Gold Team
+            # Round 3: Gold Team - LLM judge(s) + static verification
             if self.config.round3_enabled:
-                # Placeholder for gold team evaluator
-                logger.info("Round 3 (Gold Team) evaluator configured")
+                self.round3_evaluator = GauntletJudge(
+                    llm_config=self.config.round3_config.get('llm_config')
+                )
+                logger.info(
+                    "Round 3 (Gold Team) judge initialized with models: "
+                    f"{self.round3_evaluator.model_names}"
+                )
 
         except Exception as e:
             logger.error(f"Failed to initialize evaluators: {e}", exc_info=True)
@@ -462,7 +515,12 @@ class ThreeRoundGauntletOrchestrator:
             # Round 3: Gold Team Consensus
             if self.config.round3_enabled:
                 logger.info("Executing Round 3: Gold Team Verification")
-                round3_result = await self.run_round3(solution, problem, domain)
+                round3_result = await self.run_round3(
+                    solution,
+                    problem,
+                    domain,
+                    prior_findings=self._collect_prior_findings(round2_result)
+                )
 
                 if self.config.aggregate_artifacts:
                     all_artifacts.extend(round3_result.artifacts)
@@ -570,6 +628,10 @@ class ThreeRoundGauntletOrchestrator:
                     evaluator_type="error"
                 )
 
+            if not hasattr(self.round1_evaluator, 'evaluate_round'):
+                # In-library LoongFlow evaluator interface
+                return await self._run_round1_inlib(solution, problem, domain, start_time)
+
             # Create round rule
             round_rule = type('RoundRule', (), {
                 'rule_id': 'round1_loongflow',
@@ -620,19 +682,72 @@ class ThreeRoundGauntletOrchestrator:
                 evaluator_type="error"
             )
 
-    async def run_round2(
+    async def _run_round1_inlib(
         self,
         solution: str,
         problem: str,
-        domain: str
-    ) -> Round2Result:
+        domain: str,
+        start_time: float
+    ) -> Round1Result:
         """
-        Execute Round 2: Red Team adversarial evaluation.
+        Run Round 1 with the in-library LoongFlow evaluator.
+
+        When LoongFlow itself is unavailable the evaluator runs in a degraded
+        mode; its verdict is then treated as advisory so a degraded quick screen
+        cannot gate the Red Team and Gold Team rounds.
 
         Args:
             solution: Solution to evaluate
             problem: Problem statement
             domain: Problem domain
+            start_time: Round start timestamp
+
+        Returns:
+            Round1Result with evaluation outcome
+        """
+        result = await self.round1_evaluator.evaluate(
+            solution=solution,
+            problem=problem,
+            domain=domain
+        )
+
+        degraded = not self.round1_evaluator.is_available()
+        feedback = result.feedback
+        if degraded:
+            feedback = f"[advisory: LoongFlow degraded]\n{feedback}"
+
+        return Round1Result(
+            passed=True if degraded else result.passed,
+            score=result.overall_score,
+            confidence=result.confidence,
+            evaluation_time=time.time() - start_time,
+            feedback=feedback,
+            artifacts=[result.artifacts],
+            evaluator_type="loongflow_fallback" if degraded else "loongflow"
+        )
+
+    async def run_round2(
+        self,
+        solution: str,
+        problem: str,
+        domain: str,
+        language: str = "python"
+    ) -> Round2Result:
+        """
+        Execute Round 2: Red Team adversarial evaluation.
+
+        Combines two real signals:
+        1. Deterministic adversarial probes (:func:`probe_solution`) that attack
+           the candidate locally and report which attacks succeeded.
+        2. An LLM judge (:class:`GauntletJudge`) prompted to critique and
+           adversarially test the candidate. With no API key configured this runs
+           on the offline mock backend and returns a deterministic verdict.
+
+        Args:
+            solution: Solution to evaluate
+            problem: Problem statement
+            domain: Problem domain
+            language: Language of the candidate solution
 
         Returns:
             Round2Result with adversarial testing outcome
@@ -640,19 +755,55 @@ class ThreeRoundGauntletOrchestrator:
         start_time = time.time()
 
         try:
-            # TODO: Integrate with actual Red Team evaluator
-            # For now, implement placeholder logic
-
             logger.info("Running Red Team adversarial evaluation")
 
-            # Simulate adversarial attacks
-            attacks_attempted = 5
-            attacks_successful = 0  # Will be determined by actual evaluator
+            # 1. Deterministic attack vectors
+            probes = probe_solution(solution, language=language)
+            static_robustness = robustness_from_probes(probes)
+            probe_findings = describe_attacks(probes)
 
-            # Placeholder scoring logic
-            # In real implementation, this would run actual adversarial tests
-            robustness_score = 0.75  # Placeholder
-            score = robustness_score
+            attack_details: List[Dict[str, Any]] = list(probes)
+            attacks_attempted = len(probes)
+            attacks_successful = len(successful_attacks(probes))
+
+            # 2. LLM judge critique (offline mock when no model is configured)
+            judge_score = None
+            judge_feedback = "Red Team judge unavailable"
+            judge_findings: List[str] = []
+
+            if self.round2_evaluator is not None:
+                verdict = await self.round2_evaluator.red_team(
+                    solution=solution,
+                    problem=problem,
+                    domain=domain,
+                    language=language,
+                    prior_findings=probe_findings
+                )
+                judge_feedback = verdict.feedback
+                judge_findings = verdict.findings
+
+                if verdict.parsed:
+                    judge_score = verdict.score
+
+                # Every issue the judge reports is an additional attack that landed
+                for finding in judge_findings:
+                    attack_details.append({
+                        "name": "llm_red_team_finding",
+                        "description": finding,
+                        "severity": "medium",
+                        "successful": True,
+                        "evidence": verdict.model
+                    })
+                attacks_attempted += max(1, len(judge_findings))
+                attacks_successful += len(judge_findings)
+
+            # 3. Blend the two signals: robustness_score stays the deterministic
+            # probe outcome, the round score also reflects the judge verdict
+            robustness_score = static_robustness
+            if judge_score is None:
+                score = static_robustness
+            else:
+                score = STATIC_WEIGHT * static_robustness + JUDGE_WEIGHT * judge_score
 
             passed = score >= self.config.round2_threshold
 
@@ -660,7 +811,10 @@ class ThreeRoundGauntletOrchestrator:
                 f"Red Team evaluation complete. "
                 f"{attacks_attempted} attacks attempted, "
                 f"{attacks_successful} successful. "
-                f"Robustness score: {robustness_score:.2f}"
+                f"Static robustness: {static_robustness:.2f}, "
+                f"judge score: {'n/a' if judge_score is None else f'{judge_score:.2f}'}. "
+                f"Robustness score: {robustness_score:.2f}. "
+                f"Judge: {judge_feedback}"
             )
 
             return Round2Result(
@@ -671,8 +825,13 @@ class ThreeRoundGauntletOrchestrator:
                 robustness_score=robustness_score,
                 evaluation_time=time.time() - start_time,
                 feedback=feedback,
-                artifacts=[],
-                attack_details=[]
+                artifacts=[{
+                    "static_robustness": static_robustness,
+                    "judge_score": judge_score,
+                    "probe_findings": probe_findings,
+                    "judge_findings": judge_findings
+                }],
+                attack_details=attack_details
             )
 
         except Exception as e:
@@ -691,15 +850,23 @@ class ThreeRoundGauntletOrchestrator:
         self,
         solution: str,
         problem: str,
-        domain: str
+        domain: str,
+        language: str = "python",
+        prior_findings: Optional[List[str]] = None
     ) -> Round3Result:
         """
         Execute Round 3: Gold Team consensus verification.
+
+        Every judge model in the ensemble votes on certification, and the
+        candidate is statically verified (:func:`verify_solution`) in place of the
+        Lean 4 proof, which is unavailable offline.
 
         Args:
             solution: Solution to evaluate
             problem: Problem statement
             domain: Problem domain
+            language: Language of the candidate solution
+            prior_findings: Findings carried over from earlier rounds
 
         Returns:
             Round3Result with consensus verification outcome
@@ -707,33 +874,62 @@ class ThreeRoundGauntletOrchestrator:
         start_time = time.time()
 
         try:
-            # TODO: Integrate with actual Gold Team evaluator
-            # For now, implement placeholder logic
-
             logger.info("Running Gold Team consensus verification")
 
-            # Simulate consensus evaluation
-            consensus_score = 0.85  # Placeholder
-            formal_verification_passed = False  # Lean 4 verification
+            # 1. Static verification stands in for formal (Lean 4) verification
+            verification = verify_solution(solution, language=language)
+            formal_verification_passed = bool(verification["passed"])
 
-            score = consensus_score
+            # 2. Collect one certification vote per judge model
+            votes = []
+            if self.round3_evaluator is not None:
+                votes = await self.round3_evaluator.gold_team(
+                    solution=solution,
+                    problem=problem,
+                    domain=domain,
+                    language=language,
+                    prior_findings=prior_findings
+                )
+
+            usable_votes = [vote for vote in votes if vote.parsed]
+
+            if usable_votes:
+                judge_score = sum(vote.score for vote in usable_votes) / len(usable_votes)
+                agreement = consensus_score(usable_votes)
+            else:
+                # No judge available: fall back to the verification checks alone
+                checks = verification["checks"]
+                judge_score = (
+                    sum(1.0 for passed in checks.values() if passed) / len(checks)
+                    if checks else 0.0
+                )
+                agreement = judge_score
+
+            consensus = agreement
+            score = (
+                (1.0 - VERIFICATION_WEIGHT) * judge_score
+                + VERIFICATION_WEIGHT * (1.0 if formal_verification_passed else 0.0)
+            )
+
             passed = score >= self.config.round3_threshold
 
             feedback = (
-                f"Gold Team consensus: {consensus_score:.2f}. "
-                f"Formal verification: {'PASSED' if formal_verification_passed else 'NOT APPLICABLE'}. "
+                f"Gold Team consensus: {consensus:.2f} across {len(usable_votes)} judge(s). "
+                f"Judge score: {judge_score:.2f}. "
+                f"Static verification: {'PASSED' if formal_verification_passed else 'FAILED'} "
+                f"({verification['detail']}). "
                 f"Final score: {score:.2f}"
             )
 
             return Round3Result(
                 passed=passed,
                 score=score,
-                consensus_score=consensus_score,
+                consensus_score=consensus,
                 formal_verification_passed=formal_verification_passed,
                 evaluation_time=time.time() - start_time,
                 feedback=feedback,
-                artifacts=[],
-                evaluator_votes=[]
+                artifacts=[verification],
+                evaluator_votes=[vote.to_dict() for vote in votes]
             )
 
         except Exception as e:
@@ -747,6 +943,28 @@ class ThreeRoundGauntletOrchestrator:
                 feedback=f"Round 3 failed: {str(e)}"
             )
 
+    @staticmethod
+    def _collect_prior_findings(round2_result: Optional[Round2Result]) -> List[str]:
+        """
+        Collect the issues Round 2 found so Round 3 can verify against them.
+
+        Args:
+            round2_result: Round 2 result (may be None)
+
+        Returns:
+            List of short finding descriptions
+        """
+        if round2_result is None:
+            return []
+
+        findings = []
+        for attack in round2_result.attack_details:
+            if not attack.get("successful"):
+                continue
+            detail = attack.get("evidence") or attack.get("description", "")
+            findings.append(f"[{attack.get('severity', 'medium')}] {attack.get('name')}: {detail}")
+        return findings
+
     def should_continue_to_round2(self, round1_result: Round1Result) -> bool:
         """
         Determine if solution should proceed to Round 2.
@@ -759,6 +977,15 @@ class ThreeRoundGauntletOrchestrator:
         """
         if not self.config.enable_early_termination:
             return True  # Always continue if early termination disabled
+
+        if round1_result.evaluator_type in ("loongflow_fallback", "error"):
+            # A degraded/unavailable quick screen is advisory only: it must not
+            # gate the Red Team and Gold Team rounds, which do evaluate for real
+            logger.info(
+                "Round 1 verdict is advisory "
+                f"(evaluator={round1_result.evaluator_type}); continuing to Round 2"
+            )
+            return True
 
         return round1_result.passed and round1_result.score >= self.config.round1_threshold
 
@@ -786,6 +1013,10 @@ class ThreeRoundGauntletOrchestrator:
         """
         Calculate weighted aggregate final score.
 
+        Only the rounds that actually produced a result contribute, and the
+        weights are renormalized over them, so skipping or terminating a round
+        does not silently penalize the score.
+
         Args:
             round1: Round 1 result (may be None)
             round2: Round 2 result (may be None)
@@ -796,32 +1027,19 @@ class ThreeRoundGauntletOrchestrator:
         """
         weights = self.config
 
-        # If all rounds completed
-        if round3 is not None and round3.score > 0:
-            total_weight = weights.round1_weight + weights.round2_weight + weights.round3_weight
-            if total_weight > 0:
-                final = (
-                    (round1.score if round1 else 0.0) * weights.round1_weight +
-                    (round2.score if round2 else 0.0) * weights.round2_weight +
-                    round3.score * weights.round3_weight
-                ) / total_weight
-                return final
-
-        # If failed at round 2
-        if round2 is not None and round2.score > 0:
-            total_weight = weights.round1_weight + weights.round2_weight
-            if total_weight > 0:
-                final = (
-                    (round1.score if round1 else 0.0) * weights.round1_weight +
-                    round2.score * weights.round2_weight
-                ) / total_weight
-                return final
-
-        # If failed at round 1
+        contributions = []
         if round1 is not None:
-            return round1.score
+            contributions.append((round1.score, weights.round1_weight))
+        if round2 is not None:
+            contributions.append((round2.score, weights.round2_weight))
+        if round3 is not None:
+            contributions.append((round3.score, weights.round3_weight))
 
-        return 0.0
+        total_weight = sum(weight for _, weight in contributions)
+        if not contributions or total_weight <= 0:
+            return 0.0
+
+        return sum(score * weight for score, weight in contributions) / total_weight
 
     def generate_comprehensive_report(self, full_result: FullGauntletResult) -> str:
         """

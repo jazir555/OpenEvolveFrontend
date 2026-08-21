@@ -82,3 +82,12 @@ Integrating Z3 turns OpenEvolve into a **Complete Logic Stack**.
 4.  **Succeed (Lean 4 Proof)**
 
 This integration completes the journey from **Probabilistic AI** to **Universal Deterministic Intelligence**.
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Plan to vendor Z3 as z3prover/ and integrations/z3/adapter.py.
+- VERIFICATION: integrations/z3/adapter.py does NOT exist (grep/Test-Path = missing). Actual Z3 integration ships as a BubbleLab ServiceBubble: core-projects/BubbleLab/packages/bubble-core/src/bubbles/service-bubble/openevolve-z3prover-bubble.ts and core-projects/BubbleLab/integrations/openevolve/service-bubbles/z3prover-bubble.ts (SMT operations: solve_smt, optimize, simplify, apply_tactic, fixedpoint_query).
+- STATUS: PARTIALLY IMPLEMENTED — Z3 available as BubbleLab z3prover ServiceBubble; documented integrations/z3/adapter.py path NOT present.
+

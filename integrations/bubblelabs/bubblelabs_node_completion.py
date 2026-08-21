@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 try:
-    from z3_cav_nlp_integration import EnhancedZ3Solver
-    from unified_math_service import UnifiedMathService
+    from .z3_cav_nlp_integration import EnhancedZ3Solver
+    from .unified_math_service import UnifiedMathService
     CAV_NLP_AVAILABLE = True
     logger.debug("[OK] CAV-NLP integration available in BubbleLabs Node Completion")
 except ImportError:

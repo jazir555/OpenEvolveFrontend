@@ -295,3 +295,12 @@ def execute_phase_4_romamdap_verification(solutions):
 **Last Updated:** 2026-02-01  
 **Version:** 2.0  
 **Next Review:** 2026-02-08
+
+---
+## STATUS (Reconciliation Note)
+**Last reconciled: 2026-08-20**
+
+- TYPE: Status report claiming MDAP/MAKER ~92% integrated with gauntlets.
+- VERIFICATION: core-projects/BubbleLab/services/openevolve-api/api/mdap_maker.py EXISTS but is NOT imported/mounted in main.py (the .api import tuple and include_router list omit mdap). Other cited modules (adaptive_mdap/, roma_mdap_maker_engine.py) were not confirmed in this distribution via grep.
+- STATUS: PARTIALLY IMPLEMENTED — module present but not wired into the API; broad '92% integrated' claim UNVERIFIED in this distribution. Treat cited root-level files as DESIGN-ONLY.
+

@@ -40,6 +40,7 @@ from ..unified.config import (
     DatabaseConfig,
 )
 from .base import DomainOptimizer
+from .heuristics import clamp, code_structure_score, saturating, signal_coverage
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based experiment allocation
 try:
@@ -72,6 +73,24 @@ class ScienceOptimizer(DomainOptimizer):
     """
 
     domain_name = "science"
+
+    # Signals used by the deterministic metric calculations
+    RIGOR_SIGNALS = [
+        "control", "randomiz", "blind", "replicate", "baseline",
+        "confound", "power analysis", "sample_size"
+    ]
+    REPRODUCIBILITY_SIGNALS = [
+        "seed", "protocol", "version", "requirements", "checksum",
+        "calibrat", "log", "documented", "deterministic"
+    ]
+    ANALYSIS_SIGNALS = [
+        "p_value", "p-value", "anova", "regression", "confidence_interval",
+        "bootstrap", "bayes", "effect_size", "significance", "t_test"
+    ]
+    NOVELTY_SIGNALS = [
+        "novel", "hypothesis", "exploratory", "screen", "sweep",
+        "design_of_experiments", "doe", "latin_hypercube", "active_learning"
+    ]
 
     def __init__(self, sub_domain: str = "general", use_adaptive_mdap: bool = True):
         """
@@ -454,26 +473,37 @@ class ScienceOptimizer(DomainOptimizer):
             solution: Solution code or text
 
         Returns:
-            Experimental design components
+            Experimental design components (including the raw text for scoring)
         """
-        # Placeholder: Parse experimental parameters
-        design = {
+        import re
+
+        design: Dict[str, Any] = {
+            "source": solution or "",
             "parameters": {},
             "conditions": [],
             "measurements": []
         }
 
         # Extract parameter ranges
-        import re
         params = re.findall(r'(\w+)\s*[=:]\s*\[.*?\]', solution)
         if params:
             design["parameters"] = {"ranges": params}
 
         # Extract conditions
-        import re
         conditions = re.findall(r'(?:if|when|condition)\s*:.*?(?=\n\s*\n|\n\s*[a-z_]+\s*[=:]|$)', solution, re.IGNORECASE)
         if conditions:
             design["conditions"] = conditions[:5]
+
+        # Sample sizes / replicate counts drive statistical power
+        design["sample_sizes"] = [
+            float(value)
+            for value in re.findall(
+                r'(?:n|sample_size|replicates|runs|trials)\s*[=:]\s*(\d+)', solution, re.IGNORECASE
+            )
+        ]
+        design["experiment_count"] = len(
+            re.findall(r'(?:experiment|run|trial|assay)\b', solution, re.IGNORECASE)
+        )
 
         return design
 
@@ -484,39 +514,78 @@ class ScienceOptimizer(DomainOptimizer):
         constraints: Optional[Dict[str, Any]] = None
     ) -> Dict[str, float]:
         """
-        Calculate scientific metrics
+        Calculate scientific metrics from the experimental design itself
+
+        Deterministic heuristic scorer (no lab automation or statistics service
+        required): power comes from the declared sample sizes, reproducibility
+        from seeds/protocol/version pinning, cost efficiency from the experiment
+        count against the declared budget, and novelty from the breadth of the
+        design space that is explored.
 
         Args:
-            design: Experimental design
+            design: Experimental design from :meth:`_parse_experimental_design`
             problem: Problem description
-            constraints: Constraints
+            constraints: Constraints (max_experiments, budget, ...)
 
         Returns:
             Dictionary of metrics
-
-        Note: This is a placeholder. In production, integrate with:
-        - Laboratory automation systems
-        - Data analysis pipelines
-        - Statistical analysis tools
         """
-        # Placeholder metrics
-        metrics = {
-            "statistical_power": 0.85,    # 85% power
-            "cost_efficiency": 0.75,      # 75% cost efficiency
-            "discovery_rate": 0.60,       # 60% discovery rate
-            "reproducibility": 0.90,      # 90% reproducibility
-            "experimental_yield": 0.78,   # 78% yield
-            "confidence_level": 0.95,     # 95% confidence
-            "effect_size": 0.65,          # Medium effect
-            "novelty_score": 0.70         # 70% novelty
+        source = design.get("source", "")
+
+        sample_sizes = design.get("sample_sizes", [])
+        largest_sample = max(sample_sizes) if sample_sizes else 0.0
+        experiment_count = max(design.get("experiment_count", 0), len(design.get("conditions", [])))
+        factor_count = len(design.get("parameters", {}).get("ranges", []))
+
+        rigor = signal_coverage(source, self.RIGOR_SIGNALS)
+        reproducibility_signals = signal_coverage(source, self.REPRODUCIBILITY_SIGNALS)
+        analysis_signals = signal_coverage(source, self.ANALYSIS_SIGNALS)
+        novelty_signals = signal_coverage(source, self.NOVELTY_SIGNALS)
+
+        # Statistical power: grows with sample size and replication, capped
+        statistical_power = clamp(
+            0.2 + 0.5 * saturating(largest_sample, 60) + 0.3 * rigor
+        )
+
+        # Cost efficiency: fewer experiments per declared factor is better, and
+        # an explicit budget must be respected
+        budgeted_experiments = None
+        if constraints:
+            if "max_experiments" in constraints:
+                budgeted_experiments = float(constraints["max_experiments"])
+            elif "budget" in constraints and "cost_per_experiment" in constraints:
+                cost = float(constraints["cost_per_experiment"]) or 1.0
+                budgeted_experiments = float(constraints["budget"]) / cost
+
+        if budgeted_experiments and experiment_count:
+            cost_efficiency = clamp(1.0 - saturating(experiment_count, budgeted_experiments) * 0.8)
+        else:
+            cost_efficiency = clamp(0.4 + 0.6 * (1.0 - saturating(experiment_count, 40)))
+
+        effect_size = clamp(0.2 + 0.5 * analysis_signals + 0.3 * saturating(factor_count, 4))
+        confidence_level = clamp(0.5 + 0.5 * statistical_power)
+        reproducibility = clamp(
+            0.25 + 0.5 * reproducibility_signals + 0.25 * code_structure_score(source)
+        )
+        discovery_rate = clamp(
+            0.15 + 0.4 * novelty_signals + 0.25 * saturating(factor_count, 5)
+            + 0.2 * statistical_power
+        )
+        experimental_yield = clamp(
+            0.3 * statistical_power + 0.3 * reproducibility + 0.4 * cost_efficiency
+        )
+        novelty_score = clamp(0.2 + 0.6 * novelty_signals + 0.2 * saturating(factor_count, 6))
+
+        return {
+            "statistical_power": statistical_power,
+            "cost_efficiency": cost_efficiency,
+            "discovery_rate": discovery_rate,
+            "reproducibility": reproducibility,
+            "experimental_yield": experimental_yield,
+            "confidence_level": confidence_level,
+            "effect_size": effect_size,
+            "novelty_score": novelty_score,
         }
-
-        # In production, would:
-        # 1. Run experiments (or simulate)
-        # 2. Analyze results statistically
-        # 3. Calculate metrics
-
-        return metrics
 
     # ========================================================================
     # UTILITY METHODS

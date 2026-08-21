@@ -27,6 +27,25 @@ class ConfigPerformanceRecord:
     iteration: int
     timestamp: datetime
     metadata: Dict[str, Any] = field(default_factory=dict)
+    config_snapshot: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AdaptiveMetric:
+    """
+    Result of an adaptive metric computation over an evolution run.
+
+    All scalar fields are real numbers derived deterministically from the
+    supplied fitness/population history. ``metric`` is a normalized summary in
+    [0, 1] where higher means the population is stagnating (i.e. it needs more
+    exploration). Lower means it is still making progress / converging well.
+    """
+    stagnation_index: float
+    improvement_rate: float
+    convergence_slope: float
+    diversity: float
+    stagnation_generations: int
+    metric: float
 
 
 @dataclass
@@ -147,7 +166,8 @@ class ConfigurationMetrics:
             performance=performance,
             iteration=iteration,
             timestamp=datetime.utcnow(),
-            metadata=metadata or {}
+            metadata=metadata or {},
+            config_snapshot=config.model_dump()
         )
 
         self.config_history.append(record)
@@ -186,11 +206,34 @@ class ConfigurationMetrics:
         for config_hash, performances in unique_configs.items():
             avg_performance[config_hash] = sum(performances) / len(performances)
 
-        # For each parameter, calculate correlation with performance
-        # This is simplified - full implementation would parse config hashes
-        # For now, return placeholder
+        # For each parameter, compute the absolute Pearson correlation between
+        # its recorded value and the achieved performance across all recorded
+        # configurations. A higher score means the parameter tracked more of
+        # the variation in performance (i.e. it is impactful). Categorical /
+        # non-numeric parameter values are skipped (correlation is undefined).
+        param_values: Dict[str, List[float]] = defaultdict(list)
+        param_perf: Dict[str, List[float]] = defaultdict(list)
 
-        self.parameter_impact = {}
+        for record in self.config_history:
+            flat = {}
+            self._flatten_config(record.config_snapshot, [], flat)
+            for name, value in flat.items():
+                try:
+                    numeric_value = float(value)
+                except (TypeError, ValueError):
+                    continue
+                param_values[name].append(numeric_value)
+                param_perf[name].append(record.performance)
+
+        impact: Dict[str, float] = {}
+        for name, values in param_values.items():
+            if len(values) < 2:
+                impact[name] = 0.0
+                continue
+            corr = _pearson_correlation(values, param_perf[name])
+            impact[name] = abs(corr) if corr == corr else 0.0  # guard NaN
+
+        self.parameter_impact = impact
         self.impact_calculated = True
 
         return self.parameter_impact
@@ -444,6 +487,152 @@ class ConfigurationMetrics:
         self.config_history.clear()
         self.impact_calculated = False
         logger.info("Configuration metrics reset")
+
+
+    def _flatten_config(
+        self,
+        obj: Any,
+        path: List[str],
+        out: Dict[str, Any]
+    ) -> None:
+        """Flatten a nested config dict into leaf parameter -> value pairs."""
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                self._flatten_config(value, path + [key], out)
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                self._flatten_config(item, path + [str(i)], out)
+        else:
+            name = ".".join(path)
+            if name:
+                out[name] = obj
+
+
+def _pearson_correlation(x: List[float], y: List[float]) -> float:
+    """Deterministic, dependency-free Pearson correlation."""
+    n = len(x)
+    if n < 2:
+        return 0.0
+
+    mean_x = sum(x) / n
+    mean_y = sum(y) / n
+
+    num = sum((a - mean_x) * (b - mean_y) for a, b in zip(x, y))
+    den_x = sum((a - mean_x) ** 2 for a in x)
+    den_y = sum((b - mean_y) ** 2 for b in y)
+
+    if den_x == 0.0 or den_y == 0.0:
+        return 0.0
+
+    return num / (den_x ** 0.5 * den_y ** 0.5)
+
+
+def _population_diversity(scores: Optional[List[float]]) -> float:
+    """
+    Coefficient of variation of population scores (std / |mean|).
+
+    Higher means the population is spread out (diverse); 0.0 means the
+    population has collapsed to a single value or has no data.
+    """
+    if not scores or len(scores) < 2:
+        return 0.0
+
+    mean = sum(scores) / len(scores)
+    if mean == 0.0:
+        return 0.0
+
+    variance = sum((s - mean) ** 2 for s in scores) / len(scores)
+    return (variance ** 0.5) / abs(mean)
+
+
+def compute_adaptive_metrics(
+    fitness_history: List[float],
+    population_scores: Optional[List[float]] = None,
+    iteration: Optional[int] = None,
+    window: int = 20,
+) -> AdaptiveMetric:
+    """
+    Compute genuine adaptive metrics from evolution run data.
+
+    Inputs:
+        fitness_history: best fitness achieved per generation (higher = better).
+        population_scores: fitness of the current generation's individuals.
+        iteration: current generation index (unused, kept for call-site symmetry).
+        window: number of recent generations to consider for slope/diversity.
+
+    Returns:
+        An :class:`AdaptiveMetric`. ``metric`` (and ``stagnation_index``) is a
+        normalized value in [0, 1]: 0.0 means the run is still improving
+        strongly, 1.0 means it has fully stagnated. Strategy selectors can use
+        this directly to decide exploration vs. exploitation.
+
+    Method:
+        - ``convergence_slope``: per-generation change in best fitness over the
+          recent window, normalized by fitness scale.
+        - ``improvement_rate``: the positive part of ``convergence_slope``.
+        - ``stagnation_generations``: trailing generations without a new best.
+        - ``stagnation_index``: fraction of history spent stagnating, clamped to
+          [0, 1]; boosted to >= 0.8 if the normalized slope is negative.
+        - ``diversity``: coefficient of variation of ``population_scores``.
+    """
+    fitness_history = list(fitness_history) if fitness_history else []
+
+    diversity = _population_diversity(population_scores)
+
+    if len(fitness_history) < 2:
+        return AdaptiveMetric(
+            stagnation_index=0.0,
+            improvement_rate=0.0,
+            convergence_slope=0.0,
+            diversity=diversity,
+            stagnation_generations=0,
+            metric=0.0,
+        )
+
+    w = min(len(fitness_history), max(2, int(window)))
+    recent = fitness_history[-w:]
+    first, last = recent[0], recent[-1]
+    slope = (last - first) / (w - 1)
+    scale = max(abs(first), abs(last), 1e-9)
+    norm_slope = slope / scale
+
+    best_so_far = fitness_history[0]
+    last_improvement_idx = 0
+    for i, value in enumerate(fitness_history):
+        if value > best_so_far + 1e-9:
+            best_so_far = value
+            last_improvement_idx = i
+    stagnation_generations = (len(fitness_history) - 1) - last_improvement_idx
+
+    stag_frac = stagnation_generations / max(1, len(fitness_history) - 1)
+    stagnation_index = min(1.0, stag_frac)
+    if norm_slope < 0.0:
+        stagnation_index = max(stagnation_index, 0.8)
+
+    return AdaptiveMetric(
+        stagnation_index=round(stagnation_index, 6),
+        improvement_rate=round(max(0.0, norm_slope), 6),
+        convergence_slope=round(norm_slope, 6),
+        diversity=round(diversity, 6),
+        stagnation_generations=stagnation_generations,
+        metric=round(stagnation_index, 6),
+    )
+
+
+def compute_adaptive_metric(
+    fitness_history: List[float],
+    population_scores: Optional[List[float]] = None,
+    iteration: Optional[int] = None,
+    window: int = 20,
+) -> float:
+    """
+    Convenience wrapper returning only the scalar adaptive metric in [0, 1].
+
+    0.0 = strongly improving / converging; 1.0 = fully stagnated.
+    """
+    return compute_adaptive_metrics(
+        fitness_history, population_scores, iteration, window
+    ).metric
 
 
 def hash_config(config: UnifiedEvolutionConfig) -> str:

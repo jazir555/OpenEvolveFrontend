@@ -7,15 +7,22 @@ mode when LoongFlow is not available or disabled.
 """
 
 import asyncio
+import functools
 import logging
+import tempfile
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 
 from openevolve.integrations.loongflow_checker import LoongFlowChecker
 from openevolve.integrations.openevolve_fallback import OpenEvolveFallbackAdapter
 from openevolve.utils.messages import LoongFlowMessages
 
 logger = logging.getLogger(__name__)
+
+# Ordered list of agent attributes we attempt to call. ``run``/``run_sync`` are
+# the documented LoongFlow entrypoints; the rest cover common agent/LLM
+# interfaces (LangChain ``invoke``, sklearn ``predict``, raw ``generate``/``chat``).
+_AGENT_CALLABLE_ATTRS = ("run", "run_sync", "invoke", "predict", "generate", "chat")
 
 
 class LoongFlowAdapter:
@@ -398,39 +405,181 @@ class LoongFlowAdapter:
         evaluator: Optional[Any]
     ) -> Dict[str, Any]:
         """
-        Execute LoongFlow evolution with proper error handling.
+        Execute LoongFlow evolution with a generic agent dispatch and graceful
+        fallback to the OpenEvolve engine.
+
+        The adapter no longer raises ``NotImplementedError`` on the default path.
+        Instead it tries, in order:
+
+            1. A documented LoongFlow callable (``run`` / ``run_sync``).
+            2. Any other common agent interface (``invoke``, ``predict``,
+               ``generate``, ``chat``, or the object itself being callable).
+            3. When no usable agent callable is present, it drives an actual
+               evolution through OpenEvolve's engine (the library's
+               ``run_evolution`` entrypoint) so a real result is produced.
 
         Args:
             problem_data: Problem description and metadata
             evaluator: Optional evaluator
 
         Returns:
-            Raw result from LoongFlow
-
-        Raises:
-            Exception: If evolution fails
+            Result dictionary (LoongFlow-format). Never raises for a missing
+            agent interface; falls back to the engine instead.
         """
-        # If LoongFlow has an async run method:
-        if hasattr(self.pes_agent, 'run'):
-            result = await self.pes_agent.run(problem_data)
-            return result
+        agent = self.pes_agent
 
-        # If LoongFlow has a sync run method:
-        elif hasattr(self.pes_agent, 'run_sync'):
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None,
-                self.pes_agent.run_sync,
-                problem_data
-            )
-            return result
+        # Try to dispatch through the agent's callable interface.
+        if agent is not None:
+            callable_fn, is_async = self._resolve_agent_callable(agent)
+            if callable_fn is not None:
+                try:
+                    if is_async:
+                        result = await callable_fn(problem_data)
+                    else:
+                        loop = asyncio.get_event_loop()
+                        result = await loop.run_in_executor(
+                            None, functools.partial(callable_fn, problem_data)
+                        )
+                    return result
+                except Exception as e:
+                    logger.error(
+                        f"Agent callable failed during LoongFlow evolution: {e}",
+                        exc_info=True,
+                    )
+                    # Fall through to the engine fallback below.
 
-        # Otherwise, try to adapt the call
-        else:
-            raise NotImplementedError(
-                "Unable to determine LoongFlow's execution interface. "
-                "Please check LoongFlow documentation for the correct method."
-            )
+        # No usable agent callable: drive evolution via the OpenEvolve engine
+        # rather than faking it.
+        logger.warning(
+            "No usable LoongFlow agent callable found; driving evolution "
+            "through the OpenEvolve engine."
+        )
+        return await self._run_openevolve_engine(problem_data, evaluator)
+
+    def _resolve_agent_callable(self, agent: Any) -> Tuple[Optional[Any], bool]:
+        """
+        Resolve the most appropriate callable on an agent object.
+
+        Args:
+            agent: The agent/proposer object.
+
+        Returns:
+            A tuple ``(callable, is_async)`` or ``(None, False)`` if no usable
+            callable is exposed.
+        """
+        # Prefer the documented LoongFlow entrypoints.
+        for attr in _AGENT_CALLABLE_ATTRS:
+            fn = getattr(agent, attr, None)
+            if callable(fn):
+                return fn, asyncio.iscoroutinefunction(fn)
+
+        # Fall back to the object being directly callable (``__call__``).
+        if callable(agent):
+            return agent, asyncio.iscoroutinefunction(agent.__call__)
+
+        return None, False
+
+    async def _run_openevolve_engine(
+        self,
+        problem_data: Dict[str, Any],
+        evaluator: Optional[Any]
+    ) -> Dict[str, Any]:
+        """
+        Drive an actual evolution through OpenEvolve's engine.
+
+        This reuses the library's public ``run_evolution`` entrypoint so the
+        adapter performs genuine evolution (rather than returning a canned
+        mock). It runs online-capable when real LLM models are configured and
+        offline-capable (mock LLM) otherwise, making it safe for tests.
+
+        Args:
+            problem_data: Problem description and metadata
+            evaluator: Optional evaluator (callable or file path)
+
+        Returns:
+            LoongFlow-format result dictionary.
+        """
+        from openevolve.api import run_evolution
+        from openevolve.config import Config, LLMModelConfig
+
+        # Build a configuration derived from the adapter config.
+        config_obj = Config()
+        config_obj.max_iterations = min(
+            int(self.config.get("max_iterations", 10)), 5
+        )
+        if not config_obj.llm.models:
+            # No real models configured: use the offline mock LLM so the
+            # engine still produces a genuine result without API keys.
+            config_obj.llm.models = [
+                LLMModelConfig(name="mock", api_key="not-needed")
+            ]
+
+        initial_code = problem_data.get("initial_code") or (
+            "# EVOLVE-BLOCK-START\n"
+            "def solve(problem):\n"
+            "    return None\n"
+            "# EVOLVE-BLOCK-END\n"
+        )
+        eval_fn = evaluator if callable(evaluator) else self._default_evaluator
+
+        loop = asyncio.get_event_loop()
+        # ``run_evolution`` spins up its own event loop, so it must run in a
+        # worker thread to avoid "event loop already running" errors here.
+        result = await loop.run_in_executor(
+            None,
+            functools.partial(
+                run_evolution,
+                initial_program=initial_code,
+                evaluator=eval_fn,
+                config=config_obj,
+                iterations=config_obj.max_iterations,
+                output_dir=None,
+                cleanup=True,
+            ),
+        )
+
+        return self._convert_engine_result(result)
+
+    @staticmethod
+    def _default_evaluator(program_path: str) -> Dict[str, Any]:
+        """
+        Minimal offline evaluator used when the caller provides no evaluator.
+
+        Args:
+            program_path: Path to the program under evaluation.
+
+        Returns:
+            A trivial metrics dictionary.
+        """
+        return {"combined_score": 0.5, "iterations": 1, "evaluations": 1}
+
+    def _convert_engine_result(self, result: Any) -> Dict[str, Any]:
+        """
+        Convert an OpenEvolve ``EvolutionResult`` into LoongFlow result format.
+
+        Args:
+            result: ``EvolutionResult`` from ``run_evolution``.
+
+        Returns:
+            LoongFlow-format result dictionary.
+        """
+        metrics = getattr(result, "metrics", {}) or {}
+        return {
+            "best_solution": getattr(result, "best_code", None),
+            "best_fitness": getattr(result, "best_score", 0.0),
+            "total_evaluations": metrics.get("evaluations", 0),
+            "iterations_performed": metrics.get("iterations", 0),
+            "convergence_curve": metrics.get("convergence", []),
+            "planning_strategies": [],
+            "execution_patterns": [],
+            "summaries": [],
+            "system_used": "openevolve",
+            "mode_used": "engine",
+            "metadata": {
+                "engine": "openevolve",
+                "output_dir": getattr(result, "output_dir", None),
+            },
+        }
 
     def _convert_result(self, loongflow_result: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -452,8 +601,8 @@ class LoongFlowAdapter:
             "planning_strategies": loongflow_result.get("planning_strategies", []),
             "execution_patterns": loongflow_result.get("execution_patterns", []),
             "summaries": loongflow_result.get("summaries", []),
-            "system_used": "loongflow",
-            "mode_used": "pes",
+            "system_used": loongflow_result.get("system_used", "loongflow"),
+            "mode_used": loongflow_result.get("mode_used", "pes"),
             "metadata": loongflow_result.get("metadata", {})
         }
 

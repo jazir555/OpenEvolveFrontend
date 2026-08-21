@@ -41,7 +41,7 @@ except ImportError:
     logger.warning("[WARN] CrewAI not available - using mock implementation")
 
 # Import our integration layer
-from crewai_integration_layer import get_crewai_service, CrewAIService
+from .crewai_integration_layer import get_crewai_service, CrewAIService
 
 
 class MCPServer:
