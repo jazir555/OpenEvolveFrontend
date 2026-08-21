@@ -1,5 +1,8 @@
 # End-to-End Invention Planner - API Reference
 
+> **STATUS: implemented.** The documented API (`plan_invention()`, `EndToEndInventionPlanner`, `MAKERConfig`, `BulletproofSOP`) is implemented in `engines/e2e_invention/end_to_end_invention_planner.py` (plus `e2e_invention_planner_real.py`, `e2e_invention_planner_enhanced.py`).
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [Overview](#overview)

@@ -387,5 +387,23 @@ export interface RagbitsConfig {
       enabled?: boolean;
       ttl?: number;
     };
+    processorConfig?: {
+      documentProcessor?: {
+        chunkSize?: number;
+        chunkOverlap?: number;
+        embeddingModel?: string;
+        vectorStoreType?: string;
+      };
+      searchConfig?: {
+        topK?: number;
+        similarityThreshold?: number;
+        rerankModel?: string;
+      };
+      generationConfig?: {
+        model?: string;
+        temperature?: number;
+        maxTokens?: number;
+      };
+    };
   };
 }

@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
  * BaseBubble - Abstract base class for all bubble components
  * Provides common functionality for configuration, initialization, and lifecycle management
  */
-export abstract class BaseBubble<T extends BubbleConfig = BubbleConfig> {
+export abstract class BaseBubble<T extends Record<string, any> = BubbleConfig> {
   protected config: T;
   protected initialized: boolean = false;
   protected node: BubbleLabNode | null = null;
@@ -43,15 +43,16 @@ export abstract class BaseBubble<T extends BubbleConfig = BubbleConfig> {
     if (!config || typeof config !== 'object') {
       throw new Error('Configuration must be an object');
     }
-    
-    if (!config.id || typeof config.id !== 'string') {
-      config.id = uuidv4();
+
+    const identity = config as unknown as BubbleConfig;
+    if (!identity.id || typeof identity.id !== 'string') {
+      identity.id = uuidv4();
     }
-    
-    if (!config.name || typeof config.name !== 'string') {
+
+    if (!identity.name || typeof identity.name !== 'string') {
       throw new Error('Configuration must include a valid name');
     }
-    
+
     return config;
   }
   
@@ -70,7 +71,7 @@ export abstract class BaseBubble<T extends BubbleConfig = BubbleConfig> {
    * @param input - Input data for the action
    * @returns Promise with the action result
    */
-  public abstract async action(input: any): Promise<any>;
+  public abstract action(input: any): Promise<any>;
   
   /**
    * Dispose the bubble and clean up resources

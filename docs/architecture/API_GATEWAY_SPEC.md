@@ -1,5 +1,8 @@
 # OpenEvolve-Knowledge Engine API Gateway Specification
 
+> **STATUS: design-only (partial implementation).** This is a February-2026 draft specification for an "OpenEvolve-Knowledge Engine API Gateway" (routing, load balancing, auth, rate limiting). A partial FastAPI gateway app exists at `api/gateway/main.py`, but it does not implement the full spec. The real HTTP backend for the BubbleLab/OpenEvolve integration is `core-projects/BubbleLab/services/openevolve-api` (FastAPI, port 8000) — with the Hono proxy at `core-projects/BubbleLab/apps/bubblelab-api/src/routes/openevolve.ts`. The separate `engines/other/api_server.py` is the Decomposition-Workflow server (port 8001), NOT this gateway.
+> **Last reconciled: 2026-08-20**
+
 ## Document Information
 - **Version**: 1.0
 - **Date**: February 1, 2026

@@ -488,7 +488,7 @@ export class MonitoringService {
     
     // Collect duration data from node_complete events
     this.eventLog.forEach(event => {
-      if (event.type === 'node_complete' && event.data?.duration) {
+      if (event.type === 'node_complete' && event.data?.duration && event.nodeId) {
         const nodeId = event.nodeId;
         if (!nodeDurations[nodeId]) {
           nodeDurations[nodeId] = { total: 0, count: 0 };

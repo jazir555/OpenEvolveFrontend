@@ -1,5 +1,8 @@
 # 🚀 OpenEvolve Tripartite System - Production Edition
 
+> **STATUS: partially implemented (separate subsystem).** Describes ACE + Steer + LangChain/ChromaDB. ACE (`ace/`) and Steer (`core-projects/steer`, `integrations/other/steer_mcp_tools.py`, `integrations/other/steer_crewai_bridge.py`) exist as separate projects/integrations, not part of the BubbleLab/OpenEvolve integration. The "production-ready" claim is unverified.
+> **Last reconciled: 2026-08-20**
+
 ## 📋 Overview
 
 The **OpenEvolve Tripartite System** is a production-ready AI framework that combines three powerful components:

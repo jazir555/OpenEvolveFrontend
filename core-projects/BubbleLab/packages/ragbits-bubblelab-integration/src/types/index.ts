@@ -6,17 +6,33 @@ export * from './monitoring-debug';
 
 // Additional utility types
 
-export type { RAGBitsIngestConfig } from './bubble-config';
-export type { RAGBitsSearchConfig } from './bubble-config';
-export type { RAGBitsGenerationConfig } from './bubble-config';
-export type { RAGBitsIndexConfig } from './bubble-config';
-export type { BubbleConfig } from './bubble-config';
-export type { BubbleLabNode } from './bubble-config';
-export type { BubbleLabEdge } from './bubble-config';
-export type { BubbleLabWorkflowConfig } from './bubble-config';
-export type { RagbitsNodeConfig } from './bubble-config';
-export type { RagbitsConnection } from './bubble-config';
-export type { RagbitsConfig } from './bubble-config';
+import type {
+  RAGBitsIngestConfig,
+  RAGBitsSearchConfig,
+  RAGBitsGenerationConfig,
+  RAGBitsIndexConfig,
+  BubbleConfig,
+  BubbleLabNode,
+  BubbleLabEdge,
+  BubbleLabWorkflowConfig,
+  RagbitsNodeConfig,
+  RagbitsConnection,
+  RagbitsConfig
+} from './bubble-config';
+
+export type {
+  RAGBitsIngestConfig,
+  RAGBitsSearchConfig,
+  RAGBitsGenerationConfig,
+  RAGBitsIndexConfig,
+  BubbleConfig,
+  BubbleLabNode,
+  BubbleLabEdge,
+  BubbleLabWorkflowConfig,
+  RagbitsNodeConfig,
+  RagbitsConnection,
+  RagbitsConfig
+};
 
 export type { RAGBitsIngestInput } from './input-output';
 export type { RAGBitsIngestOutput } from './input-output';

@@ -121,6 +121,14 @@ const getServiceNameForCredentialType = (
     [CredentialType.GRANOLA_API_KEY]: 'Granola',
     [CredentialType.MEMBERFUL_CRED]: 'Memberful',
     [CredentialType.ZOOM_CRED]: 'Zoom',
+    [CredentialType.OAUTH_TOKEN]: 'OAuth',
+    [CredentialType.ELASTICSEARCH_CRED]: 'Elasticsearch',
+    [CredentialType.GITHUB_CRED]: 'GitHub',
+    [CredentialType.POSTGRESQL_CRED]: 'PostgreSQL',
+    [CredentialType.QDRANT_CRED]: 'Qdrant',
+    [CredentialType.REDIS_CRED]: 'Redis',
+    [CredentialType.SENDGRID_CRED]: 'SendGrid',
+    [CredentialType.TWILIO_CRED]: 'Twilio',
   };
 
   return typeToServiceMap[credentialType] || credentialType;

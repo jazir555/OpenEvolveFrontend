@@ -271,7 +271,11 @@ export function ExecutionHistory({ flowId }: ExecutionHistoryProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {executionHistory.map((execution: any) => (
+              {executionHistory.map((execution: any) => {
+                const isSelected = execution.id === selectedExecutionId;
+                const isLoading = fetchExecutionDetailMutation.isPending;
+                const canViewLogs = true;
+                return (
                 <div
                   key={execution.id}
                   className="rounded-lg border border-[#30363d] bg-[#21262d] p-4"

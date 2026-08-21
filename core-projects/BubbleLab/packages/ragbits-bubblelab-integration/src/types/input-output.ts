@@ -85,6 +85,7 @@ export interface RAGBitsSearchInput {
     topK?: number;
     similarityThreshold?: number;
     filters?: Record<string, any>;
+    searchStrategy?: 'semantic' | 'keyword' | 'hybrid';
   };
   
   /**

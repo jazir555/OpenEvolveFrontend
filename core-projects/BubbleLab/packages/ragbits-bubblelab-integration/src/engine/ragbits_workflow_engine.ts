@@ -108,7 +108,7 @@ export class RAGBitsWorkflowEngine {
       }
       
       // Initialize the node
-      await nodeInstance.initialize(node, this.processor);
+      await nodeInstance.initialize(node, this.processor ?? undefined);
       
       // Store the instance
       this.nodeInstances.set(node.id, nodeInstance);
@@ -361,7 +361,7 @@ export class RAGBitsWorkflowEngine {
     
     // Dispose all node instances
     const disposePromises = Array.from(this.nodeInstances.values()).map(node => {
-      return node.dispose().catch(error => {
+      return node.dispose().catch((error: any) => {
         this.log('error', `Failed to dispose node: ${error instanceof Error ? error.message : 'Unknown error'}`);
       });
     });

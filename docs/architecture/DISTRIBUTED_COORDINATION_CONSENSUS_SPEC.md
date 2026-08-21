@@ -1,5 +1,8 @@
 # Distributed Coordination and Consensus Specification
 
+> **STATUS: partially implemented.** February-2026 draft spec for Raft/consensus coordination. A real implementation exists at `knowledge_engine/distributed_coordination.py` (`RaftNode`, leader election, log replication). The broader spec (cluster membership, failure detection) is design-only.
+> **Last reconciled: 2026-08-20**
+
 ## Document Information
 - **Version**: 1.0
 - **Date**: February 1, 2026

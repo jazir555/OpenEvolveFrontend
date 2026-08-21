@@ -1,5 +1,8 @@
 # Federation Directory Structure - Created 2026-02-03
 
+> **STATUS: structural documentation (informational).** Describes the repository federation directory layout (`core-projects/`, `glue/`, `infra/`, `tests/`). This is repo-layout guidance, not an OpenEvolve/BubbleLab integration feature. The layout (e.g. `core-projects/`, `glue/`) is present in this distribution.
+> **Last reconciled: 2026-08-20**
+
 ## Summary
 
 Task #1 Complete: Federation constitution directory structure has been successfully created according to the CLAUDE.md specifications.

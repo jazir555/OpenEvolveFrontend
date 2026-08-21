@@ -1,5 +1,8 @@
 # DataPizza vs Claudiomiro Analysis
 
+> **STATUS: unrelated subsystem (informational).** This document analyzes external tools DataPizza and Claudiomiro and is not part of the OpenEvolve/BubbleLab integration. No code in this repository implements DataPizza or Claudiomiro as core components. Retained for historical context only.
+> **Last reconciled: 2026-08-20**
+
 **Date**: 2025-12-29
 **Status**: ANALYSIS COMPLETE
 **Recommendation**: USE TOGETHER (Complementary)

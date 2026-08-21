@@ -125,7 +125,7 @@ export function useCreateBubbleFlow(options?: {
           executionCount: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          ownerId,
+          ownerId: userId,
           // Include bubbles if provided (for duplication)
           bubbles: newFlow._optimisticBubbles,
           // Mark as loading for UI indication

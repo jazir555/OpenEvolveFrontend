@@ -1,5 +1,8 @@
 # Knowledge Graph Query and Analytics Specification
 
+> **STATUS: design-only (partial implementation).** February-2026 draft for KG query/analytics. Related libraries are vendored (`core-projects/graphiti/`, `gfql/`) and `knowledge_engine/` exists, but the described analytics architecture (multi-query-language engine, ML integration) is not implemented as specified.
+> **Last reconciled: 2026-08-20**
+
 ## Document Information
 - **Version**: 1.0
 - **Date**: February 1, 2026

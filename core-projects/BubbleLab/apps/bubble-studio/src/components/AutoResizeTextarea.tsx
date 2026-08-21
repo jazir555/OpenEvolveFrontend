@@ -40,7 +40,7 @@ const AutoResizeTextarea = forwardRef<
       onChange?.(e);
     };
 
-    const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const handleInput = (e: React.InputEvent<HTMLTextAreaElement>) => {
       autoResizeTextarea(
         e.currentTarget as HTMLTextAreaElement,
         minHeight,

@@ -1,5 +1,8 @@
 # OpenEvolve-Knowledge Engine Resource Management Specification
 
+> **STATUS: partially implemented.** February-2026 draft for resource management. A `ResourceManager`/`ResourcePool` exists at `engines/other/resource_pool.py` (used by `engines/other/workflow_engine.py`), but the full spec (multi-tenancy, billing, elastic scheduling) is design-only.
+> **Last reconciled: 2026-08-20**
+
 ## Document Information
 - **Version**: 1.0
 - **Date**: February 1, 2026

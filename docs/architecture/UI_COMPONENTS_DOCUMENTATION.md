@@ -1,5 +1,8 @@
 # UI Components Documentation
 
+> **STATUS: partially implemented.** Documents UI components for the Decomposition Workflow. UI component code exists in `engines/ui/` (`advanced_visualization.py`, `dashboard_ui_components.py`) and `engines/orchestration/dependency_visualizer.py`, but not as the documented `ui_components` package API (`from ui_components import render_dependency_graph`). Treat the package API as design-only.
+> **Last reconciled: 2026-08-20**
+
 ## Overview
 
 This document provides comprehensive documentation for the missing UI components that have been implemented for the OpenEvolve Decomposition Workflow system.

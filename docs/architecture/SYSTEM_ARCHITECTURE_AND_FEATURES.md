@@ -1,5 +1,8 @@
 # OpenEvolve Sovereign-Grade Decomposition Workflow - Complete System Documentation
 
+> **STATUS: partially implemented.** Documents the Sovereign-Grade Decomposition Workflow (teams, gauntlets, workflow engine). Implemented in `engines/other/api_server.py` (port 8001), `engines/teams/`, `engines/gauntlets/`, `engines/decomposition/`, `engines/other/workflow_engine.py`. This is the decomposition backend, not the BubbleLab integration backend (`core-projects/BubbleLab/services/openevolve-api`, port 8000).
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 1. [System Overview](#system-overview)
 2. [Architecture Overview](#architecture-overview)

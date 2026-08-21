@@ -455,7 +455,7 @@ class Config:
     def from_yaml(cls, path: Union[str, Path]) -> "Config":
         """Load configuration from a YAML file"""
         config_path = Path(path).resolve()
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8", errors="replace") as f:
             config_dict = yaml.safe_load(f)
         config = cls.from_dict(config_dict)
 

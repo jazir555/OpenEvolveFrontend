@@ -1,5 +1,8 @@
 # Sovereign-Grade Problem Decomposition System - Architecture Documentation
 
+> **STATUS: partially implemented.** Describes the Sovereign-Grade Decomposition System. The Decomposition-Workflow server exists at `engines/other/api_server.py` (FastAPI, port 8001) with `engines/other/problem_analyzer.py` (`ProblemAnalyzer`), `engines/decomposition/` (`DecompositionEngine`), `engines/teams/`, and `engines/gauntlets/`. This server is the decomposition backend — NOT the BubbleLab integration backend (which is `core-projects/BubbleLab/services/openevolve-api`, port 8000).
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [System Overview](#system-overview)

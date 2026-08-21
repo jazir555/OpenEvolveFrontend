@@ -1,5 +1,8 @@
 # Sovereign-Grade Problem Decomposition System - API Documentation
 
+> **STATUS: partially implemented.** Documents the Decomposition System API. `problem_analyzer.py` (`ProblemAnalyzer`) and `DecompositionEngine` (e.g. `engines/decomposition/decomposition_engine_adaptive_enhancement.py`) exist and are served by `engines/other/api_server.py` (port 8001, the Decomposition-Workflow server — NOT the BubbleLab integration backend at `core-projects/BubbleLab/services/openevolve-api`, port 8000).
+> **Last reconciled: 2026-08-20**
+
 ## Overview
 
 The Sovereign-Grade Problem Decomposition System provides a comprehensive API for analyzing, decomposing, validating, and solving complex problems through intelligent decomposition strategies.

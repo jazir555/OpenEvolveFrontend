@@ -775,7 +775,9 @@ The answer addresses all aspects of the question by combining relevant informati
     if (this.config.caching.maxSize && this.cache.size >= this.config.caching.maxSize) {
       // Remove oldest item (simple FIFO cache)
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
     
     const expires = this.config.caching.ttl ? Date.now() + this.config.caching.ttl : undefined;
