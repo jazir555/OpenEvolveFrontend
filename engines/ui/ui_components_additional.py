@@ -3,6 +3,8 @@ Additional UI Components for Sovereign-Grade Decomposition Workflow
 
 This file contains additional UI components that need to be added to ui_components.py
 """
+from __future__ import annotations
+
 
 from typing import Dict, Any, Optional, List
 import json

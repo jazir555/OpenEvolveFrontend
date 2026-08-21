@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 def determine_review_type(content: str) -> str:
     """
     Determine the review type based on content analysis.

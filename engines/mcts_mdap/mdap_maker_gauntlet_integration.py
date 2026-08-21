@@ -13,6 +13,8 @@ This module enables:
 Author: OpenEvolve Team
 Date: 2026-02-17
 """
+from __future__ import annotations
+
 
 import logging
 import time
@@ -21,13 +23,75 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
-from gauntlet_manager import GauntletManager, GauntletEvaluator
-from gauntlet_types import (
-    GauntletType, GauntletResult, BaseGauntlet,
-    AdversarialGauntlet, FormalVerificationGauntlet, StatisticalGauntlet,
-    DomainSpecificGauntlet, MultiObjectiveGauntlet, EvolutionaryGauntlet,
-    TemporalGauntlet, CrossValidationGauntlet
-)
+try:
+    from gauntlet_manager import GauntletManager, GauntletEvaluator
+    from gauntlet_types import (
+        GauntletType, GauntletResult, BaseGauntlet,
+        AdversarialGauntlet, FormalVerificationGauntlet, StatisticalGauntlet,
+        DomainSpecificGauntlet, MultiObjectiveGauntlet, EvolutionaryGauntlet,
+        TemporalGauntlet, CrossValidationGauntlet,
+    )
+    GAUNTLET_AVAILABLE = True
+except ImportError as e:
+    GAUNTLET_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning(f"Gauntlet integration not available: {e}")
+
+    # Graceful-degradation stubs so the module stays importable and the
+    # maker pipeline can run without the external gauntlet libraries.
+    from enum import Enum
+
+    class GauntletType(Enum):
+        ADVERSARIAL = "adversarial"
+        FORMAL_VERIFICATION = "formal_verification"
+        STATISTICAL = "statistical"
+        DOMAIN_PHYSICS = "domain_physics"
+        MULTI_OBJECTIVE = "multi_objective"
+        EVOLUTIONARY = "evolutionary"
+        TEMPORAL = "temporal"
+        CROSS_VALIDATION = "cross_validation"
+
+    class BaseGauntlet:
+        def __init__(self, name: str = ""):
+            self.name = name
+
+    class GauntletResult:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class AdversarialGauntlet(BaseGauntlet):
+        pass
+
+    class FormalVerificationGauntlet(BaseGauntlet):
+        pass
+
+    class StatisticalGauntlet(BaseGauntlet):
+        pass
+
+    class DomainSpecificGauntlet(BaseGauntlet):
+        def __init__(self, name: str = "domain", domain: str = "general"):
+            super().__init__(name)
+            self.domain = domain
+
+    class MultiObjectiveGauntlet(BaseGauntlet):
+        pass
+
+    class EvolutionaryGauntlet(BaseGauntlet):
+        pass
+
+    class TemporalGauntlet(BaseGauntlet):
+        pass
+
+    class CrossValidationGauntlet(BaseGauntlet):
+        pass
+
+    class GauntletManager:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class GauntletEvaluator:
+        def __init__(self, *args, **kwargs):
+            pass
 
 # MDAP/MAKER imports
 try:
@@ -56,6 +120,25 @@ except ImportError as e:
         dependencies: List[str] = field(default_factory=list)
         metadata: Dict[str, Any] = field(default_factory=dict)
 
+    class ComplexityScore:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class TaskComplexityClassifier:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class AdaptiveMDAPAllocator:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class AdaptiveExecutionController:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    def get_health_checker(*args, **kwargs):
+        return None
+
 try:
     from maker_engine import MakerEngine, MakerConfig, MakerState, MakerStep
     from mdap_engine import RedFlagRules, RedFlagger
@@ -65,11 +148,44 @@ except ImportError as e:
     logger = logging.getLogger(__name__)
     logger.warning(f"MAKER engine not available: {e}")
 
+    # Graceful-degradation stubs.
+    class MakerConfig:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class MakerState:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class MakerStep:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class MakerEngine:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class RedFlagRules:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class RedFlagger:
+        def __init__(self, *args, **kwargs):
+            pass
+
 try:
     from openevolve_structures import GauntletDefinition, GauntletRoundRule
     OPENEVOLVE_STRUCTURES_AVAILABLE = True
 except ImportError:
     OPENEVOLVE_STRUCTURES_AVAILABLE = False
+
+    class GauntletDefinition:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class GauntletRoundRule:
+        def __init__(self, *args, **kwargs):
+            pass
 
 logger = logging.getLogger(__name__)
 

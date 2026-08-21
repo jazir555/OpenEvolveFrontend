@@ -2,6 +2,8 @@
 Parameter Manager - Manages all 211 OpenEvolve parameters
 Provides validation, presets, and persistence for OpenEvolve configuration
 """
+from __future__ import annotations
+
 
 
 import json

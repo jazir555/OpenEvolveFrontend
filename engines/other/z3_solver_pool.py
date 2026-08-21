@@ -14,6 +14,8 @@ This module solves the hardcoded metrics issue in:
 Author: OpenEvolve
 Created: 2026-02-05
 """
+from __future__ import annotations
+
 
 import threading
 import time
@@ -34,6 +36,16 @@ try:
     CAV_NLP_AVAILABLE = True
 except ImportError:
     CAV_NLP_AVAILABLE = False
+
+    class EnhancedZ3Solver:
+        """Minimal fallback used only for type annotations when CAV-NLP is absent."""
+
+        pass
+
+    class UnifiedMathService:
+        """Minimal fallback used only for type annotations when CAV-NLP is absent."""
+
+        pass
 
 
 # =============================================================================

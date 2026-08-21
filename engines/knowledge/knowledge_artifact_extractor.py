@@ -18,6 +18,8 @@ CAPABILITIES:
 - Track artifact confidence and success rates
 - Support continuous learning
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -27,11 +29,36 @@ from pathlib import Path
 from collections import defaultdict
 import statistics
 
-from sovereign_data_models import (
-    DecompositionPlan, SolutionAttempt, ProblemDefinition,
-    SubProblem, ValidationResult, ComplexityScore,
-    DecompositionStrategy, generate_id
-)
+try:
+    from sovereign_data_models import (
+        DecompositionPlan, SolutionAttempt, ProblemDefinition,
+        SubProblem, ValidationResult, ComplexityScore,
+        DecompositionStrategy, generate_id
+    )
+except ImportError:
+    # The sovereign_data_models facade may be partially initialised (e.g. when the
+    # kernel schema cannot be fully imported); fall back to module-level symbol
+    # lookup and provide minimal shim classes for the optional data models.
+    import sovereign_data_models as _sdm
+
+    DecompositionPlan = getattr(_sdm, "DecompositionPlan", object)
+    SolutionAttempt = getattr(_sdm, "SolutionAttempt", object)
+    ProblemDefinition = getattr(_sdm, "ProblemDefinition", object)
+    SubProblem = getattr(_sdm, "SubProblem", object)
+    ComplexityScore = getattr(_sdm, "ComplexityScore", object)
+    generate_id = getattr(_sdm, "generate_id", lambda prefix="id": f"{prefix}_{id(object())}")
+
+
+    class ValidationResult:
+        """Minimal fallback for the optional validation result data model."""
+
+        pass
+
+
+    class DecompositionStrategy:
+        """Minimal fallback for the optional decomposition strategy data model."""
+
+        pass
 
 logger = logging.getLogger(__name__)
 

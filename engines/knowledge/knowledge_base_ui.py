@@ -4,6 +4,8 @@ Knowledge Base UI Module
 This module provides the user interface for exploring, managing, and visualizing
 the knowledge base of artifacts extracted from workflow executions.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import pandas as pd

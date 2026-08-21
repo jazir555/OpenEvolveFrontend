@@ -12,6 +12,8 @@ Dependencies (all permissive licenses):
 Author: OpenEvolve
 Date: 2026-02-02
 """
+from __future__ import annotations
+
 
 import time
 from typing import Optional, Dict, Any, Callable

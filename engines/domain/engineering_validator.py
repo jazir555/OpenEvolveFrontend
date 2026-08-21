@@ -8,6 +8,8 @@ Provides actual engineering validation including:
 - Manufacturability assessment
 - Lean theorem prover integration for formal verification
 """
+from __future__ import annotations
+
 
 import logging
 import math

@@ -12,7 +12,10 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, Optional
 
-from ._stub_support import STUB
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
 
 __all__ = ["STUB", "create_bubble_edge"]
 

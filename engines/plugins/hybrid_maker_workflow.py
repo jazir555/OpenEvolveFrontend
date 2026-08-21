@@ -16,6 +16,8 @@ Author: OpenEvolve
 Created: 2025-12-30
 Paper: arXiv:2511.09030 (Solving a Million-Step LLM Task with Zero Errors)
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

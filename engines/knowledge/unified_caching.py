@@ -16,6 +16,8 @@ Features:
 - Cache statistics
 - Graceful degradation
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

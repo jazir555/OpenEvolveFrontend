@@ -15,6 +15,8 @@ Features:
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 import re
 import uuid
@@ -26,7 +28,10 @@ logger = logging.getLogger(__name__)
 
 # **LEAN INTEGRATION**: Real Lean client for formal verification
 try:
-    from .leanaide_client import LeanAideClient
+    try:
+        from .leanaide_client import LeanAideClient
+    except ImportError:
+        from leanaide_client import LeanAideClient
     LEAN_AVAILABLE = True
 except ImportError:
     LEAN_AVAILABLE = False

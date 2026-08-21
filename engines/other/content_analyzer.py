@@ -2,6 +2,8 @@
 Content Analyzer Component for OpenEvolve
 Implements the core Content Analyzer functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 import re
 import json
 import logging

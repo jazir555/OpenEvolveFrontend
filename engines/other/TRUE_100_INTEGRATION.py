@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 TRUE 100% Integration - License: Apache 2.0

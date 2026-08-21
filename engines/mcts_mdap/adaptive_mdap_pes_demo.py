@@ -8,6 +8,8 @@ to achieve 40-60% cost savings over standalone systems.
 Run with:
     python adaptive_mdap_pes_demo.py
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

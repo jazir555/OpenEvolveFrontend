@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Metrics Collection & Monitoring
 Implements comprehensive metrics collection, observability, and monitoring capabilities.
 """
+from __future__ import annotations
+
 
 import time
 import threading

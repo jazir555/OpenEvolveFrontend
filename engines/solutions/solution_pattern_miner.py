@@ -4,6 +4,8 @@ Solution Pattern Miner - Stage 6 Knowledge Extraction
 This module uses machine learning to identify and cluster solution patterns.
 It supports multiple clustering algorithms and dimensionality reduction techniques.
 """
+from __future__ import annotations
+
 
 import time
 import uuid

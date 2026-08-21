@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Future Enhancements
 Implements reinforcement learning, predictive analytics, and advanced ML features.
 """
+from __future__ import annotations
+
 
 import asyncio
 import numpy as np

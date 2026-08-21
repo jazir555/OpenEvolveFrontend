@@ -4,6 +4,8 @@ Adaptive Strategy Selector for Decomposition Engine
 This module provides adaptive weight calculation and strategy selection
 based on historical performance data for the decomposition engine.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Optional, List, Tuple, Any

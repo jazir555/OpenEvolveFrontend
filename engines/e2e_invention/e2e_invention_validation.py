@@ -8,6 +8,8 @@ Author: Agent Z1 (Integration Specialist)
 Created: 2026-01-01
 Status: PRODUCTION VALIDATION
 """
+from __future__ import annotations
+
 
 import sys
 import time
@@ -32,13 +34,55 @@ logger = logging.getLogger(__name__)
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Import RESE pipeline
-from rese_pipeline import (
-    RESEPipeline,
-    ProblemInput,
-    PipelineStatus,
-    PhaseStatus
-)
+# Import RESE pipeline (optional dependency; guarded so module loads without it)
+try:
+    from rese_pipeline import (
+        RESEPipeline,
+        ProblemInput,
+        PipelineStatus,
+        PhaseStatus,
+    )
+    RESE_PIPELINE_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"RESE pipeline not available: {e}")
+    RESE_PIPELINE_AVAILABLE = False
+
+    from enum import Enum
+    from dataclasses import dataclass, field
+    from typing import Any, Dict, List
+
+    class PipelineStatus(Enum):
+        COMPLETED = "completed"
+        FAILED = "failed"
+        RUNNING = "running"
+        PENDING = "pending"
+
+    class PhaseStatus(Enum):
+        COMPLETED = "completed"
+        FAILED = "failed"
+        RUNNING = "running"
+        PENDING = "pending"
+
+    @dataclass
+    class ProblemInput:
+        id: str = ""
+        description: str = ""
+        constraints: List[Any] = field(default_factory=list)
+        variables: Dict[str, Any] = field(default_factory=dict)
+        objective: str = ""
+        domain: str = ""
+
+    class RESEPipeline:
+        """Fallback stub used when rese_pipeline is unavailable."""
+
+        def __init__(self, config=None):
+            raise ImportError(
+                "rese_pipeline is not available; install it to run full validation"
+            )
+
+        def run(self, *args, **kwargs):
+            raise NotImplementedError("rese_pipeline is not available")
+
 from config import get_config
 
 

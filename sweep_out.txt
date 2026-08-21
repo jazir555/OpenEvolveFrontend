@@ -1,0 +1,219 @@
+DTS integration not available - using standard scoring methods
+=== HONEST ASSESSMENT OF ProblemDecomposer ===
+
+Total methods: 34
+
+Public methods: 5
+[WARN] DTS not available - using fallback knowledge processing methods
+[ERROR] Failed to import C2C tools: cannot import name 'manage_ensemble_cache' from 'c2c_mcp_tools' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\c2c_mcp_tools.py)
+Warning: Could not import from workflow_structures or workflow_knowledge_extractor: cannot import name 'SolutionPatternArtifact' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+Warning: Could not import from workflow_structures or workflow_knowledge_extractor: cannot import name 'SolutionPatternArtifact' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+CAV-NLP not available for knowledge formalization
+CAV-NLP not available for knowledge formalization
+===========================================================================
+BENCHMARK: OPENEVOLVE KNOWLEDGE ENGINE IMPROVEMENTS
+===========================================================================
+
+1. INPUT VALIDATION & CAPABILITY BOUNDARIES
+---------------------------------------------------------------------------
+  [PASS] Nonsensical Input                       
+         Valid: False, Feasible: True, Proceed: False
+         Issues: ['Input appears nonsensical or lacks semantic meaning']
+  [PASS] Ambiguous Input                         
+         Valid: False, Feasible: True, Proceed: False
+         Issues: ['Input appears nonsensical or lacks semantic meaning']
+  [FAIL] Impossible Task (Future Prediction)     
+         Valid: True, Feasible: True, Proceed: True
+  [PASS] Impossible Task (Mind Reading)          
+         Valid: True, Feasible: False, Proceed: False
+         Reason: Request asks for prediction of specific future val...
+  [PASS] Valid Analytical Request                
+         Valid: True, Feasible: True, Proceed: True
+  [PASS] Valid Technical Request                 
+         Valid: True, Feasible: True, Proceed: True
+
+  Input Validation: 5/6 (83.3%)
+
+2. DOMAIN ADAPTATION & CLASSIFICATION
+---------------------------------------------------------------------------
+  [PASS] Creative Writing                              -> domain:OK, temp:OK
+         Domain: creative, Audience: intermediate, Temp: 0.8
+  [PASS] Risk Analysis                                 -> domain:OK, temp:OK
+         Domain: analytical, Audience: intermediate, Temp: 0.3
+  [PASS] Code Review                                   -> domain:OK, temp:OK
+         Domain: technical, Audience: intermediate, Temp: 0.2
+  [PASS] Educational Explanation                       -> domain:OK, temp:OK
+         Domain: educational, Audience: beginner, Temp: 0.5
+  [PASS] Casual Conversation                           -> domain:OK, temp:OK
+         Domain: conversational, Audience: intermediate, Temp: 0.6
+  [PASS] Audience Detection - Beginner                 -> audience:OK
+         Domain: educational, Audience: beginner, Temp: 0.5
+  [PASS] Audience Detection - Expert                   -> audience:OK
+         Domain: technical, Audience: expert, Temp: 0.1
+
+  Domain Adaptation: 7/7 (100.0%)
+
+3. OUTPUT VALIDATION & QUALITY CHECKING
+---------------------------------------------------------------------------
+  [PASS] Good Output Validation
+         Score: 84.2, Passed: True
+         Fact score: 100.0
+         Section score: 100.0
+  [PASS] Bad Output Detection
+         Score: 11.1, Passed: False
+         Errors: ['missing_facts', 'incomplete_sections', 'too_short']
+         Missing facts: ['risk', 'fintech', 'revenue', 'cash flow']
+  [PASS] Correction Suggestions
+         Generated 3 suggestions
+         - Missing required facts: risk, fintech, revenue...
+         - Missing sections: market, financial, recommendatio...
+
+  Output Validation: 3/3 (100.0%)
+
+4. CONFLICT DETECTION & RESOLUTION
+---------------------------------------------------------------------------
+  [PASS] Length Conflict                -> 1 conflicts detected
+         - Conflicting length requirements detected
+  [PASS] Complexity Conflict            -> 1 conflicts detected
+         - Conflicting complexity requirements detected
+  [FAIL] Speed vs Quality Conflict      -> 0 conflicts detected
+  [PASS] No Conflict                    -> 0 conflicts detected
+
+  Conflict Detection: 3/4 (75.0%)
+
+5. CREATIVE PIPELINE
+---------------------------------------------------------------------------
+  [PASS] Short Story                   
+         Format: short_story, Structure: Three-Act Structure
+         Temp: 0.8, Max tokens: 1200
+  [PASS] Poem Detection                
+         Format: poem, Structure: Three-Act Structure
+         Temp: 0.8, Max tokens: 1200
+  [PASS] Character Sketch              
+         Format: character_sketch, Structure: Three-Act Structure
+         Temp: 0.8, Max tokens: 1200
+
+  Creative Pipeline: 3/3 (100.0%)
+
+===========================================================================
+OVERALL BENCHMARK RESULTS
+===========================================================================
+
+Total Tests: 23
+Tests Passed: 21
+Overall Pass Rate: 91.3%
+
+Breakdown by Component:
+---------------------------------------------------------------------------
+  Input Validation               #########################################---------  83.3%
+  Domain Adaptation              ################################################## 100.0%
+  Output Validation              ################################################## 100.0%
+  Conflict Detection             #####################################-------------  75.0%
+  Creative Pipeline              ################################################## 100.0%
+
+===========================================================================
+Assessment: EXCELLENT - Improvements working as expected
+===========================================================================
+
+Comparison with Pre-Improvement Benchmarks:
+---------------------------------------------------------------------------
+  Input Validation            45.0% ->   83.3% + +38.3%
+  Domain Adaptation            0.0% ->  100.0% + +100.0%
+  Output Validation           60.0% ->  100.0% + +40.0%
+  Conflict Detection           0.0% ->   75.0% + +75.0%
+  Creative Pipeline           30.0% ->  100.0% + +70.0%
+
+===========================================================================
+BENCHMARK COMPLETE
+===========================================================================
+RLM import error: cannot import name 'RLM' from 'rlm' (unknown location)
+RLM import error: cannot import name 'RLM' from 'rlm' (unknown location)
+DEBUG: sys.path in providercatalogue.py: ['C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\orchestration', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\orchestration\\core-projects\\rlm', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', '.', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\core-projects\\ai-knowledge-graph', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\karateclub', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\glue\\adapters\\rese-z3-bridge\\src', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\glue\\adapters\\rese-leanaide-workflow\\src', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\e2e_invention', 'core-projects', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\lagrange-mapper', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\integrations\\causal_learn\\../../projects to analyze/causal-learn', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\integrations', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\knowledge_engine', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'engines\\workflow', 'engines\\validation', 'engines\\ui', 'engines\\teams', 'engines\\strategies', 'engines\\sop', 'engines\\solutions', 'engines\\security', 'engines\\reliability', 'engines\\quality', 'engines\\plugins', 'engines\\other', 'engines\\orchestration', 'engines\\observability', 'engines\\mcts_mdap', 'engines\\knowledge', 'engines\\gauntlets', 'engines\\e2e_invention', 'engines\\domain', 'engines\\deploy', 'engines\\decomposition', 'engines\\config', 'engines\\alerting', 'engines\\adaptive', 'C:\\Users\\mmeadow\\AppData\\Local\\Temp\\kilo', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\python311.zip', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\DLLs', 'C:\\Users\\mmeadow\\AppData\\Roaming\\Python\\Python311\\site-packages', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages', '__editable__.openevolve-0.3.2.finder.__path_hook__', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32\\lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\Pythonwin', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend']
+# LeanAide Files Audit Report
+
+| # | File | Imports Lean? | LEAN_AVAILABLE? | LEANAIDE_AVAILABLE? | Uses Real Lean? | Has Mocks? | Status |
+|---|------|---------------|-----------------|---------------------|-----------------|------------|--------|
+| 1 | leanaide_adversarial.py | No | No | No | No | No | NOT FOUND |
+| 2 | leanaide_api_routes.py | No | No | No | No | No | NOT FOUND |
+| 3 | leanaide_autoformalization_mdap_maker.py | No | No | No | No | No | NOT FOUND |
+| 4 | leanaide_client.py | No | No | No | No | No | NOT FOUND |
+| 5 | leanaide_config.py | No | No | No | No | No | NOT FOUND |
+| 6 | leanaide_continuous_math.py | No | No | No | No | No | NOT FOUND |
+| 7 | leanaide_continuous_mcp.py | No | No | No | No | No | NOT FOUND |
+| 8 | leanaide_crewai_bridge.py | No | No | No | No | No | NOT FOUND |
+| 9 | leanaide_decomposition_integration.py | No | No | No | No | No | NOT FOUND |
+| 10 | leanaide_evolution.py | No | No | No | No | No | NOT FOUND |
+| 11 | leanaide_evolution_mdap.py | No | No | No | No | No | NOT FOUND |
+| 12 | leanaide_evolution_mdap_workflow.py | No | No | No | No | No | NOT FOUND |
+| 13 | leanaide_evolutionary_workflow.py | No | No | No | No | No | NOT FOUND |
+| 14 | leanaide_hybrid_maker_enhanced.py | No | No | No | No | No | NOT FOUND |
+| 15 | leanaide_hybrid_strategies.py | No | No | No | No | No | NOT FOUND |
+| 16 | leanaide_maker.py | No | No | No | No | No | NOT FOUND |
+| 17 | leanaide_mcp_tools.py | No | No | No | No | No | NOT FOUND |
+| 18 | leanaide_mcts.py | No | No | No | No | No | NOT FOUND |
+| 19 | leanaide_mcts_mdap.py | No | No | No | No | No | NOT FOUND |
+| 20 | leanaide_mcts_mdap_complete.py | No | No | No | No | No | NOT FOUND |
+| 21 | leanaide_mcts_mdap_workflow.py | No | No | No | No | No | NOT FOUND |
+| 22 | leanaide_mcts_strategies.py | No | No | No | No | No | NOT FOUND |
+| 23 | leanaide_mcts_workflow.py | No | No | No | No | No | NOT FOUND |
+| 24 | leanaide_mdap.py | No | No | No | No | No | NOT FOUND |
+| 25 | leanaide_mdap_demo.py | No | No | No | No | No | NOT FOUND |
+| 26 | leanaide_mdap_workflow.py | No | No | No | No | No | NOT FOUND |
+| 27 | leanaide_pes_benchmark.py | No | No | No | No | No | NOT FOUND |
+| 28 | leanaide_pes_handler.py | No | No | No | No | No | NOT FOUND |
+| 29 | leanaide_predictive_flagging.py | No | No | No | No | No | NOT FOUND |
+| 30 | leanaide_redflagging.py | No | No | No | No | No | NOT FOUND |
+| 31 | leanaide_redflagging_system.py | No | No | No | No | No | NOT FOUND |
+| 32 | leanaide_selfplay.py | No | No | No | No | No | NOT FOUND |
+| 33 | leanaide_sop_integration.py | No | No | No | No | No | NOT FOUND |
+| 34 | leanaide_strategies.py | No | No | No | No | No | NOT FOUND |
+| 35 | leanaide_workflow_integration.py | No | No | No | No | No | NOT FOUND |
+
+## Summary Statistics
+
+- Total files: 35
+- Files importing Lean: 0
+- Files with LEAN_AVAILABLE flag: 0
+- Files with LEANAIDE_AVAILABLE flag: 0
+- Files with mocks/fallbacks: 0
+DEBUG: sys.path in providercatalogue.py: ['C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\other\\glue\\schemas', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\other', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\orchestration', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\orchestration\\core-projects\\rlm', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\observability', '.', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\core-projects\\ai-knowledge-graph', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\karateclub', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\glue\\adapters\\rese-z3-bridge\\src', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\glue\\adapters\\rese-leanaide-workflow\\src', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\engines\\e2e_invention', 'core-projects', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\lagrange-mapper', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\integrations\\causal_learn\\../../projects to analyze/causal-learn', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\rese', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\integrations', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend\\knowledge_engine', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend', 'engines\\workflow', 'engines\\validation', 'engines\\ui', 'engines\\teams', 'engines\\strategies', 'engines\\sop', 'engines\\solutions', 'engines\\security', 'engines\\reliability', 'engines\\quality', 'engines\\plugins', 'engines\\other', 'engines\\orchestration', 'engines\\observability', 'engines\\mcts_mdap', 'engines\\knowledge', 'engines\\gauntlets', 'engines\\e2e_invention', 'engines\\domain', 'engines\\deploy', 'engines\\decomposition', 'engines\\config', 'engines\\alerting', 'engines\\adaptive', 'C:\\Users\\mmeadow\\AppData\\Local\\Temp\\kilo', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\python311.zip', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\DLLs', 'C:\\Users\\mmeadow\\AppData\\Roaming\\Python\\Python311\\site-packages', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages', '__editable__.openevolve-0.3.2.finder.__path_hook__', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\win32\\lib', 'C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\Pythonwin', 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\OpenEvolveFrontend']
+DTS integration not available - using standard scoring methods
+Reading PDF file...
+Error reading PDF: [Errno 2] No such file or directory: 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\smart contracts\\2024-07-04_Quantstamp_v1.2.0.pdf'
+PDF content successfully written to pdf_extract.txt
+Total characters extracted: 160
+TOTAL=527 OK=364 FAIL=163
+RELEVANT FAILS=33
+adaptive/adaptive_decomposition_integration: NameError: name 'LeanAideClient' is not defined
+decomposition/comprehensive_decomposition_engine: NameError: name 'Z3Constraint' is not defined
+decomposition/decomposition_engine_adaptive_enhancement: ImportError: cannot import name 'calculate_functional_weight' from 'decomposition_engine' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\othe
+decomposition/decomposition_engine_lean_enhanced: NameError: name 'MathematicalDomain' is not defined
+decomposition/decomposition_z3_validator: NameError: name 'Z3Constraint' is not defined
+decomposition/problem_fractal_pipeline: NameError: name 'LeanAideClient' is not defined
+decomposition/verified_recomposition: NameError: name 'LeanAideClient' is not defined
+e2e_invention/e2e_invention_planner_enhanced: NameError: name 'SOPParameter' is not defined
+gauntlets/gauntlet_effectiveness_analyzer: NameError: name 'LeanAideClient' is not defined
+mcts_mdap/mcts_coevolution_mdap: ImportError: cannot import name 'MAKEREngine' from 'mdap_maker_complete' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\mdap_maker_comp
+mcts_mdap/mcts_evolutionary_nodes: NameError: name 'Tactic' is not defined
+mcts_mdap/mcts_evolved_policies: NameError: name 'ProofState' is not defined
+mcts_mdap/mcts_evolved_policies_mdap: NameError: name 'ProofState' is not defined
+mcts_mdap/mdap_coevolution_examples: ImportError: cannot import name 'MAKEREngine' from 'mdap_maker_complete' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\mdap_maker_comp
+mcts_mdap/mdap_maker_mcts_unified: NameError: name 'ProofState' is not defined
+other/adversarial_maker_integration: ImportError: cannot import name 'MAKEREngine' from 'mdap_maker_complete' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\mdap_maker_comp
+other/adversarial_mdap_mcts: ModuleNotFoundError: No module named 'leanaide_mcts'
+other/adversarial_unified: NameError: name 'ProofState' is not defined
+other/automated_proof_engine: NameError: name 'ProofHint' is not defined
+other/evaluator_team_coordinator: NameError: name 'EvaluationMetric' is not defined
+other/evolution_maker_integration: ImportError: cannot import name 'MAKEREngine' from 'mdap_maker_complete' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\mdap_maker_comp
+other/openevolve_leanaide_bridge: NameError: name 'SubProblem' is not defined
+other/problem_recomposition: NameError: name 'LeanAideClient' is not defined
+other/robustness_integration: ImportError: cannot import name 'VisionLanguageMonitor' from 'vision_language_monitor' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\v
+other/roma_mdap_maker_crewai_tools: NameError: name 'LeanAideClient' is not defined
+other/roma_mdap_maker_reliability_ssot: NameError: name 'LeanAideClient' is not defined
+other/z3_crewai_bridge: NameError: name 'Z3Config' is not defined
+plugins/hybrid_strategy_orchestrator: ImportError: cannot import name 'SubProblemType' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_
+sop/sop_generator_enhanced: NameError: name 'SOPParameter' is not defined
+strategies/custom_strategy_builder: ImportError: cannot import name 'SubProblemType' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_
+strategies/strategy_templates: ImportError: cannot import name 'SubProblemType' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_
+teams/red_team_coordinator: NameError: name 'LeanAideClient' is not defined
+teams/team_assignment_engine: ImportError: cannot import name 'SubProblemTeamAssignment' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\

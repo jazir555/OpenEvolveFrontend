@@ -23,6 +23,8 @@ Architecture:
 Author: OpenEvolve
 Created: 2025-01-03
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

@@ -9,8 +9,13 @@ Provides specialized UI components for:
 
 Author: OpenEvolve Frontend Team
 """
+from __future__ import annotations
 
-from .ui_shim import ui as st
+
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd

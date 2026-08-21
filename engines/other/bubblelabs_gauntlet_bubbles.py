@@ -20,6 +20,8 @@ Usage:
         create_gauntlet_workflow_definition
     )
 """
+from __future__ import annotations
+
 
 import uuid
 import logging

@@ -2,6 +2,8 @@
 Shared utility functions for UI components.
 Provides common patterns for error handling, validation, caching, and rendering.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import logging

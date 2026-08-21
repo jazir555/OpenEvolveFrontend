@@ -2,13 +2,14 @@
 Health Check Endpoint for Sovereign System
 Provides HTTP endpoint for health monitoring
 """
+from __future__ import annotations
+
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import logging
 from sovereign_reliability import get_health_monitor, get_error_handler
-from sovereign_performance_optimization import get_performance_stats
-from monitoring_system import get_observability_manager
+from monitoring_system import get_observability_manager, get_performance_stats
 
 logger = logging.getLogger(__name__)
 

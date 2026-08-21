@@ -22,6 +22,8 @@ Architecture:
 Author: OpenEvolve
 Date: 2026-01-10
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -94,6 +96,8 @@ try:
 except ImportError as e:
     logger.warning(f"Ground truth store not available: {e}")
     GROUND_TRUTH_AVAILABLE = False
+    GroundTruthStore = object
+    get_ground_truth_store = None
 
 # Import Evaluator Team
 try:

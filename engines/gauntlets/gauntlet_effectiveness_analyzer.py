@@ -4,6 +4,8 @@ Gauntlet Effectiveness Analyzer - Stage 6 Knowledge Extraction
 This module analyzes the effectiveness of quality gauntlets (Red Team, Gold Team).
 It provides insights into which rules work best and how to optimize gauntlet configurations.
 """
+from __future__ import annotations
+
 
 import time
 from typing import Dict, List, Any, Optional, Tuple

@@ -18,6 +18,8 @@ Author: OpenEvolve
 Created: 2026-01-31
 Updated: 2026-02-04 - Service Bubble Complete
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

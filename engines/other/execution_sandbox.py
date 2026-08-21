@@ -12,6 +12,8 @@ Key Features:
 - Timeout and memory constraints
 - Execution audit logging
 """
+from __future__ import annotations
+
 
 import os
 import json

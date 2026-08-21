@@ -10,6 +10,8 @@ The strategy identifies:
 - Parallel execution opportunities
 - Critical path analysis
 """
+from __future__ import annotations
+
 
 import logging
 import re

@@ -5,6 +5,8 @@ Connects the adaptive_strategy_selector to decomposition workflows
 and other components, enabling dynamic strategy optimization based
 on performance tracking.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Any, Dict, List, Optional, Callable

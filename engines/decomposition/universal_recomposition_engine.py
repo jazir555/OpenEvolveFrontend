@@ -31,6 +31,8 @@ Usage:
     ...     strategy=AssemblyStrategy.HIERARCHICAL
     ... )
 """
+from __future__ import annotations
+
 
 import logging
 import json
@@ -43,8 +45,22 @@ from enum import Enum
 from collections import defaultdict
 import hashlib
 from abc import ABC, abstractmethod
-from utils.entanglement_utils import normalize_entanglement_matrix
-from utils.symbolic_analyzer import SymbolicAnalyzer
+try:
+    from utils.entanglement_utils import normalize_entanglement_matrix
+except ImportError:
+    def normalize_entanglement_matrix(matrix):
+        return matrix
+
+try:
+    from utils.symbolic_analyzer import SymbolicAnalyzer
+except ImportError:
+    import re as _re
+
+    class SymbolicAnalyzer:
+        """Minimal fallback for the unavailable SymbolicAnalyzer."""
+        def analyze(self, text):
+            symbols = set(_re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text or ""))
+            return type("Result", (), {"symbols": symbols})()
 
 # Configure logging
 logger = logging.getLogger(__name__)

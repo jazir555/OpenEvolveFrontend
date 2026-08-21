@@ -4,6 +4,8 @@ Enhanced Knowledge Graph Visualizer with PyGraphistry Integration
 This module extends the basic KnowledgeGraphVisualizer to include
 PyGraphistry-powered interactive visualization and ML analytics capabilities.
 """
+from __future__ import annotations
+
 
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np

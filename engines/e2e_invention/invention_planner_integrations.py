@@ -12,6 +12,8 @@ Author: Agent 4 - Advanced Integrations
 Version: 1.0.0
 Date: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

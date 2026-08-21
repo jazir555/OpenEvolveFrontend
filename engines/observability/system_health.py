@@ -6,6 +6,8 @@ Checks services, dependencies, configuration, and performance.
 
 Run: python system_health.py
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

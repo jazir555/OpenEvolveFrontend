@@ -4,6 +4,8 @@ Extended Knowledge Artifact Generation Benchmark
 Generates 50+ additional knowledge artifacts from diverse scenarios
 including edge cases, cross-domain problems, and real-world use cases.
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -17,6 +19,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "engines" / "knowledge"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "engines" / "other"))
 
 from knowledge_engine.input_processor import EnhancedInputProcessor
 from knowledge_engine.domain_adapter import DomainAdapter, DomainClassifier, TaskDomain

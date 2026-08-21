@@ -2,6 +2,8 @@
 Deployment Script for Sovereign-Grade Problem Decomposition System
 Task 16.3: Build deployment automation
 """
+from __future__ import annotations
+
 
 import os
 import sys

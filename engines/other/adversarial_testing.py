@@ -2,6 +2,8 @@
 Comprehensive Adversarial Testing Implementation
 Implements all adversarial testing functionality from ULTIMATE_ADVERSARIAL_EVOLUTION_EXPLAINED.md
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import json

@@ -2,6 +2,8 @@
 Data structures for End-to-End Invention Planning System.
 Breaking circular dependencies.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from datetime import datetime

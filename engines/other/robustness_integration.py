@@ -16,6 +16,8 @@ ICR Integration:
 - Adapts thresholds based on historical outcomes
 - Learns from execution and verification results
 """
+from __future__ import annotations
+
 
 import os
 import json

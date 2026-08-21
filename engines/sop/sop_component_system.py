@@ -26,6 +26,8 @@ Author: OpenEvolve SOP Component System
 Version: 1.0.0
 Paper: arXiv:2511.09030
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

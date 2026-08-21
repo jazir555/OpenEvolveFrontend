@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Advanced Features
 Implements multi-modal support, collaboration features, and domain-specific templates.
 """
+from __future__ import annotations
+
 
 import asyncio
 import threading

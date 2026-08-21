@@ -27,6 +27,8 @@ Author: End-to-End Invention Planner
 Version: 1.0.0
 Paper: arXiv:2511.09030
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging
@@ -67,16 +69,41 @@ from sop_generator import (
     SOPEvaluator
 )
 
-from sop_component_system import (
-    SOPComponentGenerator,
-    SOPComponentType
-)
+try:
+    from sop_component_system import (
+        SOPComponentGenerator,
+        SOPComponentType,
+    )
+    SOP_COMPONENT_SYSTEM_AVAILABLE = True
+except ImportError:
+    SOP_COMPONENT_SYSTEM_AVAILABLE = False
+    logger.warning("SOP component system not available - using fallback")
 
-from sop_integrated_system import (
-    IntegratedSOPGenerator,
-    SOPIntegratedConfig,
-    SOPIntegrationMode
-)
+    class SOPComponentGenerator:
+        pass
+
+    class SOPComponentType:
+        pass
+
+try:
+    from sop_integrated_system import (
+        IntegratedSOPGenerator,
+        SOPIntegratedConfig,
+        SOPIntegrationMode,
+    )
+    SOP_INTEGRATED_SYSTEM_AVAILABLE = True
+except ImportError:
+    SOP_INTEGRATED_SYSTEM_AVAILABLE = False
+    logger.warning("SOP integrated system not available - using fallback")
+
+    class IntegratedSOPGenerator:
+        pass
+
+    class SOPIntegratedConfig:
+        pass
+
+    class SOPIntegrationMode:
+        pass
 
 from generic_maker_integration import (
     GenericMAKERIntegration,

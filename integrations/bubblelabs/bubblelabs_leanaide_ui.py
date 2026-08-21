@@ -18,8 +18,13 @@ Usage:
 Author: OpenEvolve
 Created: 2025-01-03
 """
+from __future__ import annotations
 
-from .ui_shim import ui as st
+
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
 import json
 import time
 import threading
@@ -27,7 +32,8 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 try:
-    from .bubblelabs_leanaide_integration import (
+    try:
+        from .bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         LeanAideTaskType,
         LeanAideIntegrationBridge,
@@ -36,7 +42,18 @@ try:
         MCTS_AVAILABLE,
         MDAP_AVAILABLE,
         LEAN4_AVAILABLE
-    )
+        )
+    except ImportError:
+        from          import (
+        get_leanaide_bridge,
+        LeanAideTaskType,
+        LeanAideIntegrationBridge,
+        initialize_leanaide_integration,
+        LEANAIDE_AVAILABLE,
+        MCTS_AVAILABLE,
+        MDAP_AVAILABLE,
+        LEAN4_AVAILABLE
+        )
     LEANAIDE_INTEGRATION_AVAILABLE = True
 except ImportError:
     LEANAIDE_INTEGRATION_AVAILABLE = False

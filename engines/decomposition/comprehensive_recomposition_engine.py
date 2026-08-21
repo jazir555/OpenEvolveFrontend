@@ -416,12 +416,15 @@ class IntegratedSolution:
     decomposition_plan_id: str
     
     # Content
+    solution_id: str
+    problem_id: str
+    decomposition_plan_id: str
     assembled_content: str
-    content_hash: str = ""
-    
+
     # Assembly info
     assembly_strategy: AssemblyStrategy
-    sub_solutions: Dict[str, SubProblemSolution]
+    sub_solutions: Dict[str, SubProblemSolution] = field(default_factory=dict)
+    content_hash: str = ""
     assembly_plan: Optional[AssemblyPlan] = None
     
     # Quality

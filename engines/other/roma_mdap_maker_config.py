@@ -4,6 +4,8 @@ ROMA-MDAP-MAKER Configuration Models
 This module defines the configuration structures used across the 
 ROMA-MDAP-MAKER + Associative Recomposition system.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional

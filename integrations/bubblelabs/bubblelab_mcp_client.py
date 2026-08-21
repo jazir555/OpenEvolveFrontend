@@ -4,6 +4,8 @@ BubbleLab MCP Client for CrewAI Orchestration
 This module provides the client-side implementation for BubbleLab
 to communicate with the CrewAI MCP server for advanced orchestration.
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

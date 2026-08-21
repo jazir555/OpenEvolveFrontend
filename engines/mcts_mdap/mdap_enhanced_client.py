@@ -19,6 +19,8 @@ Usage:
     # Check capabilities
     print(client.capabilities)
 """
+from __future__ import annotations
+
 
 import logging
 import time

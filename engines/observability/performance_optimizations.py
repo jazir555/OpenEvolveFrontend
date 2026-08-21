@@ -11,6 +11,8 @@ This module provides comprehensive performance optimizations including:
 Author: Performance Optimization Suite
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import time
 import logging

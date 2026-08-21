@@ -11,6 +11,8 @@ that integrates with:
 Matryoshka is NOT just for documents - it's a universal execution engine
 for any problem space that can be represented symbolically and explored iteratively.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List, Union, Tuple

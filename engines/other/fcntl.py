@@ -8,6 +8,8 @@ On Windows, many of these operations are not applicable or have different equiva
 This stub ensures that code importing fcntl can still import and run on Windows,
 though some functionality may be limited or operate as no-ops.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Optional, Union

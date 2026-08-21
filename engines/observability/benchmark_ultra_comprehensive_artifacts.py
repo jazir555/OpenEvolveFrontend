@@ -6,6 +6,8 @@ to create a complete knowledge base for the OpenEvolve system.
 
 Target: Generate 200+ artifacts covering all categories and types.
 """
+from __future__ import annotations
+
 
 
 import json

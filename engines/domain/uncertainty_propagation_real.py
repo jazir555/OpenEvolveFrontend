@@ -15,6 +15,8 @@ Author: OpenEvolve
 Version: 3.0.0 - PRODUCTION
 Status: REAL IMPLEMENTATION (NOT MOCKED)
 """
+from __future__ import annotations
+
 
 import numpy as np
 import logging

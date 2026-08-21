@@ -5,6 +5,8 @@ uses it purely for observability (``start_as_current_span``). In environments
 where a real tracing backend is not installed we provide a no-op implementation
 so the analysis engines remain importable and functional.
 """
+from __future__ import annotations
+
 
 from contextlib import contextmanager
 from typing import Iterator, Optional

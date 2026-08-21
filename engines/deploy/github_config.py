@@ -2,6 +2,8 @@
 GitHub Integration Configuration and Utilities
 This module provides utilities for integrating with GitHub repositories.
 """
+from __future__ import annotations
+
 
 
 from ui_shim import ui as st

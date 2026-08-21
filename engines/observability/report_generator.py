@@ -23,6 +23,8 @@ Export Formats:
 - Excel: Multi-sheet spreadsheets with raw data and summaries
 - JSON: Structured data for API consumption and further processing
 """
+from __future__ import annotations
+
 
 import logging
 import json

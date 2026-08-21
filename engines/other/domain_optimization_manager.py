@@ -4,6 +4,8 @@ Domain Optimization Manager
 Manages domain-specific optimizations for decomposition, including
 domain configurations, patterns, vocabulary, and strategy adjustments.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional

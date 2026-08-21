@@ -5,6 +5,8 @@ This module provides comprehensive lifecycle controls for OpenEvolve workflows
 within the BubbleLabs interface, including start, pause, resume, stop, cancel,
 and restart functionality.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import time

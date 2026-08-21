@@ -3,6 +3,8 @@ Collaboration Manager for OpenEvolve - Collaborative features
 This file manages collaborative editing, comments, notifications, and team features
 File size: ~1800 lines (under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 
 from ui_shim import ui as st

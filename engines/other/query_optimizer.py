@@ -12,6 +12,8 @@ Provides comprehensive query optimization features:
 - Slow query logging
 - Schema-aware query optimization
 """
+from __future__ import annotations
+
 
 
 

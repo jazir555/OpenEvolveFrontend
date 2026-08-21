@@ -10,6 +10,8 @@ Key concepts:
 - Competitive Coevolution: Solvers and problems coevolve
 - Multi-Objective: Pareto optimization of multiple criteria
 """
+from __future__ import annotations
+
 
 import asyncio
 import random

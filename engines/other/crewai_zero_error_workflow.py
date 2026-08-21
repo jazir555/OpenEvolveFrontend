@@ -7,6 +7,8 @@ error prevention, detection, and automatic correction capabilities.
 Author: OpenEvolve
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

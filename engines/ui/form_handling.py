@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 
 """Form Handling Module (Test Compatibility)"""
 

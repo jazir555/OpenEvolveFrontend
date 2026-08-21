@@ -2,6 +2,8 @@
 OpenEvolve Orchestration System
 Advanced workflow orchestration for ALL OpenEvolve features
 """
+from __future__ import annotations
+
 from ui_shim import ui as st
 import time
 import threading

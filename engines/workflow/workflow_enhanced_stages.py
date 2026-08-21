@@ -2,6 +2,8 @@
 COMPREHENSIVE STAGE 4, 5, 6 IMPLEMENTATIONS
 Fully fleshed-out, production-ready implementations with complete logic
 """
+from __future__ import annotations
+
 
 import ast
 import asyncio

@@ -12,6 +12,8 @@ Provides:
 Author: OpenEvolve
 Created: 2026-01-31
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

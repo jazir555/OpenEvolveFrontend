@@ -8,6 +8,8 @@ This module implements intelligent team assignment to sub-problems based on:
 - Specialization matching
 - Conflict avoidance
 """
+from __future__ import annotations
+
 
 import logging
 import json
@@ -18,8 +20,28 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from sovereign_data_models import (
-    SubProblem, SubProblemTeamAssignment, DecompositionPlan
+    SubProblem, DecompositionPlan
 )
+
+try:
+    # Preferred: shared model, if the schema facade ever exposes it.
+    from sovereign_data_models import SubProblemTeamAssignment
+except ImportError:
+    # sovereign_data_models (openevolve.kernel.schema) only ships the generic
+    # ``TeamAssignment`` (id/team_id/sub_problem_id), which cannot represent the
+    # per-role assignment used here, so define the minimal record needed.
+    @dataclass
+    class SubProblemTeamAssignment:
+        """Per-role team assignment for a single sub-problem."""
+
+        solver: Optional[str] = None
+        patcher: Optional[str] = None
+        red_team: Optional[str] = None
+        gold_team: Optional[str] = None
+        metadata: Dict[str, Any] = field(default_factory=dict)
+
+        def to_dict(self) -> Dict[str, Any]:
+            return asdict(self)
 from openevolve_structures import Team
 from team_manager import TeamManager
 

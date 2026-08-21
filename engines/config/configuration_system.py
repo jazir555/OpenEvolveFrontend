@@ -2,6 +2,8 @@
 OpenEvolve Configuration Management System
 Handles all configuration parameters for OpenEvolve features
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 from typing import Dict, Any, Optional

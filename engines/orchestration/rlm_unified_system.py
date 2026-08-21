@@ -13,6 +13,8 @@ This is the "missing puzzle piece" - RLM provides:
 3. Task-agnostic execution
 4. Infinite context handling
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any

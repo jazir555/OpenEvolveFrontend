@@ -4,6 +4,8 @@ Dynamic Gauntlet Adaptation Module
 This module provides dynamic adaptation of gauntlets based on performance metrics,
 feedback, context, and resource availability.
 """
+from __future__ import annotations
+
 
 import json
 from typing import Dict, Any, List, Optional

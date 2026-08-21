@@ -2,6 +2,8 @@
 Comprehensive Reporting System for OpenEvolve
 Generates detailed reports, visualizations, and documentation for evolution runs.
 """
+from __future__ import annotations
+
 from ui_shim import ui as st
 import pandas as pd
 import numpy as np

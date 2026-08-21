@@ -14,6 +14,8 @@ Based on:
 - Paper: "Solving a Million-Step LLM Task with Zero Errors" (arXiv:2511.09030)
 - OpenEvolve Decomposition Workflow (Decomposition_Workflow.md)
 """
+from __future__ import annotations
+
 
 import hashlib
 import json
@@ -25,10 +27,16 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from enum import Enum
 
 # Core imports
-from workflow_structures import (
-    ModelConfig, Team, WorkflowState, SubProblem, SolutionAttempt,
-    GauntletDefinition, GauntletRoundRule
-)
+try:
+    from openevolve.kernel.schema import (
+        ModelConfig, Team, WorkflowState, SubProblem, SolutionAttempt,
+        GauntletDefinition, GauntletRoundRule,
+    )
+except Exception:
+    from workflow_structures import (
+        ModelConfig, Team, WorkflowState, SubProblem, SolutionAttempt,
+        GauntletDefinition, GauntletRoundRule,
+    )
 
 # Try to import OpenEvolve components
 try:

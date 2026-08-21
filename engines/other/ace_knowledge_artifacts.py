@@ -7,6 +7,8 @@ Knowledge Extraction in the Sovereign-Grade Decomposition Workflow.
 Knowledge Artifacts are structured learning outputs extracted from workflow
 executions that capture reusable patterns, solutions, and insights.
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field

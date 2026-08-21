@@ -10,6 +10,8 @@ Features:
 - Learns from successful healings
 - Tracks quality improvement
 """
+from __future__ import annotations
+
 
 import logging
 import time

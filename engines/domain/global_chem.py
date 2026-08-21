@@ -10,6 +10,8 @@ Install global-chem package for full functionality: pip install global-chem
 
 Repository: https://github.com/Sulstice/global-chem
 """
+from __future__ import annotations
+
 
 import warnings
 from typing import Dict, List, Optional, Any, Tuple

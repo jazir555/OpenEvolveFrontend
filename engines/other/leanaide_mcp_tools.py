@@ -14,6 +14,8 @@ LeanAide provides:
 
 Architecture: CREWAI (Orchestrator) -> LeanAide MCP Tools -> LeanAide Server -> Lean Theorem Prover
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

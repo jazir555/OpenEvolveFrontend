@@ -4,6 +4,8 @@ Domain Configurations for Decomposition System
 Provides predefined configurations for various domains with domain-specific
 terminology, patterns, strategies, and quality thresholds.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Any

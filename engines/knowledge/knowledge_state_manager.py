@@ -12,6 +12,8 @@ Key Concepts:
 - Merge, don't append: Update existing facts if they change
 - Promote decisions: When reasoning completes, promote result to state
 """
+from __future__ import annotations
+
 
 import json
 import sqlite3

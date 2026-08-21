@@ -15,6 +15,8 @@ Usage in workflow_engine.py:
     # with:
     # maker_result = generate_solution_with_maker_v2(...)
 """
+from __future__ import annotations
+
 
 import json
 import logging

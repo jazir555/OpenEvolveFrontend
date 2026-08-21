@@ -6,6 +6,8 @@ Measures throughput, latency, and resource utilization.
 
 Run: python benchmark_integrations.py --all
 """
+from __future__ import annotations
+
 
 import asyncio
 import time

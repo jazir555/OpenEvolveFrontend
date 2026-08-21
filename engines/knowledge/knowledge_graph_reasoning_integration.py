@@ -4,6 +4,8 @@ Knowledge Graph Integration with Reasoning Systems
 Connects the knowledge graph to verification and decision processes,
 enabling context-aware decisions and learning from history.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Any, Dict, List, Optional, Set, Tuple

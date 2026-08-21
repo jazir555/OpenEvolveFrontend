@@ -3,6 +3,8 @@ Version Control for OpenEvolve - Version history and management
 This file manages protocol versions, branching, and version-related features
 File size: ~1000 lines (under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import uuid

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 SOP Evolution Script - Automated Ensemble-Based SOP Improvement

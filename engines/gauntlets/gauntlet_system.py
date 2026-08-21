@@ -7,6 +7,8 @@ validation, red teaming, and formal verification.
 Author: OpenEvolve Team
 Date: 2026-02-06
 """
+from __future__ import annotations
+
 
 import logging
 import time

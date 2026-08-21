@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """
 OpenEvolve Content Improver: A UI application for AI-powered content hardening

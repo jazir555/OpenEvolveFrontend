@@ -14,6 +14,8 @@ Examples include:
 Author: OpenEvolve
 Created: 2025-01-03
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -26,14 +28,24 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    from .bubblelabs_leanaide_integration import (
+    try:
+        from .bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         LeanAideTaskType,
         initialize_leanaide_integration,
         LEANAIDE_AVAILABLE,
         MCTS_AVAILABLE,
         MDAP_AVAILABLE
-    )
+        )
+    except ImportError:
+        from          import (
+        get_leanaide_bridge,
+        LeanAideTaskType,
+        initialize_leanaide_integration,
+        LEANAIDE_AVAILABLE,
+        MCTS_AVAILABLE,
+        MDAP_AVAILABLE
+        )
     LEANAIDE_INTEGRATION_AVAILABLE = True
 except ImportError:
     LEANAIDE_INTEGRATION_AVAILABLE = False

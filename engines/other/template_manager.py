@@ -4,6 +4,8 @@ Template Manager Module
 This module handles workflow configuration templates, allowing users to save,
 load, and manage reusable workflow configurations.
 """
+from __future__ import annotations
+
 
 import json
 import os

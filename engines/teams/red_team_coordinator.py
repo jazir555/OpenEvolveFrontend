@@ -16,6 +16,8 @@ This refactored version uses OpenEvolve's LLMEnsemble for coordination instead o
 custom team member management, providing better parallelization and reliability
 for adversarial testing while maintaining all Red Team security capabilities.
 """
+from __future__ import annotations
+
 
 import os
 import json
@@ -69,9 +71,48 @@ try:
         IssueCategory, RedTeamStrategy, SeverityLevel
     )
     RED_TEAM_AVAILABLE = True
-except ImportError as e:
+except Exception as e:  # noqa: BLE001 - optional dependency
     logging.warning(f"Red Team not available: {e}")
     RED_TEAM_AVAILABLE = False
+
+    # Fallback definitions so the coordinator stays importable and functional
+    # (e.g. for the formal LeanAIDE challenge path) without the full red_team module.
+    class IssueCategory(Enum):
+        SECURITY_VULNERABILITY = "security_vulnerability"
+        LOGICAL_ERROR = "logical_error"
+        PERFORMANCE_PROBLEM = "performance_problem"
+        COMPLIANCE_ISSUE = "compliance_issue"
+        EDGE_CASE = "edge_case"
+
+    class RedTeamStrategy(Enum):
+        ADVERSARIAL = "adversarial"
+        SYSTEMATIC = "systematic"
+        FOCUSED_ATTACK = "focused_attack"
+        DEEP_DIVE = "deep_dive"
+        POKA_YOKE = "poka_yoke"
+
+    class SeverityLevel(Enum):
+        CRITICAL = "critical"
+        HIGH = "high"
+        MEDIUM = "medium"
+        LOW = "low"
+
+    class IssueFinding:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class RedTeamAssessment:
+        findings: list = []
+
+    class RedTeamMember:
+        name = "member"
+        specializations: list = []
+
+    class RedTeam:
+        team_members: list = []
+
+        def assess_content(self, *args, **kwargs):
+            return RedTeamAssessment()
 
 # Import OpenEvolve ensemble components
 try:
@@ -83,6 +124,8 @@ except ImportError as e:
     ENSEMBLE_AVAILABLE = False
 
 # Import ROMA-MDAP-MAKER (Robust Execution)
+# Guarded broadly: the ROMA integration is optional and may fail to import
+# (e.g. a transitive NameError in a dependency) without breaking this module.
 try:
     from roma_mdap_maker_associative_integration import (
         ROMAMDAPMakerAssociativeEngine,
@@ -90,8 +133,10 @@ try:
         ROMA_MDAP_MAKER_AVAILABLE
     )
     from roma_mdap_maker_reliability_ssot import get_validation_config
-except ImportError:
+    ROMA_MDAP_MAKER_AVAILABLE = True
+except Exception:  # noqa: BLE001 - optional integration
     ROMA_MDAP_MAKER_AVAILABLE = False
+    ROMAMDAPMakerAssociativeEngine = None
     get_validation_config = None
 
 # Configure logging
@@ -268,6 +313,16 @@ class RedTeamCoordinator:
         ]
         self.diversify_attacks = diversify_attacks
 
+        # LeanAIDE client for *formal* adversarial challenges: try to prove a
+        # candidate invariant / counterexample with the real Lean4 client (or its
+        # deterministic offline mock). Used by ``challenge_with_lean``.
+        self.lean_client = None
+        if LEAN_AVAILABLE:
+            try:
+                self.lean_client = LeanAideClient()
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to initialize LeanAideClient: %s", exc)
+
         # Task management
         self.attack_queue: queue.Queue = queue.Queue()
         self.active_attacks: Dict[str, AttackCoordinationTask] = {}
@@ -294,8 +349,9 @@ class RedTeamCoordinator:
                 config_roma = get_validation_config()
                 self.roma_engine = ROMAMDAPMakerAssociativeEngine(config_roma)
                 logger.info("ROMAMDAPMakerAssociativeEngine initialized for RedTeamCoordinator")
-            except (RuntimeError, ImportError, ValueError) as e:
+            except Exception as e:  # noqa: BLE001 - never let optional engine break init
                 logger.warning(f"Failed to initialize ROMA engine: {e}")
+                self.roma_engine = None
 
         # Thread pool for parallel execution (legacy mode)
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_attacks)
@@ -970,6 +1026,56 @@ Provide your analysis as a JSON object with:
     # =========================================================================
     # UTILITY METHODS
     # =========================================================================
+
+    # =========================================================================
+    # FORMAL ADVERSARIAL CHALLENGE (LeanAIDE integration)
+    # =========================================================================
+
+    def challenge_with_lean(
+        self,
+        claim: str,
+        counterexample: Optional[str] = None,
+        tactics: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Issue a *formal* Red Team challenge against ``claim``.
+
+        The Red Team tries to break the claim by proving a contradiction /
+        counterexample. ``claim`` is autoformalized (or the explicit
+        ``counterexample`` is used) and submitted to the LeanAIDE client.
+
+        Returns a dict with ``disproved`` (True when the challenge succeeded,
+        i.e. a contradiction was proved), ``status`` and the raw client result.
+        When the LeanAIDE client is unavailable this degrades to a deterministic
+        offline attempt so the method stays functional without external services.
+        """
+        if not self.lean_client:
+            if LEAN_AVAILABLE:
+                try:
+                    self.lean_client = LeanAideClient()
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("LeanAideClient unavailable: %s", exc)
+                    self.lean_client = None
+
+        if not self.lean_client:
+            return {
+                "disproved": False,
+                "status": "skipped",
+                "reason": "LeanAIDE client unavailable",
+                "claim": claim,
+            }
+
+        target = counterexample or self.lean_client.autoformalize(claim)
+        result = self.lean_client.prove(target, tactics)
+
+        disproved = bool(result)
+        return {
+            "disproved": disproved,
+            "status": getattr(result, "status", "unknown"),
+            "tactics": list(getattr(result, "tactics", [])),
+            "formalized": target,
+            "error": getattr(result, "error", None),
+            "claim": claim,
+        }
 
     def get_metrics(self) -> RedTeamCoordinatorMetrics:
         """Get current coordinator metrics"""

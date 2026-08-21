@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ui_shim import ui as st
 import threading
 from typing import Callable, TypeVar

@@ -11,6 +11,8 @@ Complete REST API integration for Lean 4 compiler with:
 Author: OpenEvolve
 Version: 1.0.0 - Complete Implementation
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

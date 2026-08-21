@@ -13,6 +13,8 @@ Key Features:
 - Result caching for frequently accessed queries
 - Performance metrics tracking
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 
 """Frontend Utilities Module (Test Compatibility)"""
 

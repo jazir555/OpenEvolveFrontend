@@ -8,6 +8,8 @@ Implements the distinction between:
 Key Principle: The prompt is a working surface, not memory.
 Memory lives outside and gets updated every turn.
 """
+from __future__ import annotations
+
 
 import json
 import logging

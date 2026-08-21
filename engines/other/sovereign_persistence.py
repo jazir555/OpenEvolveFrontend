@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Persistence Layer
 Database schema and CRUD operations for all entities.
 """
+from __future__ import annotations
+
 
 import sqlite3
 import json

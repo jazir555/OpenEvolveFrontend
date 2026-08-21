@@ -12,6 +12,8 @@ Key Features:
 - Domain-specific tracking
 - Problem-type specific tracking
 """
+from __future__ import annotations
+
 
 import json
 import logging

@@ -14,6 +14,8 @@ This module provides a parallel Z3 solving infrastructure with:
 Author: Z3-Lean Integration Project
 Date: 2026-02-17
 """
+from __future__ import annotations
+
 
 import multiprocessing as mp
 import logging

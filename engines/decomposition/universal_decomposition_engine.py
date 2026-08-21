@@ -33,6 +33,8 @@ Usage:
     ...     constraints=["regulatory_compliance", "real_time_processing"]
     ... )
 """
+from __future__ import annotations
+
 
 import logging
 import json
@@ -53,10 +55,24 @@ except ImportError:  # pragma: no cover - optional dependency
     Field = lambda *args, **kwargs: None  # type: ignore
     ValidationError = Exception  # type: ignore
     PYDANTIC_AVAILABLE = False
-from utils.entanglement_utils import (
-    build_symbolic_entanglement_matrix,
-    serialize_entanglement_matrix,
-)
+try:
+    from utils.entanglement_utils import (
+        build_symbolic_entanglement_matrix,
+        serialize_entanglement_matrix,
+    )
+except ImportError:
+    import json as _json
+
+    def build_symbolic_entanglement_matrix(sub_problems, allowed_ids=None, enforce_symmetry=True, strict=False):
+        ids = list(allowed_ids) if allowed_ids is not None else [
+            getattr(sp, "id", "sp_{0}".format(i)) for i, sp in enumerate(sub_problems or [])
+        ]
+        matrix = {sid: {oid: 1.0 if sid == oid else 0.0 for oid in ids} for sid in ids}
+        symbols_by_id = {sid: set() for sid in ids}
+        return matrix, symbols_by_id
+
+    def serialize_entanglement_matrix(matrix):
+        return _json.dumps(matrix, default=str)
 
 # Configure logging
 logger = logging.getLogger(__name__)

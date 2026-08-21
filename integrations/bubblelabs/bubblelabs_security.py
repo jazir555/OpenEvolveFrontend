@@ -26,7 +26,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, FrozenSet, Optional, TypeVar
 
-from ._stub_support import STUB, raise_stub
+try:
+    from ._stub_support import STUB, raise_stub
+except ImportError:
+    from _stub_support import STUB, raise_stub
 
 logger = logging.getLogger(__name__)
 

@@ -8,6 +8,8 @@ Provides single source of truth for all configuration with proper precedence:
 
 Performs validation, conflict detection, and logging.
 """
+from __future__ import annotations
+
 
 import os
 import logging

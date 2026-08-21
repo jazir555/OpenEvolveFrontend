@@ -12,6 +12,8 @@ It defines symbolic representations for:
 
 Author: OpenEvolve
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, List, Optional, Any, Tuple, Union

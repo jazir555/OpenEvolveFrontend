@@ -4,6 +4,8 @@ Distributed Processing Module
 This module enables distributed processing of sub-problems across multiple
 workers/nodes for large-scale problem solving.
 """
+from __future__ import annotations
+
 
 import concurrent.futures
 from typing import List, Dict, Any, Callable, Optional

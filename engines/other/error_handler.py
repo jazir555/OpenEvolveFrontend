@@ -2,6 +2,8 @@
 Comprehensive Error Handling System for OpenEvolve
 Provides centralized error handling, recovery, and reporting
 """
+from __future__ import annotations
+
 
 import logging
 import traceback

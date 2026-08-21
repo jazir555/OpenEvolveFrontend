@@ -13,6 +13,8 @@ Integrates Uncertainpy for advanced uncertainty quantification.
 Author: OpenEvolve
 Version: 2.0.0
 """
+from __future__ import annotations
+
 
 import numpy as np
 import logging

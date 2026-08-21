@@ -1,4 +1,6 @@
 """Config validation module stub."""
+from __future__ import annotations
+
 
 class ConfigError(Exception):
     """Configuration error."""

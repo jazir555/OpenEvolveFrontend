@@ -5,6 +5,8 @@ This module provides integration methods for the formal gauntlet system
 with the DecompositionEngine. These methods can be mixed into the
 DecompositionEngine class or used as standalone functions.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Optional, Dict, Any
@@ -14,12 +16,21 @@ from sovereign_data_models import (
     DecompositionPlan,
     SubProblem,
     SolutionAttempt,
-    GauntletAssignment,
     GauntletExecution,
     GauntletDefinition,
     DecompositionStrategy
 )
 from sovereign_data_models import generate_id
+
+try:
+    from sovereign_data_models import GauntletAssignment
+except ImportError:
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class GauntletAssignment:
+        red_team_gauntlet: object = None
+        gold_team_gauntlet: object = None
 
 # Import ROMA-MDAP-MAKER (Robust Execution)
 try:

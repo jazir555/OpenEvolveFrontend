@@ -13,6 +13,8 @@ Key Features:
 - Snapshot management
 - Export/import for debugging
 """
+from __future__ import annotations
+
 
 
 import json

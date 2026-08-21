@@ -15,6 +15,8 @@ This bridge achieves 100% integration completion.
 Author: OpenEvolve
 Date: 2026-02-02
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

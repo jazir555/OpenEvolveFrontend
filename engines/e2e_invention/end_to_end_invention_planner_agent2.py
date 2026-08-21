@@ -8,6 +8,8 @@ This module provides enhanced implementations for:
 
 These methods integrate with the main end_to_end_invention_planner.py
 """
+from __future__ import annotations
+
 
 import logging
 import re

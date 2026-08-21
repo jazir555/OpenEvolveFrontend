@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Code Coverage Tracking
 Implements comprehensive code coverage tracking and reporting using pytest-cov.
 """
+from __future__ import annotations
+
 
 
 import os

@@ -8,6 +8,8 @@ License: MIT
 Author: OpenEvolve Team
 Date: 2026-02-03
 """
+from __future__ import annotations
+
 
 import json
 import time

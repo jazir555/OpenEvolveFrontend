@@ -17,6 +17,8 @@ Author: OpenEvolve
 Version: 1.1.0
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import logging
 import re

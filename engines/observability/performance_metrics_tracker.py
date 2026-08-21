@@ -15,6 +15,8 @@ TRACKING CAPABILITIES:
 - Trend analysis
 - Performance reporting
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -25,11 +27,36 @@ from pathlib import Path
 from collections import defaultdict
 from dataclasses import dataclass, field, asdict
 
-from sovereign_data_models import (
-    DecompositionPlan, SolutionAttempt, ProblemDefinition,
-    SubProblem, ValidationResult, ComplexityScore,
-    DecompositionStrategy, generate_id
-)
+try:
+    from sovereign_data_models import (
+        DecompositionPlan, SolutionAttempt, ProblemDefinition,
+        SubProblem, ValidationResult, ComplexityScore,
+        DecompositionStrategy, generate_id,
+    )
+except ImportError:
+    # sovereign_data_models is a facade over openevolve.kernel.schema, which does
+    # not always export ValidationResult / DecompositionStrategy (flaky circular
+    # import). Import what exists and supply local fallbacks for the rest.
+    from sovereign_data_models import (
+        DecompositionPlan, SolutionAttempt, ProblemDefinition,
+        SubProblem, ComplexityScore, generate_id,
+    )
+    from enum import Enum
+    from dataclasses import dataclass, field
+
+    class DecompositionStrategy(Enum):
+        SEQUENTIAL = "sequential"
+        PARALLEL = "parallel"
+        HIERARCHICAL = "hierarchical"
+        HYBRID = "hybrid"
+        ADAPTIVE = "adaptive"
+
+    @dataclass
+    class ValidationResult:
+        passed: bool = False
+        score: float = 0.0
+        details: str = ""
+        errors: list = field(default_factory=list)
 
 logger = logging.getLogger(__name__)
 

@@ -10,6 +10,8 @@ The enhanced gauntlet system implements a 3-round validation process:
 2. Round 2: Red Team Attack (Adversarial - finds flaws)
 3. Round 3: Gold Team Verification (Consensus - final approval)
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

@@ -1,0 +1,368 @@
+ROMA not available: No module named 'roma_dspy'
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+INFO:quality_assessment:DSPy available for enhanced programmatic prompting
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+INFO:red_team:DSPy available for enhanced programmatic prompting
+INFO:red_team:Adaptive MDAP not available - using standard resource allocation
+INFO:knowledge_engine.config_validation:{'msg': 'Configuration validation passed', 'required_vars_present': 0, 'warnings': 0}
+INFO:knowledge_engine:{'msg': 'Configuration validation passed', 'configured_vars': 0, 'validation_mode': 'warn'}
+WARNING:knowledge_engine.integrations.z3_auto_extraction:Z3 knowledge integration not available
+ERROR:knowledge_engine.integrations.z3_api:Z3 knowledge integration not available
+INFO:knowledge_engine.integrations.unified_math_knowledge_bridge:CAV-NLP UnifiedMathService available for unified math knowledge bridge
+WARNING:integrations.causal_learn:Causal-learn not available. Integration will use graceful degradation.
+WARNING:blue_team:DTS integration not available - using standard fix generation methods
+INFO:blue_team:DSPy available for enhanced programmatic prompting
+WARNING:roma_mdap_maker_associative_integration:Adaptive Gauntlet System not available: cannot import name 'GauntletExecution' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'ValidationResult' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:openevolve_pes_enhanced.integration_wrapper:openevolve_agnostic_pes not available - standalone mode
+WARNING:configuration_manager:Configuration file not found: config.yaml, using defaults
+WARNING:comprehensive_decomposition_engine:CAV-NLP integration not available - NL decomposition disabled
+INFO:decomposition_z3_validator:Z3-LeanAide bridge available for enhanced validation
+INFO:verification_engine:Z3 SMT Solver available: (4, 15, 3, 0)
+INFO:verification_engine:LeanAIDE verifier available
+INFO:verification_engine:LeanAideClient available for formal verification
+WARNING:verification_engine:CAV-NLP integration not available - hybrid verification disabled
+INFO:decomposition_mcp_tools:SECURITY: Decomposition MCP tools security enabled
+WARNING:decomposition_mcp_tools:Decomposition engine not available: No module named 'openevolve_structures'
+INFO:decomposition_mcp_tools:Claudiomiro CLI detected
+INFO:decomposition_mcp_tools:Slither CLI not found - static smart contract ingestion will be unavailable
+INFO:decomposition_mcp_tools:Foundry Forge CLI detected
+WARNING:decomposition_mcp_tools:DataPizza not available: No module named 'datapizza.agents'
+INFO:decomposition_mcp_tools:ROMA core imported successfully
+WARNING:roma_decomposition_hybrid:Decomposition Workflow not available
+INFO:roma_mcp_tools:ROMA core imported successfully
+INFO:roma_mcp_tools:Registered ROMA MCP tool: solve_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: solve_sub_problem_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: analyze_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: verify_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: critique_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: get_roma_status
+INFO:roma_mcp_tools:Registered ROMA MCP tool: create_roma_config
+INFO:roma_mcp_tools:Initializing ROMA MCP tools...
+INFO:roma_mcp_tools:Registered 7 ROMA MCP tools
+INFO:roma_mcp_tools:  - solve_with_roma
+INFO:roma_mcp_tools:  - solve_sub_problem_with_roma
+INFO:roma_mcp_tools:  - analyze_with_roma
+INFO:roma_mcp_tools:  - verify_with_roma
+INFO:roma_mcp_tools:  - critique_with_roma
+INFO:roma_mcp_tools:  - get_roma_status
+INFO:roma_mcp_tools:  - create_roma_config
+INFO:decomposition_mcp_tools:ROMA-Decomposition hybrid imported successfully
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: solve_with_roma_mdap_maker
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: solve_subproblem_with_roma_mdap_maker
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: get_roma_mdap_maker_status
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: analyze_problem_with_roma_mdap
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: verify_solution_with_roma_mdap
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: create_roma_mdap_maker_config
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: get_roma_mdap_maker_metrics
+INFO:decomposition_mcp_tools:ROMA-MDAP-MAKER core imported successfully
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: analyze_problem_for_decomposition
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: decompose_problem_into_sub_problems
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: create_decomposition_plan
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: solve_sub_problem_with_team
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: critique_solution_with_gauntlet
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: verify_solution_with_gauntlet
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_slither_static_analysis
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_foundry_fuzzing
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_contract_audit_stack
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: get_mcp_tool_inventory
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: list_available_teams
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: list_available_gauntlets
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: get_decomposition_status
+INFO:decomposition_mcp_tools:Initializing Decomposition MCP tools...
+INFO:decomposition_mcp_tools:Registered 13 Decomposition MCP tools
+INFO:decomposition_mcp_tools:  - analyze_problem_for_decomposition
+INFO:decomposition_mcp_tools:  - decompose_problem_into_sub_problems
+INFO:decomposition_mcp_tools:  - create_decomposition_plan
+INFO:decomposition_mcp_tools:  - solve_sub_problem_with_team
+INFO:decomposition_mcp_tools:  - critique_solution_with_gauntlet
+INFO:decomposition_mcp_tools:  - verify_solution_with_gauntlet
+INFO:decomposition_mcp_tools:  - web3_ingest_slither_static_analysis
+INFO:decomposition_mcp_tools:  - web3_ingest_foundry_fuzzing
+INFO:decomposition_mcp_tools:  - web3_ingest_contract_audit_stack
+INFO:decomposition_mcp_tools:  - get_mcp_tool_inventory
+INFO:decomposition_mcp_tools:  - list_available_teams
+INFO:decomposition_mcp_tools:  - list_available_gauntlets
+INFO:decomposition_mcp_tools:  - get_decomposition_status
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: analyze_problem_for_decomposition
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: decompose_problem_into_sub_problems
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: create_decomposition_plan
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: solve_sub_problem_with_team
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: critique_solution_with_gauntlet
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: verify_solution_with_gauntlet
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: list_available_teams
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: list_available_gauntlets
+INFO:decomposition_crewai_tools:Registered Decomposition CrewAI tool: get_decomposition_status
+INFO:decomposition_crewai_tools:Initializing Decomposition CrewAI MCP tools...
+INFO:decomposition_crewai_tools:Registered 9 Decomposition CrewAI MCP tools
+INFO:decomposition_crewai_tools:  - analyze_problem_for_decomposition
+INFO:decomposition_crewai_tools:  - decompose_problem_into_sub_problems
+INFO:decomposition_crewai_tools:  - create_decomposition_plan
+INFO:decomposition_crewai_tools:  - solve_sub_problem_with_team
+INFO:decomposition_crewai_tools:  - critique_solution_with_gauntlet
+INFO:decomposition_crewai_tools:  - verify_solution_with_gauntlet
+INFO:decomposition_crewai_tools:  - list_available_teams
+INFO:decomposition_crewai_tools:  - list_available_gauntlets
+INFO:decomposition_crewai_tools:  - get_decomposition_status
+WARNING:root:Decomposition engine not available: cannot import name 'DecompositionStrategy' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+INFO:decomposition_z3_validator:Z3-LeanAide bridge available for enhanced validation
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'ValidationResult' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+C:\Users\mmeadow\AppData\Local\Temp\kilo\sweep_after.py:24: RuntimeWarning: Using global_chem stub module. This is not a functional replacement. Install global-chem package for full functionality: pip install global-chem
+  spec.loader.exec_module(m)
+INFO:physics_validator_real:PhysicsNeMo not available - using classical numerical methods (fully functional)
+INFO:uncertainty_propagation_enhanced:Uncertainpy not available - using Monte Carlo fallback
+INFO:uncertainty_propagation_real:Uncertainpy not available - using full native UQ implementation
+INFO:uncertainty_propagation_enhanced:Uncertainpy not available - using Monte Carlo fallback
+INFO:evolution:SECURITY: Evolution engine security enabled
+WARNING:evolution:Team system components not available - adversarial features will be limited: No module named 'openevolve_structures'
+WARNING:evolution:DTS integration not available - using standard evolution strategies
+WARNING:sop_integrated_system:Hybrid integration not available
+WARNING:end_to_end_invention_planner:Z3-Lean integration not available: No module named 'z3_to_lean_invention_integration'
+WARNING:end_to_end_invention_planner:Comprehensive validation module not available - using fallback
+WARNING:invention_planner_integrations:BubbleLabs not available: No module named 'bubblelabs_analytics' - analytics tracking will be limited
+WARNING:invention_planner_integrations:CrewAI not available: No module named 'datapizza_config' - task delegation will be local
+WARNING:invention_planner_integrations:Sovereign not available: No module named 'sovereign_quality_assessment' - quality assurance will be basic
+WARNING:invention_planner_integrations:Claudiomiro not available: No module named 'claudiomiro_crewai_bridge' - using basic decomposition
+WARNING:invention_planner_integrations:DataPizza not available: No module named 'datapizza_crewai_bridge' - decomposition will be basic
+WARNING:invention_planner_integrations:STEER not available: No module named 'steer_crewai_bridge' - output validation will be basic
+INFO:physics_validator_real:PhysicsNeMo not available - using classical numerical methods (fully functional)
+INFO:e2e_invention_planner_real:Real physics validator loaded
+INFO:uncertainty_propagation_real:Uncertainpy not available - using full native UQ implementation
+INFO:e2e_invention_planner_real:Real uncertainty propagator loaded
+INFO:sop_generator_real:LLM4IAS not available - using full native expert system
+INFO:e2e_invention_planner_real:Real SOP generator loaded
+WARNING:end_to_end_invention_planner:Z3-Lean integration not available: No module named 'z3_to_lean_invention_integration'
+WARNING:end_to_end_invention_planner:Comprehensive validation module not available - using fallback
+WARNING:invention_planner_integrations:BubbleLabs not available: No module named 'bubblelabs_analytics' - analytics tracking will be limited
+WARNING:invention_planner_integrations:CrewAI not available: No module named 'datapizza_config' - task delegation will be local
+WARNING:invention_planner_integrations:Sovereign not available: No module named 'sovereign_quality_assessment' - quality assurance will be basic
+WARNING:invention_planner_integrations:Claudiomiro not available: No module named 'claudiomiro_crewai_bridge' - using basic decomposition
+WARNING:invention_planner_integrations:DataPizza not available: No module named 'datapizza_crewai_bridge' - decomposition will be basic
+WARNING:invention_planner_integrations:STEER not available: No module named 'steer_crewai_bridge' - output validation will be basic
+WARNING:chronicle_memory_z3_integration:CAV-NLP integration not available for chronicle memory
+WARNING:knowledge_engine_hierarchical_integration:KnowledgeBase not available, using fallback
+WARNING:knowledge_unified_memory_system:Lifecycle manager not available: cannot import name 'LifecycleManager' from 'knowledge_lifecycle_manager' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\knowledge_lifecycle_manager.py)
+INFO:llm_caching:LLM Cache initialized with hybrid backend
+WARNING:knowledge_unified_memory_system:Lifecycle manager not available: cannot import name 'LifecycleManager' from 'knowledge_lifecycle_manager' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\knowledge_lifecycle_manager.py)
+WARNING:ml_pattern_clustering:ML libraries not fully available: cannot import name 'HybridCache' from 'transformers' (C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\__init__.py)
+INFO:ml_pattern_clustering:DeepKE integration available for entity/relation extraction
+INFO:ml_pattern_clustering:OneKE integration available for schema-guided extraction
+INFO:ml_pattern_clustering:Karate Club integration available for graph analysis
+WARNING:ml_pattern_clustering:kg-gen integration not available
+INFO:ml_pattern_clustering:AI Knowledge Graph integration available
+WARNING:ml_pattern_clustering:ML libraries not fully available: cannot import name 'HybridCache' from 'transformers' (C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\__init__.py)
+INFO:ml_pattern_clustering:DeepKE integration available for entity/relation extraction
+INFO:ml_pattern_clustering:OneKE integration available for schema-guided extraction
+INFO:ml_pattern_clustering:Karate Club integration available for graph analysis
+WARNING:ml_pattern_clustering:kg-gen integration not available
+INFO:ml_pattern_clustering:AI Knowledge Graph integration available
+WARNING:unified_knowledge_extraction:CAV-NLP integration not available
+INFO:z3_result_cache:Using redis-py as Valkey-compatible backend
+WARNING:mdap_maker_mcts_unified:MDAP evolutionary MCTS not available
+WARNING:scheduled_reports:croniter not found. Advanced scheduling will be limited.
+WARNING:scheduled_reports:schedule library not found. Basic scheduling will be used.
+WARNING:root:OpenTelemetry not installed. Telemetry will be disabled.
+C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\orchestration\future_enhancements.py:23: RuntimeWarning: Using TensorFlow stub module. This is not a functional replacement for TensorFlow. Install tensorflow package for full functionality.
+  import tensorflow as tf
+WARNING:rlm_roma_integration:ROMA integration not available. ROMA features will be disabled.
+WARNING:adversarial_mdap_mcts:MDAP evolved policies not available
+WARNING:adversarial_mdap_mcts:MDAP evolutionary nodes not available
+WARNING:mdap_maker_mcts_unified:MDAP evolutionary MCTS not available
+WARNING:adversarial_mdap_mcts:Unified framework not available
+INFO:api_server:SECURITY: Security framework loaded successfully
+WARNING:root:Maker Engine not available: No module named 'maker_integration_bridge'
+INFO:bubblelabs_leanaide_integration:LeanAide client available
+WARNING:bubblelabs_leanaide_integration:LeanAide MCTS-MDAP not available: No module named 'leanaide_mcts_mdap'
+INFO:leanaide_mcp_tools:REAL Lean integration available in mcp_tools
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_theorem
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_definition
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_proof
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_verify_solution
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_math_query
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_documentation
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_elaborate_code
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: get_leanaide_status
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_formalize_with_cav_nlp
+INFO:leanaide_mcp_tools:Initializing LeanAide MCP tools...
+INFO:leanaide_mcp_tools:Registered 9 LeanAide MCP tools
+INFO:leanaide_mcp_tools:  - leanaide_translate_theorem
+INFO:leanaide_mcp_tools:  - leanaide_translate_definition
+INFO:leanaide_mcp_tools:  - leanaide_generate_proof
+INFO:leanaide_mcp_tools:  - leanaide_verify_solution
+INFO:leanaide_mcp_tools:  - leanaide_math_query
+INFO:leanaide_mcp_tools:  - leanaide_generate_documentation
+INFO:leanaide_mcp_tools:  - leanaide_elaborate_code
+INFO:leanaide_mcp_tools:  - get_leanaide_status
+INFO:leanaide_mcp_tools:  - leanaide_formalize_with_cav_nlp
+INFO:bubblelabs_leanaide_integration:LeanAide MCP tools available
+INFO:bubblelabs_leanaide_integration:Lean4 lake not detected
+WARNING:api_server:Validation manager unavailable: No module named 'validation_manager'
+C:\Users\mmeadow\AppData\Local\Temp\kilo\sweep_after.py:24: RuntimeWarning: Using astor stub module. This is not a functional replacement for astor. Install astor package for full functionality.
+  spec.loader.exec_module(m)
+WARNING:root:CAV-NLP integration not available - CAV-NLP strategy disabled
+WARNING:blue_team:DTS integration not available - using standard fix generation methods
+INFO:blue_team:DSPy available for enhanced programmatic prompting
+INFO:bubblelabs_leanaide_integration:LeanAide client available
+WARNING:bubblelabs_leanaide_integration:LeanAide MCTS-MDAP not available: No module named 'leanaide_mcts_mdap'
+INFO:bubblelabs_leanaide_integration:LeanAide MCP tools available
+INFO:bubblelabs_leanaide_integration:Lean4 lake not detected
+WARNING:root:Maker Engine not available: No module named 'maker_integration_bridge'
+INFO:bubblelabs_security:Generated default admin API key: bl_Sqcs5XOEtQyz--zTWe6zABpzSiLzSc2QYuNRI-BvxZQ
+WARNING:root:Base continuous math not available - using standalone mode
+WARNING:configuration_manager:Configuration file not found: config.yaml, using defaults
+INFO:decomposition_mcp_tools:SECURITY: Decomposition MCP tools security enabled
+WARNING:decomposition_mcp_tools:Decomposition engine not available: No module named 'openevolve_structures'
+INFO:decomposition_mcp_tools:Claudiomiro CLI detected
+INFO:decomposition_mcp_tools:Slither CLI not found - static smart contract ingestion will be unavailable
+INFO:decomposition_mcp_tools:Foundry Forge CLI detected
+WARNING:decomposition_mcp_tools:DataPizza not available: No module named 'datapizza.agents'
+INFO:decomposition_mcp_tools:ROMA core imported successfully
+INFO:decomposition_mcp_tools:ROMA-Decomposition hybrid imported successfully
+INFO:decomposition_mcp_tools:ROMA-MDAP-MAKER core imported successfully
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: analyze_problem_for_decomposition
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: decompose_problem_into_sub_problems
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: create_decomposition_plan
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: solve_sub_problem_with_team
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: critique_solution_with_gauntlet
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: verify_solution_with_gauntlet
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_slither_static_analysis
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_foundry_fuzzing
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: web3_ingest_contract_audit_stack
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: get_mcp_tool_inventory
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: list_available_teams
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: list_available_gauntlets
+INFO:decomposition_mcp_tools:Registered Decomposition MCP tool: get_decomposition_status
+INFO:decomposition_mcp_tools:Initializing Decomposition MCP tools...
+INFO:decomposition_mcp_tools:Registered 13 Decomposition MCP tools
+INFO:decomposition_mcp_tools:  - analyze_problem_for_decomposition
+INFO:decomposition_mcp_tools:  - decompose_problem_into_sub_problems
+INFO:decomposition_mcp_tools:  - create_decomposition_plan
+INFO:decomposition_mcp_tools:  - solve_sub_problem_with_team
+INFO:decomposition_mcp_tools:  - critique_solution_with_gauntlet
+INFO:decomposition_mcp_tools:  - verify_solution_with_gauntlet
+INFO:decomposition_mcp_tools:  - web3_ingest_slither_static_analysis
+INFO:decomposition_mcp_tools:  - web3_ingest_foundry_fuzzing
+INFO:decomposition_mcp_tools:  - web3_ingest_contract_audit_stack
+INFO:decomposition_mcp_tools:  - get_mcp_tool_inventory
+INFO:decomposition_mcp_tools:  - list_available_teams
+INFO:decomposition_mcp_tools:  - list_available_gauntlets
+INFO:decomposition_mcp_tools:  - get_decomposition_status
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:root:valkey-py not installed. EventBus will use in-memory fallback.
+INFO:evolution:SECURITY: Evolution engine security enabled
+WARNING:evolution:Team system components not available - adversarial features will be limited: No module named 'openevolve_structures'
+WARNING:evolution:DTS integration not available - using standard evolution strategies
+INFO:evolution_z3_fitness:CAV-NLP integration not available. Install openevolve for enhanced features.
+INFO:leanaide_mcp_tools:REAL Lean integration available in mcp_tools
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_theorem
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_definition
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_proof
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_verify_solution
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_math_query
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_documentation
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_elaborate_code
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: get_leanaide_status
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_formalize_with_cav_nlp
+INFO:leanaide_mcp_tools:Initializing LeanAide MCP tools...
+INFO:leanaide_mcp_tools:Registered 9 LeanAide MCP tools
+INFO:leanaide_mcp_tools:  - leanaide_translate_theorem
+INFO:leanaide_mcp_tools:  - leanaide_translate_definition
+INFO:leanaide_mcp_tools:  - leanaide_generate_proof
+INFO:leanaide_mcp_tools:  - leanaide_verify_solution
+INFO:leanaide_mcp_tools:  - leanaide_math_query
+INFO:leanaide_mcp_tools:  - leanaide_generate_documentation
+INFO:leanaide_mcp_tools:  - leanaide_elaborate_code
+INFO:leanaide_mcp_tools:  - get_leanaide_status
+INFO:leanaide_mcp_tools:  - leanaide_formalize_with_cav_nlp
+WARNING:openevolve_leanaide_bridge:OpenEvolve workflow structures not available - using fallback types
+WARNING:openevolve_leanaide_bridge:LeanAIDE autoformalization engine not available
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'ValidationResult' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+INFO:quality_assessment:DSPy available for enhanced programmatic prompting
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+INFO:red_team:DSPy available for enhanced programmatic prompting
+INFO:red_team:Adaptive MDAP available for intelligent resource allocation
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: solve_with_roma
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: solve_sub_problem_with_roma
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: analyze_with_roma
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: verify_with_roma
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: critique_with_roma
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: get_roma_status
+INFO:roma_crewai_tools:Registered ROMA CrewAI tool: create_roma_config
+INFO:roma_crewai_tools:Initializing ROMA CrewAI MCP tools...
+INFO:roma_crewai_tools:Registered 7 ROMA CrewAI MCP tools
+INFO:roma_crewai_tools:  - solve_with_roma
+INFO:roma_crewai_tools:  - solve_sub_problem_with_roma
+INFO:roma_crewai_tools:  - analyze_with_roma
+INFO:roma_crewai_tools:  - verify_with_roma
+INFO:roma_crewai_tools:  - critique_with_roma
+INFO:roma_crewai_tools:  - get_roma_status
+INFO:roma_crewai_tools:  - create_roma_config
+WARNING:roma_decomposition_hybrid:Decomposition Workflow not available
+INFO:roma_mcp_tools:ROMA core imported successfully
+INFO:roma_mcp_tools:Registered ROMA MCP tool: solve_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: solve_sub_problem_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: analyze_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: verify_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: critique_with_roma
+INFO:roma_mcp_tools:Registered ROMA MCP tool: get_roma_status
+INFO:roma_mcp_tools:Registered ROMA MCP tool: create_roma_config
+INFO:roma_mcp_tools:Initializing ROMA MCP tools...
+INFO:roma_mcp_tools:Registered 7 ROMA MCP tools
+INFO:roma_mcp_tools:  - solve_with_roma
+INFO:roma_mcp_tools:  - solve_sub_problem_with_roma
+INFO:roma_mcp_tools:  - analyze_with_roma
+INFO:roma_mcp_tools:  - verify_with_roma
+INFO:roma_mcp_tools:  - critique_with_roma
+INFO:roma_mcp_tools:  - get_roma_status
+INFO:roma_mcp_tools:  - create_roma_config
+WARNING:roma_mdap_maker_associative_integration:Adaptive Gauntlet System not available: cannot import name 'GauntletExecution' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: solve_with_roma_mdap_maker
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: solve_subproblem_with_roma_mdap_maker
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: get_roma_mdap_maker_status
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: analyze_problem_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: verify_solution_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: create_roma_mdap_maker_config
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: critique_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:Registered ROMA-MDAP-MAKER CrewAI tool: get_roma_mdap_maker_metrics
+INFO:roma_mdap_maker_crewai_tools:Initializing ROMA-MDAP-MAKER CrewAI MCP tools...
+INFO:roma_mdap_maker_crewai_tools:Registered 8 ROMA-MDAP-MAKER CrewAI MCP tools
+INFO:roma_mdap_maker_crewai_tools:  - solve_with_roma_mdap_maker
+INFO:roma_mdap_maker_crewai_tools:  - solve_subproblem_with_roma_mdap_maker
+INFO:roma_mdap_maker_crewai_tools:  - get_roma_mdap_maker_status
+INFO:roma_mdap_maker_crewai_tools:  - analyze_problem_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:  - verify_solution_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:  - create_roma_mdap_maker_config
+INFO:roma_mdap_maker_crewai_tools:  - critique_with_roma_mdap
+INFO:roma_mdap_maker_crewai_tools:  - get_roma_mdap_maker_metrics
+WARNING:roma_mdap_maker_engine:ROMA not available: cannot import name 'ROMAConfig' from 'roma_dspy.config.schemas.root' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\roma_dspy\config\schemas\root.py)
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: solve_with_roma_mdap_maker
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: solve_subproblem_with_roma_mdap_maker
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: get_roma_mdap_maker_status
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: analyze_problem_with_roma_mdap
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: verify_solution_with_roma_mdap
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: create_roma_mdap_maker_config
+INFO:roma_mdap_maker_mcp_tools:Registered ROMA-MDAP-MAKER MCP tool: get_roma_mdap_maker_metrics
+INFO:verification_engine:Z3 SMT Solver available: (4, 15, 3, 0)
+INFO:verification_engine:LeanAIDE verifier available
+INFO:verification_engine:LeanAideClient available for formal verification
+WARNING:verification_engine:CAV-NLP integration not available - hybrid verification disabled
+WARNING:root:Could not import from workflow_structures: cannot import name 'SolutionPatternArtifact' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:root:ACE client not available. Install ace_client for enhanced extraction.
+INFO:workflow_knowledge_extractor:DSPy available for enhanced programmatic prompting
+WARNING:z3_mcp_tools:Unified Math Service (CAV-NLP) not available
+WARNING:z3_leanaide_openevolve_integration:Z3-LeanAIDE bridge not available
+WARNING:z3_leanaide_openevolve_integration:OpenEvolve workflow not available
+WARNING:z3_leanaide_openevolve_integration:BubbleLabs integration not available
+WARNING:z3_leanaide_openevolve_integration:CAV-NLP integration not available
+WARNING:z3_leanaide_openevolve_integration:Z3-LeanAIDE bridge not available
+WARNING:z3_leanaide_openevolve_integration:OpenEvolve workflow not available
+WARNING:z3_leanaide_openevolve_integration:BubbleLabs integration not available
+WARNING:z3_leanaide_openevolve_integration:CAV-NLP integration not available
+WARNING:z3_mcp_tools:Unified Math Service (CAV-NLP) not available
+WARNING:z3_to_lean_integration:Gauntlet system not available
+WARNING:quality_gate_leanaide_verifier:LeanAide not available for quality gate verification
+WARNING:quality_gate_leanaide_verifier:QualityGateEngine not available
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'ValidationResult' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+INFO:solution_pattern_miner:DSPy available for enhanced programmatic prompting
+INFO:sop_generator_real:LLM4IAS not available - using full native expert system
+WARNING:sop_integrated_system:Hybrid integration not available

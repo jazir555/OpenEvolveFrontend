@@ -4,6 +4,8 @@ Auto-Approval Module
 This module provides automatic approval functionality for decomposition plans
 based on configurable criteria, reducing manual review overhead for simple cases.
 """
+from __future__ import annotations
+
 
 from typing import Dict, Any, List, Tuple
 from workflow_structures import DecompositionPlan, SubProblem

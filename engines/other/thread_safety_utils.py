@@ -25,6 +25,8 @@ Usage Example:
     with get_session_lock():
         st.session_state.my_key = complex_operation()
 """
+from __future__ import annotations
+
 
 import threading
 from ui_shim import ui as st

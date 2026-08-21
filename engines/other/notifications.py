@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from ui_shim import ui as st  # UI shim for session_state access
 

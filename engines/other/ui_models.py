@@ -2,6 +2,8 @@
 Data models for UI components.
 These models represent the data structures used across UI components.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional

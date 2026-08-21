@@ -7,6 +7,8 @@ Supports sequential, parallel, hierarchical, adaptive, and chain execution modes
 Author: OpenEvolve Team
 Date: 2026-02-17
 """
+from __future__ import annotations
+
 
 import logging
 import time

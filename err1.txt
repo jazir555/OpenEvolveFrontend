@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines/orchestration\tripartite_production.py", line 43, in <module>
+    from sentence_transformers import SentenceTransformer
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\sentence_transformers\__init__.py", line 15, in <module>
+    from sentence_transformers.cross_encoder import (
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\sentence_transformers\cross_encoder\__init__.py", line 5, in <module>
+    from .trainer import CrossEncoderTrainer
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\sentence_transformers\cross_encoder\trainer.py", line 23, in <module>
+    from sentence_transformers.trainer import SentenceTransformerTrainer
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\sentence_transformers\trainer.py", line 17, in <module>
+    from transformers import EvalPrediction, PreTrainedTokenizerBase, Trainer, TrainerCallback
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\utils\import_utils.py", line 2098, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\utils\import_utils.py", line 2288, in _get_module
+    raise e
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\utils\import_utils.py", line 2286, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\trainer.py", line 209, in <module>
+    from peft import PeftMixedModel, PeftModel
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\peft\__init__.py", line 17, in <module>
+    from .auto import (
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\peft\auto.py", line 32, in <module>
+    from .peft_model import (
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\peft\peft_model.py", line 37, in <module>
+    from transformers import Cache, DynamicCache, EncoderDecoderCache, HybridCache, PreTrainedModel
+ImportError: cannot import name 'HybridCache' from 'transformers' (C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\__init__.py)

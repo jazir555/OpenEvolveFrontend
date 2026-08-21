@@ -10,6 +10,8 @@ from their execution feedback through three specialized roles:
 
 Architecture: CREWAI (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Union
 import sys

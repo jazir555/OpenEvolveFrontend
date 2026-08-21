@@ -2,6 +2,8 @@
 Evaluator Team (Judges) Functionality for OpenEvolve
 Implements the Evaluator Team functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 import os
 import json
 import re

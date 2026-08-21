@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Secure API Communication
 Implements encryption for sensitive data in transit and at rest.
 """
+from __future__ import annotations
+
 
 import os
 import json

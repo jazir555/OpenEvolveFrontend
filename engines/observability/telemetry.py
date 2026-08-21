@@ -14,6 +14,8 @@ Dependencies (all Apache 2.0):
 Author: OpenEvolve
 Date: 2026-02-02
 """
+from __future__ import annotations
+
 
 import functools
 import logging

@@ -10,6 +10,8 @@ ICR Integration:
 - Recommends refinements based on ICR patterns
 - Identifies high-risk solutions early
 """
+from __future__ import annotations
+
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone

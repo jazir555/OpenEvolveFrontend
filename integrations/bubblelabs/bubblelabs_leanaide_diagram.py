@@ -6,6 +6,8 @@ This ASCII diagram shows the complete integration architecture.
 Author: OpenEvolve
 Created: 2025-01-03
 """
+from __future__ import annotations
+
 
 INTEGRATION_ARCHITECTURE = """
 ╔══════════════════════════════════════════════════════════════════════════════╗

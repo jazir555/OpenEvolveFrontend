@@ -3,6 +3,8 @@ Session Utilities for OpenEvolve - Core utilities and helper functions
 This file contains utility functions and core helpers that were in the original sessionstate.py
 File size: ~1500 lines (under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import threading
@@ -13,7 +15,12 @@ import hashlib
 import re
 import os
 import logging
-from providercatalogue import PROVIDERS
+try:
+    from providercatalogue import PROVIDERS
+except Exception:
+    PROVIDERS = {
+        "openai": {"api_base": "", "default_model": ""},
+    }
 
 logger = logging.getLogger(__name__)
 

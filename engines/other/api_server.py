@@ -4,6 +4,8 @@ REST API Server for External System Integration
 This module provides a REST API for external systems to interact with the
 Decomposition Workflow system.
 """
+from __future__ import annotations
+
 
 from fastapi import FastAPI, HTTPException, Depends, Header, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -407,10 +409,16 @@ def _request_openai_chat(
 # Import environment helpers
 from env_helpers import is_production
 
-from workflow_structures import (
-    DecompositionPlan, SubProblem, Team, GauntletDefinition, GauntletRoundRule,
-    WorkflowState, ModelConfig
-)
+try:
+    from openevolve.kernel.schema import (
+        DecompositionPlan, SubProblem, Team, GauntletDefinition, GauntletRoundRule,
+        WorkflowState, ModelConfig,
+    )
+except Exception:
+    from workflow_structures import (
+        DecompositionPlan, SubProblem, Team, GauntletDefinition, GauntletRoundRule,
+        WorkflowState, ModelConfig,
+    )
 from knowledge_manager import KnowledgeManager
 from template_manager import TemplateManager
 from parameter_manager import ParameterManager
@@ -4697,7 +4705,10 @@ def get_knowledge_artifact(artifact_id: str):
 
 @app.post("/knowledge/artifacts", dependencies=[Depends(verify_api_key)])
 def create_knowledge_artifact(request: KnowledgeArtifactCreateRequest):
-    from workflow_structures import KnowledgeArtifact as KnowledgeArtifactModel
+    try:
+        from openevolve.kernel.schema import KnowledgeArtifact as KnowledgeArtifactModel
+    except Exception:
+        from workflow_structures import KnowledgeArtifact as KnowledgeArtifactModel
     artifact_id = uuid.uuid4().hex[:16]
     artifact = KnowledgeArtifactModel(
         id=artifact_id,

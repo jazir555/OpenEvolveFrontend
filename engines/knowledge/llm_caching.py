@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - LLM Response Caching
 Implements intelligent caching for expensive LLM calls to reduce costs and improve performance.
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

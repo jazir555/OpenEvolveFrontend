@@ -20,6 +20,8 @@ The bridge is deliberately dependency-light:
 Only the three spec adapters are exposed here. They are real, importable and
 runnable (no network / no LLM required when passed a lightweight engine).
 """
+from __future__ import annotations
+
 
 import asyncio
 import inspect

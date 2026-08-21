@@ -7,6 +7,8 @@ enabling visualization, interaction, and control of workflows through the Bubble
 CIRCULAR IMPORT FIX: All imports from api_server are now lazy (inside functions)
 to prevent circular import issues with the Z3 service chain.
 """
+from __future__ import annotations
+
 
 import json
 from typing import Dict, Any, List, Optional, Set, Union

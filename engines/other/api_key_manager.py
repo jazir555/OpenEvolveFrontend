@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - API Key Management
 Implements secure storage and management of LLM and external API keys.
 """
+from __future__ import annotations
+
 
 import os
 import json

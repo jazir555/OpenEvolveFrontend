@@ -16,6 +16,8 @@ Key Enhancements:
 Author: OpenEvolve
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -75,12 +77,20 @@ try:
         MathematicalComponent,
         ComponentType,
         DecompositionStrategy as LeanDecompositionStrategy,
-        MathematicalDomain
     )
     LEANAIDE_DECOMPOSITION_AVAILABLE = True
 except ImportError:
     LEANAIDE_DECOMPOSITION_AVAILABLE = False
     logging.warning("LeanAide decomposition not available")
+
+# MathematicalDomain shared symbol (prefer engines/other/math_domain)
+try:
+    from math_domain import MathematicalDomain
+except ImportError:
+    try:
+        from leanaide_decomposition_integration import MathematicalDomain
+    except ImportError:
+        MathematicalDomain = None
 
 # Import workflow structures
 try:

@@ -15,6 +15,8 @@ Integrates with:
 Author: OpenEvolve
 Created: 2026-02-02
 """
+from __future__ import annotations
+
 
 import json
 import logging

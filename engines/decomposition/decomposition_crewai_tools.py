@@ -21,6 +21,8 @@ The Decomposition Workflow leverages CrewAI's zero-error workflow for:
 Architecture:
     CrewAI Agent -> MCP Tool -> Decomposition Bridge -> CrewAI Zero-Error Workflow -> Result
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional

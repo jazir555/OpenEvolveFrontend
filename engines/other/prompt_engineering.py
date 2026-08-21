@@ -2,6 +2,8 @@
 Prompt Engineering System for OpenEvolve
 Implements the Prompt Engineering functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 
 
 import re

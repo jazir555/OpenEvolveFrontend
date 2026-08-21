@@ -4,6 +4,8 @@ Batch Operations Module
 This module provides batch operation functionality for managing multiple sub-problems
 simultaneously in the decomposition workflow.
 """
+from __future__ import annotations
+
 
 from typing import List, Dict, Any, Optional
 from workflow_structures import DecompositionPlan, SubProblem

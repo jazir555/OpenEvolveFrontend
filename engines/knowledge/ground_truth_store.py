@@ -14,6 +14,8 @@ Provides production-ready, verifiable storage for decomposition results with:
 Author: Enhanced implementation
 Version: 2.0.0
 """
+from __future__ import annotations
+
 
 
 import json

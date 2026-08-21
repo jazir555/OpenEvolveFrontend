@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Scalability Improvements
 Implements distributed processing, load balancing, and resource management.
 """
+from __future__ import annotations
+
 
 
 

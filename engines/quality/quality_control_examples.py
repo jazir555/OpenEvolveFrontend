@@ -7,6 +7,8 @@ Per CLAUDE.md, these examples show the "Runtime Truth" of the system.
 Author: OpenEvolve Distinguished Engineer
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 from quality_control import (
     CodeQualityChecker,

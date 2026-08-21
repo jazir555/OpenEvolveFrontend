@@ -15,6 +15,8 @@ Architecture:
 
 Each config can be used independently or as part of the full workflow.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, List, Optional, Union

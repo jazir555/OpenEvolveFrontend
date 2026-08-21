@@ -14,6 +14,8 @@ Features:
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional, Callable

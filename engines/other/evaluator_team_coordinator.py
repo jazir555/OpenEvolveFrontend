@@ -21,6 +21,8 @@ Key Changes:
 - Maintains bias detection and quality gate functionality
 - State management now leverages ensemble capabilities
 """
+from __future__ import annotations
+
 
 import os
 import json

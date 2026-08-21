@@ -1,6 +1,8 @@
 """
 Main application demonstrating OpenEvolve functionality
 """
+from __future__ import annotations
+
 
 # **ACTUAL INTEGRATION**: Adaptive MDAP for App
 try:

@@ -11,6 +11,8 @@ Author: OpenEvolve
 Version: 2.0.0
 Status: 100% Complete
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging
@@ -34,6 +36,8 @@ try:
 except ImportError as e:
     ENHANCED_PHYSICS_AVAILABLE = False
     logger.warning(f"Enhanced physics validator not available: {e}")
+    PhysicsSimulationResult = Any
+    PhysicsDomain = Any
 
 # Import base physics validator as fallback
 try:

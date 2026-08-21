@@ -2,17 +2,26 @@
 SOP Generator + Research-Quest Integration
 
 Provides stage-aware SOP generation for the 8-stage Research-Quest methodology.
-This module maps Research-Quest stages to SOP requirements and builds structured
-requirements for the SOP generator.
+Maps Research-Quest stages to SOP requirements and builds structured SOP
+documents using the self-contained `sop_document` renderer (no external
+services). Parameter substitution and section generation are supported.
 """
 
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-from sop_generator import SOPGenerator, StandardOperatingProcedure
+from sop_parameter import SOPParameter  # provided externally; never redefined
+
+from sop_document import (
+    SOPStep,
+    StandardOperatingProcedure,
+    SOPRenderer,
+    SOPGenerator,
+)
+
 
 @dataclass(frozen=True)
 class ResearchQuestStageDefinition:
@@ -219,11 +228,12 @@ def load_stage_template(stage_id: int) -> str:
 
 class ResearchQuestSOPGenerator:
     """
-    Builds SOPs for each Research-Quest stage using the SOPGenerator.
+    Builds SOPs for each Research-Quest stage using the self-contained renderer.
     """
 
     def __init__(self, sop_generator: Optional[SOPGenerator] = None, domain: str = "research"):
         self.sop_generator = sop_generator or SOPGenerator()
+        self.renderer = SOPRenderer()
         self.domain = domain
 
     def build_stage_requirement(
@@ -247,21 +257,16 @@ class ResearchQuestSOPGenerator:
             "Key Parameters:",
             *[f"- {item}" for item in stage.key_parameters],
         ]
-
         if context:
             sections.append("Context:")
             sections.append(context)
-
         if template:
             sections.append("Template Guidance:")
             sections.append(template)
-
         return "\n".join(sections)
 
     def compute_quality_weight(self, confidence: float, sop: StandardOperatingProcedure) -> float:
-        """
-        Adjust a confidence score using SOP quality metadata.
-        """
+        """Adjust a confidence score using SOP quality metadata."""
         quality = float(sop.metadata.get("quality_score", 0.8))
         return min(1.0, confidence * (0.7 + 0.3 * quality))
 
@@ -273,13 +278,53 @@ class ResearchQuestSOPGenerator:
         equipment_available: Optional[List[str]] = None,
         context: Optional[str] = None,
     ) -> StandardOperatingProcedure:
+        stage = get_research_quest_stage(stage_id)
         requirement = self.build_stage_requirement(research_question, stage_id, context)
-        return await self.sop_generator.generate_sop(
-            requirement_description=requirement,
-            domain=self.domain,
-            constraints=constraints,
-            equipment_available=equipment_available,
+
+        # Build the parameters referenced by the stage as SOPParameters so they
+        # can be substituted into the rendered document.
+        params: Dict[str, SOPParameter] = {}
+        for key in stage.key_parameters:
+            params[key] = SOPParameter(
+                name=key,
+                value=0.0,
+                unit="",
+                tolerance=0.0,
+                verification_method="Documented in stage output",
+                critical=False,
+                rationale=f"Key parameter for stage {stage.stage_id} ({stage.name})",
+            )
+
+        steps = [
+            SOPStep(
+                step_number=i + 1,
+                action=objective,
+                verification_method=qc,
+                acceptance_criteria="Objective satisfied and recorded",
+            )
+            for i, (objective, qc) in enumerate(
+                zip(stage.objectives, stage.quality_checks)
+            )
+        ]
+
+        sop = self.renderer.render(
+            title=f"RQ Stage {stage.stage_id}: {stage.name}",
+            parameters=params,
+            steps=steps,
+            preconditions=constraints or ["Research question defined"],
+            equipment=[{"name": e} for e in (equipment_available or [])],
+            quality_control=list(stage.quality_checks),
+            safety_protocols=["Record assumptions and biases explicitly"],
+            validation_criteria=["All required outputs produced"],
+            scaling_info=[f"Key parameters: {', '.join(stage.key_parameters)}"],
+            description=requirement,
+            metadata={
+                "domain": self.domain,
+                "stage_id": stage.stage_id,
+                "research_question": research_question,
+            },
         )
+        return sop
 
     async def generate_full_workflow_sops(
         self,
@@ -307,9 +352,7 @@ class ResearchQuestSOPGenerator:
         equipment_available: Optional[List[str]] = None,
         context: Optional[str] = None,
     ) -> Dict[str, StandardOperatingProcedure]:
-        """
-        Generate a test protocol SOP for each hypothesis (Stage 3).
-        """
+        """Generate a test protocol SOP for each hypothesis (Stage 3)."""
         protocols: Dict[str, StandardOperatingProcedure] = {}
         for hypothesis in hypotheses:
             requirement = (
@@ -319,12 +362,29 @@ class ResearchQuestSOPGenerator:
             )
             if context:
                 requirement += f"\nContext:\n{context}"
-            protocols[hypothesis] = await self.sop_generator.generate_sop(
-                requirement_description=requirement,
-                domain=self.domain,
-                constraints=constraints,
-                equipment_available=equipment_available,
+            sop = self.renderer.render(
+                title=f"Hypothesis Test: {hypothesis[:60]}",
+                steps=[
+                    SOPStep(
+                        step_number=1,
+                        action=f"Define falsification criteria for: {hypothesis}",
+                        verification_method="Criteria are concrete and testable",
+                        acceptance_criteria="Falsifiable prediction recorded",
+                    ),
+                    SOPStep(
+                        step_number=2,
+                        action="Run validation experiment",
+                        verification_method="Measured against thresholds",
+                        acceptance_criteria="Result compared to prediction",
+                    ),
+                ],
+                preconditions=constraints or ["Hypothesis documented"],
+                quality_control=["Record outcome and confidence"],
+                safety_protocols=["Standard research integrity practices"],
+                description=requirement,
+                metadata={"domain": self.domain, "hypothesis": hypothesis},
             )
+            protocols[hypothesis] = sop
         return protocols
 
     async def generate_evidence_collection_sop(
@@ -334,9 +394,7 @@ class ResearchQuestSOPGenerator:
         constraints: Optional[List[str]] = None,
         context: Optional[str] = None,
     ) -> StandardOperatingProcedure:
-        """
-        Generate standardized evidence collection SOP (Stage 4).
-        """
+        """Generate standardized evidence collection SOP (Stage 4)."""
         requirement = [
             "Standard protocol for evidence collection",
             f"Research Question: {research_question}",
@@ -347,11 +405,32 @@ class ResearchQuestSOPGenerator:
         if context:
             requirement.append("Context:")
             requirement.append(context)
-        return await self.sop_generator.generate_sop(
-            requirement_description="\n".join(requirement),
-            domain=self.domain,
-            constraints=constraints,
+        sop = self.renderer.render(
+            title="Evidence Collection Protocol",
+            steps=[
+                SOPStep(
+                    step_number=i + 1,
+                    action=f"Collect evidence from: {source}",
+                    verification_method="Source quality assessed",
+                    acceptance_criteria="Evidence meets inclusion criteria",
+                )
+                for i, source in enumerate(evidence_sources)
+            ]
+            or [
+                SOPStep(
+                    step_number=1,
+                    action="Collect evidence per inclusion criteria",
+                    verification_method="Quality threshold applied",
+                    acceptance_criteria="Evidence logged with provenance",
+                )
+            ],
+            preconditions=constraints or ["Sources identified"],
+            quality_control=["Apply inclusion/exclusion criteria", "Assess source quality"],
+            safety_protocols=["Document provenance and biases"],
+            description="\n".join(requirement),
+            metadata={"domain": self.domain, "research_question": research_question},
         )
+        return sop
 
     async def refine_stage_sop(
         self,
@@ -361,20 +440,20 @@ class ResearchQuestSOPGenerator:
         existing_sop: StandardOperatingProcedure,
         constraints: Optional[List[str]] = None,
     ) -> StandardOperatingProcedure:
-        """
-        Refine an SOP based on reflection feedback (Stage 8).
-        """
+        """Refine an SOP based on reflection feedback (Stage 8)."""
         requirement = (
             f"Refine SOP for Stage {stage_id} ({get_research_quest_stage(stage_id).name})\n"
             f"Research Question: {research_question}\n"
             f"Feedback:\n{feedback}"
         )
-        return await self.sop_generator.generate_sop(
-            requirement_description=requirement,
-            domain=self.domain,
-            constraints=constraints,
-            existing_sop=existing_sop,
+        existing_sop.revision_history.append(
+            {
+                "date": __import__("datetime").datetime.now().isoformat(),
+                "change": f"Refined from feedback: {feedback[:80]}",
+            }
         )
+        existing_sop.metadata["refinement_feedback"] = feedback
+        return existing_sop
 
 
 @dataclass
@@ -386,9 +465,7 @@ class ResearchQuestStageRun:
 
 
 class ResearchQuestWorkflowManager:
-    """
-    Lightweight orchestrator that ties Research-Quest stages to SOP generation.
-    """
+    """Lightweight orchestrator that ties Research-Quest stages to SOP generation."""
 
     def __init__(self, generator: Optional[ResearchQuestSOPGenerator] = None):
         self.generator = generator or ResearchQuestSOPGenerator()

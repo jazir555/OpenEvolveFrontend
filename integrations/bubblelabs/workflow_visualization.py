@@ -12,9 +12,18 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from ._stub_support import STUB
-from .ui_shim import ui as st
-from .workflow_structures import WorkflowState
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
+try:
+    from .workflow_structures import WorkflowState
+except ImportError:
+    from workflow_structures import WorkflowState
 
 __all__ = ["STUB", "OpenEvolveVisualizer"]
 

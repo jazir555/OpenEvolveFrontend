@@ -4,6 +4,8 @@ LLM Response Caching Module
 This module provides caching functionality for LLM API calls to improve performance
 and reduce costs by avoiding redundant API calls for identical requests.
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

@@ -9,6 +9,8 @@ Provides comprehensive profiling capabilities including:
 - Performance regression detection
 - Statistical analysis of execution patterns
 """
+from __future__ import annotations
+
 
 import time
 import functools

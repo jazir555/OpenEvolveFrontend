@@ -4,6 +4,8 @@ Hybrid MAKER Configuration System - Usage Examples
 This file demonstrates how to use the hybrid_maker_config system
 for managing hybrid MAKER strategy configurations.
 """
+from __future__ import annotations
+
 
 from hybrid_maker_config import (
     HybridMakerConfig,

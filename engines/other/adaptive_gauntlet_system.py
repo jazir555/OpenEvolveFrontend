@@ -4,6 +4,8 @@ Adaptive Gauntlet System for OpenEvolve
 This module implements the Adaptive Gauntlet System which dynamically adjusts
 validation rigor based on problem complexity and historical performance.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, List, Any, Optional

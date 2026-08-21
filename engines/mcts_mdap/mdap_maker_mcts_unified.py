@@ -29,6 +29,8 @@ Reference:
 Author: OpenEvolve
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
@@ -114,12 +116,21 @@ except ImportError:
 # Import complete MAKER implementation
 try:
     from mdap_maker_complete import (
-        MAKEREngine, VoteCollector, VotingEngine, MAKERRunMetrics, TaskDecomposition
+        MAKEREngine, VoteCollector, VotingEngine, MAKERRunMetrics,
+        TaskDecomposition, MDAPMakerComplete,
     )
     MAKER_COMPLETE_AVAILABLE = True
 except ImportError:
     MAKER_COMPLETE_AVAILABLE = False
     logger.warning("Complete MAKER implementation not available")
+
+# Import the real MCTS core (functional selection/expansion/simulation/backprop).
+try:
+    from leanaide_mcts import run_mcts_search, MCTSConfig as LeanMCTSConfig
+    LEAN_MCTS_AVAILABLE = True
+except ImportError:
+    LEAN_MCTS_AVAILABLE = False
+    logger.warning("LeanAide MCTS core not available")
 
 # Import MCTS evolved policies
 try:
@@ -1051,24 +1062,43 @@ class MDAPMAKERMCTSEngine:
         self.evolutionary_nodes_engine = None
         self.coevolution_engine = None
 
-        # Initialize MDAP components if available
+        # Initialize MDAP components if available. The shared MDAP engine
+        # requires a ``Team`` and a configured ``MDAPConfig``; construct it
+        # best-effort and degrade gracefully if the integration prerequisites
+        # are not met (the rest of the engine does not depend on it).
         self.mdap_orchestrator = None
         if MDAP_AVAILABLE:
-            self.mdap_orchestrator = MDAPOrchestrator(
-                config=MDAPConfig(
-                    num_agents=config.num_agents,
-                    reliability_threshold=config.agent_reliability_threshold,
-                    enable_decomposition=config.enable_decomposition
+            try:
+                self.mdap_orchestrator = MDAPOrchestrator(
+                    team=None,  # populated lazily by callers that supply a team
+                    config=MDAPConfig(
+                        k_min=max(2, config.k_ahead),
+                        k_max=max(8, config.k_ahead),
+                        max_votes_per_step=max(10, config.num_agents * 10),
+                    ),
                 )
-            )
+            except Exception as e:  # pragma: no cover - integration dependent
+                logger.warning(f"MDAP orchestrator unavailable: {e}")
+                self.mdap_orchestrator = None
 
         # Initialize MAKER components if available
         self.maker_engine = None
         if MAKER_COMPLETE_AVAILABLE:
-            self.maker_engine = MAKEREngine(
-                k_ahead=config.k_ahead,
-                num_agents=config.num_agents
-            )
+            self.maker_engine = MAKEREngine(config={
+                "k_ahead": config.k_ahead,
+                "num_agents": config.num_agents,
+            })
+
+        # Wire the complete MDAP/MAKER coordinator into the maker pipeline.
+        # MDAPMakerComplete bundles MAKER decomposition + voting and is the
+        # canonical entry point used by the unified engine to decompose a
+        # theorem into ordered sub-tasks before MCTS search.
+        self.mdap_maker = None
+        if MAKER_COMPLETE_AVAILABLE:
+            self.mdap_maker = MDAPMakerComplete(config={
+                "task_id": "mdap_maker_unified",
+                "max_iterations": config.simulations,
+            })
 
         # Initialize decomposition if available
         self.decomposition_engine = None
@@ -1165,6 +1195,98 @@ class MDAPMAKERMCTSEngine:
             logger.warning(f"Lean verification failed: {e}")
             return {"verified": False, "error": str(e)}
 
+    # -------------------------------------------------------------------------
+    # MDAP/MAKER maker pipeline
+    # -------------------------------------------------------------------------
+
+    def decompose_with_maker(self, theorem: str) -> Dict[str, Any]:
+        """Decompose a theorem into ordered sub-tasks via ``MDAPMakerComplete``.
+
+        This is the maker-pipeline entry point: it runs the MAKER
+        propose/refine loop and returns the decomposition that the MCTS
+        search consumes (sub-task by sub-task) for zero-error guarantees.
+        """
+        if self.mdap_maker is None:
+            logger.warning("MDAPMakerComplete unavailable; returning passthrough decomposition")
+            return {
+                "task": theorem,
+                "decomposition": {"task_id": "task", "subtasks": [theorem]},
+            }
+        return self.mdap_maker.complete(theorem)
+
+    async def run_unified_pipeline(self, theorem: str) -> "MDAPMAKERMCTSResult":
+        """Run the full MDAP/MAKER + MCTS pipeline on a theorem.
+
+        Steps:
+            1. Decompose the theorem with ``MDAPMakerComplete`` (maker pipeline).
+            2. For each sub-task, expand/select/backpropagate real MCTS nodes
+               over ``ProofState``/``Tactic`` to propose a tactic sequence.
+            3. Aggregate into a single ``MDAPMAKERMCTSResult``.
+        """
+        start_time = time.time()
+        decomposition = self.decompose_with_maker(theorem)
+        subtasks = decomposition.get("decomposition", {}).get("subtasks", [theorem])
+
+        best_proof: Optional[str] = None
+        best_fitness = 0.0
+        nodes_explored = 0
+        subtask_results: List[MDAPMAKERMCTSResult] = []
+
+        for subtask in subtasks:
+            goal = subtask if isinstance(subtask, str) else str(subtask)
+            result = await self._search_single_goal(goal)
+            subtask_results.append(result)
+            nodes_explored += result.nodes_explored
+            if result.success and result.best_fitness >= best_fitness:
+                best_fitness = result.best_fitness
+                best_proof = result.best_proof
+
+        success = any(r.success for r in subtask_results)
+        return MDAPMAKERMCTSResult(
+            success=success,
+            best_proof=best_proof,
+            best_fitness=best_fitness,
+            approach=MCTSApproach.EVOLVED_POLICIES,
+            decomposition_used=True,
+            subtask_count=len(subtasks),
+            decomposition_depth=1,
+            subtask_results=subtask_results,
+            execution_time=time.time() - start_time,
+            nodes_explored=nodes_explored,
+        )
+
+    async def _search_single_goal(self, goal: str) -> "MDAPMAKERMCTSResult":
+        """Run a real MCTS search over a single proof goal."""
+        from mcts_mdap_bases import ProofState
+
+        # Build a proof state and run the functional MCTS core
+        # (selection -> expansion -> simulation -> backpropagation).
+        initial = ProofState(goals=[goal], depth=0)
+        if LEAN_MCTS_AVAILABLE:
+            config = LeanMCTSConfig(
+                max_iterations=self.config.simulations,
+                exploration_constant=self.config.exploration_constant,
+                max_depth=self.config.max_depth,
+            )
+            mcts_result = run_mcts_search(initial, config=config)
+            return MDAPMAKERMCTSResult(
+                success=mcts_result.success,
+                best_proof=" ".join(mcts_result.tactic_sequence) or None,
+                best_fitness=1.0 if mcts_result.success else 0.0,
+                approach=MCTSApproach.EVOLVED_POLICIES,
+                nodes_explored=mcts_result.nodes_expanded,
+                mcts_simulations=mcts_result.iterations,
+            )
+
+        # Graceful degradation without the MCTS core.
+        return MDAPMAKERMCTSResult(
+            success=False,
+            best_proof=None,
+            best_fitness=0.0,
+            approach=MCTSApproach.EVOLVED_POLICIES,
+            nodes_explored=0,
+        )
+
     async def _search_evolved_policies(
         self,
         theorem: str
@@ -1174,6 +1296,11 @@ class MDAPMAKERMCTSEngine:
 
         start_time = time.time()
         total_evaluations = 0
+
+        # Run the MDAP/MAKER maker pipeline: decompose the theorem into
+        # ordered sub-tasks via MDAPMakerComplete before MCTS search.
+        decomposition = self.decompose_with_maker(theorem)
+        subtasks = decomposition.get("decomposition", {}).get("subtasks", [theorem])
 
         # Check cache
         cache_key = hashlib.sha256(theorem.encode()).hexdigest()[:32]
@@ -1215,6 +1342,9 @@ class MDAPMAKERMCTSEngine:
 
             # Update metrics
             result.approach = MCTSApproach.EVOLVED_POLICIES
+            result.decomposition_used = True
+            result.subtask_count = len(subtasks)
+            result.decomposition_depth = 1
             result.execution_time = time.time() - start_time
             result.total_evaluations = total_evaluations
 

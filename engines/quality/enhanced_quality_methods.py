@@ -1,6 +1,8 @@
 """
 Enhanced quality assessment methods to be appended to decomposition_engine.py
 """
+from __future__ import annotations
+
 
 METHODS_CODE = '''
 

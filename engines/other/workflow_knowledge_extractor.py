@@ -7,6 +7,8 @@ and gauntlet effectiveness metrics.
 
 Enhanced with OneKE integration for schema-guided domain knowledge extraction.
 """
+from __future__ import annotations
+
 
 import time
 import uuid

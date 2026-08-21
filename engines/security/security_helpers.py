@@ -4,6 +4,8 @@ Security Helper Functions
 Provides encryption, decryption, and secure handling of sensitive data
 such as API keys, passwords, and other credentials.
 """
+from __future__ import annotations
+
 
 
 

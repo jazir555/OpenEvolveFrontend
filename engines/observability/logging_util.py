@@ -2,6 +2,8 @@
 Comprehensive Logging Utility for OpenEvolve
 This module provides centralized logging functionality for all OpenEvolve operations
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, Optional

@@ -9,6 +9,8 @@ Key Features:
 - Task execution through CrewAI
 - Integration with OpenEvolve workflow system
 """
+from __future__ import annotations
+
 
 import logging
 import uuid
@@ -17,7 +19,27 @@ from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum
 
-from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+try:
+    from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+except ImportError:
+    def normalize_entanglement_matrix(matrix, allowed_ids=None, enforce_symmetry=True, strict=False):
+        if not matrix:
+            return {}
+        norm = {}
+        for src, targets in matrix.items():
+            if allowed_ids is not None and src not in allowed_ids:
+                continue
+            norm[src] = list(targets) if targets else []
+        if enforce_symmetry:
+            for src, targets in list(norm.items()):
+                for t in targets:
+                    norm.setdefault(t, [])
+                    if src not in norm[t]:
+                        norm[t].append(src)
+        return norm
+
+    def serialize_entanglement_matrix(normalized):
+        return {k: list(v) for k, v in normalized.items()}
 
 logger = logging.getLogger(__name__)
 

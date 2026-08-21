@@ -27,6 +27,8 @@ Reference:
 Author: OpenEvolve
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
@@ -52,7 +54,11 @@ from mdap_maker_complete import (
     MAKEREngine, VoteCollector, VotingEngine, MAKERRunMetrics,
     TaskDecomposition
 )
-from workflow_structures import ModelConfig, Team
+try:
+    from workflow_structures import ModelConfig, Team
+except ImportError:
+    ModelConfig = None
+    Team = None
 
 logger = logging.getLogger(__name__)
 

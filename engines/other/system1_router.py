@@ -16,6 +16,8 @@ Key Features:
 - Cost optimization
 - Feedback loop for routing accuracy
 """
+from __future__ import annotations
+
 
 import os
 import json

@@ -2,6 +2,8 @@
 Analytics Module for OpenEvolve - Data analysis and insights generation
 This module provides functions for analyzing content quality, evolution performance, and generating insights
 """
+from __future__ import annotations
+
 
 import re
 import time

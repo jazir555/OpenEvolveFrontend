@@ -2,6 +2,8 @@
 Metrics Collector - Collects, aggregates, and exports OpenEvolve metrics
 Tracks evolution performance, resource usage, and quality metrics
 """
+from __future__ import annotations
+
 
 
 import time

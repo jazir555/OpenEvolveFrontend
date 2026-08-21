@@ -6,6 +6,8 @@ across multiple domains and problem types to generate knowledge artifacts.
 
 Target: Generate 50+ high-quality knowledge artifacts from diverse scenarios.
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -19,8 +21,11 @@ import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Ensure knowledge_engine is importable
+# Ensure knowledge_engine and engines/knowledge are importable
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "engines" / "knowledge"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "engines" / "other"))
 
 # Import components
 from knowledge_engine.input_processor import EnhancedInputProcessor

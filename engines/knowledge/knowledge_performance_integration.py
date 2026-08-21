@@ -4,10 +4,16 @@ Integration of Knowledge Extraction and Performance Tracking with Decomposition 
 This module provides integration hooks to incorporate continuous learning capabilities
 into the decomposition engine.
 """
+from __future__ import annotations
+
 
 import time
+import sys
 import logging
+from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "observability"))
 
 from knowledge_artifact_extractor import KnowledgeArtifactExtractor
 from performance_metrics_tracker import PerformanceMetricsTracker

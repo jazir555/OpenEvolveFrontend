@@ -26,12 +26,10 @@ from enum import Enum
 import uuid
 import re
 
-# Import unified models - use relative import
-import sys
-from pathlib import Path
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from schemas.base import (
+# Import unified models via a package-relative import. Do NOT add the
+# knowledge_engine directory to sys.path: it shadows same-named top-level
+# modules elsewhere in the monorepo (e.g. llm_utils, core, app, main).
+from ..schemas.base import (
     Entity,
     Relationship,
     ValidationResult,

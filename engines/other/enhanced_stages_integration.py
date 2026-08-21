@@ -28,6 +28,8 @@ To use enhanced stages in workflow_engine.py, add this import:
 
 This will replace the basic implementations with the enhanced versions.
 """
+from __future__ import annotations
+
 
 # Import all enhanced functions from workflow_enhanced_stages
 from workflow_enhanced_stages import (

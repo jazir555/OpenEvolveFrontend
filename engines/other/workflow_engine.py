@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses # Added for dataclasses.is_dataclass
 import time
 import json

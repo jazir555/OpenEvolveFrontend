@@ -15,6 +15,8 @@ This module provides:
 - Automated performance alerts
 - Performance-based team selection
 """
+from __future__ import annotations
+
 
 
 import os

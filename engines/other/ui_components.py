@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ui_shim import ui as st
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta

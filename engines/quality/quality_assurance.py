@@ -2,6 +2,8 @@
 Quality Assurance Mechanisms for OpenEvolve
 Implements the Quality Assurance Mechanisms functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 import os
 import re
 from typing import Dict, List, Any, Optional, Callable

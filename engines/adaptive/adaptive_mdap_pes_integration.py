@@ -54,6 +54,8 @@ Usage:
     coordinator = AdaptivePESCoordinator(config=config)
     result = await coordinator.optimize_with_planning(...)
 """
+from __future__ import annotations
+
 
 import logging
 import time

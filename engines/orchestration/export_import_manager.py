@@ -3,6 +3,8 @@ Export/Import Manager for OpenEvolve - Project import/export functionality
 This file manages project import/export, serialization, and file handling
 File size: ~800 lines (under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 from datetime import datetime

@@ -4,6 +4,8 @@ Red Team Feedback System for Solution Validation
 This module implements the integration of red team feedback into the solution generation process.
 The Red Team provides adversarial perspective, finding flaws, edge cases, and potential improvements.
 """
+from __future__ import annotations
+
 
 
 import json
@@ -12,12 +14,46 @@ import time
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sovereign_data_models import (
-    SolutionAttempt, SubProblem, RedTeamCritiqueReport,
+    SolutionAttempt, SubProblem,
     ValidationResult, generate_id
 )
+
+try:
+    # Preferred: shared model, if the schema facade ever exposes it.
+    from sovereign_data_models import RedTeamCritiqueReport
+except ImportError:
+    # sovereign_data_models (openevolve.kernel.schema) only ships the generic
+    # ``CritiqueReport``, which lacks the red-team specific fields used below,
+    # so define the minimal record this module actually needs.
+    @dataclass
+    class RedTeamCritiqueReport:
+        """Red-team critique record produced by :class:`RedTeamFeedbackSystem`."""
+
+        report_id: str = ""
+        team_type: str = "red_team"
+        team_id: str = ""
+        solution_id: str = ""
+        sub_problem_id: str = ""
+        findings: List[str] = field(default_factory=list)
+        severity_scores: List[float] = field(default_factory=list)
+        categories: List[str] = field(default_factory=list)
+        flaws_found: List[str] = field(default_factory=list)
+        edge_cases_missed: List[str] = field(default_factory=list)
+        security_issues: List[str] = field(default_factory=list)
+        performance_issues: List[str] = field(default_factory=list)
+        quality_concerns: List[str] = field(default_factory=list)
+        improvement_suggestions: List[str] = field(default_factory=list)
+        reviewer_prompts: List[str] = field(default_factory=list)
+        overall_score: float = 0.0
+        confidence: float = 0.0
+        timestamp: datetime = field(default_factory=datetime.now)
+        # Populated by _prioritize_findings().
+        must_fix: List[str] = field(default_factory=list)
+        should_fix: List[str] = field(default_factory=list)
+        could_fix: List[str] = field(default_factory=list)
 from llm_utils import _request_openai_compatible_chat, _compose_messages
 
 # Import ROMA-MDAP-MAKER (Robust Execution)

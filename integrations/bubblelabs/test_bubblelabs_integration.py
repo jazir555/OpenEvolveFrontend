@@ -13,15 +13,27 @@ The original module stays directly runnable too::
     python -m pytest integrations/bubblelabs/bubblelabs_integration_tests.py
     python integrations/bubblelabs/bubblelabs_integration_tests.py
 """
+from __future__ import annotations
 
-from .bubblelabs_integration_tests import (
+
+try:
+    from .bubblelabs_integration_tests import (
     TestAnalyticsMonitoringDashboard,
     TestIntegration,
     TestOpenEvolveBubbleLabsAPI,
     TestOpenEvolveVisualizer,
     TestParameterSyncManager,
     TestWorkflowLifecycleController,
-)
+    )
+except ImportError:
+    from      import (
+    TestAnalyticsMonitoringDashboard,
+    TestIntegration,
+    TestOpenEvolveBubbleLabsAPI,
+    TestOpenEvolveVisualizer,
+    TestParameterSyncManager,
+    TestWorkflowLifecycleController,
+    )
 
 __all__ = [
     "TestAnalyticsMonitoringDashboard",

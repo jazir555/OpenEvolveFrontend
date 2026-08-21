@@ -4,6 +4,8 @@ Team Performance Tracker - Stage 6 Knowledge Extraction
 This module tracks and analyzes team performance across workflow executions.
 It provides insights into optimal team compositions and training recommendations.
 """
+from __future__ import annotations
+
 
 
 import time
@@ -11,11 +13,51 @@ from typing import Dict, List, Any, Optional, Tuple
 import json
 import numpy as np
 from collections import defaultdict
+from dataclasses import dataclass, field
 
-from workflow_structures import (
-    TeamPerformanceArtifact,
-    KnowledgeArtifactManager,
-)
+try:
+    # Preferred: shared models, if the schema facade ever exposes them.
+    from workflow_structures import (
+        TeamPerformanceArtifact,
+        KnowledgeArtifactManager,
+    )
+except ImportError:
+    # workflow_structures (openevolve.kernel.schema) does not provide these, so
+    # define the minimal artifact record and in-memory store this module needs.
+    @dataclass
+    class TeamPerformanceArtifact:
+        """Performance record for one team on one workflow."""
+
+        artifact_id: str = ""
+        source_workflow_id: str = ""
+        team_id: str = ""
+        team_composition: Dict[str, Any] = field(default_factory=dict)
+        velocity: float = 0.0
+        quality_metrics: Dict[str, float] = field(default_factory=dict)
+        confidence: float = 0.0
+        # Populated by TeamPerformanceTracker._analyze_team_performance().
+        historical_trends: List[Any] = field(default_factory=list)
+        optimal_domains: List[str] = field(default_factory=list)
+        skill_gaps: List[str] = field(default_factory=list)
+        training_recommendations: List[str] = field(default_factory=list)
+
+    class KnowledgeArtifactManager:
+        """Minimal in-memory stand-in for the artifact store."""
+
+        def __init__(self, db_path: str = "./knowledge_artifacts.db"):
+            self.db_path = db_path
+            self._team_performance: List[TeamPerformanceArtifact] = []
+
+        def create_team_performance(
+            self, artifact: TeamPerformanceArtifact
+        ) -> TeamPerformanceArtifact:
+            self._team_performance.append(artifact)
+            return artifact
+
+        def list_team_performance(
+            self, limit: int = 1000
+        ) -> List[TeamPerformanceArtifact]:
+            return self._team_performance[:limit]
 
 
 class TeamPerformanceTracker:

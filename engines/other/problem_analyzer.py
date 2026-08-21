@@ -4,6 +4,8 @@ Sovereign-Grade Problem Decomposition System - Problem Analyzer
 This module provides semantic analysis of problems to extract domain context,
 assess complexity, identify constraints, and generate success criteria.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional

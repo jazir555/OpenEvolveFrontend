@@ -4,6 +4,8 @@ External Knowledge Integration Module
 This module provides integration with external knowledge sources to enhance
 workflow execution with external data and expertise.
 """
+from __future__ import annotations
+
 
 import requests
 from typing import Dict, Any, List, Optional, Tuple

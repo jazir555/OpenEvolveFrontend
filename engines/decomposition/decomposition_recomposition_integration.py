@@ -4,6 +4,8 @@ Decomposition-Recomposition Integration Module
 This module provides integration between problem decomposition and solution recomposition
 to enable solving complex problems by breaking them down and reassembling solutions.
 """
+from __future__ import annotations
+
 
 import json
 import logging

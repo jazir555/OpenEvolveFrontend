@@ -4,6 +4,8 @@ Associative Recomposition Module for OpenEvolve
 This module provides capabilities for domain-agnostic assembly of sub-solutions 
 into a coherent final solution using LLM-guided recomposition.
 """
+from __future__ import annotations
+
 
 import logging
 import json

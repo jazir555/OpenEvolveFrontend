@@ -25,6 +25,8 @@ Usage:
         adaptive_threshold_manager=threshold_manager
     )
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Optional, List, Dict, Any

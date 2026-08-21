@@ -16,6 +16,8 @@ Usage:
     # Use as normal - performance is automatically tracked
     assessment = tracked_team.assess_and_fix(content, issues)
 """
+from __future__ import annotations
+
 
 
 import logging

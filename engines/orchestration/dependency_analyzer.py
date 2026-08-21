@@ -13,6 +13,8 @@ PRODUCTION-GRADE IMPLEMENTATION:
 - Integration with quality assessment system
 - Full backward compatibility
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional, Set, Tuple

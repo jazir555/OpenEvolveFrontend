@@ -12,6 +12,8 @@ Key Features:
 3. Knowledge Retrieval: Semantic search for relevant context
 4. Memory Management: Organize and retrieve learned knowledge
 """
+from __future__ import annotations
+
 
 
 import os
@@ -19,10 +21,23 @@ import logging
 from typing import Dict, Any, List, Optional, Union
 from pathlib import Path
 
-# Import ChromaDB and embedding components
-import chromadb
-from chromadb.utils import embedding_functions
-from sentence_transformers import SentenceTransformer
+# Import ChromaDB and embedding components (external; guard with fallback)
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    CHROMADB_AVAILABLE = True
+except Exception:
+    chromadb = None
+    embedding_functions = None
+    CHROMADB_AVAILABLE = False
+
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except Exception:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
 from typing import List, Dict, Any, Optional, Tuple
 
 # Create a simple Document class for compatibility
@@ -69,9 +84,16 @@ class RecursiveCharacterTextSplitter:
         
         return chunked_docs
 
-# Import existing ACE and Steer components
-from ace_steer_integration import AceSteerBridge
-from steer_crewai_bridge import SteerCrewAIWorkflowBridge
+# Import existing ACE and Steer components (optional; guard with fallback)
+try:
+    from ace_steer_integration import AceSteerBridge
+except Exception:
+    AceSteerBridge = None
+
+try:
+    from steer_crewai_bridge import SteerCrewAIWorkflowBridge
+except Exception:
+    SteerCrewAIWorkflowBridge = None
 
 logger = logging.getLogger(__name__)
 
@@ -602,8 +624,12 @@ def initialize_tripartite_system() -> TripartiteAgentSystem:
     
     return system
 
-# Auto-initialize on import
-_tripartite_system = initialize_tripartite_system()
+# Auto-initialize on import (best-effort; requires optional ACE/Steer + Chroma deps)
+try:
+    _tripartite_system = initialize_tripartite_system()
+except Exception as _e:
+    logger.warning(f"Tripartite system not auto-initialized: {_e}")
+    _tripartite_system = None
 
 if __name__ == "__main__":
     print("🚀 OpenEvolve Tripartite System (ACE + Steer + LangChain)")

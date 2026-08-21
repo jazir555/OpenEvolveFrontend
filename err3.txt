@@ -1,0 +1,6 @@
+2026-08-21 00:25:18,458 - openevolve.cav_nlp_integration.adapter - WARNING - CAV-NLP canonicalizer not available: cannot import name 'Z3Canonicalizer' from 'openevolve.cav_nlp_integration.z3_canonicalizer' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\openevolve\cav_nlp_integration\z3_canonicalizer.py)
+2026-08-21 00:25:18,458 - openevolve.cav_nlp_integration.adapter - WARNING - CAV-NLP text canonicalizer not available: No module named 'openevolve.cav_nlp_integration.cegis_learner'
+2026-08-21 00:25:18,718 - knowledge_engine.integrations.z3_auto_extraction - WARNING - Z3 knowledge integration not available
+2026-08-21 00:25:19,026 - knowledge_engine.integrations.z3_api - ERROR - Z3 knowledge integration not available
+2026-08-21 00:25:19,029 - knowledge_engine.integrations.unified_math_knowledge_bridge - INFO - CAV-NLP UnifiedMathService available for unified math knowledge bridge
+2026-08-21 00:25:53,495 - integrations.causal_learn - WARNING - Causal-learn not available. Integration will use graceful degradation.

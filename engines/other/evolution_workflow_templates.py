@@ -6,6 +6,8 @@ adversarial testing scenarios. These templates can be loaded and customized.
 
 Author: OpenEvolve Frontend Team
 """
+from __future__ import annotations
+
 
 
 from typing import Dict, Any, List

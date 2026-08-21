@@ -10,6 +10,8 @@ from the Gap Analysis Implementation Plan.
 Author: OpenEvolve
 Created: 2026-01-02
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

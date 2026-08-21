@@ -14,6 +14,8 @@ and reassembly all use OpenEvolve's evolutionary iteration capabilities.
 Architecture:
     CREWAI Agent -> MCP Tool -> Decomposition Engine -> OpenEvolve (Evolution) -> Result
 """
+from __future__ import annotations
+
 
 import ast
 import logging

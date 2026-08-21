@@ -3,6 +3,8 @@ Quality Trend Tracker for Decomposition Assessment
 
 Tracks quality assessment trends over time and provides insights for continuous improvement.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional

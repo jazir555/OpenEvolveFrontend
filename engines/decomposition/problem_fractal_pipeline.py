@@ -36,9 +36,33 @@ except ImportError:
     REQUESTS_AVAILABLE = False
 
 from problem_decomposition import ProblemDecomposer, DecompositionStrategy, Component
-from dependency_analyzer import DependencyAnalyzer
+try:
+    from dependency_analyzer import DependencyAnalyzer
+except ImportError:
+    try:
+        from engines.orchestration.dependency_analyzer import DependencyAnalyzer
+    except ImportError:
+        class DependencyAnalyzer:
+            """Minimal fallback for the unavailable DependencyAnalyzer."""
+            def build_entanglement_matrix(self, sub_problems):
+                matrix = {}
+                for sp in sub_problems or []:
+                    sid = getattr(sp, "id", None) or getattr(sp, "sub_problem_id", None)
+                    if sid is None:
+                        sid = "sp_{0}".format(len(matrix))
+                    matrix[sid] = []
+                return matrix
 from problem_recomposition import SolutionAssembler
-from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+try:
+    from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+except ImportError:
+    import json as _json
+
+    def normalize_entanglement_matrix(matrix):
+        return matrix
+
+    def serialize_entanglement_matrix(matrix):
+        return _json.dumps(matrix, default=str)
 from decomposition_mcp_tools import (
     list_available_teams,
     list_available_gauntlets,

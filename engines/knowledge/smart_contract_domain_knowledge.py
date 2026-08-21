@@ -9,6 +9,8 @@ This acts as the "Database" for the Audit Engine.
 
 Author: OpenEvolve
 """
+from __future__ import annotations
+
 
 import z3
 from smart_contract_logic_analyzer import ContractState

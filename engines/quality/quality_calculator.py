@@ -13,6 +13,8 @@ Production-ready features:
 - Full type hints
 - Unit tests included
 """
+from __future__ import annotations
+
 
 import ast
 import logging

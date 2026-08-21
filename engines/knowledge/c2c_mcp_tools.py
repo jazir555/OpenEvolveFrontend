@@ -16,6 +16,8 @@ bypassing text generation for 8.5-10.5% higher accuracy and 2× speedup.
 
 Architecture: CREWAI (Orchestrator) -> Decomposition (Teams) -> C2C (Team Consensus)
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Union
 import sys

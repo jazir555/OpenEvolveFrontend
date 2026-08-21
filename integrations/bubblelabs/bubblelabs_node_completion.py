@@ -6,6 +6,8 @@ workflows, and enterprise connectors.
 
 Achieves 100% BubbleLabs integration.
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -21,8 +23,14 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 try:
-    from .z3_cav_nlp_integration import EnhancedZ3Solver
-    from .unified_math_service import UnifiedMathService
+    try:
+        from .z3_cav_nlp_integration import EnhancedZ3Solver
+    except ImportError:
+        from z3_cav_nlp_integration import EnhancedZ3Solver
+    try:
+        from .unified_math_service import UnifiedMathService
+    except ImportError:
+        from unified_math_service import UnifiedMathService
     CAV_NLP_AVAILABLE = True
     logger.debug("[OK] CAV-NLP integration available in BubbleLabs Node Completion")
 except ImportError:

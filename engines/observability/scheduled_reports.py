@@ -14,6 +14,8 @@ Features:
 - Error handling and retry logic
 - Schedule monitoring and logging
 """
+from __future__ import annotations
+
 
 import logging
 import json

@@ -21,6 +21,8 @@ Phase Mapping:
 
 License: MIT (replaces AGPL CrewAI)
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional

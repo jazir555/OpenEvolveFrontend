@@ -1,6 +1,8 @@
 """
 Honest assessment of problem_decomposition.py implementation
 """
+from __future__ import annotations
+
 
 import ast
 import inspect

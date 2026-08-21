@@ -4,13 +4,43 @@ Generic MAKER Integration Module
 This module provides a generic implementation of MAKER functionality that can be
 used across different domains and problem types.
 """
+from __future__ import annotations
+
 
 import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 
-from workflow_structures import ModelConfig, Team
+try:
+    from workflow_structures import ModelConfig, Team
+except ImportError:
+    # Make engines/workflow reachable for the flat sys.path loader
+    import os
+    import sys
+    _wf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "workflow")
+    if _wf_dir not in sys.path:
+        sys.path.insert(0, _wf_dir)
+    try:
+        from workflow_structures import ModelConfig, Team
+    except ImportError:
+        from typing import Any
+        from dataclasses import dataclass, field
+
+        @dataclass
+        class ModelConfig:
+            model_name: str = ""
+            temperature: float = 0.0
+            max_tokens: int = 0
+            metadata: Any = None
+
+        @dataclass
+        class Team:
+            team_id: str = ""
+            name: str = ""
+            team: Any = None
+            members: Any = field(default_factory=list)
+
 try:
     from mdap_maker_complete import MAKEREngine, RecursiveMAKERSolver
 except ImportError:

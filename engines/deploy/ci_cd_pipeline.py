@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - CI/CD Pipeline Configuration
 Implements automated testing, quality checks, and deployment pipelines.
 """
+from __future__ import annotations
+
 
 import os
 import sys

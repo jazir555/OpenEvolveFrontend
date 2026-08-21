@@ -22,11 +22,16 @@ from sovereign_data_models import (
     ComplexityScore,
     DomainContext,
     KnowledgeArtifact,
-    StrategyPerformanceMetrics,
-    TeamPerformanceMetrics,
     SubProblemStatus,
     generate_id
 )
+try:
+    from sovereign_data_models import StrategyPerformanceMetrics, TeamPerformanceMetrics
+except ImportError:
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "observability"))
+    from performance_metrics_tracker import StrategyPerformanceMetrics, TeamPerformanceMetrics
 
 
 # **ACTUAL INTEGRATION**: Alerting and knowledge for Learning Loop Manager

@@ -19,6 +19,8 @@ Usage:
         create_rag_workflow_definition
     )
 """
+from __future__ import annotations
+
 
 import uuid
 import logging
@@ -198,7 +200,10 @@ def create_rag_workflow_definition(
     nodes.extend([ingest, search, gen, index])
     
     # Create edges
-    from .bubblelabs_gauntlet_bubbles import create_bubble_edge
+    try:
+        from .bubblelabs_gauntlet_bubbles import create_bubble_edge
+    except ImportError:
+        from bubblelabs_gauntlet_bubbles import create_bubble_edge
     
     edges.append(create_bubble_edge(ingest["id"], search["id"]))
     edges.append(create_bubble_edge(search["id"], gen["id"]))

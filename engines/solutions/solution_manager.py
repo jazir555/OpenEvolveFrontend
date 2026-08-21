@@ -15,6 +15,8 @@ Author: OpenEvolve Frontend Team
 Version: 1.0.0
 License: MIT
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

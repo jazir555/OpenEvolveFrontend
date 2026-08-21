@@ -14,6 +14,8 @@ Usage:
     >>> config = get_default_config()
     >>> config = load_config_from_yaml("config.yaml")
 """
+from __future__ import annotations
+
 
 import os
 import logging

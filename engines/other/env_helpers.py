@@ -4,6 +4,8 @@ Environment Variable Helper Functions
 Provides secure, validated environment variable handling with type conversion,
 format validation, and graceful error handling.
 """
+from __future__ import annotations
+
 
 import os
 import re

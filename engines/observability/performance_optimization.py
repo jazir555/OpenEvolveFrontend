@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Performance Optimization
 Implements caching, parallel processing, and other performance enhancements.
 """
+from __future__ import annotations
+
 
 import asyncio
 import concurrent.futures

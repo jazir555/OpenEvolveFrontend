@@ -7,6 +7,8 @@ in various scenarios, including integration with the SGD workflow orchestrator.
 Author: OpenEvolve Frontend Team
 Created: 2026-01-22
 """
+from __future__ import annotations
+
 
 from critique_aggregator import (
     CritiqueAggregator,

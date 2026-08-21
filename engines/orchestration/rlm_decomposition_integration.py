@@ -7,6 +7,8 @@ Blue Team: RLM executes code to solve sub-problems
 Red Team: RLM adversarially tests solutions with code
 Gold Team: RLM verifies with test code execution
 """
+from __future__ import annotations
+
 
 import json
 from dataclasses import dataclass

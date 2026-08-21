@@ -2,6 +2,8 @@
 Blue Team (Fixers) Functionality for OpenEvolve
 Implements the Blue Team functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 
 import os
 import json
@@ -2362,16 +2364,17 @@ Provide your evaluation."""
         
         try:
             client = LeanAideClient()
-            # Auto-formalize the content
+            # Auto-formalize the content into a Lean theorem / fix spec
             formalized = client.autoformalize(content)
-            # Verify the formalized content
-            verification = client.verify(formalized)
-            
+            # Attempt to prove the formalized content with the real API
+            result = client.prove(formalized)
+            verified = bool(result)
             return {
-                "verified": verification.get("success", False),
+                "verified": verified,
                 "formalized": formalized,
-                "proof_status": verification.get("status", "unknown"),
-                "errors": verification.get("errors", []),
+                "proof_status": getattr(result, "status", "unknown"),
+                "tactics": list(getattr(result, "tactics", [])),
+                "errors": [getattr(result, "error", None)] if getattr(result, "error", None) else [],
                 "metadata": properties or {}
             }
         except Exception as e:

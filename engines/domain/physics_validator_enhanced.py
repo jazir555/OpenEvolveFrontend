@@ -12,6 +12,8 @@ This module provides comprehensive physics validation for invention plans using:
 Author: OpenEvolve
 Version: 2.0.0
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

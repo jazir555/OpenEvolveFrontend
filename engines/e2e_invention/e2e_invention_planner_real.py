@@ -12,6 +12,8 @@ Author: OpenEvolve
 Version: 3.0.0 - PRODUCTION
 Status: TRUE 100% - REAL IMPLEMENTATIONS
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging
@@ -37,6 +39,8 @@ except ImportError as e:
     REAL_PHYSICS_AVAILABLE = False
     logger.warning(f"Real physics validator not available: {e}")
     PHYSICS_NEMO_AVAILABLE = False
+    PhysicsSimulationResult = Any
+    PhysicsDomain = Any
 
 # Import REAL uncertainty propagation
 try:

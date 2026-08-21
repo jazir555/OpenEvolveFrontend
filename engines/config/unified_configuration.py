@@ -23,6 +23,8 @@ Usage:
     evo_config = unified.to_evolution_config()
     adv_config = unified.to_adversarial_config()
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 from dataclasses import asdict

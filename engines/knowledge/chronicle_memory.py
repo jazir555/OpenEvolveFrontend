@@ -13,6 +13,8 @@ Key Features:
 - Narrative reconstruction
 - Integration with Graphiti for hybrid memory
 """
+from __future__ import annotations
+
 
 
 import os

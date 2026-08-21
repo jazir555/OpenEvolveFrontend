@@ -1,6 +1,8 @@
 """
 Deep integration with OpenEvolve backend for enhanced code evolution capabilities.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import tempfile

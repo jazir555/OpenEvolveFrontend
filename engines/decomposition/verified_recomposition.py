@@ -8,6 +8,8 @@ Architecture:
 4. Verification Layer - Algorithmically checks all content preserved
 5. Reject/Retry Loop - If verification fails, retry with feedback
 """
+from __future__ import annotations
+
 
 import json
 import hashlib

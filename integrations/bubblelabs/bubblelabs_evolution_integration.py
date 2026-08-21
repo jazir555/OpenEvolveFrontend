@@ -6,6 +6,8 @@ Provides integration between BubbleLabs and Evolution Engine.
 Author: OpenEvolve Team
 Date: 2026-02-06
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional

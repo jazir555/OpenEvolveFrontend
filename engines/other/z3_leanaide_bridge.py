@@ -11,6 +11,8 @@ Complete integration between Z3 SMT solver and LeanAide for:
 Author: OpenEvolve
 Version: 1.0.0 - Complete Implementation
 """
+from __future__ import annotations
+
 
 import asyncio
 import json

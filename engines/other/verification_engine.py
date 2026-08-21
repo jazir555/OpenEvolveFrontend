@@ -37,6 +37,8 @@ Version: 2.2.0
 Created: 2026-01-22
 Updated: 2026-02-05 (Added CAV-NLP hybrid verification)
 """
+from __future__ import annotations
+
 
 import logging
 import re

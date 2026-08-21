@@ -21,6 +21,8 @@ License: MIT (replaces AGPL CrewAI)
 Author: OpenEvolve Team
 Date: 2026-01-29
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Callable, Union
 import sys

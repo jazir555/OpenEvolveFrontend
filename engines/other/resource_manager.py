@@ -4,6 +4,8 @@ Resource Manager Module
 This module provides resource tracking, management, and optimization for the
 decomposition workflow, including API call limits, token usage, and cost tracking.
 """
+from __future__ import annotations
+
 
 import time
 import logging

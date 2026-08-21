@@ -5,6 +5,8 @@ This script verifies that all 44 workflow files have security implementations.
 Author: Security Implementation Team
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import os
 import sys

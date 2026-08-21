@@ -17,6 +17,8 @@ Features:
 - Alert escalation rules
 - Graceful degradation when services unavailable
 """
+from __future__ import annotations
+
 
 import json
 import logging

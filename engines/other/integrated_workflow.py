@@ -3,6 +3,8 @@ Integrated Adversarial Testing + Evolution Workflow
 This module provides the core functionality that combines adversarial testing and evolution
 into a single, powerful workflow that enhances content quality through AI-driven critique and refinement.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import json

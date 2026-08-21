@@ -17,6 +17,8 @@ All integrations follow the Federation Constitution patterns for:
 - UTC: All timestamps in UTC ISO-8601 format
 - Observability: All operations include correlation IDs
 """
+from __future__ import annotations
+
 
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone

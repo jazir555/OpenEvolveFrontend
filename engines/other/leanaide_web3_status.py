@@ -1,6 +1,8 @@
 """
 Shared Web3 formal-status helpers for LeanAide/Lean integrations.
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List
 

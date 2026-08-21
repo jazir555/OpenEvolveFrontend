@@ -4,6 +4,8 @@ OpenEvolve-BubbleLabs API Integration
 This module provides a comprehensive API integration between OpenEvolve and BubbleLabs,
 enabling full control of OpenEvolve workflows through the BubbleLabs interface.
 """
+from __future__ import annotations
+
 
 import json
 import asyncio

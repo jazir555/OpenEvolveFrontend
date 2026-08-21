@@ -10,6 +10,8 @@ CRITICAL FIXES IMPLEMENTED:
 2. API Key Validation: SHA-256 hash validation against database
 3. TLS Configuration: TLS 1.2+ with secure cipher suites
 """
+from __future__ import annotations
+
 
 import functools
 import hashlib

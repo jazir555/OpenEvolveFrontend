@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from ui_shim import ui as st
 from typing import Set, Dict, Any

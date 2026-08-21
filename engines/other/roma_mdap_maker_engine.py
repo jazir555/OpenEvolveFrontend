@@ -21,6 +21,8 @@ Key Components:
     ROMARedFlagger: Enhanced red-flagging for ROMA
     AdaptiveKSelector: Adaptive k-ahead selection
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

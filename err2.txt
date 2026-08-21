@@ -1,0 +1,23 @@
+2026-08-21 00:24:39,070 - openevolve.cav_nlp_integration.adapter - WARNING - CAV-NLP canonicalizer not available: cannot import name 'Z3Canonicalizer' from 'openevolve.cav_nlp_integration.z3_canonicalizer' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\openevolve\cav_nlp_integration\z3_canonicalizer.py)
+2026-08-21 00:24:39,070 - openevolve.cav_nlp_integration.adapter - WARNING - CAV-NLP text canonicalizer not available: No module named 'openevolve.cav_nlp_integration.cegis_learner'
+2026-08-21 00:24:39,324 - knowledge_engine.integrations.z3_auto_extraction - WARNING - Z3 knowledge integration not available
+2026-08-21 00:24:39,613 - knowledge_engine.integrations.z3_api - ERROR - Z3 knowledge integration not available
+2026-08-21 00:24:39,617 - knowledge_engine.integrations.unified_math_knowledge_bridge - INFO - CAV-NLP UnifiedMathService available for unified math knowledge bridge
+2026-08-21 00:25:10,170 - integrations.causal_learn - WARNING - Causal-learn not available. Integration will use graceful degradation.
+2026-08-21 00:25:11,333 - root - INFO - SECURITY: Team manager security enabled
+2026-08-21 00:25:11,351 - root - INFO - SECURITY: Gauntlet manager security enabled
+2026-08-21 00:25:12,021 - red_team - WARNING - DTS integration not available - using standard adversarial methods
+2026-08-21 00:25:12,025 - red_team - INFO - DSPy available for enhanced programmatic prompting
+2026-08-21 00:25:12,029 - red_team - INFO - Adaptive MDAP not available - using standard resource allocation
+2026-08-21 00:25:12,044 - quality_assessment - INFO - DSPy available for enhanced programmatic prompting
+2026-08-21 00:25:12,055 - blue_team - WARNING - DTS integration not available - using standard fix generation methods
+2026-08-21 00:25:12,058 - blue_team - INFO - DSPy available for enhanced programmatic prompting
+2026-08-21 00:25:16,077 - configuration_manager - WARNING - Configuration file not found: config.yaml, using defaults
+2026-08-21 00:25:16,083 - evolution - INFO - SECURITY: Evolution engine security enabled
+2026-08-21 00:25:16,089 - evaluator_team - WARNING - DTS not available - using fallback evaluation methods
+2026-08-21 00:25:16,095 - evolution - WARNING - DTS integration not available - using standard evolution strategies
+2026-08-21 00:25:16,115 - z3_to_lean_integration - WARNING - Gauntlet system not available
+2026-08-21 00:25:16,127 - gauntlet_manager.GauntletEvaluator - INFO - Team system initialized for gauntlet evaluation
+2026-08-21 00:25:16,168 - crewai_state_management - INFO - StateManager initialized with storage_dir=./crewai_states, max_versions=10
+2026-08-21 00:25:16,169 - ace_crewai_bridge - WARNING - ACE not available - learning disabled
+2026-08-21 00:25:16,169 - ace_crewai_bridge - INFO - ACE-CrewAI Bridge initialized (MIT-licensed)

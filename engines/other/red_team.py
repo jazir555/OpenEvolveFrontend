@@ -5,6 +5,8 @@ The Red Team is responsible for criticism and flaw detection, acting as adversar
 actively seek vulnerabilities, inconsistencies, and weaknesses in generated content during the
 critique phase of the workflow.
 """
+from __future__ import annotations
+
 import json
 import re
 import tempfile

@@ -13,8 +13,13 @@ Usage:
 
 Author: OpenEvolve Frontend Team
 """
+from __future__ import annotations
 
-from .ui_shim import ui as st
+
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
 from typing import Optional
 
 
@@ -80,7 +85,10 @@ def extend_bubblelabs_ui(ui_instance):
 
 def _render_evolution_workflows_tab(ui_instance):
     """Render Evolution Workflows tab"""
-    from .bubblelabs_evolution_controls import EvolutionControlPanel, PopulationVisualizer
+    try:
+        from .bubblelabs_evolution_controls import EvolutionControlPanel, PopulationVisualizer
+    except ImportError:
+        from bubblelabs_evolution_controls import EvolutionControlPanel, PopulationVisualizer
 
     st.subheader("🧬 Evolution Workflows")
 
@@ -134,7 +142,10 @@ def _render_evolution_workflows_tab(ui_instance):
 
 def _render_adversarial_testing_tab(ui_instance):
     """Render Adversarial Testing tab"""
-    from .bubblelabs_evolution_controls import AdversarialControlPanel
+    try:
+        from .bubblelabs_evolution_controls import AdversarialControlPanel
+    except ImportError:
+        from bubblelabs_evolution_controls import AdversarialControlPanel
 
     st.subheader("⚔️ Adversarial Testing")
 
@@ -271,7 +282,10 @@ def render_evolution_dashboard_standalone():
     Use this to render the evolution features independently
     of the main BubbleLabs UI.
     """
-    from .bubblelabs_evolution_integration import BubbleLabsEvolutionIntegration
+    try:
+        from .bubblelabs_evolution_integration import BubbleLabsEvolutionIntegration
+    except ImportError:
+        from bubblelabs_evolution_integration import BubbleLabsEvolutionIntegration
 
     integration = BubbleLabsEvolutionIntegration()
     integration.render_evolution_dashboard()
@@ -283,7 +297,10 @@ def render_evolution_controls_standalone():
 
     Use this to embed evolution controls in any UI app.
     """
-    from .bubblelabs_evolution_controls import EvolutionControlPanel
+    try:
+        from .bubblelabs_evolution_controls import EvolutionControlPanel
+    except ImportError:
+        from bubblelabs_evolution_controls import EvolutionControlPanel
 
     st.header("🧬 Evolution Controls")
 
@@ -300,7 +317,10 @@ def render_adversarial_controls_standalone():
 
     Use this to embed adversarial controls in any UI app.
     """
-    from .bubblelabs_evolution_controls import AdversarialControlPanel
+    try:
+        from .bubblelabs_evolution_controls import AdversarialControlPanel
+    except ImportError:
+        from bubblelabs_evolution_controls import AdversarialControlPanel
 
     st.header("⚔️ Adversarial Testing Controls")
 
@@ -319,7 +339,10 @@ def example_extended_bubblelabs():
     """Example of using extended BubbleLabs UI"""
 
     # Import BubbleLabs
-    from .bubblelabs_ui_component import BubbleLabsWorkflowUI
+    try:
+        from .bubblelabs_ui_component import BubbleLabsWorkflowUI
+    except ImportError:
+        from bubblelabs_ui_component import BubbleLabsWorkflowUI
 
     # Create UI instance
     ui = BubbleLabsWorkflowUI()

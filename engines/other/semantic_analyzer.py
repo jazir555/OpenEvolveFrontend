@@ -10,6 +10,8 @@ Key Features:
 - Graph-based clustering for decomposition guidance
 - Rich domain context generation
 """
+from __future__ import annotations
+
 
 import logging
 import re

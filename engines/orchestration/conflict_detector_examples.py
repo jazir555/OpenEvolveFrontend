@@ -7,6 +7,8 @@ for detecting and resolving conflicts in sub-solutions.
 Author: OpenEvolve AI System
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 
 from conflict_detector import (

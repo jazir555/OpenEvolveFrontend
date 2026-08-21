@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Solution Orchestration
 Tracks solution attempts, validates, and integrates sub-solutions.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional

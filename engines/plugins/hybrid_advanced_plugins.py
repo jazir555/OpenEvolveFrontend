@@ -13,6 +13,8 @@ Author: OpenEvolve Hybrid Plugins Team
 Created: 2025-01-07
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import asyncio
 import random

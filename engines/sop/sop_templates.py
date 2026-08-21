@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 SOP Template System - Structured Evolution for Each SOP Facet

@@ -24,10 +24,22 @@ import numpy as np
 
 from integrations.base.visualization_interface import VisualizationInterface
 
-from .bubblelabs_gauntlet_bubbles import create_bubble_edge
-from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
-from .workflow_structures import WorkflowState
-from .workflow_visualization import OpenEvolveVisualizer
+try:
+    from .bubblelabs_gauntlet_bubbles import create_bubble_edge
+except ImportError:
+    from bubblelabs_gauntlet_bubbles import create_bubble_edge
+try:
+    from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+except ImportError:
+    from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+try:
+    from .workflow_structures import WorkflowState
+except ImportError:
+    from workflow_structures import WorkflowState
+try:
+    from .workflow_visualization import OpenEvolveVisualizer
+except ImportError:
+    from workflow_visualization import OpenEvolveVisualizer
 
 logger = logging.getLogger(__name__)
 
@@ -447,7 +459,10 @@ class BubbleLabsAdapter(VisualizationInterface):
     def _get_version(self) -> str:
         """Get the BubbleLabs integration package version."""
         try:
-            from . import __version__
+            try:
+                from . import __version__
+            except ImportError:
+                import __version__
 
             return __version__
         except Exception:  # pragma: no cover - version is best-effort

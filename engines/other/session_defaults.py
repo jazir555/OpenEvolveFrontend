@@ -3,6 +3,8 @@ Session Defaults Manager for OpenEvolve - Default values and initialization
 This file manages default values and initialization for session state
 File size: ~500 lines (well under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Tuple
 

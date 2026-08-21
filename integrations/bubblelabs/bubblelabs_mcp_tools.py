@@ -14,6 +14,8 @@ MCP Tools allow agents to:
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 import json
 import logging
@@ -76,7 +78,8 @@ def validate_range(value: int, min_value: int, max_value: int, param_name: str) 
 
 # Import security layer
 try:
-    from .bubblelabs_security import (
+    try:
+        from .bubblelabs_security import (
         validate_uuid,
         validate_workflow_type,
         validate_workflow_action,
@@ -84,7 +87,17 @@ try:
         validate_input,
         auth_manager,
         SecurityContext
-    )
+        )
+    except ImportError:
+        from          import (
+        validate_uuid,
+        validate_workflow_type,
+        validate_workflow_action,
+        require_auth,
+        validate_input,
+        auth_manager,
+        SecurityContext
+        )
     SECURITY_AVAILABLE = True
     logger.info("Security layer loaded successfully")
 except ImportError:
@@ -93,12 +106,22 @@ except ImportError:
 
 # Import BubbleLabs integration
 try:
-    from .bubblelabs_integration import BubbleLabsIntegration, BubbleWorkflowDefinition
-    from .openevolve_bubblelabs_api import (
+    try:
+        from .bubblelabs_integration import BubbleLabsIntegration, BubbleWorkflowDefinition
+    except ImportError:
+        from bubblelabs_integration import BubbleLabsIntegration, BubbleWorkflowDefinition
+    try:
+        from .openevolve_bubblelabs_api import (
         OpenEvolveBubbleLabsIntegration,
         WorkflowStatus,
         WorkflowMetrics
-    )
+        )
+    except ImportError:
+        from          import (
+        OpenEvolveBubbleLabsIntegration,
+        WorkflowStatus,
+        WorkflowMetrics
+        )
     BUBBLELABS_AVAILABLE = True
 except ImportError:
     BUBBLELABS_AVAILABLE = False

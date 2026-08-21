@@ -13,6 +13,8 @@ Each criterion has:
 Author: Agent 5 - Success Criteria and Validation
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import logging
 import re

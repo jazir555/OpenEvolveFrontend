@@ -11,6 +11,8 @@ Features:
 - Dynamic strategy selection based on problem characteristics
 - Automatic decomposition quality improvement
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, List, Any, Optional, Tuple

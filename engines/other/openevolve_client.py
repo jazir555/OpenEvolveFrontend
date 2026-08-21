@@ -2,6 +2,8 @@
 OpenEvolve Client - Unified interface for all OpenEvolve operations
 Provides a clean API for all files to interact with OpenEvolve backend
 """
+from __future__ import annotations
+
 
 import os
 import time

@@ -2,6 +2,8 @@
 Blue Team Utilities for OpenEvolve
 Comprehensive utility functions and helper classes for Blue Team operations
 """
+from __future__ import annotations
+
 
 
 import os

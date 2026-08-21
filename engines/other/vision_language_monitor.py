@@ -11,6 +11,8 @@ Provider-specific optimizations are implemented for:
 - Google: Gemini Vision with specific API parameters
 - Azure: Azure OpenAI Vision with proper authentication
 """
+from __future__ import annotations
+
 
 import os
 import base64
@@ -1657,12 +1659,97 @@ async def analyze_with_recommendation(
 
 
 # ============================================================================
+# High-level monitor wrappers (added to satisfy forward-refs)
+# ============================================================================
+
+from dataclasses import dataclass as _dc, field as _field  # noqa: E402
+from typing import Any as _Any  # noqa: E402
+
+
+@_dc
+class VisualAnalysis:
+    """Structured result of a visual / image analysis pass."""
+
+    summary: str = ""
+    findings: list = _field(default_factory=list)
+    confidence: float = 0.0
+    raw: _Any = None
+
+    def to_dict(self) -> dict:
+        return {"summary": self.summary, "findings": list(self.findings),
+                "confidence": self.confidence}
+
+
+class VisionLanguageMonitor:
+    """Lightweight monitor for vision-language outputs.
+
+    Wraps :class:`VLMAnalyzer` when available and tracks a rolling history of
+    analyses plus simple anomaly detection (e.g. low-confidence or empty
+    outputs). No heavy external dependencies are required to instantiate or use
+    the tracking helpers.
+    """
+
+    def __init__(self, config: _Any = None, provider: str = "openai"):
+        self.config = config
+        self.provider = provider
+        self._analyzer = None
+        self.history: list = []
+        self.anomalies: list = []
+        self._anomaly_threshold: float = 0.3
+        try:
+            self._analyzer = VLMAnalyzer(config) if "VLMAnalyzer" in globals() else None
+        except Exception:  # noqa: BLE001
+            self._analyzer = None
+
+    def analyze(self, image_ref: _Any, prompt: str = "Describe this image") -> VisualAnalysis:
+        if self._analyzer is not None:
+            try:
+                result = self._analyzer.analyze(image_ref, prompt)
+                summary = getattr(result, "summary", None) or getattr(result, "text", "") or ""
+                analysis = VisualAnalysis(summary=str(summary))
+            except Exception as exc:  # noqa: BLE001
+                analysis = VisualAnalysis(summary="", confidence=0.0, raw=str(exc))
+        else:
+            analysis = VisualAnalysis(summary="VisionLanguageMonitor unavailable", confidence=0.0)
+        self._record(analysis)
+        return analysis
+
+    def _record(self, analysis: VisualAnalysis) -> None:
+        self.history.append(analysis)
+        if analysis.confidence < self._anomaly_threshold or not analysis.summary:
+            self.anomalies.append(
+                {"summary": analysis.summary, "confidence": analysis.confidence}
+            )
+
+    def track(self, analysis: VisualAnalysis) -> None:
+        """Explicitly feed an external analysis result into the monitor."""
+        self._record(analysis)
+
+    def metrics(self) -> _Any:
+        """Return simple aggregate metrics over the tracked history."""
+        n = len(self.history)
+        avg_conf = sum(h.confidence for h in self.history) / n if n else 0.0
+        return {
+            "samples": n,
+            "anomalies": len(self.anomalies),
+            "average_confidence": round(avg_conf, 4),
+        }
+
+    def reset(self) -> None:
+        self.history.clear()
+        self.anomalies.clear()
+
+
+# ============================================================================
 # Exported symbols
 # ============================================================================
 
 __all__ = [
     # Enums
     "VLMProvider",
+    # Monitor wrappers
+    "VisionLanguageMonitor",
+    "VisualAnalysis",
     "AnalysisType",
     # Data classes
     "VLMConfig",

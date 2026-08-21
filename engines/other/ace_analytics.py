@@ -15,6 +15,8 @@ SECURITY FIXES APPLIED:
 - Phase 3: Resource management with history limits and cleanup
 - Phase 4: File path validation for all file operations
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field

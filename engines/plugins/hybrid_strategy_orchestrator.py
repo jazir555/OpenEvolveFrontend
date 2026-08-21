@@ -15,6 +15,8 @@ Usage:
         constraints={"budget_usd": 100, "max_iterations": 100}
     )
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging

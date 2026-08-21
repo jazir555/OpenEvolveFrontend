@@ -10,6 +10,8 @@ ICR Integration:
 - Adapts recommendations based on historical outcomes
 - Learns from workflow execution results
 """
+from __future__ import annotations
+
 
 
 from typing import Dict, Any, List, Optional, Tuple

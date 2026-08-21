@@ -4,6 +4,8 @@ This file serves as the main entry point for session state management
 and combines all the modular functionality.
 File size: ~200 lines (well under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from session_defaults import session_defaults
 from content_manager import content_manager

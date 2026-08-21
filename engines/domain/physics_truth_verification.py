@@ -2,6 +2,8 @@
 BRUTAL NO-HOLDS-BARRED VERIFICATION
 Of E2E Invention Physics "TRUE 100%" Claims
 """
+from __future__ import annotations
+
 
 import numpy as np
 import re

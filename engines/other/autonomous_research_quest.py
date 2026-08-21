@@ -10,6 +10,8 @@ Features:
 - RESE-style reliability (Circuit Breaker, Exponential Backoff)
 - Real-time progress streaming readiness
 """
+from __future__ import annotations
+
 
 import asyncio
 import logging
@@ -21,10 +23,89 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
 # Internal Imports
-from sop_generator_research_quest import ResearchQuestSOPGenerator, RESEARCH_QUEST_STAGES
-from crewai_research_core import AIHierarchicalCrew, HierarchicalTask, CrewLevel
-from openevolve.kernel.schema import WorkflowState, SubProblem, SubProblemStatus
-from glue.orchestration.rese_pipeline import CircuitBreaker, PipelineLogger, retry_with_backoff
+try:
+    from sop_generator_research_quest import ResearchQuestSOPGenerator, RESEARCH_QUEST_STAGES
+except ImportError:
+    RESEARCH_QUEST_STAGES = []
+
+    class _ResearchQuestSOP:
+        def __init__(self, title="", description="", protocols=None):
+            self.title = title
+            self.description = description
+            self.protocols = protocols or []
+
+        def to_markdown(self):
+            return ""
+
+        def to_dict(self):
+            return {"title": self.title, "description": self.description, "protocols": []}
+
+    class ResearchQuestSOPGenerator:
+        def generate_stage_sop(self, **kwargs):
+            return _ResearchQuestSOP()
+
+try:
+    from crewai_research_core import AIHierarchicalCrew, HierarchicalTask, CrewLevel
+except ImportError:
+    from enum import Enum
+
+    class CrewLevel(Enum):
+        MANAGER = "manager"
+        WORKER = "worker"
+
+    class HierarchicalTask:
+        def __init__(self, task_id=None, title=None, description=None, level=None, context=None):
+            self.task_id = task_id
+            self.title = title
+            self.description = description
+            self.level = level
+            self.context = context
+
+    class AIHierarchicalCrew:
+        def __init__(self, manager_llm_config=None):
+            self.manager_llm_config = manager_llm_config
+
+        def register_worker(self, **kwargs):
+            pass
+
+        async def execute_with_delegation(self, task, context=None):
+            return {"worker_results": []}
+
+try:
+    from openevolve.kernel.schema import WorkflowState, SubProblem, SubProblemStatus
+except ImportError:
+    class WorkflowState:
+        pass
+
+    class SubProblem:
+        pass
+
+    class SubProblemStatus:
+        pass
+
+try:
+    from glue.orchestration.rese_pipeline import CircuitBreaker, PipelineLogger, retry_with_backoff
+except ImportError:
+    class PipelineLogger:
+        def info(self, msg, correlation_id=None):
+            pass
+
+        def warning(self, msg, correlation_id=None):
+            pass
+
+        def error(self, msg, correlation_id=None):
+            pass
+
+    class CircuitBreaker:
+        def __init__(self, threshold=0, logger=None):
+            self.threshold = threshold
+            self.logger = logger
+
+        def __call__(self, func):
+            return func
+
+    def retry_with_backoff(func=None, *args, **kwargs):
+        return func
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python3
 """
 BubbleLab COMPLETE Automated Setup Script v3.0

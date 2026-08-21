@@ -4,6 +4,8 @@ Formal Gauntlet System for Sovereign-Grade Problem Decomposition
 Implements a comprehensive, programmable gauntlet framework with configurable rules,
 validation stages, and red team/gold team workflows.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional, Tuple
@@ -19,7 +21,6 @@ from sovereign_data_models import (
     GauntletRoundRule,
     GauntletDefinition,
     GauntletExecution,
-    GauntletAssignment,
     SolutionAttempt,
     SubProblem,
     CritiqueReport,
@@ -27,6 +28,16 @@ from sovereign_data_models import (
     Feedback,
     generate_id
 )
+
+try:
+    from sovereign_data_models import GauntletAssignment
+except ImportError:
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class GauntletAssignment:
+        red_team_gauntlet: object = None
+        gold_team_gauntlet: object = None
 
 # ROMA-MDAP-MAKER (Robust Execution)
 try:

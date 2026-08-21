@@ -10,6 +10,8 @@ This module provides a deduplication layer using multiple hash strategies:
 Author: OpenEvolve AI
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import hashlib
 import json

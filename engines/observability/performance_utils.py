@@ -4,6 +4,8 @@ Performance Optimization Utilities
 This module provides utilities for optimizing workflow performance including
 parallel execution, batching, and resource management.
 """
+from __future__ import annotations
+
 
 import concurrent.futures
 from typing import List, Callable, Any, Dict, Optional

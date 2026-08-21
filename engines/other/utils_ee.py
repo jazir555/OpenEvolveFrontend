@@ -1,4 +1,6 @@
 """Utils EE module stub."""
+from __future__ import annotations
+
 
 def to_crf_pad(*args, **kwargs):
     pass

@@ -15,6 +15,8 @@ MCP Tools:
     6. create_roma_mdap_maker_config - Create configuration
     7. get_roma_mdap_maker_metrics - Get execution metrics
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional, Union

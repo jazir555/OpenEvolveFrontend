@@ -12,6 +12,8 @@ This module provides comprehensive security hardening for BubbleLabs integration
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 import uuid
 import re

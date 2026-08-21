@@ -17,8 +17,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ._stub_support import STUB
-from .workflow_structures import WorkflowStage, WorkflowState, WorkflowStatus
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
+try:
+    from .workflow_structures import WorkflowStage, WorkflowState, WorkflowStatus
+except ImportError:
+    from workflow_structures import WorkflowStage, WorkflowState, WorkflowStatus
 
 logger = logging.getLogger(__name__)
 

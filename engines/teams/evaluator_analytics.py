@@ -8,6 +8,8 @@ and quality trend analysis.
 Author: OpenEvolve
 Date: 2025-01-04
 """
+from __future__ import annotations
+
 
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field

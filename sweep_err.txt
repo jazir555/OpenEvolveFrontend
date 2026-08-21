@@ -1,0 +1,221 @@
+WARNING:root:Adaptive enhancement not available: cannot import name 'calculate_functional_weight' from 'decomposition_engine' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\decomposition_engine.py)
+WARNING:roma_mdap_maker_associative_integration:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:knowledge_engine.integrations.z3_auto_extraction:Z3 knowledge integration not available
+ERROR:knowledge_engine.integrations.z3_api:Z3 knowledge integration not available
+WARNING:integrations.causal_learn:Causal-learn not available. Integration will use graceful degradation.
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:roma_mdap_maker_associative_integration:Evaluator Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:roma_mdap_maker_associative_integration:Adaptive Gauntlet System not available: cannot import name 'GauntletRoundRule' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:openevolve_pes_enhanced.integration_wrapper:openevolve_agnostic_pes not available - standalone mode
+WARNING:configuration_manager:Configuration file not found: config.yaml, using defaults
+WARNING:comprehensive_decomposition_engine:CAV-NLP integration not available - NL decomposition disabled
+WARNING:decomposition_z3_validator:Z3 integration not available
+WARNING:verification_engine:LeanAideClient not available
+WARNING:verification_engine:CAV-NLP integration not available - hybrid verification disabled
+WARNING:decomposition_mcp_tools:Decomposition engine not available: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:decomposition_mcp_tools:DataPizza not available: No module named 'datapizza.agents'
+WARNING:roma_decomposition_hybrid:Decomposition Workflow not available
+WARNING:decomposition_mcp_tools:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:root:Decomposition engine not available: cannot import name 'DecompositionStrategyBase' from 'decomposition_engine' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\decomposition_engine.py)
+WARNING:root:LeanAide evolution not available
+WARNING:root:LeanAide decomposition not available
+WARNING:decomposition_z3_validator:Z3 integration not available
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:root:LeanAide client not available - formal verification disabled
+C:\Users\mmeadow\AppData\Local\Temp\kilo\sweep_before3.py:23: RuntimeWarning: Using global_chem stub module. This is not a functional replacement. Install global-chem package for full functionality: pip install global-chem
+  spec.loader.exec_module(m)
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:sop_generator_enhanced:Base SOP generator not available
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:invention_planner_integrations:BubbleLabs not available: No module named 'bubblelabs_analytics' - analytics tracking will be limited
+WARNING:invention_planner_integrations:CrewAI not available: No module named 'datapizza_config' - task delegation will be local
+WARNING:invention_planner_integrations:Sovereign not available: No module named 'sovereign_quality_assessment' - quality assurance will be basic
+WARNING:invention_planner_integrations:Claudiomiro not available: No module named 'claudiomiro_crewai_bridge' - using basic decomposition
+WARNING:invention_planner_integrations:DataPizza not available: No module named 'datapizza_crewai_bridge' - decomposition will be basic
+WARNING:invention_planner_integrations:STEER not available: No module named 'steer_crewai_bridge' - output validation will be basic
+WARNING:chronicle_memory_z3_integration:CAV-NLP integration not available for chronicle memory
+WARNING:knowledge_engine_hierarchical_integration:KnowledgeBase not available, using fallback
+WARNING:knowledge_engine_hierarchical_integration:Data models not available, using fallback
+WARNING:knowledge_unified_memory_system:Lifecycle manager not available: cannot import name 'LifecycleManager' from 'knowledge_lifecycle_manager' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\knowledge_lifecycle_manager.py)
+WARNING:knowledge_unified_memory_system:Lifecycle manager not available: cannot import name 'LifecycleManager' from 'knowledge_lifecycle_manager' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\knowledge_lifecycle_manager.py)
+WARNING:ml_pattern_clustering:ML libraries not fully available: cannot import name 'HybridCache' from 'transformers' (C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\__init__.py)
+WARNING:ml_pattern_clustering:kg-gen integration not available
+WARNING:ml_pattern_clustering:ML libraries not fully available: cannot import name 'HybridCache' from 'transformers' (C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\transformers\__init__.py)
+WARNING:ml_pattern_clustering:kg-gen integration not available
+WARNING:unified_knowledge_extraction:CAV-NLP integration not available
+WARNING:root:MCTS components not available
+WARNING:root:LeanAide integration not available
+WARNING:root:MCTS module not available - limited functionality
+WARNING:root:LeanAide client not available
+WARNING:root:Evolution module not available
+WARNING:root:MCTS module not available - limited functionality
+WARNING:root:LeanAide client not available
+WARNING:root:Evolution module not available
+WARNING:mdap_maker_associative_integration:MDAP engine not available
+WARNING:mdap_maker_associative_integration:MAKER engine not available
+WARNING:mdap_maker_mcts_unified:MDAP engine not available
+WARNING:mdap_maker_mcts_unified:MAKER engine not available
+WARNING:mdap_maker_mcts_unified:Complete MAKER implementation not available
+WARNING:root:MCTS module not available - limited functionality
+WARNING:root:LeanAide client not available
+WARNING:root:Evolution module not available
+WARNING:scheduled_reports:croniter not found. Advanced scheduling will be limited.
+WARNING:scheduled_reports:schedule library not found. Basic scheduling will be used.
+WARNING:root:OpenTelemetry not installed. Telemetry will be disabled.
+WARNING:decomposition_strategy:sovereign_data_models not available, using fallback definitions
+C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\orchestration\future_enhancements.py:23: RuntimeWarning: Using TensorFlow stub module. This is not a functional replacement for TensorFlow. Install tensorflow package for full functionality.
+  import tensorflow as tf
+WARNING:rlm_roma_integration:ROMA integration not available. ROMA features will be disabled.
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:evolution:Team system components not available - adversarial features will be limited: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evolution:DTS integration not available - using standard evolution strategies
+WARNING:adversarial:LeanAide client not available - formal verification disabled
+WARNING:mdap_maker_mcts_unified:MDAP engine not available
+WARNING:mdap_maker_mcts_unified:MAKER engine not available
+WARNING:mdap_maker_mcts_unified:Complete MAKER implementation not available
+WARNING:root:MCTS module not available - limited functionality
+WARNING:root:LeanAide client not available
+WARNING:root:Evolution module not available
+WARNING:root:Maker Engine not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:bubblelabs_leanaide_integration:LeanAide client not available: No module named 'leanaide_client'
+WARNING:bubblelabs_leanaide_integration:LeanAide MCTS-MDAP not available: No module named 'leanaide_mcts_mdap'
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_theorem
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_definition
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_proof
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_verify_solution
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_math_query
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_documentation
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_elaborate_code
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: get_leanaide_status
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_formalize_with_cav_nlp
+INFO:leanaide_mcp_tools:Initializing LeanAide MCP tools...
+INFO:leanaide_mcp_tools:Registered 9 LeanAide MCP tools
+INFO:leanaide_mcp_tools:  - leanaide_translate_theorem
+INFO:leanaide_mcp_tools:  - leanaide_translate_definition
+INFO:leanaide_mcp_tools:  - leanaide_generate_proof
+INFO:leanaide_mcp_tools:  - leanaide_verify_solution
+INFO:leanaide_mcp_tools:  - leanaide_math_query
+INFO:leanaide_mcp_tools:  - leanaide_generate_documentation
+INFO:leanaide_mcp_tools:  - leanaide_elaborate_code
+INFO:leanaide_mcp_tools:  - get_leanaide_status
+INFO:leanaide_mcp_tools:  - leanaide_formalize_with_cav_nlp
+WARNING:adversarial:LeanAide client not available - formal verification disabled
+WARNING:api_server:Validation manager unavailable: No module named 'validation_manager'
+C:\Users\mmeadow\AppData\Local\Temp\kilo\sweep_before3.py:23: RuntimeWarning: Using astor stub module. This is not a functional replacement for astor. Install astor package for full functionality.
+  spec.loader.exec_module(m)
+WARNING:root:CAV-NLP integration not available - CAV-NLP strategy disabled
+WARNING:root:Mathlib4 integration not available - analogy strategy disabled
+WARNING:blue_team:LeanAide client not available - formal fix verification disabled
+WARNING:blue_team:DTS integration not available - using standard fix generation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:bubblelabs_leanaide_integration:LeanAide client not available: No module named 'leanaide_client'
+WARNING:bubblelabs_leanaide_integration:LeanAide MCTS-MDAP not available: No module named 'leanaide_mcts_mdap'
+WARNING:root:Maker Engine not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:root:Base continuous math not available - using standalone mode
+WARNING:configuration_manager:Configuration file not found: config.yaml, using defaults
+WARNING:decomposition_mcp_tools:Decomposition engine not available: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:decomposition_mcp_tools:DataPizza not available: No module named 'datapizza.agents'
+WARNING:decomposition_mcp_tools:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:root:Evaluator Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:blue_team:LeanAide client not available - formal fix verification disabled
+WARNING:blue_team:DTS integration not available - using standard fix generation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:root:Blue Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evaluator_team_coordinator:LeanAide client not available - formal verification disabled
+WARNING:root:valkey-py not installed. EventBus will use in-memory fallback.
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:evolution:Team system components not available - adversarial features will be limited: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evolution:DTS integration not available - using standard evolution strategies
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_theorem
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_translate_definition
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_proof
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_verify_solution
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_math_query
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_generate_documentation
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_elaborate_code
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: get_leanaide_status
+INFO:leanaide_mcp_tools:Registered LeanAide MCP tool: leanaide_formalize_with_cav_nlp
+INFO:leanaide_mcp_tools:Initializing LeanAide MCP tools...
+INFO:leanaide_mcp_tools:Registered 9 LeanAide MCP tools
+INFO:leanaide_mcp_tools:  - leanaide_translate_theorem
+INFO:leanaide_mcp_tools:  - leanaide_translate_definition
+INFO:leanaide_mcp_tools:  - leanaide_generate_proof
+INFO:leanaide_mcp_tools:  - leanaide_verify_solution
+INFO:leanaide_mcp_tools:  - leanaide_math_query
+INFO:leanaide_mcp_tools:  - leanaide_generate_documentation
+INFO:leanaide_mcp_tools:  - leanaide_elaborate_code
+INFO:leanaide_mcp_tools:  - get_leanaide_status
+INFO:leanaide_mcp_tools:  - leanaide_formalize_with_cav_nlp
+WARNING:openevolve_leanaide_bridge:OpenEvolve workflow structures not available - using fallback types
+WARNING:openevolve_leanaide_bridge:LeanAIDE autoformalization engine not available
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:roma_decomposition_hybrid:Decomposition Workflow not available
+WARNING:roma_mdap_maker_associative_integration:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:roma_mdap_maker_associative_integration:Evaluator Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:roma_mdap_maker_associative_integration:Adaptive Gauntlet System not available: cannot import name 'GauntletRoundRule' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:verification_engine:LeanAideClient not available
+WARNING:verification_engine:CAV-NLP integration not available - hybrid verification disabled
+WARNING:root:Could not import from workflow_structures: cannot import name 'SolutionPatternArtifact' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:root:ACE client not available. Install ace_client for enhanced extraction.
+WARNING:z3_mcp_tools:Z3 integration not available
+WARNING:z3_mcp_tools:Unified Math Service (CAV-NLP) not available
+WARNING:z3_leanaide_openevolve_integration:Z3 integration not available
+WARNING:z3_leanaide_openevolve_integration:Z3-LeanAIDE bridge not available
+WARNING:z3_leanaide_openevolve_integration:OpenEvolve workflow not available
+WARNING:z3_leanaide_openevolve_integration:BubbleLabs integration not available
+WARNING:z3_leanaide_openevolve_integration:CAV-NLP integration not available
+WARNING:z3_crewai_bridge:Z3 integration not available
+WARNING:z3_leanaide_openevolve_integration:Z3 integration not available
+WARNING:z3_leanaide_openevolve_integration:Z3-LeanAIDE bridge not available
+WARNING:z3_leanaide_openevolve_integration:OpenEvolve workflow not available
+WARNING:z3_leanaide_openevolve_integration:BubbleLabs integration not available
+WARNING:z3_leanaide_openevolve_integration:CAV-NLP integration not available
+WARNING:z3_mcp_tools:Z3 integration not available
+WARNING:z3_mcp_tools:Unified Math Service (CAV-NLP) not available
+WARNING:z3_to_lean_integration:Z3 not available
+WARNING:z3_to_lean_integration:Gauntlet system not available
+WARNING:quality_gate_leanaide_verifier:LeanAide not available for quality gate verification
+WARNING:quality_gate_leanaide_verifier:QualityGateEngine not available
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:sop_generator_enhanced:Base SOP generator not available
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:blue_team:LeanAide client not available - formal fix verification disabled
+WARNING:blue_team:DTS integration not available - using standard fix generation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:blue_team_tools:LeanAide client not available - formal verification tools disabled
+WARNING:blue_team_utilities:LeanAide client not available - formal validation utilities disabled
+WARNING:red_team_coordinator:LeanAide client not available - formal verification disabled
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:root:Red Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)

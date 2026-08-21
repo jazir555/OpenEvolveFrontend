@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ui_shim import ui as st
 import json
 from evolution import _request_openai_compatible_chat, _compose_messages

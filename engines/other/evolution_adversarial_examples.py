@@ -6,6 +6,8 @@ Run these examples to understand the system's capabilities.
 
 Author: OpenEvolve Frontend Team
 """
+from __future__ import annotations
+
 
 
 from ui_shim import ui as st

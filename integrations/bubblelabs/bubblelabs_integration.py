@@ -14,7 +14,10 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from ._stub_support import STUB, raise_stub
+try:
+    from ._stub_support import STUB, raise_stub
+except ImportError:
+    from _stub_support import STUB, raise_stub
 
 logger = logging.getLogger(__name__)
 

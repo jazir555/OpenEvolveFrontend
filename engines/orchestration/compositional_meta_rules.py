@@ -4,6 +4,8 @@ Compositional Meta Rules Module
 This is a stub module created to fix import errors.
 It provides meta-rules for compositional semantics.
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Callable, Union
 from dataclasses import dataclass

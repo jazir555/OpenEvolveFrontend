@@ -11,6 +11,8 @@ This module provides tools to:
 
 Author: Agent 2 - Error Analysis and Adversarial Testing
 """
+from __future__ import annotations
+
 
 import numpy as np
 import logging

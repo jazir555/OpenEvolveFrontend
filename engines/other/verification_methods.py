@@ -18,6 +18,8 @@ Author: OpenEvolve
 Created: 2026-01-09
 Phase: 2 - LeanAide Enhancement (Task B.4)
 """
+from __future__ import annotations
+
 
 import re
 import logging

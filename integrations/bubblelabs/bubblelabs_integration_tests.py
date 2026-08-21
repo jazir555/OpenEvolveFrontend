@@ -5,6 +5,8 @@ This module provides extensive testing coverage for all aspects of the
 OpenEvolve-BubbleLabs integration, including API integration, parameter 
 synchronization, visualization, lifecycle controls, and analytics.
 """
+from __future__ import annotations
+
 
 import unittest
 import threading
@@ -27,13 +29,34 @@ if __package__ in (None, ""):  # pragma: no cover - script-execution bootstrap
     __package__ = "integrations.bubblelabs"
     import integrations.bubblelabs  # noqa: F401
 
-from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
-from .parameter_sync_manager import ParameterSyncManager
-from .workflow_lifecycle_controller import WorkflowLifecycleController
-from .analytics_monitoring_dashboard import AnalyticsMonitoringDashboard
-from .workflow_visualization import OpenEvolveVisualizer
-from .workflow_structures import WorkflowState
-from .ui_shim import ui as _ui
+try:
+    from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+except ImportError:
+    from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+try:
+    from .parameter_sync_manager import ParameterSyncManager
+except ImportError:
+    from parameter_sync_manager import ParameterSyncManager
+try:
+    from .workflow_lifecycle_controller import WorkflowLifecycleController
+except ImportError:
+    from workflow_lifecycle_controller import WorkflowLifecycleController
+try:
+    from .analytics_monitoring_dashboard import AnalyticsMonitoringDashboard
+except ImportError:
+    from analytics_monitoring_dashboard import AnalyticsMonitoringDashboard
+try:
+    from .workflow_visualization import OpenEvolveVisualizer
+except ImportError:
+    from workflow_visualization import OpenEvolveVisualizer
+try:
+    from .workflow_structures import WorkflowState
+except ImportError:
+    from workflow_structures import WorkflowState
+try:
+    from .ui_shim import ui as _ui
+except ImportError:
+    from ui_shim import ui as _ui
 
 
 class TestOpenEvolveBubbleLabsAPI(unittest.TestCase):

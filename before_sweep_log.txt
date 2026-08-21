@@ -1,0 +1,49 @@
+WARNING:root:Adaptive enhancement not available: cannot import name 'calculate_functional_weight' from 'decomposition_engine' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\decomposition_engine.py)
+WARNING:roma_mdap_maker_associative_integration:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:evaluator_team:DTS not available - using fallback evaluation methods
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:knowledge_engine.integrations.z3_auto_extraction:Z3 knowledge integration not available
+ERROR:knowledge_engine.integrations.z3_api:Z3 knowledge integration not available
+WARNING:integrations.causal_learn:Causal-learn not available. Integration will use graceful degradation.
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:roma_mdap_maker_associative_integration:Evaluator Team not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:roma_mdap_maker_associative_integration:Adaptive Gauntlet System not available: cannot import name 'GauntletRoundRule' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:openevolve_pes_enhanced.integration_wrapper:openevolve_agnostic_pes not available - standalone mode
+WARNING:configuration_manager:Configuration file not found: config.yaml, using defaults
+WARNING:comprehensive_decomposition_engine:CAV-NLP integration not available - NL decomposition disabled
+WARNING:decomposition_z3_validator:Z3 integration not available
+WARNING:verification_engine:LeanAideClient not available
+WARNING:verification_engine:CAV-NLP integration not available - hybrid verification disabled
+WARNING:decomposition_mcp_tools:Decomposition engine not available: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:decomposition_mcp_tools:DataPizza not available: No module named 'datapizza.agents'
+WARNING:roma_decomposition_hybrid:Decomposition Workflow not available
+WARNING:decomposition_mcp_tools:ROMA-MDAP-MAKER not available: cannot import name 'Team' from 'workflow_structures' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\workflow\workflow_structures.py)
+WARNING:root:Decomposition engine not available: cannot import name 'DecompositionStrategyBase' from 'decomposition_engine' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\decomposition_engine.py)
+WARNING:root:LeanAide evolution not available
+WARNING:root:LeanAide decomposition not available
+WARNING:decomposition_z3_validator:Z3 integration not available
+WARNING:root:Failed to import from sovereign_data_models: cannot import name 'DecompositionPlan' from 'sovereign_data_models' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\other\sovereign_data_models.py)
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:root:LeanAide client not available - formal verification disabled
+C:\Users\mmeadow\AppData\Local\Temp\kilo\sweep_before.py:25: RuntimeWarning: Using global_chem stub module. This is not a functional replacement. Install global-chem package for full functionality: pip install global-chem
+  spec.loader.exec_module(m)
+WARNING:root:LeanAide client not available - formal verification disabled
+WARNING:sop_generator_enhanced:Base SOP generator not available
+WARNING:red_team:DTS integration not available - using standard adversarial methods
+WARNING:red_team:LeanAide client not available - formal verification disabled
+WARNING:invention_planner_integrations:BubbleLabs not available: No module named 'bubblelabs_analytics' - analytics tracking will be limited
+WARNING:invention_planner_integrations:CrewAI not available: No module named 'datapizza_config' - task delegation will be local
+WARNING:invention_planner_integrations:Sovereign not available: No module named 'sovereign_quality_assessment' - quality assurance will be basic
+WARNING:invention_planner_integrations:Claudiomiro not available: No module named 'claudiomiro_crewai_bridge' - using basic decomposition
+WARNING:invention_planner_integrations:DataPizza not available: No module named 'datapizza_crewai_bridge' - decomposition will be basic
+WARNING:invention_planner_integrations:STEER not available: No module named 'steer_crewai_bridge' - output validation will be basic
+DTS integration not available - using standard scoring methods
+=== HONEST ASSESSMENT OF ProblemDecomposer ===
+
+Total methods: 34
+
+Public methods: 5
+[WARN] DTS not available - using fallback knowledge processing methods
+[ERROR] Failed to import C2C tools: cannot import name 'manage_ensemble_cache' from 'c2c_mcp_tools' (C:\Users\mmeadow\Documents\OpenEvolve\OpenEvolveFrontend\engines\knowledge\c2c_mcp_tools.py)

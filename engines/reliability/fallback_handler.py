@@ -2,6 +2,8 @@
 Fallback Handler - Provides fallback strategies when OpenEvolve unavailable
 Handles graceful degradation and caching of fallback results
 """
+from __future__ import annotations
+
 
 __all__ = ['FallbackResult', 'FallbackCache', 'FallbackHandler']
 

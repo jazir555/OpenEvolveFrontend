@@ -1,6 +1,8 @@
 """
 External Configuration for Sovereign Reliability System
 """
+from __future__ import annotations
+
 
 
 class RetryExhaustedError(Exception):

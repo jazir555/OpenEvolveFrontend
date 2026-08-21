@@ -5,6 +5,8 @@ This module implements a complete solution validation pipeline that ensures qual
 before acceptance. The pipeline runs through multiple stages including automated
 checks, red team review, and gold team verification.
 """
+from __future__ import annotations
+
 
 import json
 import re

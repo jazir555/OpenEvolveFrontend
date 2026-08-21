@@ -1,6 +1,8 @@
 """
 Sub-Problem Solver for Sovereign-Grade Problem Decomposition System
 """
+from __future__ import annotations
+
 
 import logging
 import time

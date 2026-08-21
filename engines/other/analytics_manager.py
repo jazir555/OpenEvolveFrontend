@@ -3,6 +3,8 @@ Analytics Manager for OpenEvolve - Analytics and insights generation
 This file manages analytics, insights, and data analysis features
 File size: ~1200 lines (under the 2000 line limit)
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import logging

@@ -25,7 +25,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterator, List, Sequence, Tuple
 
-from ._stub_support import STUB
+try:
+    try:
+        from ._stub_support import STUB
+    except ImportError:
+        from _stub_support import STUB
+except ImportError:
+    STUB = False
 
 __all__ = ["STUB", "SessionState", "HeadlessUI", "ui"]
 

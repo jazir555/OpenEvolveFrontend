@@ -11,6 +11,8 @@ Available Templates:
 - Complexity-Based: Balance cognitive load
 - Team-Based: Focus on team capabilities and expertise
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List

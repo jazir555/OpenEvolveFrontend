@@ -22,6 +22,8 @@ Usage:
     ...                relationships=[(node_id, RelationshipType.CAUSAL)])
     >>> related = index.traverse_relationships(node_id, depth=2)
 """
+from __future__ import annotations
+
 
 import logging
 import sqlite3

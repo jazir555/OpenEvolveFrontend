@@ -4,6 +4,8 @@ MDAP/MAKER Coevolution Examples
 This module provides practical examples of using the MDAP/MAKER integration
 with coevolving decision trees.
 """
+from __future__ import annotations
+
 
 import asyncio
 from mcts_coevolution_mdap import (

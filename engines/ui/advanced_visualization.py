@@ -3,6 +3,8 @@ Advanced Visualization and Reporting Module
 
 This module provides advanced visualization and reporting features for workflows.
 """
+from __future__ import annotations
+
 
 import plotly.graph_objects as go
 import plotly.express as px

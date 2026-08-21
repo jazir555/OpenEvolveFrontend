@@ -8,6 +8,8 @@ MAKER voting, MCTS search, evolutionary optimization, and MDAP decomposition.
 Author: OpenEvolve Frontend Team
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import json
 import logging

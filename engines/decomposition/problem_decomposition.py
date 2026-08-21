@@ -2,6 +2,8 @@
 Problem Decomposition System for OpenEvolve
 Implements hierarchical decomposition strategies for complex content
 """
+from __future__ import annotations
+
 
 import time
 import json
@@ -56,6 +58,7 @@ class DecompositionStrategy(Enum):
     STRUCTURAL = "structural"
     DEPENDENCY_BASED = "dependency_based"
     COMPLEXITY_BASED = "complexity_based"
+    ROMA = "roma"
 
 
 class ComponentType(Enum):

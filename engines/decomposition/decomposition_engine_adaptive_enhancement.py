@@ -5,6 +5,8 @@ This module provides the integration of adaptive strategy selection
 into the DecompositionEngine, adding v3 strategy selection with
 learning capabilities and feedback loops.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Optional, List

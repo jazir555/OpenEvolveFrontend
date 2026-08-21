@@ -14,6 +14,8 @@ FEATURES:
 - Dead letter queue for failed webhooks
 - Webhook logging and monitoring
 """
+from __future__ import annotations
+
 
 import os
 import json

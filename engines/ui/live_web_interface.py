@@ -12,6 +12,8 @@ Key Features:
 - Automated research workflows
 - MultiOn integration for AI-powered browsing
 """
+from __future__ import annotations
+
 
 import os
 import re

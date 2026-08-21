@@ -22,6 +22,8 @@ Author: OpenEvolve
 Created: 2026-02-02
 Updated: 2026-02-05 (CAV-NLP integration)
 """
+from __future__ import annotations
+
 
 
 import json

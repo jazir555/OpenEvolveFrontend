@@ -25,6 +25,8 @@ Author: OpenEvolve Frontend Team
 Created: 2026-01-22
 License: MIT
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional, Tuple, Union

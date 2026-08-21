@@ -5,6 +5,8 @@ This module provides bi-directional parameter synchronization between
 the UI and BubbleLabs UI, ensuring all OpenEvolve parameters 
 are consistently maintained across both interfaces.
 """
+from __future__ import annotations
+
 
 
 from ui_shim import ui as st

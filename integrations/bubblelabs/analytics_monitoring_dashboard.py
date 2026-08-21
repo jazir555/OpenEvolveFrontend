@@ -15,9 +15,18 @@ import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ._stub_support import STUB
-from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
-from .ui_shim import ui as st
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
+try:
+    from .openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+except ImportError:
+    from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
 
 logger = logging.getLogger(__name__)
 

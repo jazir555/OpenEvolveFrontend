@@ -2,6 +2,8 @@
 Quality Assessment Engine for OpenEvolve
 Implements the Quality Assessment functionality described in the ultimate explanation document.
 """
+from __future__ import annotations
+
 import re
 import tempfile
 import os

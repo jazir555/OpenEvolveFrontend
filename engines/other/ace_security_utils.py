@@ -8,6 +8,8 @@ input validation gaps, resource management, and thread safety issues.
 Created: 2025-12-29
 Purpose: Ultra-comprehensive security hardening for ACE integration
 """
+from __future__ import annotations
+
 
 import os
 import re

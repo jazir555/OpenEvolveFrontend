@@ -7,16 +7,25 @@ Replace the corresponding functions in bubblelabs_mcp_tools.py with these versio
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 from typing import Dict, Any
 
 # Import security components
 try:
-    from .bubblelabs_security import (
+    try:
+        from .bubblelabs_security import (
         validate_uuid,
         validate_workflow_action,
         auth_manager
-    )
+        )
+    except ImportError:
+        from          import (
+        validate_uuid,
+        validate_workflow_action,
+        auth_manager
+        )
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False

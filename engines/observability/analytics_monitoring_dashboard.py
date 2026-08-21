@@ -5,6 +5,8 @@ This module provides comprehensive analytics and monitoring capabilities
 for OpenEvolve workflows within the BubbleLabs interface, including
 real-time metrics, performance analytics, and system monitoring.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import plotly.graph_objects as go

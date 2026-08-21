@@ -20,6 +20,8 @@ PERFORMANCE OPTIMIZATIONS:
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 import json
 import time

@@ -12,6 +12,8 @@ Features:
 - Register strategies with DecompositionEngine
 - Export/import strategy definitions
 """
+from __future__ import annotations
+
 
 
 import logging

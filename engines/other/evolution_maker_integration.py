@@ -18,6 +18,8 @@ Key Features:
 Author: OpenEvolve Frontend Team
 Paper Reference: arXiv:2511.09030 (Solving a Million-Step LLM Task with Zero Errors)
 """
+from __future__ import annotations
+
 
 import json
 import logging

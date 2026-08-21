@@ -16,6 +16,8 @@ Author: Claude Code
 Date: 2026-02-04
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import json
 import logging

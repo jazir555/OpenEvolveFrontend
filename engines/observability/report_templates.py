@@ -13,6 +13,8 @@ Features:
 - Branding and styling
 - Multi-language support
 """
+from __future__ import annotations
+
 
 import logging
 import json

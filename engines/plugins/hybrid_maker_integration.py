@@ -4,6 +4,8 @@ Hybrid MAKER Integration Module
 This module integrates multiple MAKER approaches with other systems to provide
 hybrid problem-solving capabilities.
 """
+from __future__ import annotations
+
 
 import json
 import logging

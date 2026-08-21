@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Deployment and Operations
 Automated deployment scripts, backup/restore, and configuration management.
 """
+from __future__ import annotations
+
 
 import os
 import sys

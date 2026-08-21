@@ -10,6 +10,8 @@ Manages the full lifecycle of memories from creation through archival:
 
 Author: OpenEvolve AI
 """
+from __future__ import annotations
+
 
 import json
 import gzip

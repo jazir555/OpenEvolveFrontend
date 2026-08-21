@@ -8,6 +8,8 @@ Provides actual chemistry validation including:
 - Safety constraint validation
 - Lean theorem prover integration for formal verification
 """
+from __future__ import annotations
+
 
 import logging
 import re

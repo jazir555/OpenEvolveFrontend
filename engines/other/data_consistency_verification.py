@@ -11,6 +11,8 @@ This script performs comprehensive checks for:
 Author: OpenEvolve Team
 Date: 2025-12-29
 """
+from __future__ import annotations
+
 
 
 import sqlite3

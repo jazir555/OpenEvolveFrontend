@@ -19,6 +19,8 @@ built in Phase 1 (crewai_unified_flow.py, crewai_state_management.py, etc.)
 
 License: MIT (replaces AGPL CrewAI)
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional, Union

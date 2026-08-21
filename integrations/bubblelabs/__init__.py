@@ -53,20 +53,42 @@ STUB_MODULES: List[str] = [
 ]
 
 # Lightweight, dependency-free core re-exports.
-from .openevolve_bubblelabs_api import (  # noqa: E402
-    OpenEvolveBubbleLabsIntegration,
-    WorkflowMetrics,
-)
-from .ui_shim import ui  # noqa: E402
-from .workflow_structures import (  # noqa: E402
-    WorkflowStage,
-    WorkflowState,
-    WorkflowStatus,
-)
-from .workflow_visualization import OpenEvolveVisualizer  # noqa: E402
+try:
+    from .openevolve_bubblelabs_api import (  # noqa: E402
+        OpenEvolveBubbleLabsIntegration,
+        WorkflowMetrics,
+    )
+except ImportError:
+    from openevolve_bubblelabs_api import (  # noqa: E402
+        OpenEvolveBubbleLabsIntegration,
+        WorkflowMetrics,
+    )
+try:
+    from .ui_shim import ui  # noqa: E402
+except ImportError:
+    from ui_shim import ui  # noqa: E402
+try:
+    from .workflow_structures import (  # noqa: E402
+        WorkflowStage,
+        WorkflowState,
+        WorkflowStatus,
+    )
+except ImportError:
+    from workflow_structures import (  # noqa: E402
+        WorkflowStage,
+        WorkflowState,
+        WorkflowStatus,
+    )
+try:
+    from .workflow_visualization import OpenEvolveVisualizer  # noqa: E402
+except ImportError:
+    from workflow_visualization import OpenEvolveVisualizer  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .adapter import BubbleLabsAdapter
+    try:
+        from .adapter import BubbleLabsAdapter
+    except ImportError:
+        from adapter import BubbleLabsAdapter
 
 __all__ = [
     "__version__",
@@ -101,7 +123,10 @@ def __getattr__(name: str) -> Any:
         AttributeError: If ``name`` is not a public attribute of this package.
     """
     if name == "BubbleLabsAdapter":
-        from .adapter import BubbleLabsAdapter
+        try:
+            from .adapter import BubbleLabsAdapter
+        except ImportError:
+            from adapter import BubbleLabsAdapter
 
         return BubbleLabsAdapter
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

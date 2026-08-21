@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # This file implements the adversarial generation functionality of the OpenEvolve frontend.
 # The purpose of this module is to facilitate AI-driven testing and refinement of ideas,
 # code, and other content. It operates on the principle of "AI peer review," where

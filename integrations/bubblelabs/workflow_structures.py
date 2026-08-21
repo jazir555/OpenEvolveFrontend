@@ -14,7 +14,10 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ._stub_support import STUB
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
 
 __all__ = ["STUB", "WorkflowStatus", "WorkflowStage", "WorkflowState"]
 

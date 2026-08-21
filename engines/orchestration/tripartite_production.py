@@ -24,6 +24,8 @@ Architecture:
     ├── Monitoring System
     └── Security Layer
 """
+from __future__ import annotations
+
 
 import os
 import logging
@@ -40,7 +42,6 @@ from concurrent.futures import ThreadPoolExecutor
 # Import core dependencies
 import chromadb
 from chromadb.utils import embedding_functions
-from sentence_transformers import SentenceTransformer
 
 # Import existing components
 from ace_steer_integration import AceSteerBridge

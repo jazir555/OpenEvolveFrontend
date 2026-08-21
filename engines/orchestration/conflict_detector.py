@@ -17,6 +17,8 @@ Author: OpenEvolve AI System
 Version: 1.0.0
 License: MIT
 """
+from __future__ import annotations
+
 
 import ast
 import re

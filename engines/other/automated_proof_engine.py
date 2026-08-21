@@ -12,6 +12,8 @@ Full automated theorem proving using multiple strategies:
 Author: OpenEvolve
 Version: 2.0.0 - Enhanced with CAV-NLP Integration
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib

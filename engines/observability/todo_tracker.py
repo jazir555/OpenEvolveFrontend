@@ -10,6 +10,8 @@ Features:
 - Generate resolution reports
 - Track progress over time
 """
+from __future__ import annotations
+
 
 import os
 import re

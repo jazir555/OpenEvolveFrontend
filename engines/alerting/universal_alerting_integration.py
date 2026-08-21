@@ -14,6 +14,8 @@ Provides centralized alerting integration for all major system components:
 This module wraps all critical operations with multi-channel alerting,
 ensuring proactive monitoring and rapid incident response.
 """
+from __future__ import annotations
+
 
 import logging
 import os

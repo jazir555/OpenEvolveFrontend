@@ -5,6 +5,8 @@ This module provides comprehensive visualization for OpenEvolve workflow executi
 within the BubbleLabs interface, including real-time metrics, progress tracking,
 and workflow graph visualization.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import plotly.graph_objects as go

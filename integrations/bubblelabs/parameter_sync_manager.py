@@ -15,8 +15,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from ._stub_support import STUB
-from .ui_shim import ui as st
+try:
+    from ._stub_support import STUB
+except ImportError:
+    from _stub_support import STUB
+try:
+    from .ui_shim import ui as st
+except ImportError:
+    from ui_shim import ui as st
 
 logger = logging.getLogger(__name__)
 

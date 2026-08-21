@@ -10,6 +10,8 @@ RLM replaces standard LLM calls with recursive, code-executing calls that can:
 3. Maintain state across recursive calls
 4. Handle tasks of arbitrary complexity through recursion
 """
+from __future__ import annotations
+
 
 import sys
 import os

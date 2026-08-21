@@ -2,6 +2,8 @@
 Blue Team Tools and Utilities for OpenEvolve
 Comprehensive toolset for solution analysis, patch generation, and validation
 """
+from __future__ import annotations
+
 
 
 import os

@@ -7,6 +7,8 @@ This stub provides minimal implementations to allow imports to succeed.
 Note: This is NOT a functional replacement for astor. Install astor package
 for full functionality: pip install astor
 """
+from __future__ import annotations
+
 
 import ast
 import warnings

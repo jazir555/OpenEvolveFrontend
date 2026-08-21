@@ -22,6 +22,8 @@ Core Components:
 Author: OpenEvolve
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -86,6 +88,11 @@ except ImportError:
     LEAN_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+# Canonical shared proof-state / tactic primitives (prefers ``proof_state``,
+# falls back to a local fully-functional definition so this module is always
+# importable and runnable regardless of parallel agent timing).
+from mcts_mdap_bases import ProofState, Tactic, ProofHint  # noqa: E402,F401
 
 
 # =============================================================================

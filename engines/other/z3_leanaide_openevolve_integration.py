@@ -32,6 +32,8 @@ Workflow Stages Integration:
 Author: OpenEvolve
 Created: 2026-01-31
 """
+from __future__ import annotations
+
 
 
 import asyncio

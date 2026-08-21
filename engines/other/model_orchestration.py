@@ -2,6 +2,8 @@
 OpenEvolve Model Orchestration System
 Manages multi-model coordination, load balancing, and intelligent ensemble operations
 """
+from __future__ import annotations
+
 import os
 from ui_shim import ui as st
 import time

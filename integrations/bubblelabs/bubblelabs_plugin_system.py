@@ -9,6 +9,8 @@ Author: OpenEvolve Integration Team
 Created: 2026-01-03
 Status: Production Ready
 """
+from __future__ import annotations
+
 
 import asyncio
 import inspect

@@ -21,6 +21,8 @@ Usage:
     adapter = EvolutionAdapter(unified_config)
     result = adapter.run_evolution("Initial content to evolve")
 """
+from __future__ import annotations
+
 
 import logging
 import time

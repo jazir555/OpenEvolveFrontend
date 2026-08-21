@@ -14,6 +14,8 @@ FEATURES:
 - Hot-reloading support
 - Plugin marketplace integration
 """
+from __future__ import annotations
+
 
 import os
 import sys

@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Parallel Processing
 Implements concurrent processing for independent sub-problems and gauntlet executions.
 """
+from __future__ import annotations
+
 
 import asyncio
 import concurrent.futures

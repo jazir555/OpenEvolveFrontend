@@ -12,6 +12,8 @@ Features:
 - Intelligent cache invalidation
 - **ACTUAL INTEGRATION**: Records performance to adaptive strategy system
 """
+from __future__ import annotations
+
 
 import json
 import logging

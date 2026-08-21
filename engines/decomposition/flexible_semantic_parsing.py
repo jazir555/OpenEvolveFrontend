@@ -4,6 +4,8 @@ Flexible Semantic Parsing Module
 This is a stub module created to fix import errors.
 It provides flexible parsing capabilities for semantic analysis.
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field

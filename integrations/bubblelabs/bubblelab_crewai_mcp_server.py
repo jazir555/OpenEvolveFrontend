@@ -10,6 +10,8 @@ The server provides:
 - Task delegation from BubbleLab workflows to CrewAI
 - Result aggregation and return to BubbleLab
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -41,7 +43,10 @@ except ImportError:
     logger.warning("[WARN] CrewAI not available - using mock implementation")
 
 # Import our integration layer
-from .crewai_integration_layer import get_crewai_service, CrewAIService
+try:
+    from .crewai_integration_layer import get_crewai_service, CrewAIService
+except ImportError:
+    from crewai_integration_layer import get_crewai_service, CrewAIService
 
 
 class MCPServer:

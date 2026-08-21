@@ -11,6 +11,8 @@ Implements all 8 specialized gauntlet variants with REAL evaluation logic:
 7. Temporal Gauntlet: Time-series validation
 8. Cross-Validation Gauntlet: K-fold style validation
 """
+from __future__ import annotations
+
 
 import logging
 import json

@@ -11,6 +11,8 @@ Key Features:
 - Module-level constants for default values
 - Type hints and docstring standards
 """
+from __future__ import annotations
+
 
 from typing import Any, Dict, Optional, Union
 

@@ -4,6 +4,8 @@ Knowledge Graph Visualizer - Stage 6 Knowledge Extraction
 This module creates interactive visualizations of knowledge artifacts.
 It uses NetworkX for graph operations and Plotly for interactive visualization.
 """
+from __future__ import annotations
+
 
 import time
 from typing import Dict, List, Any, Optional, Tuple, Set

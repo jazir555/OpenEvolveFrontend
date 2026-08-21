@@ -35,6 +35,8 @@ Reference:
 Author: OpenEvolve
 Created: 2025-12-30
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib

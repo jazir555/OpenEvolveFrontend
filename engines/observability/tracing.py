@@ -1,6 +1,8 @@
 """
 OpenTelemetry Tracing Initialization
 """
+from __future__ import annotations
+
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider

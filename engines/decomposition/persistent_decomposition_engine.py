@@ -18,12 +18,42 @@ from typing import Optional, Tuple, Dict, Any, List
 from datetime import datetime
 
 from sovereign_data_models import (
-    ProblemDefinition, DecompositionPlan, WorkflowState, WorkflowProgress,
-    generate_id, ValidationResult
+    ProblemDefinition, DecompositionPlan, WorkflowState,
+    generate_id
 )
 from decomposition_engine import DecompositionEngine
-from workflow_state_manager import WorkflowStateManager
-from workflow_persistence import generate_workflow_id, generate_state_id
+try:
+    from workflow_state_manager import WorkflowStateManager
+except ImportError:
+    class WorkflowStateManager:
+        """Minimal fallback for the unavailable WorkflowStateManager."""
+        def __init__(self, storage_backend: str = "memory", storage_path: Optional[str] = None) -> None:
+            self.storage_backend = storage_backend
+            self.storage_path = storage_path
+            self._states: Dict[str, Any] = {}
+
+        def save_state(self, state: Any) -> None:
+            self._states[getattr(state, "state_id", str(id(state)))] = state
+
+        def load_state(self, state_id: str) -> Any:
+            return self._states.get(state_id)
+
+try:
+    from workflow_persistence import generate_workflow_id, generate_state_id
+except ImportError:
+    import uuid
+
+    def generate_workflow_id() -> str:
+        return "wf_" + uuid.uuid4().hex[:12]
+
+    def generate_state_id() -> str:
+        return "st_" + uuid.uuid4().hex[:12]
+
+
+class WorkflowProgress:
+    """Minimal fallback for the (unavailable) WorkflowProgress data model."""
+    def __init__(self, **kwargs: Any) -> None:
+        self.__dict__.update(kwargs)
 
 logger = logging.getLogger(__name__)
 

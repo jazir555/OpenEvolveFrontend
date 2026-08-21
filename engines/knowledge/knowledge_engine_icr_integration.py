@@ -15,6 +15,8 @@ ICR Integration Points:
 - Query optimization patterns
 - Validation outcome patterns
 """
+from __future__ import annotations
+
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone

@@ -7,6 +7,8 @@ ROMA-MDAP-MAKER + Associative Recomposition system.
 This module ensures 100% parity across all integration points while 
 eliminating code bloat from 40+ parameter blocks.
 """
+from __future__ import annotations
+
 
 import os
 import logging

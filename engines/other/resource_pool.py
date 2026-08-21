@@ -10,6 +10,8 @@ Provides efficient resource management:
 - Automatic resource cleanup
 - Pool statistics and monitoring
 """
+from __future__ import annotations
+
 
 import threading
 import time

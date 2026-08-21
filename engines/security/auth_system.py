@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Authentication and Authorization System
 Implements role-based access controls for workflow management and sensitive operations.
 """
+from __future__ import annotations
+
 
 import hashlib
 import os

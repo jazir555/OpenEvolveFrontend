@@ -1,6 +1,8 @@
 """
 Pytest configuration and fixtures for BubbleLabs integration tests.
 """
+from __future__ import annotations
+
 
 import sys
 import os

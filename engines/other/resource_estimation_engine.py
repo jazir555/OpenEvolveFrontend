@@ -12,6 +12,8 @@ Provides automatic resource estimation for sub-problems based on:
 Author: OpenEvolve
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 
 

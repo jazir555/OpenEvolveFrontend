@@ -4,6 +4,8 @@ Analytics Dashboard Module
 This module provides comprehensive analytics and visualization for the Decomposition Workflow,
 including workflow performance, team effectiveness, gauntlet performance, and solution quality metrics.
 """
+from __future__ import annotations
+
 
 from ui_shim import ui as st
 import pandas as pd

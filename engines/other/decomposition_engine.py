@@ -151,9 +151,48 @@ class DecompositionEngine:
                 "engine": "DecompositionEngine",
                 "strategy_selected": resolved,
                 "adaptive_selection": self.enable_adaptive_selection,
+                "dependency_graph": self.build_dependency_graph(sub_problems),
             },
         )
         return plan
+
+    def decompose_with_graph(
+        self, problem: Any, strategy: str = "hierarchical"
+    ) -> "tuple[DecompositionPlan, Dict[str, Any]]":
+        """Decompose and also return an explicit dependency graph mapping.
+
+        The dependency graph is a dict keyed by sub-problem id whose values are
+        the list of sub-problem ids it depends on (i.e. must run before it).
+        """
+        plan = self.decompose(problem, strategy)
+        graph = self.build_dependency_graph(plan.sub_problems)
+        return plan, graph
+
+    def build_dependency_graph(self, sub_problems: List[SubProblem]) -> Dict[str, Any]:
+        """Build a directed dependency graph from a list of sub-problems.
+
+        Edges follow ``parent_id`` (a child depends on its parent) and ``order``
+        (a node depends on the preceding node when no explicit parent is set).
+        Returns a serializable dict with ``nodes`` and ``edges``.
+        """
+        nodes = [sp.id for sp in sub_problems]
+        by_id = {sp.id: sp for sp in sub_problems}
+        edges: List[Dict[str, Any]] = []
+        seen: set = set()
+        prev_id: Optional[str] = None
+        for sp in sub_problems:
+            deps: List[str] = []
+            if sp.parent_id and sp.parent_id in by_id and sp.parent_id != sp.id:
+                deps.append(sp.parent_id)
+            elif prev_id is not None and sp.parent_id is None:
+                deps.append(prev_id)
+            for dep in deps:
+                key = f"{dep}->{sp.id}"
+                if key not in seen:
+                    seen.add(key)
+                    edges.append({"from": dep, "to": sp.id})
+            prev_id = sp.id
+        return {"nodes": nodes, "edges": edges}
 
     # ------------------------------------------------------------------ #
     # Strategy implementations
@@ -276,6 +315,110 @@ SemanticDecomposition = DecompositionEngine
 FlowBasedDecomposition = DecompositionEngine
 
 
+# --------------------------------------------------------------------------- #
+# Strategy base class and concrete strategies
+# --------------------------------------------------------------------------- #
+from abc import ABC, abstractmethod  # noqa: E402
+
+
+class DecompositionStrategyBase(ABC):
+    """Base class for pluggable decomposition strategies."""
+
+    name: str = "base"
+
+    @abstractmethod
+    def decompose(self, problem: Any) -> List[SubProblem]:  # pragma: no cover
+        raise NotImplementedError
+
+
+class ComplexityDecomposition(DecompositionStrategyBase):
+    """Decompose primarily by complexity buckets."""
+
+    name = "complexity"
+
+    def decompose(self, problem: Any) -> List[SubProblem]:
+        return DecompositionEngine()._hierarchical_decompose(problem)
+
+
+class DependencyDecomposition(DecompositionStrategyBase):
+    """Decompose by dependency / data-flow ordering."""
+
+    name = "dependency"
+
+    def decompose(self, problem: Any) -> List[SubProblem]:
+        return DecompositionEngine()._flow_decompose(problem)
+
+
+class HybridDecomposition(DecompositionStrategyBase):
+    """Combine hierarchical structure with semantic units."""
+
+    name = "hybrid"
+
+    def decompose(self, problem: Any) -> List[SubProblem]:
+        engine = DecompositionEngine()
+        return engine._hierarchical_decompose(problem) + engine._semantic_decompose(problem)
+
+
+@dataclass
+class DecompositionResult:
+    """Structured outcome of a decomposition run."""
+
+    problem_id: str = ""
+    strategy: str = ""
+    sub_problems: List[SubProblem] = field(default_factory=list)
+    weights: Dict[str, float] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "problem_id": self.problem_id,
+            "strategy": self.strategy,
+            "sub_problems": [sp.to_dict() for sp in self.sub_problems],
+            "weights": dict(self.weights),
+        }
+
+
+# --------------------------------------------------------------------------- #
+# Weight calculators (0.0 .. 1.0 heuristics over a problem definition)
+# --------------------------------------------------------------------------- #
+def _attr(problem: Any, *names, default=0.0):
+    for n in names:
+        v = getattr(problem, n, None)
+        if v is not None:
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return default
+    return default
+
+
+def calculate_functional_weight(problem: Any) -> float:
+    """Higher when the problem is well specified with clear functional goals."""
+    criteria = getattr(problem, "success_criteria", None) or []
+    return min(1.0, 0.3 + 0.1 * len(criteria))
+
+
+def calculate_risk_weight(problem: Any) -> float:
+    """Higher for risk-sensitive / safety-critical problems."""
+    risk = _attr(problem, "risk_level", "risk")
+    return min(1.0, max(0.0, float(risk) / 10.0) if isinstance(risk, (int, float)) else 0.5)
+
+
+def calculate_technical_weight(problem: Any) -> float:
+    """Higher for technically demanding problems (many constraints)."""
+    constraints = getattr(problem, "constraints", None) or []
+    return min(1.0, 0.2 + 0.1 * len(constraints))
+
+
+def calculate_temporal_weight(problem: Any) -> float:
+    """Higher when time pressure / deadline urgency is present."""
+    return _attr(problem, "urgency", "temporal_weight", default=0.3)
+
+
+def calculate_value_weight(problem: Any) -> float:
+    """Higher for high-value business outcomes."""
+    return _attr(problem, "business_value", "value", default=0.5)
+
+
 __all__ = [
     "DecompositionEngine",
     "DecompositionPlan",
@@ -285,4 +428,14 @@ __all__ = [
     "HierarchicalDecomposition",
     "SemanticDecomposition",
     "FlowBasedDecomposition",
+    "DecompositionStrategyBase",
+    "ComplexityDecomposition",
+    "DependencyDecomposition",
+    "HybridDecomposition",
+    "DecompositionResult",
+    "calculate_functional_weight",
+    "calculate_risk_weight",
+    "calculate_technical_weight",
+    "calculate_temporal_weight",
+    "calculate_value_weight",
 ]

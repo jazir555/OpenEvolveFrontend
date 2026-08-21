@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Gauntlet Integration
 Decomposition-specific gauntlets for verification and validation.
 """
+from __future__ import annotations
+
 
 import logging
 from typing import List, Dict, Any, Optional

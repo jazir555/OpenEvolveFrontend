@@ -2,6 +2,8 @@
 Reporting and Analytics for Integrated Adversarial Testing + Evolution Workflow
 This module provides comprehensive reporting and analytics for the integrated workflow.
 """
+from __future__ import annotations
+
 
 
 from ui_shim import ui as st

@@ -21,6 +21,8 @@ Key Benefits:
 - ROMA's DAG-based parallel execution option
 - Decomposition Workflow's gauntlet validation
 """
+from __future__ import annotations
+
 
 import json
 import logging

@@ -9,6 +9,8 @@ called by agents.
 
 Author: OpenEvolve
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List, Optional

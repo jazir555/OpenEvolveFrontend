@@ -15,6 +15,8 @@ EXAMPLES INCLUDED:
 Author: OpenEvolve C2C Integration
 Version: 1.0.0
 """
+from __future__ import annotations
+
 
 import logging
 from typing import Dict, Any, List
@@ -42,7 +44,8 @@ try:
     print("[OK] C2C MCP tools imported successfully")
 except ImportError as e:
     print(f"[ERROR] Failed to import C2C tools: {e}")
-    exit(1)
+    if __name__ == "__main__":
+        exit(1)
 
 # Configure logging
 logging.basicConfig(

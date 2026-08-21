@@ -2,6 +2,8 @@
 Sovereign-Grade Problem Decomposition System - Reliability & Error Handling
 Implements comprehensive error handling, retry logic, and health monitoring.
 """
+from __future__ import annotations
+
 
 import logging
 import time

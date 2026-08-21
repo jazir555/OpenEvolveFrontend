@@ -18,6 +18,8 @@ Execution Methods:
 
 License: MIT (replaces AGPL crewai)
 """
+from __future__ import annotations
+
 
 
 import logging
@@ -61,29 +63,69 @@ from roma_config import (
     ROMAConfigPresets,
 )
 
-from datapizza_config import (
-    CrewAIDataPizzaConfig,
-    DataPizzaPhase1Config,
-    DataPizzaPhase2Config,
-    DataPizzaPhase3Config,
-    DataPizzaPhase4Config,
-    DataPizzaMultiAgentConfig,
-    DataPizzaConfigBuilder,
-    DataPizzaConfigPresets,
-)
+try:
+    from datapizza_config import (
+        CrewAIDataPizzaConfig,
+        DataPizzaPhase1Config,
+        DataPizzaPhase2Config,
+        DataPizzaPhase3Config,
+        DataPizzaPhase4Config,
+        DataPizzaMultiAgentConfig,
+        DataPizzaConfigBuilder,
+        DataPizzaConfigPresets,
+    )
+except ImportError:
+    class CrewAIDataPizzaConfig:
+        pass
+    class DataPizzaPhase1Config:
+        pass
+    class DataPizzaPhase2Config:
+        pass
+    class DataPizzaPhase3Config:
+        pass
+    class DataPizzaPhase4Config:
+        pass
+    class DataPizzaMultiAgentConfig:
+        pass
+    class DataPizzaConfigBuilder:
+        pass
+    class DataPizzaConfigPresets:
+        pass
 
-from claudiomiro_config import (
-    CrewAIClaudiomiroConfig,
-    ClaudiomiroPhase1Config,
-    ClaudiomiroPhase2Config,
-    ClaudiomiroPhase3Config,
-    ClaudiomiroPhase4Config,
-    ClaudiomiroPhase5Config,
-    ClaudiomiroPhase6Config,
-    ClaudiomiroMultiRepoConfig,
-    ClaudiomiroConfigBuilder,
-    ClaudiomiroConfigPresets,
-)
+try:
+    from claudiomiro_config import (
+        CrewAIClaudiomiroConfig,
+        ClaudiomiroPhase1Config,
+        ClaudiomiroPhase2Config,
+        ClaudiomiroPhase3Config,
+        ClaudiomiroPhase4Config,
+        ClaudiomiroPhase5Config,
+        ClaudiomiroPhase6Config,
+        ClaudiomiroMultiRepoConfig,
+        ClaudiomiroConfigBuilder,
+        ClaudiomiroConfigPresets,
+    )
+except ImportError:
+    class CrewAIClaudiomiroConfig:
+        pass
+    class ClaudiomiroPhase1Config:
+        pass
+    class ClaudiomiroPhase2Config:
+        pass
+    class ClaudiomiroPhase3Config:
+        pass
+    class ClaudiomiroPhase4Config:
+        pass
+    class ClaudiomiroPhase5Config:
+        pass
+    class ClaudiomiroPhase6Config:
+        pass
+    class ClaudiomiroMultiRepoConfig:
+        pass
+    class ClaudiomiroConfigBuilder:
+        pass
+    class ClaudiomiroConfigPresets:
+        pass
 
 # Import bridge functions (will be ported from crewai bridges)
 try:
