@@ -117,13 +117,19 @@ The UI can then talk to the Hono proxy instead of the FastAPI service directly.
 - **Legacy routers diverge.** `/api/workflows`, `/api/teams`, `/api/gauntlets`,
   `/api/executions`, `/api/decomposition` are self-contained reimplementations and do
   **not** use the real engine (only `/api/v1/*` does).
-- **UI route parity partial.** `/api/knowledge`, `/api/crewai`, `/api/integrated`,
-  `/api/evaluators`, `/api/version-control`, `/api/bubblelabs/*` are still absent; the
-  BubbleLab UI client 404s on those groups.
+- **UI route parity COMPLETE.** `services/openevolve-api/main.py` mounts every route
+  group the UI client calls — `/api/workflows`, `/api/teams`, `/api/gauntlets`,
+  `/api/executions`, `/api/settings`, `/api/icr`, `/api/determinism`,
+  `/api/decomposition`, `/api/parameters`, `/api/monitoring`, `/api/validation`,
+  `/api/analytics`, `/api/crewai`, `/api/version-control`, `/api/evaluators`,
+  `/api/integrated`, `/api/leanaide`, `/api/knowledge`, `/api/bubblelabs/*`, and
+  `/api/v1/*` (real-engine dialect). No UI-expected group 404s.
 - **Proxy is passive.** No auth/retry/caching/transform in `openevolve.ts`.
-- **Integration not in pnpm workspace.** `integrations/openevolve` must be
-  type-checked/tested manually (step 3), not via root `pnpm typecheck`.
+- **Integration IS in the pnpm workspace.** `integrations/openevolve` is now part of the
+  workspace (`pnpm-workspace.yaml` → `integrations/*`) and type-checks / tests under it
+  (no longer a manual-only step).
 - **Two backends, not reconciled.** Library `server_stdlib` and `services/openevolve-api`
   are separate servers; protocol-compatible (`/api/v1/*`) but not a single process.
 
-See `docs/architecture/OPENEVOLVE_BUBBLELAB_STATUS.md` for the full gap analysis.
+> **Last reconciled: 2026-08-20** — route-parity and workspace claims updated to match the
+> GREEN integration (8/8 harness suites). See `docs/architecture/OPENEVOLVE_BUBBLELAB_STATUS.md`.

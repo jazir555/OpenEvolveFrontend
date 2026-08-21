@@ -25,6 +25,11 @@ try:
 except ImportError:  # pragma: no cover - absolute import fallback
     from api.openevolve_v1 import RUNS, _RUNS_LOCK
 
+try:
+    from ..api.metrics import get_metrics as _get_request_metrics
+except ImportError:  # pragma: no cover - absolute import fallback
+    from api.metrics import get_metrics as _get_request_metrics
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -210,9 +215,14 @@ async def monitoring_metrics(request: Request) -> JSONResponse:
             )
     if name_filter:
         metrics = [m for m in metrics if m.get("name") == name_filter]
-    return JSONResponse(
-        {"metrics": metrics}, headers={"Content-Type": "application/json"}
-    )
+
+    requests = _get_request_metrics()
+    payload: Dict[str, Any] = {
+        "metrics": metrics,
+        "requests": requests,
+        "request_count": requests["total_requests"],
+    }
+    return JSONResponse(payload, headers={"Content-Type": "application/json"})
 
 
 @router.get("/monitoring/health")

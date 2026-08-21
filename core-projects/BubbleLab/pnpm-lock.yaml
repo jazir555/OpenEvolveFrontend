@@ -331,7 +331,7 @@ importers:
     dependencies:
       '@docusaurus/core':
         specifier: 3.8.1
-        version: 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+        version: 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/preset-classic':
         specifier: 3.8.1
         version: 3.8.1(@algolia/client-search@5.57.0)(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
@@ -353,16 +353,34 @@ importers:
     devDependencies:
       '@docusaurus/module-type-aliases':
         specifier: 3.8.1
-        version: 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/tsconfig':
         specifier: 3.8.1
         version: 3.8.1
       '@docusaurus/types':
         specifier: 3.8.1
-        version: 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
+
+  integrations/openevolve:
+    devDependencies:
+      '@bubblelab/bubble-core':
+        specifier: file:../../packages/bubble-core
+        version: file:packages/bubble-core(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(cheerio@1.0.0-rc.12)(fast-xml-parser@4.5.7)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(typescript@5.9.3)(weaviate-client@3.14.0)(ws@8.21.3)
+      '@types/node':
+        specifier: ^20.12.0
+        version: 20.19.43
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.12
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      zod:
+        specifier: 3.25.76
+        version: 3.25.76
 
   packages/bubble-core:
     dependencies:
@@ -383,7 +401,7 @@ importers:
         version: 0.24.1
       '@langchain/anthropic':
         specifier: ^0.3.32
-        version: 0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
+        version: 0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
       '@langchain/community':
         specifier: ^0.3.53
         version: 0.3.59(@aws-sdk/client-s3@3.1114.0)(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(@elastic/elasticsearch@8.19.2)(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(@mendable/firecrawl-js@4.34.0)(@opentelemetry/api@1.9.1)(@qdrant/js-client-rest@1.19.0(typescript@5.9.3))(axios@1.19.0)(fast-xml-parser@4.5.7)(handlebars@4.7.9)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(pg@8.23.0)(redis@5.12.1(@opentelemetry/api@1.9.1))(weaviate-client@3.14.0)(ws@8.21.3)
@@ -392,13 +410,13 @@ importers:
         version: 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       '@langchain/google-genai':
         specifier: ^1.0.3
-        version: 1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+        version: 1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
       '@langchain/langgraph':
         specifier: ^0.3.10
         version: 0.3.12(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod-to-json-schema@3.25.2(zod@3.25.76))
       '@langchain/openai':
         specifier: ^0.6.2
-        version: 0.6.17(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+        version: 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
       '@mendable/firecrawl-js':
         specifier: ^4.5.0
         version: 4.34.0
@@ -1530,6 +1548,9 @@ packages:
 
   '@browserbasehq/sdk@2.18.0':
     resolution: {integrity: sha512-uX1kiOB3lBWvt0sdIszGZkroLj+xvo7d6CC8ORn1mqPLq76Y4fJFDGdbdLWggDF3LxtnmwJCRVgSrLo3V9RctQ==}
+
+  '@bubblelab/bubble-core@file:packages/bubble-core':
+    resolution: {directory: packages/bubble-core, type: directory}
 
   '@cfworker/json-schema@4.1.1':
     resolution: {integrity: sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og==}
@@ -13219,6 +13240,180 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  '@bubblelab/bubble-core@file:packages/bubble-core(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(cheerio@1.0.0-rc.12)(fast-xml-parser@4.5.7)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(typescript@5.9.3)(weaviate-client@3.14.0)(ws@8.21.3)':
+    dependencies:
+      '@aws-sdk/client-s3': 3.1114.0
+      '@aws-sdk/s3-request-presigner': 3.1114.0
+      '@bubblelab/shared-schemas': link:packages/bubble-shared-schemas
+      '@elastic/elasticsearch': 8.19.2
+      '@google/generative-ai': 0.24.1
+      '@langchain/anthropic': 0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
+      '@langchain/community': 0.3.59(@aws-sdk/client-s3@3.1114.0)(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(@elastic/elasticsearch@8.19.2)(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(@mendable/firecrawl-js@4.34.0)(@qdrant/js-client-rest@1.19.0(typescript@5.9.3))(cheerio@1.0.0-rc.12)(fast-xml-parser@4.5.7)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(pg@8.23.0)(redis@5.12.1)(weaviate-client@3.14.0)(ws@8.21.3)
+      '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
+      '@langchain/google-genai': 1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      '@langchain/langgraph': 0.3.12(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod-to-json-schema@3.25.2(zod@3.25.76))
+      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+      '@mendable/firecrawl-js': 4.34.0
+      '@napi-rs/canvas': 0.1.100
+      '@qdrant/js-client-rest': 1.19.0(typescript@5.9.3)
+      '@sendgrid/mail': 8.1.6
+      '@types/pg': 8.23.1
+      '@typescript-eslint/typescript-estree': 8.46.0(typescript@5.9.3)
+      chart.js: 4.5.1
+      chartjs-node-canvas: 5.0.0(chart.js@4.5.1)
+      mathjs: 14.9.1
+      pg: 8.23.0
+      redis: 5.12.1(@opentelemetry/api@1.9.1)
+      resend: 4.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      twilio: 5.13.1
+      zod: 3.25.76
+      zod-to-json-schema: 3.25.2(zod@3.25.76)
+    transitivePeerDependencies:
+      - '@arcjet/redact'
+      - '@aws-crypto/sha256-js'
+      - '@aws-sdk/client-bedrock-agent-runtime'
+      - '@aws-sdk/client-bedrock-runtime'
+      - '@aws-sdk/client-dynamodb'
+      - '@aws-sdk/client-kendra'
+      - '@aws-sdk/client-lambda'
+      - '@aws-sdk/client-sagemaker-runtime'
+      - '@aws-sdk/client-sfn'
+      - '@aws-sdk/credential-provider-node'
+      - '@aws-sdk/dsql-signer'
+      - '@azure/search-documents'
+      - '@azure/storage-blob'
+      - '@browserbasehq/sdk'
+      - '@browserbasehq/stagehand'
+      - '@clickhouse/client'
+      - '@cloudflare/ai'
+      - '@datastax/astra-db-ts'
+      - '@getmetal/metal-sdk'
+      - '@getzep/zep-cloud'
+      - '@getzep/zep-js'
+      - '@gomomento/sdk'
+      - '@gomomento/sdk-core'
+      - '@google-ai/generativelanguage'
+      - '@google-cloud/storage'
+      - '@gradientai/nodejs-sdk'
+      - '@huggingface/inference'
+      - '@huggingface/transformers'
+      - '@ibm-cloud/watsonx-ai'
+      - '@lancedb/lancedb'
+      - '@langchain/aws'
+      - '@langchain/cerebras'
+      - '@langchain/cohere'
+      - '@langchain/deepseek'
+      - '@langchain/google-vertexai'
+      - '@langchain/google-vertexai-web'
+      - '@langchain/groq'
+      - '@langchain/mistralai'
+      - '@langchain/ollama'
+      - '@langchain/xai'
+      - '@layerup/layerup-security'
+      - '@libsql/client'
+      - '@mlc-ai/web-llm'
+      - '@mozilla/readability'
+      - '@neondatabase/serverless'
+      - '@node-rs/xxhash'
+      - '@notionhq/client'
+      - '@opensearch-project/opensearch'
+      - '@opentelemetry/api'
+      - '@opentelemetry/exporter-trace-otlp-proto'
+      - '@opentelemetry/sdk-trace-base'
+      - '@pinecone-database/pinecone'
+      - '@planetscale/database'
+      - '@premai/prem-sdk'
+      - '@raycast/api'
+      - '@rockset/client'
+      - '@smithy/eventstream-codec'
+      - '@smithy/protocol-http'
+      - '@smithy/signature-v4'
+      - '@smithy/util-utf8'
+      - '@spider-cloud/spider-client'
+      - '@supabase/supabase-js'
+      - '@tensorflow-models/universal-sentence-encoder'
+      - '@tensorflow/tfjs-converter'
+      - '@tensorflow/tfjs-core'
+      - '@upstash/ratelimit'
+      - '@upstash/redis'
+      - '@upstash/vector'
+      - '@vercel/kv'
+      - '@vercel/postgres'
+      - '@writerai/writer-sdk'
+      - '@xata.io/client'
+      - '@zilliz/milvus2-sdk-node'
+      - apify-client
+      - assemblyai
+      - axios
+      - azion
+      - better-sqlite3
+      - cassandra-driver
+      - cborg
+      - cheerio
+      - chromadb
+      - closevector-common
+      - closevector-node
+      - closevector-web
+      - cohere-ai
+      - convex
+      - crypto-js
+      - d3-dsv
+      - debug
+      - discord.js
+      - duck-duck-scrape
+      - epub2
+      - fast-xml-parser
+      - firebase-admin
+      - google-auth-library
+      - googleapis
+      - handlebars
+      - hnswlib-node
+      - html-to-text
+      - ibm-cloud-sdk-core
+      - ignore
+      - interface-datastore
+      - ioredis
+      - it-all
+      - jsdom
+      - jsonwebtoken
+      - llmonitor
+      - lodash
+      - lunary
+      - mammoth
+      - mariadb
+      - mem0ai
+      - mongodb
+      - mysql2
+      - neo4j-driver
+      - notion-to-md
+      - officeparser
+      - openai
+      - pdf-parse
+      - peggy
+      - pg-copy-streams
+      - pg-native
+      - pickleparser
+      - playwright
+      - portkey-ai
+      - puppeteer
+      - pyodide
+      - react
+      - react-dom
+      - replicate
+      - sonix-speech-recognition
+      - srt-parser-2
+      - supports-color
+      - typeorm
+      - typescript
+      - typesense
+      - usearch
+      - voy-search
+      - weaviate-client
+      - web-auth-library
+      - word-extractor
+      - ws
+      - youtubei.js
+
   '@cfworker/json-schema@4.1.1': {}
 
   '@clerk/backend@2.33.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
@@ -13659,76 +13854,6 @@ snapshots:
       - uglify-js
       - webpack-cli
 
-  '@docusaurus/babel@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@babel/core': 7.29.7
-      '@babel/generator': 7.29.8
-      '@babel/plugin-syntax-dynamic-import': 7.8.3(@babel/core@7.29.7)
-      '@babel/plugin-transform-runtime': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-react': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
-      '@babel/runtime': 7.29.7
-      '@babel/runtime-corejs3': 7.29.7
-      '@babel/traverse': 7.29.8
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      babel-plugin-dynamic-import-node: 2.3.3
-      fs-extra: 11.4.0
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/babel@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@babel/core': 7.29.7
-      '@babel/generator': 7.29.8
-      '@babel/plugin-syntax-dynamic-import': 7.8.3(@babel/core@7.29.7)
-      '@babel/plugin-transform-runtime': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-env': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-react': 7.29.7(@babel/core@7.29.7)
-      '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
-      '@babel/runtime': 7.29.7
-      '@babel/runtime-corejs3': 7.29.7
-      '@babel/traverse': 7.29.8
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      babel-plugin-dynamic-import-node: 2.3.3
-      fs-extra: 11.4.0
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
   '@docusaurus/bundler@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
       '@babel/core': 7.29.7
@@ -13774,12 +13899,12 @@ snapshots:
 
   '@docusaurus/core@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/babel': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/babel': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/bundler': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/logger': 3.8.1
       '@docusaurus/mdx-loader': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@mdx-js/react': 3.1.1(@types/react@19.2.18)(react@19.2.8)
       boxen: 6.2.1
@@ -13815,77 +13940,7 @@ snapshots:
       tinypool: 1.1.1
       tslib: 2.8.1
       update-notifier: 6.0.2
-      webpack: 5.109.2(postcss@8.5.26)
-      webpack-bundle-analyzer: 4.10.2
-      webpack-dev-server: 4.15.2(webpack@5.109.2)
-      webpack-merge: 6.0.1
-    transitivePeerDependencies:
-      - '@docusaurus/faster'
-      - '@minify-html/node'
-      - '@parcel/css'
-      - '@rspack/core'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - bufferutil
-      - clean-css
-      - cssnano
-      - csso
-      - debug
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - typescript
-      - uglify-js
-      - utf-8-validate
-      - webpack-cli
-
-  '@docusaurus/core@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
-    dependencies:
-      '@docusaurus/babel': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/bundler': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/mdx-loader': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@mdx-js/react': 3.1.1(@types/react@19.2.18)(react@19.2.8)
-      boxen: 6.2.1
-      chalk: 4.1.2
-      chokidar: 3.6.0
-      cli-table3: 0.6.5
-      combine-promises: 1.2.0
-      commander: 5.1.0
-      core-js: 3.50.0
-      detect-port: 1.6.1
-      escape-html: 1.0.3
-      eta: 2.2.0
-      eval: 0.1.8
-      execa: 5.1.1
-      fs-extra: 11.4.0
-      html-tags: 3.3.1
-      html-webpack-plugin: 5.6.8(webpack@5.109.2)
-      leven: 3.1.0
-      lodash: 4.18.1
-      open: 8.4.2
-      p-map: 4.0.0
-      prompts: 2.4.2
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      react-helmet-async: '@slorber/react-helmet-async@1.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)'
-      react-loadable: '@docusaurus/react-loadable@6.0.0(react@19.2.8)'
-      react-loadable-ssr-addon-v5-slorber: 1.0.3(@docusaurus/react-loadable@6.0.0(react@19.2.8))(webpack@5.109.2)
-      react-router: 5.3.4(react@19.2.8)
-      react-router-config: 5.1.1(react-router@5.3.4(react@19.2.8))(react@19.2.8)
-      react-router-dom: 5.3.4(react@19.2.8)
-      semver: 7.8.5
-      serve-handler: 6.1.7
-      tinypool: 1.1.1
-      tslib: 2.8.1
-      update-notifier: 6.0.2
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
       webpack-bundle-analyzer: 4.10.2
       webpack-dev-server: 4.15.2(webpack@5.109.2)
       webpack-merge: 6.0.1
@@ -13927,7 +13982,7 @@ snapshots:
   '@docusaurus/mdx-loader@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@mdx-js/mdx': 3.1.1
       '@slorber/remark-comment': 1.0.0
@@ -13951,51 +14006,7 @@ snapshots:
       unist-util-visit: 5.1.0
       url-loader: 4.1.1(file-loader@6.2.0(webpack@5.109.2))(webpack@5.109.2)
       vfile: 6.0.3
-      webpack: 5.109.2(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/mdx-loader@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@mdx-js/mdx': 3.1.1
-      '@slorber/remark-comment': 1.0.0
-      escape-html: 1.0.3
-      estree-util-value-to-estree: 3.5.0
-      file-loader: 6.2.0(webpack@5.109.2)
-      fs-extra: 11.4.0
-      image-size: 2.0.2
-      mdast-util-mdx: 3.0.0
-      mdast-util-to-string: 4.0.0
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      rehype-raw: 7.0.0
-      remark-directive: 3.0.1
-      remark-emoji: 4.0.1
-      remark-frontmatter: 5.0.0
-      remark-gfm: 4.0.1
-      stringify-object: 3.3.0
-      tslib: 2.8.1
-      unified: 11.0.5
-      unist-util-visit: 5.1.0
-      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.109.2))(webpack@5.109.2)
-      vfile: 6.0.3
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
@@ -14014,34 +14025,7 @@ snapshots:
 
   '@docusaurus/module-type-aliases@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@types/history': 4.7.11
-      '@types/react': 19.2.18
-      '@types/react-router-config': 5.0.11
-      '@types/react-router-dom': 5.3.3
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      react-helmet-async: '@slorber/react-helmet-async@1.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)'
-      react-loadable: '@docusaurus/react-loadable@6.0.0(react@19.2.8)'
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/module-type-aliases@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/history': 4.7.11
       '@types/react': 19.2.18
       '@types/react-router-config': 5.0.11
@@ -14071,11 +14055,11 @@ snapshots:
       '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/logger': 3.8.1
       '@docusaurus/mdx-loader': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       cheerio: 1.0.0-rc.12
       feed: 4.2.2
@@ -14088,54 +14072,7 @@ snapshots:
       tslib: 2.8.1
       unist-util-visit: 5.1.0
       utility-types: 3.11.0
-      webpack: 5.109.2(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@docusaurus/faster'
-      - '@mdx-js/react'
-      - '@minify-html/node'
-      - '@parcel/css'
-      - '@rspack/core'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - bufferutil
-      - clean-css
-      - cssnano
-      - csso
-      - debug
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - typescript
-      - uglify-js
-      - utf-8-validate
-      - webpack-cli
-
-  '@docusaurus/plugin-content-blog@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
-    dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/mdx-loader': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      cheerio: 1.0.0-rc.12
-      feed: 4.2.2
-      fs-extra: 11.4.0
-      lodash: 4.18.1
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      schema-dts: 1.1.5
-      srcset: 4.0.0
-      tslib: 2.8.1
-      unist-util-visit: 5.1.0
-      utility-types: 3.11.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - '@docusaurus/faster'
       - '@mdx-js/react'
@@ -14167,9 +14104,9 @@ snapshots:
       '@docusaurus/mdx-loader': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/module-type-aliases': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/react-router-config': 5.0.11
       combine-promises: 1.2.0
@@ -14181,53 +14118,7 @@ snapshots:
       schema-dts: 1.1.5
       tslib: 2.8.1
       utility-types: 3.11.0
-      webpack: 5.109.2(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@docusaurus/faster'
-      - '@mdx-js/react'
-      - '@minify-html/node'
-      - '@parcel/css'
-      - '@rspack/core'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - bufferutil
-      - clean-css
-      - cssnano
-      - csso
-      - debug
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - typescript
-      - uglify-js
-      - utf-8-validate
-      - webpack-cli
-
-  '@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
-    dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/mdx-loader': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/module-type-aliases': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@types/react-router-config': 5.0.11
-      combine-promises: 1.2.0
-      fs-extra: 11.4.0
-      js-yaml: 4.3.1
-      lodash: 4.18.1
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      schema-dts: 1.1.5
-      tslib: 2.8.1
-      utility-types: 3.11.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - '@docusaurus/faster'
       - '@mdx-js/react'
@@ -14256,50 +14147,14 @@ snapshots:
     dependencies:
       '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/mdx-loader': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       fs-extra: 11.4.0
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       tslib: 2.8.1
-      webpack: 5.109.2(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@docusaurus/faster'
-      - '@mdx-js/react'
-      - '@minify-html/node'
-      - '@parcel/css'
-      - '@rspack/core'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - bufferutil
-      - clean-css
-      - cssnano
-      - csso
-      - debug
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - typescript
-      - uglify-js
-      - utf-8-validate
-      - webpack-cli
-
-  '@docusaurus/plugin-content-pages@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
-    dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/mdx-loader': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      fs-extra: 11.4.0
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      tslib: 2.8.1
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - '@docusaurus/faster'
       - '@mdx-js/react'
@@ -14326,10 +14181,10 @@ snapshots:
 
   '@docusaurus/plugin-css-cascade-layers@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       tslib: 2.8.1
     transitivePeerDependencies:
       - '@docusaurus/faster'
@@ -14359,9 +14214,9 @@ snapshots:
 
   '@docusaurus/plugin-debug@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       fs-extra: 11.4.0
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -14393,9 +14248,9 @@ snapshots:
 
   '@docusaurus/plugin-google-analytics@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       tslib: 2.8.1
@@ -14425,9 +14280,9 @@ snapshots:
 
   '@docusaurus/plugin-google-gtag@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/gtag.js': 0.0.12
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -14458,9 +14313,9 @@ snapshots:
 
   '@docusaurus/plugin-google-tag-manager@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       tslib: 2.8.1
@@ -14490,12 +14345,12 @@ snapshots:
 
   '@docusaurus/plugin-sitemap@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/logger': 3.8.1
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       fs-extra: 11.4.0
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -14527,16 +14382,16 @@ snapshots:
 
   '@docusaurus/plugin-svgr@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@svgr/core': 8.1.0(typescript@5.9.3)
       '@svgr/webpack': 8.1.0(typescript@5.9.3)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
       tslib: 2.8.1
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - '@docusaurus/faster'
       - '@mdx-js/react'
@@ -14563,10 +14418,10 @@ snapshots:
 
   '@docusaurus/preset-classic@3.8.1(@algolia/client-search@5.57.0)(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/plugin-content-blog': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/plugin-content-pages': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/plugin-content-blog': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/plugin-content-pages': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/plugin-css-cascade-layers': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/plugin-debug': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/plugin-google-analytics': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
@@ -14575,9 +14430,9 @@ snapshots:
       '@docusaurus/plugin-sitemap': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/plugin-svgr': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/theme-classic': 3.8.1(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/theme-search-algolia': 3.8.1(@algolia/client-search@5.57.0)(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
     transitivePeerDependencies:
@@ -14623,9 +14478,9 @@ snapshots:
       '@docusaurus/plugin-content-pages': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/theme-translations': 3.8.1
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@mdx-js/react': 3.1.1(@types/react@19.2.18)(react@19.2.8)
       clsx: 2.1.1
@@ -14669,42 +14524,9 @@ snapshots:
     dependencies:
       '@docusaurus/mdx-loader': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/module-type-aliases': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@types/history': 4.7.11
-      '@types/react': 19.2.18
-      '@types/react-router-config': 5.0.11
-      clsx: 2.1.1
-      parse-numeric-range: 1.3.0
-      prism-react-renderer: 2.4.1(react@19.2.8)
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      tslib: 2.8.1
-      utility-types: 3.11.0
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/theme-common@3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/mdx-loader': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/module-type-aliases': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/history': 4.7.11
       '@types/react': 19.2.18
       '@types/react-router-config': 5.0.11
@@ -14734,13 +14556,13 @@ snapshots:
   '@docusaurus/theme-search-algolia@3.8.1(@algolia/client-search@5.57.0)(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)':
     dependencies:
       '@docsearch/react': 3.9.0(@algolia/client-search@5.57.0)(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/core': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
       '@docusaurus/logger': 3.8.1
-      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
-      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/plugin-content-docs': 3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)
+      '@docusaurus/theme-common': 3.8.1(@docusaurus/plugin-content-docs@3.8.1(@mdx-js/react@3.1.1(@types/react@19.2.18)(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3))(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@docusaurus/theme-translations': 3.8.1
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-validation': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-validation': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       algoliasearch: 5.57.0
       algoliasearch-helper: 3.29.3(algoliasearch@5.57.0)
       clsx: 2.1.1
@@ -14814,64 +14636,6 @@ snapshots:
       - uglify-js
       - webpack-cli
 
-  '@docusaurus/types@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@mdx-js/mdx': 3.1.1
-      '@types/history': 4.7.11
-      '@types/react': 19.2.18
-      commander: 5.1.0
-      joi: 17.13.6
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      react-helmet-async: '@slorber/react-helmet-async@1.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)'
-      utility-types: 3.11.0
-      webpack: 5.109.2(postcss@8.5.26)
-      webpack-merge: 5.10.0
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/types@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@mdx-js/mdx': 3.1.1
-      '@types/history': 4.7.11
-      '@types/react': 19.2.18
-      commander: 5.1.0
-      joi: 17.13.6
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      react-helmet-async: '@slorber/react-helmet-async@1.3.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)'
-      utility-types: 3.11.0
-      webpack: 5.109.2
-      webpack-merge: 5.10.0
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
   '@docusaurus/utils-common@3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@docusaurus/types': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -14894,83 +14658,11 @@ snapshots:
       - uglify-js
       - webpack-cli
 
-  '@docusaurus/utils-common@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/utils-common@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
   '@docusaurus/utils-validation@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      fs-extra: 11.4.0
-      joi: 17.13.6
-      js-yaml: 4.3.1
-      lodash: 4.18.1
-      tslib: 2.8.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/utils-validation@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/utils': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@docusaurus/utils-common': 3.8.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       fs-extra: 11.4.0
       joi: 17.13.6
       js-yaml: 4.3.1
@@ -15017,88 +14709,6 @@ snapshots:
       url-loader: 4.1.1(file-loader@6.2.0(webpack@5.109.2))(webpack@5.109.2)
       utility-types: 3.11.0
       webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/utils@3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/types': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      escape-string-regexp: 4.0.0
-      execa: 5.1.1
-      file-loader: 6.2.0(webpack@5.109.2)
-      fs-extra: 11.4.0
-      github-slugger: 1.5.0
-      globby: 11.1.0
-      gray-matter: 4.0.3
-      jiti: 1.21.7
-      js-yaml: 4.3.1
-      lodash: 4.18.1
-      micromatch: 4.0.8
-      p-queue: 6.6.2
-      prompts: 2.4.2
-      resolve-pathname: 3.0.0
-      tslib: 2.8.1
-      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.109.2))(webpack@5.109.2)
-      utility-types: 3.11.0
-      webpack: 5.109.2(postcss@8.5.26)
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - react
-      - react-dom
-      - supports-color
-      - uglify-js
-      - webpack-cli
-
-  '@docusaurus/utils@3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
-    dependencies:
-      '@docusaurus/logger': 3.8.1
-      '@docusaurus/types': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@docusaurus/utils-common': 3.8.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      escape-string-regexp: 4.0.0
-      execa: 5.1.1
-      file-loader: 6.2.0(webpack@5.109.2)
-      fs-extra: 11.4.0
-      github-slugger: 1.5.0
-      globby: 11.1.0
-      gray-matter: 4.0.3
-      jiti: 1.21.7
-      js-yaml: 4.3.1
-      lodash: 4.18.1
-      micromatch: 4.0.8
-      p-queue: 6.6.2
-      prompts: 2.4.2
-      resolve-pathname: 3.0.0
-      tslib: 2.8.1
-      url-loader: 4.1.1(file-loader@6.2.0(webpack@5.109.2))(webpack@5.109.2)
-      utility-types: 3.11.0
-      webpack: 5.109.2
     transitivePeerDependencies:
       - '@minify-html/node'
       - '@swc/core'
@@ -15731,7 +15341,7 @@ snapshots:
   '@jest/console@29.7.0':
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       jest-message-util: 29.7.0
       jest-util: 29.7.0
@@ -15744,14 +15354,14 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.9.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@24.0.15)(ts-node@10.9.2(@types/node@20.19.43)(typescript@5.9.3))
+      jest-config: 29.7.0(@types/node@20.19.43)(ts-node@10.9.2(@types/node@20.19.43)(typescript@5.9.3))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -15779,14 +15389,14 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.9.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@24.0.15)(ts-node@10.9.2(@types/node@24.0.15)(typescript@5.9.3))
+      jest-config: 29.7.0(@types/node@20.19.43)(ts-node@10.9.2(@types/node@24.0.15)(typescript@5.9.3))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -15813,14 +15423,14 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-mock: 29.7.0
 
   '@jest/environment@30.0.4':
     dependencies:
       '@jest/fake-timers': 30.0.4
       '@jest/types': 30.0.1
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-mock: 30.0.2
 
   '@jest/expect-utils@29.7.0':
@@ -15849,7 +15459,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -15858,7 +15468,7 @@ snapshots:
     dependencies:
       '@jest/types': 30.0.1
       '@sinonjs/fake-timers': 13.0.5
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-message-util: 30.0.2
       jest-mock: 30.0.2
       jest-util: 30.0.2
@@ -15885,7 +15495,7 @@ snapshots:
 
   '@jest/pattern@30.0.1':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-regex-util: 30.0.1
 
   '@jest/reporters@29.7.0':
@@ -15896,7 +15506,7 @@ snapshots:
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
       '@jridgewell/trace-mapping': 0.3.31
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       collect-v8-coverage: 1.0.3
       exit: 0.1.2
@@ -15997,7 +15607,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -16007,7 +15617,7 @@ snapshots:
       '@jest/schemas': 30.0.1
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -16044,7 +15654,7 @@ snapshots:
 
   '@kurkle/color@0.3.4': {}
 
-  '@langchain/anthropic@0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)':
+  '@langchain/anthropic@0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)':
     dependencies:
       '@anthropic-ai/sdk': 0.65.0(zod@3.25.76)
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
@@ -16055,8 +15665,8 @@ snapshots:
   '@langchain/community@0.3.59(@aws-sdk/client-s3@3.1114.0)(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(@elastic/elasticsearch@8.19.2)(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(@mendable/firecrawl-js@4.34.0)(@opentelemetry/api@1.9.1)(@qdrant/js-client-rest@1.19.0(typescript@5.9.3))(axios@1.19.0)(fast-xml-parser@4.5.7)(handlebars@4.7.9)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(pg@8.23.0)(redis@5.12.1(@opentelemetry/api@1.9.1))(weaviate-client@3.14.0)(ws@8.21.3)':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
-      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
-      '@langchain/weaviate': 0.2.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+      '@langchain/weaviate': 0.2.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
       binary-extensions: 2.3.0
       flat: 5.0.2
       js-yaml: 4.3.1
@@ -16073,6 +15683,58 @@ snapshots:
       '@elastic/elasticsearch': 8.19.2
       '@mendable/firecrawl-js': 4.34.0
       '@qdrant/js-client-rest': 1.19.0(typescript@5.9.3)
+      fast-xml-parser: 4.5.7
+      html-to-text: 9.0.5
+      ignore: 5.3.2
+      jsdom: 27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3)
+      jsonwebtoken: 9.0.3
+      lodash: 4.18.1
+      pg: 8.23.0
+      redis: 5.12.1(@opentelemetry/api@1.9.1)
+      weaviate-client: 3.14.0
+      ws: 8.21.3
+    transitivePeerDependencies:
+      - '@langchain/anthropic'
+      - '@langchain/aws'
+      - '@langchain/cerebras'
+      - '@langchain/cohere'
+      - '@langchain/deepseek'
+      - '@langchain/google-genai'
+      - '@langchain/google-vertexai'
+      - '@langchain/google-vertexai-web'
+      - '@langchain/groq'
+      - '@langchain/mistralai'
+      - '@langchain/ollama'
+      - '@langchain/xai'
+      - '@opentelemetry/api'
+      - '@opentelemetry/exporter-trace-otlp-proto'
+      - '@opentelemetry/sdk-trace-base'
+      - axios
+      - handlebars
+      - peggy
+
+  '@langchain/community@0.3.59(@aws-sdk/client-s3@3.1114.0)(@aws-sdk/credential-provider-node@3.972.80)(@browserbasehq/sdk@2.18.0)(@elastic/elasticsearch@8.19.2)(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(@mendable/firecrawl-js@4.34.0)(@qdrant/js-client-rest@1.19.0(typescript@5.9.3))(cheerio@1.0.0-rc.12)(fast-xml-parser@4.5.7)(html-to-text@9.0.5)(ignore@5.3.2)(jsdom@27.4.0(@noble/hashes@1.8.0)(canvas@3.2.3))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(pg@8.23.0)(redis@5.12.1)(weaviate-client@3.14.0)(ws@8.21.3)':
+    dependencies:
+      '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
+      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+      '@langchain/weaviate': 0.2.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      binary-extensions: 2.3.0
+      flat: 5.0.2
+      js-yaml: 4.3.1
+      langchain: 0.3.37(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(cheerio@1.0.0-rc.12)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(ws@8.21.3)
+      langsmith: 0.3.87(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
+      math-expression-evaluator: 2.0.7
+      openai: 5.12.2(ws@8.21.3)(zod@3.25.76)
+      uuid: 10.0.0
+      zod: 3.25.76
+    optionalDependencies:
+      '@aws-sdk/client-s3': 3.1114.0
+      '@aws-sdk/credential-provider-node': 3.972.80
+      '@browserbasehq/sdk': 2.18.0
+      '@elastic/elasticsearch': 8.19.2
+      '@mendable/firecrawl-js': 4.34.0
+      '@qdrant/js-client-rest': 1.19.0(typescript@5.9.3)
+      cheerio: 1.0.0-rc.12
       fast-xml-parser: 4.5.7
       html-to-text: 9.0.5
       ignore: 5.3.2
@@ -16123,13 +15785,13 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
 
-  '@langchain/google-genai@1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
+  '@langchain/google-genai@1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
     dependencies:
       '@google/generative-ai': 0.24.1
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       uuid: 11.1.1
 
-  '@langchain/langgraph-checkpoint@0.0.18(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
+  '@langchain/langgraph-checkpoint@0.0.18(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       uuid: 10.0.0
@@ -16148,7 +15810,7 @@ snapshots:
   '@langchain/langgraph@0.3.12(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod-to-json-schema@3.25.2(zod@3.25.76))':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
-      '@langchain/langgraph-checkpoint': 0.0.18(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      '@langchain/langgraph-checkpoint': 0.0.18(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
       '@langchain/langgraph-sdk': 0.0.112(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       uuid: 10.0.0
       zod: 3.25.76
@@ -16158,7 +15820,7 @@ snapshots:
       - react
       - react-dom
 
-  '@langchain/openai@0.6.17(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)':
+  '@langchain/openai@0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       js-tiktoken: 1.0.21
@@ -16167,12 +15829,12 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  '@langchain/textsplitters@0.1.0(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
+  '@langchain/textsplitters@0.1.0(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       js-tiktoken: 1.0.21
 
-  '@langchain/weaviate@0.2.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
+  '@langchain/weaviate@0.2.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))':
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
       uuid: 10.0.0
@@ -16542,7 +16204,7 @@ snapshots:
     dependencies:
       react: 19.2.8
 
-  '@redis/bloom@5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))':
+  '@redis/bloom@5.12.1(@redis/client@5.12.1)':
     dependencies:
       '@redis/client': 5.12.1(@opentelemetry/api@1.9.1)
 
@@ -16552,15 +16214,15 @@ snapshots:
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
 
-  '@redis/json@5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))':
+  '@redis/json@5.12.1(@redis/client@5.12.1)':
     dependencies:
       '@redis/client': 5.12.1(@opentelemetry/api@1.9.1)
 
-  '@redis/search@5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))':
+  '@redis/search@5.12.1(@redis/client@5.12.1)':
     dependencies:
       '@redis/client': 5.12.1(@opentelemetry/api@1.9.1)
 
-  '@redis/time-series@5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))':
+  '@redis/time-series@5.12.1(@redis/client@5.12.1)':
     dependencies:
       '@redis/client': 5.12.1(@opentelemetry/api@1.9.1)
 
@@ -17226,11 +16888,11 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/browser-image-compression@1.0.13':
     dependencies:
@@ -17248,11 +16910,11 @@ snapshots:
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 5.1.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/cookiejar@2.1.5': {}
 
@@ -17291,14 +16953,14 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.9':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
 
   '@types/express-serve-static-core@5.1.3':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -17312,7 +16974,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/gtag.js@0.0.12': {}
 
@@ -17330,7 +16992,7 @@ snapshots:
 
   '@types/http-proxy@1.17.17':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -17375,12 +17037,12 @@ snapshots:
 
   '@types/node-fetch@2.6.13':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       form-data: 4.0.6
 
   '@types/node-forge@1.3.14':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/node@17.0.45': {}
 
@@ -17446,18 +17108,18 @@ snapshots:
 
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/semver@7.8.0': {}
 
   '@types/send@0.17.6':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/serve-index@1.9.4':
     dependencies:
@@ -17466,12 +17128,12 @@ snapshots:
   '@types/serve-static@1.15.10':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@types/send': 0.17.6
 
   '@types/sockjs@0.3.36':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/stack-utils@2.0.3': {}
 
@@ -17479,7 +17141,7 @@ snapshots:
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       form-data: 4.0.6
 
   '@types/supertest@6.0.3':
@@ -17500,7 +17162,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -17510,7 +17172,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
     optional: true
 
   '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)':
@@ -18524,7 +18186,7 @@ snapshots:
       '@babel/core': 7.29.7
       find-cache-dir: 4.0.0
       schema-utils: 4.3.3
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   babel-plugin-dynamic-import-node@2.3.3:
     dependencies:
@@ -19122,7 +18784,7 @@ snapshots:
       normalize-path: 3.0.0
       schema-utils: 4.3.3
       serialize-javascript: 6.0.2
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   core-js-compat@3.50.0:
     dependencies:
@@ -19212,7 +18874,7 @@ snapshots:
       postcss-value-parser: 4.2.0
       semver: 7.8.5
     optionalDependencies:
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   css-minimizer-webpack-plugin@5.0.1(clean-css@5.3.3)(webpack@5.109.2):
     dependencies:
@@ -19222,7 +18884,7 @@ snapshots:
       postcss: 8.5.26
       schema-utils: 4.3.3
       serialize-javascript: 6.0.2
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     optionalDependencies:
       clean-css: 5.3.3
 
@@ -20244,7 +19906,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       require-like: 0.1.2
 
   event-target-shim@5.0.1: {}
@@ -20441,7 +20103,7 @@ snapshots:
     dependencies:
       loader-utils: 2.0.4
       schema-utils: 3.3.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   fill-range@7.1.1:
     dependencies:
@@ -21000,7 +20662,7 @@ snapshots:
       pretty-error: 4.0.0
       tapable: 2.3.3
     optionalDependencies:
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   htmlparser2@6.1.0:
     dependencies:
@@ -21431,7 +21093,7 @@ snapshots:
       '@jest/expect': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.7.2
@@ -21520,7 +21182,7 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-config@29.7.0(@types/node@24.0.15)(ts-node@10.9.2(@types/node@20.19.43)(typescript@5.9.3)):
+  jest-config@29.7.0(@types/node@20.19.43)(ts-node@10.9.2(@types/node@24.0.15)(typescript@5.9.3)):
     dependencies:
       '@babel/core': 7.29.7
       '@jest/test-sequencer': 29.7.0
@@ -21545,8 +21207,8 @@ snapshots:
       slash: 3.0.0
       strip-json-comments: 3.1.1
     optionalDependencies:
-      '@types/node': 24.0.15
-      ts-node: 10.9.2(@types/node@20.19.43)(typescript@5.9.3)
+      '@types/node': 20.19.43
+      ts-node: 10.9.2(@types/node@24.0.15)(typescript@5.9.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -21613,7 +21275,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -21623,7 +21285,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -21638,7 +21300,7 @@ snapshots:
   jest-haste-map@30.0.2:
     dependencies:
       '@jest/types': 30.0.1
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -21696,13 +21358,13 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-util: 29.7.0
 
   jest-mock@30.0.2:
     dependencies:
       '@jest/types': 30.0.1
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-util: 30.0.2
 
   jest-pnp-resolver@1.2.3(jest-resolve@29.7.0):
@@ -21739,7 +21401,7 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       emittery: 0.13.1
       graceful-fs: 4.2.11
@@ -21767,7 +21429,7 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       cjs-module-lexer: 1.4.3
       collect-v8-coverage: 1.0.3
@@ -21839,7 +21501,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -21848,7 +21510,7 @@ snapshots:
   jest-util@30.0.2:
     dependencies:
       '@jest/types': 30.0.1
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
@@ -21867,7 +21529,7 @@ snapshots:
     dependencies:
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -21876,20 +21538,20 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@30.0.2:
     dependencies:
-      '@types/node': 24.0.15
+      '@types/node': 20.19.43
       '@ungap/structured-clone': 1.3.3
       jest-util: 30.0.2
       merge-stream: 2.0.0
@@ -22088,8 +21750,8 @@ snapshots:
   langchain@0.3.37(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(@opentelemetry/api@1.9.1)(axios@1.19.0)(handlebars@4.7.9)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(ws@8.21.3):
     dependencies:
       '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
-      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
-      '@langchain/textsplitters': 0.1.0(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+      '@langchain/textsplitters': 0.1.0(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
       js-tiktoken: 1.0.21
       js-yaml: 4.3.1
       jsonpointer: 5.0.1
@@ -22100,10 +21762,35 @@ snapshots:
       yaml: 2.9.0
       zod: 3.25.76
     optionalDependencies:
-      '@langchain/anthropic': 0.3.34(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
-      '@langchain/google-genai': 1.0.3(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      '@langchain/anthropic': 0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
+      '@langchain/google-genai': 1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
       axios: 1.19.0
       handlebars: 4.7.9
+    transitivePeerDependencies:
+      - '@opentelemetry/api'
+      - '@opentelemetry/exporter-trace-otlp-proto'
+      - '@opentelemetry/sdk-trace-base'
+      - openai
+      - ws
+
+  langchain@0.3.37(@langchain/anthropic@0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76))(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(@langchain/google-genai@1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76))))(cheerio@1.0.0-rc.12)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))(ws@8.21.3):
+    dependencies:
+      '@langchain/core': 0.3.80(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
+      '@langchain/openai': 0.6.17(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(ws@8.21.3)
+      '@langchain/textsplitters': 0.1.0(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      js-tiktoken: 1.0.21
+      js-yaml: 4.3.1
+      jsonpointer: 5.0.1
+      langsmith: 0.3.87(@opentelemetry/api@1.9.1)(openai@5.12.2(ws@8.21.3)(zod@3.25.76))
+      openapi-types: 12.1.3
+      p-retry: 4.6.2
+      uuid: 10.0.0
+      yaml: 2.9.0
+      zod: 3.25.76
+    optionalDependencies:
+      '@langchain/anthropic': 0.3.34(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))(zod@3.25.76)
+      '@langchain/google-genai': 1.0.3(@langchain/core@0.3.80(openai@5.12.2(ws@8.21.3)(zod@3.25.76)))
+      cheerio: 1.0.0-rc.12
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -22930,7 +22617,7 @@ snapshots:
     dependencies:
       schema-utils: 4.3.3
       tapable: 2.3.3
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   minimalistic-assert@1.0.1: {}
 
@@ -22962,7 +22649,7 @@ snapshots:
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.50.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     optionalDependencies:
       clean-css: 5.3.3
       cssnano: 6.1.2(postcss@8.5.26)
@@ -23132,7 +22819,7 @@ snapshots:
     dependencies:
       loader-utils: 2.0.4
       schema-utils: 3.3.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   object-assign@4.1.1: {}
 
@@ -23657,7 +23344,7 @@ snapshots:
       jiti: 1.21.7
       postcss: 8.5.26
       semver: 7.8.5
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - typescript
 
@@ -24200,7 +23887,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.29.7
       react-loadable: '@docusaurus/react-loadable@6.0.0(react@19.2.8)'
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   react-markdown@10.1.0(@types/react@19.2.18)(react@19.2.8):
     dependencies:
@@ -24339,11 +24026,11 @@ snapshots:
 
   redis@5.12.1(@opentelemetry/api@1.9.1):
     dependencies:
-      '@redis/bloom': 5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))
+      '@redis/bloom': 5.12.1(@redis/client@5.12.1)
       '@redis/client': 5.12.1(@opentelemetry/api@1.9.1)
-      '@redis/json': 5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))
-      '@redis/search': 5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))
-      '@redis/time-series': 5.12.1(@redis/client@5.12.1(@opentelemetry/api@1.9.1))
+      '@redis/json': 5.12.1(@redis/client@5.12.1)
+      '@redis/search': 5.12.1(@redis/client@5.12.1)
+      '@redis/time-series': 5.12.1(@redis/client@5.12.1)
     transitivePeerDependencies:
       - '@node-rs/xxhash'
       - '@opentelemetry/api'
@@ -25261,7 +24948,7 @@ snapshots:
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.50.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     optionalDependencies:
       clean-css: 5.3.3
       cssnano: 6.1.2(postcss@8.5.26)
@@ -25751,7 +25438,7 @@ snapshots:
       loader-utils: 2.0.4
       mime-types: 2.1.35
       schema-utils: 3.3.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     optionalDependencies:
       file-loader: 6.2.0(webpack@5.109.2)
 
@@ -26210,7 +25897,7 @@ snapshots:
       mime-types: 2.1.35
       range-parser: 1.3.0
       schema-utils: 4.3.3
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
 
   webpack-dev-server@4.15.2(webpack@5.109.2):
     dependencies:
@@ -26245,7 +25932,7 @@ snapshots:
       webpack-dev-middleware: 5.3.4(webpack@5.109.2)
       ws: 8.21.3
     optionalDependencies:
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -26267,42 +25954,6 @@ snapshots:
   webpack-sources@3.5.1: {}
 
   webpack-virtual-modules@0.6.2: {}
-
-  webpack@5.109.2:
-    dependencies:
-      '@types/estree': 1.0.9
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.18.0
-      browserslist: 4.28.8
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.24.5
-      es-module-lexer: 2.3.2
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      graceful-fs: 4.2.11
-      mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.6.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(webpack@5.109.2)
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.3
-      watchpack: 2.5.2
-      webpack-sources: 3.5.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - uglify-js
 
   webpack@5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26):
     dependencies:
@@ -26377,42 +26028,6 @@ snapshots:
       - uglify-js
     optional: true
 
-  webpack@5.109.2(postcss@8.5.26):
-    dependencies:
-      '@types/estree': 1.0.9
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.18.0
-      browserslist: 4.28.8
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.24.5
-      es-module-lexer: 2.3.2
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      graceful-fs: 4.2.11
-      mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.6.1(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)(webpack@5.109.2)
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.3
-      watchpack: 2.5.2
-      webpack-sources: 3.5.1
-    transitivePeerDependencies:
-      - '@minify-html/node'
-      - '@swc/core'
-      - '@swc/css'
-      - '@swc/html'
-      - clean-css
-      - cssnano
-      - csso
-      - esbuild
-      - html-minifier-terser
-      - lightningcss
-      - postcss
-      - uglify-js
-
   webpackbar@6.0.1(webpack@5.109.2):
     dependencies:
       ansi-escapes: 4.3.2
@@ -26422,7 +26037,7 @@ snapshots:
       markdown-table: 2.0.0
       pretty-time: 1.1.0
       std-env: 3.10.0
-      webpack: 5.109.2
+      webpack: 5.109.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.26))(html-minifier-terser@7.2.0)(postcss@8.5.26)
       wrap-ansi: 7.0.0
 
   websocket-driver@0.7.5:

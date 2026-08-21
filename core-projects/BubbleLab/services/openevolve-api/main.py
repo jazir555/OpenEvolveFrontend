@@ -97,6 +97,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Request metrics middleware (dependency-free, stdlib + Starlette only)
+try:
+    from .api.metrics import MetricsMiddleware
+except ImportError:  # pragma: no cover - absolute import fallback
+    from api.metrics import MetricsMiddleware
+
+app.add_middleware(MetricsMiddleware)
+
 # Include routers
 app.include_router(workflows.router, prefix="/api/workflows", tags=["workflows"])
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])

@@ -1,8 +1,10 @@
 /**
  * Runtime + type shim for `@bubblelab/bubble-core`.
  *
- * The integration is not yet part of the pnpm workspace, so the real
- * bubble-core package cannot be resolved here. This module provides BOTH:
+ * The integration IS now part of the pnpm workspace (core-projects/BubbleLab/
+ * pnpm-workspace.yaml globs `integrations/*`), so the real bubble-core package
+ * is linked via node_modules and resolved at runtime. This module still provides
+ * BOTH:
  *   - the type declarations the integration bubbles need (mirrors
  *     `types/bubble-core.d.ts`), and
  *   - minimal runtime class bodies so the bubbles can actually be instantiated
@@ -11,6 +13,11 @@
  * The bubbles only ever *construct* `HttpBubble`/`ServiceBubble` for the
  * OpenEvolve HTTP contract; they perform the real HTTP calls via `fetch`
  * themselves, so the shim implementations are intentionally inert.
+ *
+ * The canonical OpenEvolve service bubbles are re-exported from the REAL built
+ * `@bubblelab/bubble-core` package (packages/bubble-core/dist/.../openevolve-*-bubble.js),
+ * whose source of truth lives at
+ * packages/bubble-core/src/bubbles/service-bubble/openevolve-*-bubble.ts.
  */
 
 export interface BubbleContext {

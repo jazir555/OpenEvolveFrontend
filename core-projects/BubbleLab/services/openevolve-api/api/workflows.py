@@ -53,11 +53,14 @@ if not OPENEVOLVE_BRIDGE_AVAILABLE:
     )
 
 # Set OPENEVOLVE_BRIDGE_ENABLED=0 to force the legacy in-service evolution path.
-OPENEVOLVE_BRIDGE_ENABLED = os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
-    "0",
-    "false",
-    "no",
-)
+# Read dynamically (per request) so changes to the env var are honoured and a
+# test that toggles it cannot leak a stale value into other tests.
+def _bridge_enabled() -> bool:
+    return os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
 
 # Persistent storage using SQLite
 DB_PATH = Path(os.getenv("WORKFLOW_DB_PATH", "./data/workflows.db"))
@@ -74,7 +77,7 @@ _workflow_openevolve_results: Dict[str, Dict[str, Any]] = {}
 
 def _should_use_openevolve(workflow: WorkflowResponse) -> bool:
     """True when this workflow should be driven by the real openevolve engine."""
-    if not (OPENEVOLVE_BRIDGE_AVAILABLE and OPENEVOLVE_BRIDGE_ENABLED):
+    if not (OPENEVOLVE_BRIDGE_AVAILABLE and _bridge_enabled()):
         return False
     return normalize_workflow_type(workflow.workflow_type) == "evolution"
 
@@ -205,8 +208,8 @@ def _workflow_to_dict(workflow: WorkflowResponse) -> Dict[str, Any]:
         "description": workflow.description,
         "problem_statement": workflow.problem_statement,
         "content_type": workflow.content_type,
-        "teams": json.dumps(workflow.teams.dict() if workflow.teams else {}),
-        "gauntlets": json.dumps(workflow.gauntlets.dict() if workflow.gauntlets else {}),
+        "teams": json.dumps(workflow.teams or []),
+        "gauntlets": json.dumps(workflow.gauntlets or []),
         "metadata": json.dumps(workflow.metadata.dict() if workflow.metadata else {}),
         "parameters": json.dumps(workflow.parameters or {}),
         "status": workflow.status.value,
@@ -228,13 +231,11 @@ def _load_workflows_from_db() -> None:
         cursor = conn.execute("SELECT * FROM workflows")
         rows = cursor.fetchall()
         
-        from ..models import WorkflowTeams, WorkflowGauntlets, WorkflowMetadata
-        
         for row in rows:
             row_dict = dict(row)
             # Deserialize JSON fields
-            row_dict["teams"] = WorkflowTeams.parse_raw(row_dict["teams"]) if row_dict["teams"] else None
-            row_dict["gauntlets"] = WorkflowGauntlets.parse_raw(row_dict["gauntlets"]) if row_dict["gauntlets"] else None
+            row_dict["teams"] = json.loads(row_dict["teams"]) if row_dict["teams"] else []
+            row_dict["gauntlets"] = json.loads(row_dict["gauntlets"]) if row_dict["gauntlets"] else []
             row_dict["metadata"] = WorkflowMetadata.parse_raw(row_dict["metadata"]) if row_dict["metadata"] else None
             row_dict["parameters"] = json.loads(row_dict["parameters"]) if row_dict["parameters"] else {}
             row_dict["status"] = WorkflowStatus(row_dict["status"])

@@ -9,10 +9,20 @@ Three moving parts:
 
 1. **Backend** — a large FastAPI app (`engines/other/api_server.py`, ~7.7k lines) exposing
    evolution, adversarial, workflow, knowledge, LeanAide, Maker, and monitoring routes.
-2. **Glue** (`glue/`) — TypeScript integration library (resilience, logging, validation,
+   > **Reconciliation (2026-08-20):** `engines/other/api_server.py` is the **Decomposition-Workflow**
+   > server (port **8001**) described here for the `openevolve-sdk` decomposition-workflow surface.
+   > It is **not** the OpenEvolve ⇄ BubbleLab integration backend. The OpenEvolve ⇄ BubbleLab
+   > integration backend is **`core-projects/BubbleLab/services/openevolve-api`** (FastAPI,
+   > port **8000**), whose routers are mounted **already `/api`-prefixed** (no `rewrite_api_prefix`
+   > middleware). The integration reports **GREEN (8/8 suites)**. The `/api`-stripping middleware
+   > below applies only to this `engines/other/api_server.py` Decomposition-Workflow server, not to
+   > the OpenEvolve ⇄ BubbleLab integration.
+   >
+   > **Last reconciled: 2026-08-20** — `engines/other/api_server.py` identified as the Decomposition-Workflow server, distinct from the OpenEvolve ⇄ BubbleLab integration backend (`services/openevolve-api`, port 8000, `/api`-prefixed, GREEN).
+ 2. **Glue** (`glue/`) — TypeScript integration library (resilience, logging, validation,
    metrics, event bus) consumed by the UI-facing API client.
 3. **UI** — two consumers: the canonical converted component/client package
-    (`openevolve-sdk/`) and the actual React app (`core-projects/BubbleLab/`, a separate
+   (`openevolve-sdk/`) and the actual React app (`core-projects/BubbleLab/`, a separate
    pnpm+turbo monorepo).
 
 The frontend↔backend contract is owned by `openevolve-sdk`, not by the React app.
@@ -24,7 +34,7 @@ frontend↔backend contract.
 
 | Area | Path | Notes |
 | --- | --- | --- |
-| Backend API | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5535). `__main__` just calls it (line 7708). |
+| Backend API (Decomposition-Workflow) | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5535). `__main__` just calls it (line 7708). **This is the Decomposition-Workflow server, NOT the OpenEvolve ⇄ BubbleLab integration backend.** |
 | Glue library | `glue/lib/` | 17 root `.ts` modules + `glue/lib/metrics/`. This is the part that typechecks clean. |
 | Glue (out of typecheck) | `glue/orchestration/`, `glue/schemas/`, `glue/adapters/`, `glue/tests/` | See boundary section — partially pulled in via imports. |
 | Canonical contract | `openevolve-sdk/src/lib/openevolveApi.ts`, `openevolve-sdk/src/lib/types.ts` | Source of truth for response shapes. |
@@ -198,7 +208,7 @@ tab in `OpenEvolveApp` + `Sidebar`. See Open items.
 Both exist to accommodate the divergent bubble-studio client and are intentional
 tech debt, not architecture.
 
-1. **`/api` path-rewrite middleware** — `engines/other/api_server.py` lines 5375–5388.
+1. **`/api` path-rewrite middleware** (Decomposition-Workflow server only) — `engines/other/api_server.py` lines 5375–5388.
    An `@app.middleware("http")` hook strips a leading `/api` from `request.scope["path"]`
    (and `raw_path`) so `/api/workflows` reaches the same handler as `/workflows`. Its own
    docstring states the purpose: the BubbleLab frontend prefixes `/api`, while the canonical
@@ -206,6 +216,10 @@ tech debt, not architecture.
    definitions." A handful of genuinely `/api/...`-declared routes also exist
    (e.g. `/api/openevolve/visualize/pygraphistry` line 5468, `/api/openevolve/assess/dspy`
    line 5556, `/api/openevolve/fix/dspy` line 5674).
+   > **Note:** This middleware belongs to the `engines/other/api_server.py` Decomposition-Workflow
+   > server (port 8001). The OpenEvolve ⇄ BubbleLab integration backend
+   > (`services/openevolve-api`, port 8000) mounts routers **already `/api`-prefixed** and has **no**
+   > `rewrite_api_prefix` middleware.
 
 2. **In-memory `/executions` compat surface** — `api_server.py` lines 2130–2319.
    Backed by `_executions: Dict[str, dict]` (line 2130) plus `_execution_logs: Dict[str, List[dict]]`

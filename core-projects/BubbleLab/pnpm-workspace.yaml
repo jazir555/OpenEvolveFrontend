@@ -3,4 +3,5 @@ packages:
   - 'packages/*'
   - 'tools/*'
   - 'docs'
+  - 'integrations/*'
   - '../bubblelabs-ragbits-plugin'

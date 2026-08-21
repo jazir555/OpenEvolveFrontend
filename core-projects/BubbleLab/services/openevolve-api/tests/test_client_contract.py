@@ -35,8 +35,9 @@ SERVICE_ROOT = Path(__file__).resolve().parents[1]
 
 _DB_PATH = str(Path(tempfile.gettempdir()) / "openevolve_api_contract_workflows.db")
 os.environ.setdefault("WORKFLOW_DB_PATH", _DB_PATH)
-# Keep the legacy in-service execution path (no real openevolve engine import).
-os.environ["OPENEVOLVE_BRIDGE_ENABLED"] = "0"
+# Keep the legacy in-service execution path for this contract run by disabling
+# the real openevolve bridge. Done via a scoped fixture (below) rather than a
+# global env var so it cannot leak into other test modules.
 
 if "openevolve_api" not in sys.modules:
     package = types.ModuleType("openevolve_api")
@@ -48,6 +49,21 @@ from fastapi.testclient import TestClient  # noqa: E402
 from openevolve_api.main import app  # noqa: E402
 from openevolve_api.api import workflows as _wf_module  # noqa: E402
 from openevolve_api.services import execution_service as _es  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _disable_openevolve_bridge():
+    """Disable the real-engine bridge for this contract run only.
+
+    Restores the original flag afterwards so other test modules (which exercise
+    the bridge) are not polluted by this module's choice.
+    """
+    original = _wf_module.OPENEVOLVE_BRIDGE_AVAILABLE
+    _wf_module.OPENEVOLVE_BRIDGE_AVAILABLE = False
+    try:
+        yield
+    finally:
+        _wf_module.OPENEVOLVE_BRIDGE_AVAILABLE = original
 
 
 @pytest.fixture()

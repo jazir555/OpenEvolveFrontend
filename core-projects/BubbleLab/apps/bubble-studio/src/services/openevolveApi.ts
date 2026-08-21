@@ -341,7 +341,7 @@ export interface BubbleLabsWorkflowInstanceDetail {
 // ==================== Backend Response Normalization ====================
 
 /**
- * The OpenEvolve backend (engines/other/api_server.py) uses different identifier
+ * The OpenEvolve backend (services/openevolve-api, FastAPI) uses different identifier
  * field names on the wire than this client's public contract:
  *
  *  - Workflow endpoints return `workflow_id` (see the `WorkflowResponse` pydantic
@@ -477,7 +477,7 @@ export const openevolveApi = {
   /**
    * Update a workflow — NOT SUPPORTED BY THE BACKEND.
    *
-   * `engines/other/api_server.py` exposes no `PUT /workflows/{workflow_id}` route:
+   * `services/openevolve-api` exposes no `PUT /workflows/{workflow_id}` route:
    * the workflow routes are `POST /workflows` (create), `GET /workflows` (list),
    * `GET /workflows/{id}`, `POST /workflows/{id}/pause`, `POST /workflows/{id}/resume`,
    * `GET /workflows/{id}/results` and `DELETE /workflows/{id}`. The only mutable part
