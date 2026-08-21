@@ -1,0 +1,450 @@
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EvolutionTab } from './EvolutionTab';
+import { AdversarialTestingTab } from './AdversarialTestingTab';
+import { GithubIntegrationTab } from './GithubIntegrationTab';
+import { ActivityFeedTab } from './ActivityFeedTab';
+import { ReportTemplatesTab } from './ReportTemplatesTab';
+import { ReportingDashboardTab } from './ReportingDashboardTab';
+import { ModelDashboardTab } from './ModelDashboardTab';
+import { TasksTab } from './TasksTab';
+import { AdminTab } from './AdminTab';
+import { AnalyticsDashboardTab } from './AnalyticsDashboardTab';
+import { AnalyticsMonitoringTab } from './AnalyticsMonitoringTab';
+import { OpenEvolveDashboardTab } from './OpenEvolveDashboardTab';
+import { OpenEvolveVisualizationTab } from './OpenEvolveVisualizationTab';
+import { OrchestratorTab } from './OrchestratorTab';
+import { MonitoringTab } from './MonitoringTab';
+import { SystemMonitoringTab } from './SystemMonitoringTab';
+import { SgdMonitoringTab } from './SgdMonitoringTab';
+import { TeamManagerTab } from './TeamManagerTab';
+import { GauntletDesignerTab } from './GauntletDesignerTab';
+import { KnowledgeBaseTab } from './KnowledgeBaseTab';
+import { AutoApprovalTab } from './AutoApprovalTab';
+import { WorkflowTemplatesTab } from './WorkflowTemplatesTab';
+import { WorkflowVisualizationTab } from './WorkflowVisualizationTab';
+import { NotificationsTab } from './NotificationsTab';
+import { SuggestionsTab } from './SuggestionsTab';
+import { SettingsTab } from './SettingsTab';
+import { VersionControlTab } from './VersionControlTab';
+import { ValidationManagerTab } from './ValidationManagerTab';
+import { SovereignDashboardTab } from './SovereignDashboardTab';
+import { CollaborationTab } from './CollaborationTab';
+import { DependencyGraphTab } from './DependencyGraphTab';
+import { PromptManagerTab } from './PromptManagerTab';
+import { ContentManagerTab } from './ContentManagerTab';
+import { ExportImportTab } from './ExportImportTab';
+import { EvaluatorHubTab } from './EvaluatorHubTab';
+import { DecompositionReviewTab } from './DecompositionReviewTab';
+import { IntegratedWorkflowTab } from './IntegratedWorkflowTab';
+import { ConfigurationTab } from './ConfigurationTab';
+import { RbacTab } from './RbacTab';
+import { ModelOrchestrationTab } from './ModelOrchestrationTab';
+import { ResourceManagerTab } from './ResourceManagerTab';
+import { BubbleLabsIntegrationTab } from './BubbleLabsIntegrationTab';
+import { BubbleLabsIntegrationsTab } from './BubbleLabsIntegrationsTab';
+import { Web3Tab } from './Web3Tab';
+import { ResearchApprovalTab } from './ResearchApprovalTab';
+import { IcrDashboardTab } from './IcrDashboardTab';
+import { WorkflowLifecycleTab } from './WorkflowLifecycleTab';
+import { MakerStudioTab } from './MakerStudioTab';
+import { KnowledgeExplorerTab } from './KnowledgeExplorerTab';
+import { LeanAideTab } from './LeanAideTab';
+import { WorkflowExecutionTab } from './WorkflowExecutionTab';
+import { WorkflowVisualEditorTab } from './WorkflowVisualEditorTab';
+import { RagbitsTab } from './RagbitsTab';
+import { DspyGraphistryTab } from './DspyGraphistryTab';
+import { DeterminismTab } from './DeterminismTab';
+import { CrewaiTab } from './CrewaiTab';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
+import { apiLogger } from '../../../glue/lib/structuredLogger';
+import { useBubbleLabIntegration } from '@/hooks/useBubbleLabIntegration';
+
+interface OpenEvolveAppState {
+  protocolText: string;
+  evolutionRunning: boolean;
+  adversarialRunning: boolean;
+  evolutionHistory: any[];
+  adversarialResults: any;
+  evolutionCurrentBest: string;
+  evolutionStatusMessage: string;
+  adversarialStatusMessage: string;
+  evolutionBestScore: number;
+  // Add other state properties as needed
+}
+
+export const OpenEvolveApp: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('evolution');
+
+  // Initialize BubbleLab integration
+  const { isInitialized: integrationReady, error: integrationError } = useBubbleLabIntegration({
+    ragbits: {
+      serverUrl: process.env.NEXT_PUBLIC_RAGBITS_URL || 'http://localhost:3000/ragbits',
+      enabled: true
+    },
+    datapizza: {
+      serverUrl: process.env.NEXT_PUBLIC_DATAPIZZA_URL || 'http://localhost:3000/datapizza',
+      enabled: true
+    },
+    autoStart: true
+  });
+
+  const [state, setState] = useState<OpenEvolveAppState>({
+    protocolText: '# Sample Protocol\n\nThis is a sample protocol for testing purposes.',
+    evolutionRunning: false,
+    adversarialRunning: false,
+    evolutionHistory: [],
+    adversarialResults: null,
+    evolutionCurrentBest: '',
+    evolutionStatusMessage: '',
+    adversarialStatusMessage: '',
+    evolutionBestScore: 0,
+  });
+
+  // Initialize state from localStorage or default values
+  useEffect(() => {
+    const savedState = localStorage.getItem('openevolve-state');
+    if (savedState) {
+      try {
+        setState(JSON.parse(savedState));
+      } catch (e) {
+        apiLogger.error('Failed to parse saved state', e as Error, {
+          component: 'OpenEvolveApp',
+          action: 'initialize_state'
+        });
+      }
+    }
+  }, []);
+
+  // Save state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('openevolve-state', JSON.stringify(state));
+  }, [state]);
+
+  const updateState = (updates: Partial<OpenEvolveAppState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  };
+
+  // Show loading state while integration initializes
+  if (!integrationReady) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-sm text-muted-foreground">Initializing OpenEvolve...</p>
+          {integrationError && (
+            <p className="text-sm text-red-500">Error: {integrationError.message}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const handleNavigate = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar activeTab={activeTab} onNavigate={handleNavigate} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-auto p-6">
+          <div className="max-w-7xl mx-auto">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="flex flex-wrap gap-2">
+                <TabsTrigger value="evolution">Evolution</TabsTrigger>
+                <TabsTrigger value="adversarial">Adversarial Testing</TabsTrigger>
+                <TabsTrigger value="github">GitHub</TabsTrigger>
+                <TabsTrigger value="activity">Activity Feed</TabsTrigger>
+                <TabsTrigger value="reports">Report Templates</TabsTrigger>
+                <TabsTrigger value="reporting-dashboard">Reporting Dashboard</TabsTrigger>
+                <TabsTrigger value="models">Model Dashboard</TabsTrigger>
+                <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+                <TabsTrigger value="teams">Teams</TabsTrigger>
+                <TabsTrigger value="gauntlets">Gauntlets</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="analytics-monitoring">Analytics Monitoring</TabsTrigger>
+                <TabsTrigger value="openevolve">OpenEvolve</TabsTrigger>
+                <TabsTrigger value="openevolve-visualization">OpenEvolve Visualization</TabsTrigger>
+                <TabsTrigger value="orchestrator">Orchestrator</TabsTrigger>
+                <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                <TabsTrigger value="system-monitoring">System Monitoring</TabsTrigger>
+                <TabsTrigger value="sgd-monitoring">SGD Monitoring</TabsTrigger>
+                <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
+                <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
+                <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
+                <TabsTrigger value="auto-approval">Auto Approval</TabsTrigger>
+                <TabsTrigger value="workflow-templates">Workflow Templates</TabsTrigger>
+                <TabsTrigger value="workflow-visualization">Workflow Visualization</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="version-control">Version Control</TabsTrigger>
+                <TabsTrigger value="validation-manager">Validation Manager</TabsTrigger>
+                <TabsTrigger value="sovereign">Sovereign</TabsTrigger>
+                <TabsTrigger value="prompts">Prompts</TabsTrigger>
+                <TabsTrigger value="content">Content Tools</TabsTrigger>
+                <TabsTrigger value="export-import">Export / Import</TabsTrigger>
+                <TabsTrigger value="evaluators">Evaluator Hub</TabsTrigger>
+                <TabsTrigger value="decomposition-review">Decomposition Review</TabsTrigger>
+                <TabsTrigger value="integrated-workflow">Integrated Workflow</TabsTrigger>
+                <TabsTrigger value="configuration">Configuration</TabsTrigger>
+                <TabsTrigger value="rbac">RBAC</TabsTrigger>
+                <TabsTrigger value="model-orchestration">Model Orchestration</TabsTrigger>
+                <TabsTrigger value="resource-manager">Resource Manager</TabsTrigger>
+                <TabsTrigger value="bubblelabs">BubbleLabs</TabsTrigger>
+                <TabsTrigger value="workflow-lifecycle">Workflow Lifecycle</TabsTrigger>
+                <TabsTrigger value="maker-studio">Maker Studio</TabsTrigger>
+                <TabsTrigger value="knowledge-explorer">Knowledge Explorer</TabsTrigger>
+                <TabsTrigger value="leanaide">LeanAide</TabsTrigger>
+                <TabsTrigger value="workflow-execution">Workflow Executor</TabsTrigger>
+                <TabsTrigger value="workflow-visual-editor">Workflow Visual Editor</TabsTrigger>
+                <TabsTrigger value="ragbits">RAGBits</TabsTrigger>
+                <TabsTrigger value="dspy-graphistry">DSPy &amp; Graphistry</TabsTrigger>
+                <TabsTrigger value="determinism">Determinism</TabsTrigger>
+                <TabsTrigger value="bubblelabs-integrations">BubbleLabs Integrations</TabsTrigger>
+                <TabsTrigger value="web3">Web3</TabsTrigger>
+                <TabsTrigger value="research-approval">Research Approval</TabsTrigger>
+                <TabsTrigger value="icr-dashboard">ICR Dashboard</TabsTrigger>
+                <TabsTrigger value="crewai">CrewAI</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="evolution" className="mt-6">
+                <EvolutionTab 
+                  state={state} 
+                  updateState={updateState} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="adversarial" className="mt-6">
+                <AdversarialTestingTab 
+                  state={state} 
+                  updateState={updateState} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="github" className="mt-6">
+                <GithubIntegrationTab />
+              </TabsContent>
+              
+              <TabsContent value="activity" className="mt-6">
+                <ActivityFeedTab />
+              </TabsContent>
+              
+              <TabsContent value="reports" className="mt-6">
+                <ReportTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="reporting-dashboard" className="mt-6">
+                <ReportingDashboardTab />
+              </TabsContent>
+              
+              <TabsContent value="models" className="mt-6">
+                <ModelDashboardTab />
+              </TabsContent>
+              
+              <TabsContent value="tasks" className="mt-6">
+                <TasksTab />
+              </TabsContent>
+              
+              <TabsContent value="admin" className="mt-6">
+                <AdminTab />
+              </TabsContent>
+
+              <TabsContent value="teams" className="mt-6">
+                <TeamManagerTab />
+              </TabsContent>
+
+              <TabsContent value="gauntlets" className="mt-6">
+                <GauntletDesignerTab />
+              </TabsContent>
+              
+              <TabsContent value="analytics" className="mt-6">
+                <AnalyticsDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="analytics-monitoring" className="mt-6">
+                <AnalyticsMonitoringTab />
+              </TabsContent>
+              
+              <TabsContent value="openevolve" className="mt-6">
+                <OpenEvolveDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="openevolve-visualization" className="mt-6">
+                <OpenEvolveVisualizationTab />
+              </TabsContent>
+              
+              <TabsContent value="orchestrator" className="mt-6">
+                <OrchestratorTab />
+              </TabsContent>
+              
+              <TabsContent value="monitoring" className="mt-6">
+                <MonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="system-monitoring" className="mt-6">
+                <SystemMonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="sgd-monitoring" className="mt-6">
+                <SgdMonitoringTab />
+              </TabsContent>
+
+              <TabsContent value="collaboration" className="mt-6">
+                <CollaborationTab />
+              </TabsContent>
+
+              <TabsContent value="dependencies" className="mt-6">
+                <DependencyGraphTab />
+              </TabsContent>
+
+              <TabsContent value="knowledge" className="mt-6">
+                <KnowledgeBaseTab />
+              </TabsContent>
+
+              <TabsContent value="auto-approval" className="mt-6">
+                <AutoApprovalTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-templates" className="mt-6">
+                <WorkflowTemplatesTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-visualization" className="mt-6">
+                <WorkflowVisualizationTab />
+              </TabsContent>
+
+              <TabsContent value="notifications" className="mt-6">
+                <NotificationsTab />
+              </TabsContent>
+
+              <TabsContent value="suggestions" className="mt-6">
+                <SuggestionsTab />
+              </TabsContent>
+
+              <TabsContent value="settings" className="mt-6">
+                <SettingsTab />
+              </TabsContent>
+
+              <TabsContent value="version-control" className="mt-6">
+                <VersionControlTab />
+              </TabsContent>
+
+              <TabsContent value="validation-manager" className="mt-6">
+                <ValidationManagerTab />
+              </TabsContent>
+              
+              <TabsContent value="sovereign" className="mt-6">
+                <SovereignDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="prompts" className="mt-6">
+                <PromptManagerTab />
+              </TabsContent>
+
+              <TabsContent value="content" className="mt-6">
+                <ContentManagerTab />
+              </TabsContent>
+
+              <TabsContent value="export-import" className="mt-6">
+                <ExportImportTab state={state} updateState={updateState} />
+              </TabsContent>
+
+              <TabsContent value="evaluators" className="mt-6">
+                <EvaluatorHubTab />
+              </TabsContent>
+
+              <TabsContent value="decomposition-review" className="mt-6">
+                <DecompositionReviewTab />
+              </TabsContent>
+
+              <TabsContent value="integrated-workflow" className="mt-6">
+                <IntegratedWorkflowTab />
+              </TabsContent>
+
+              <TabsContent value="configuration" className="mt-6">
+                <ConfigurationTab />
+              </TabsContent>
+
+              <TabsContent value="rbac" className="mt-6">
+                <RbacTab />
+              </TabsContent>
+
+              <TabsContent value="model-orchestration" className="mt-6">
+                <ModelOrchestrationTab />
+              </TabsContent>
+
+              <TabsContent value="resource-manager" className="mt-6">
+                <ResourceManagerTab />
+              </TabsContent>
+
+              <TabsContent value="bubblelabs" className="mt-6">
+                <BubbleLabsIntegrationTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-lifecycle" className="mt-6">
+                <WorkflowLifecycleTab />
+              </TabsContent>
+              
+              <TabsContent value="maker-studio" className="mt-6">
+                <MakerStudioTab />
+              </TabsContent>
+
+              <TabsContent value="knowledge-explorer" className="mt-6">
+                <KnowledgeExplorerTab />
+              </TabsContent>
+
+              <TabsContent value="leanaide" className="mt-6">
+                <LeanAideTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-execution" className="mt-6">
+                <WorkflowExecutionTab />
+              </TabsContent>
+
+              <TabsContent value="workflow-visual-editor" className="mt-6">
+                <WorkflowVisualEditorTab />
+              </TabsContent>
+
+              <TabsContent value="ragbits" className="mt-6">
+                <RagbitsTab />
+              </TabsContent>
+
+              <TabsContent value="dspy-graphistry" className="mt-6">
+                <DspyGraphistryTab />
+              </TabsContent>
+
+              <TabsContent value="determinism" className="mt-6">
+                <DeterminismTab />
+              </TabsContent>
+
+              <TabsContent value="bubblelabs-integrations" className="mt-6">
+                <BubbleLabsIntegrationsTab />
+              </TabsContent>
+
+              <TabsContent value="web3" className="mt-6">
+                <Web3Tab />
+              </TabsContent>
+
+              <TabsContent value="research-approval" className="mt-6">
+                <ResearchApprovalTab />
+              </TabsContent>
+
+              <TabsContent value="icr-dashboard" className="mt-6">
+                <IcrDashboardTab />
+              </TabsContent>
+
+              <TabsContent value="crewai" className="mt-6">
+                <CrewaiTab />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
