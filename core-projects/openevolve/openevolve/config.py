@@ -6,7 +6,7 @@ import os
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import dacite
 import yaml
@@ -418,6 +418,41 @@ class EvaluatorConfig:
 
 
 @dataclass
+class SelfAdaptiveConfig:
+    """Configuration for self-adaptive evolution operator control.
+
+    Bounds and tuning for :class:`openevolve.self_adaptive.SelfAdaptiveOperators`.
+    When disabled (the default) the rest of the operator parameters are ignored
+    and the evolution loop behaves exactly as before.
+    """
+
+    enabled: bool = False
+
+    # Per-parameter bounds (lo, hi). All operator params live in [0, 1].
+    mutation_rate_bounds: Tuple[float, float] = (0.0, 1.0)
+    crossover_rate_bounds: Tuple[float, float] = (0.0, 1.0)
+    selection_pressure_bounds: Tuple[float, float] = (0.0, 1.0)
+    elitism_bounds: Tuple[float, float] = (0.0, 1.0)
+
+    # Initial operator parameters applied before any adaptation.
+    initial_mutation_rate: float = 0.1
+    initial_crossover_rate: float = 0.9
+    initial_selection_pressure: float = 0.5
+    initial_elitism: float = 0.1
+
+    # Diversity (coefficient of variation) thresholds used to decide whether
+    # the population is too collapsed (low) or already spread out (high).
+    diversity_low_threshold: float = 0.15
+    diversity_high_threshold: float = 0.5
+
+    # Fraction of the per-generation step applied toward the adapted target.
+    learning_rate: float = 0.2
+
+    # Window (in generations) used by the adaptive metric slope computation.
+    window: int = 20
+
+
+@dataclass
 class EvolutionTraceConfig:
     """Configuration for evolution trace logging"""
 
@@ -459,6 +494,28 @@ class Config:
     early_stopping_patience: Optional[int] = None
     convergence_threshold: float = 0.001
     early_stopping_metric: str = "combined_score"
+
+    # Self-adaptive evolution: automatically tune mutation/crossover/selection
+    # parameters during a run based on progress (off by default so existing
+    # runs are unchanged). Tuning behavior is configured via ``self_adaptive``.
+    adaptive_parameters: bool = False
+    self_adaptive: SelfAdaptiveConfig = field(default_factory=SelfAdaptiveConfig)
+
+    # Genetic operators (OFF by default so existing runs are byte-for-byte
+    # unchanged). When ``use_genetic_operators`` is True the documented
+    # core-evolution parameters below become real, configurable knobs applied
+    # by the evolution loop: ``mutation_rate`` varies code/LLM sampling,
+    # ``crossover_rate`` blends two parents, ``selection_method`` chooses the
+    # parent-selection strategy (tournament/roulette/rank), ``elitism`` preserves
+    # top-N candidates across generations, and ``selection_pressure`` tunes
+    # tournament size / roulette bias.
+    use_genetic_operators: bool = False
+    mutation_rate: float = 0.1
+    crossover_rate: float = 0.8
+    selection_method: str = "tournament"
+    elitism: bool = True
+    selection_pressure: float = 1.0
+    elite_ratio: float = 0.1
 
     # Parallel controller settings
     max_tasks_per_child: Optional[int] = None

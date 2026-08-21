@@ -143,6 +143,12 @@ class Genome:
             if node.type == "bias":
                 values[node.id] = 1.0
 
+        incoming: Dict[int, List[Tuple[int, float]]] = {}
+        for conn in self.connections.values():
+            if not conn.enabled:
+                continue
+            incoming.setdefault(conn.out_node, []).append((conn.in_node, conn.weight))
+
         others = [
             node
             for node in self.nodes.values()
@@ -151,9 +157,8 @@ class Genome:
         others.sort(key=lambda node: (node.depth, node.id))
         for node in others:
             s = 0.0
-            for conn in self.connections.values():
-                if conn.enabled and conn.out_node == node.id:
-                    s += values.get(conn.in_node, 0.0) * conn.weight
+            for in_node, weight in incoming.get(node.id, []):
+                s += values.get(in_node, 0.0) * weight
             act = hidden_activation if node.type != "output" else output_activation
             values[node.id] = act(s)
 
@@ -254,33 +259,38 @@ class NEAT:
         self.max_stagnation = max_stagnation
         self.rng = random.Random(random_state)
         self.innovations = InnovationManager()
-        self.node_counter = 0
         self.species: List[Species] = []
         self.species_counter = 0
         self.best_genome: Optional[Genome] = None
         self.best_fitness = float("-inf")
         self.history: List[float] = []
 
-    def _new_node_id(self) -> int:
-        nid = self.node_counter
-        self.node_counter += 1
-        return nid
+        # Stable structural ids: bias=0, inputs 1..n, outputs n+1..n+m. Hidden
+        # nodes are assigned deterministic ids via a (in,out) node-innovation
+        # map so topologically equivalent structures share ids across genomes
+        # (required for correct speciation / compatibility distance).
+        self.bias_id = 0
+        self.input_ids = list(range(1, n_inputs + 1))
+        self.output_ids = list(range(n_inputs + 1, n_inputs + n_outputs + 1))
+        self._hidden_counter = n_inputs + n_outputs + 1
+        self.node_innovations: Dict[Tuple[int, int], int] = {}
+
+    def _get_hidden_id(self, in_node: int, out_node: int) -> int:
+        key = (in_node, out_node)
+        if key not in self.node_innovations:
+            self.node_innovations[key] = self._hidden_counter
+            self._hidden_counter += 1
+        return self.node_innovations[key]
 
     def create_minimal_genome(self) -> Genome:
         g = Genome()
-        bias_id = self._new_node_id()
+        bias_id = self.bias_id
         g.add_node(NodeGene(bias_id, "bias", depth=0.0))
-        input_ids = []
-        for i in range(self.n_inputs):
-            nid = self._new_node_id()
+        for nid in self.input_ids:
             g.add_node(NodeGene(nid, "input", depth=0.0))
-            input_ids.append(nid)
-        output_ids = []
-        for i in range(self.n_outputs):
-            nid = self._new_node_id()
+        for nid in self.output_ids:
             g.add_node(NodeGene(nid, "output", depth=1e9))
-            output_ids.append(nid)
-        for oid in output_ids:
+        for oid in self.output_ids:
             conn = ConnectionGene(
                 bias_id,
                 oid,
@@ -330,7 +340,7 @@ class NEAT:
         if not enabled:
             return
         old = self.rng.choice(enabled)
-        new_id = self._new_node_id()
+        new_id = self._get_hidden_id(old.in_node, old.out_node)
         new_depth = (genome.nodes[old.in_node].depth + genome.nodes[old.out_node].depth) / 2.0
         genome.add_node(NodeGene(new_id, "hidden", depth=new_depth))
 
@@ -388,12 +398,13 @@ class NEAT:
         return child
 
     def speciate(self, population: List[Genome]) -> List[Species]:
-        if not self.species:
-            self.species = []
         new_species: List[Species] = []
+        for sp in self.species:
+            sp.members = []
+        searchable = list(self.species)
         for genome in population:
             placed = False
-            for sp in self.species:
+            for sp in searchable:
                 if genome.distance(sp.representative, self) < self.compatibility_threshold:
                     sp.members.append(genome)
                     placed = True
@@ -404,6 +415,7 @@ class NEAT:
                 self.species_counter += 1
                 sp.members.append(genome)
                 new_species.append(sp)
+                searchable.append(sp)
         kept = [sp for sp in self.species if sp.members]
         kept.extend(new_species)
         self.species = kept
@@ -417,14 +429,8 @@ class NEAT:
                 sp.target_size = size
             return
         for sp in self.species:
-            sp.target_size = int(
-                round(sp.target_size if hasattr(sp, "target_size") else 0)
-            )
-        remaining = self.population_size
-        for sp in sorted(self.species, key=lambda s: s.average_fitness(), reverse=True):
             share = sum(m.adjusted_fitness for m in sp.members) / total_adj
             sp.target_size = max(0, int(round(share * self.population_size)))
-            remaining -= sp.target_size
 
     def _select_parent(self, species: Species) -> Genome:
         members = sorted(species.members, key=lambda m: m.fitness, reverse=True)
@@ -478,14 +484,14 @@ class NEAT:
                 else:
                     sp.stagnation += 1
 
-            self.species = [
-                sp for sp in self.species
-                if sp.stagnation < self.max_stagnation and sp.target_size > 0
-                or sp in self.species[:1]
+            surviving = [
+                sp
+                for sp in self.species
+                if sp.stagnation < self.max_stagnation
             ]
-            if not self.species:
-                self.species = [Species(self.species_counter, population[0].copy())]
-                self.species_counter += 1
+            if not surviving:
+                surviving = [max(self.species, key=lambda s: s.best_fitness)]
+            self.species = surviving
 
             self._adjust_species_sizes(population)
             next_pop: List[Genome] = []

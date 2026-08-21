@@ -5,8 +5,10 @@ Gauntlet management for solution validation.
 Follows CLAUDE.md principles: structured logging, CRUD operations.
 """
 
+import os
 import structlog
-from typing import List
+import threading
+from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 
@@ -17,11 +19,61 @@ from ..database import (
 )
 
 
+# Optional bridge to the REAL openevolve engine. The legacy gauntlet routers
+# keep their DB-backed self-contained behavior as the source of truth and only
+# consult the bridge when it is both importable and enabled via
+# OPENEVOLVE_BRIDGE_ENABLED. The bridge call is best-effort and never alters the
+# response shape or raises.
+try:
+    from ..core.openevolve_bridge import OpenEvolveBridgeError, run_openevolve_workflow
+
+    OPENEVOLVE_BRIDGE_AVAILABLE = True
+    _OPENEVOLVE_IMPORT_ERROR: Optional[str] = None
+except ImportError as _bridge_import_error:  # pragma: no cover - env dependent
+    OpenEvolveBridgeError = RuntimeError  # type: ignore[assignment,misc]
+    run_openevolve_workflow = None  # type: ignore[assignment]
+    OPENEVOLVE_BRIDGE_AVAILABLE = False
+    _OPENEVOLVE_IMPORT_ERROR = str(_bridge_import_error)
+
+
 logger = structlog.get_logger()
 router = APIRouter()
 
 # Cache for in-memory access (backed by persistent storage)
 _gauntlets_cache: dict[str, GauntletResponse] = {}
+
+# Latest REAL openevolve engine result per gauntlet execution, populated only
+# when the bridge is enabled. Never surfaced in the response model.
+_gauntlet_openevolve_results: dict[str, dict] = {}
+
+
+def _bridge_enabled() -> bool:
+    """True when the shared engine bridge should be consulted (env-gated)."""
+    return os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+
+
+def _maybe_run_openevolve_bg(request: dict, key: str) -> None:
+    """Spawn a best-effort, non-blocking real-engine run.
+
+    The result (or failure) is stashed in ``_gauntlet_openevolve_results[key]``.
+    No-op and never raises when the bridge is unavailable/disabled.
+    """
+    if not (OPENEVOLVE_BRIDGE_AVAILABLE and _bridge_enabled()):
+        return
+
+    def _worker() -> None:
+        try:
+            _gauntlet_openevolve_results[key] = run_openevolve_workflow(request)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(
+                "openevolve_bridge_gauntlet_run_failed", execution_id=key, error=str(exc)
+            )
+
+    threading.Thread(target=_worker, daemon=True).start()
 
 
 def _ensure_round_ids(rounds: list[GauntletRound]) -> list[GauntletRound]:
@@ -196,6 +248,20 @@ async def execute_gauntlet(gauntlet_name: str, payload: dict) -> dict:
         }
 
         _gauntlet_executions[execution_id] = execution
+
+        # Optionally consult the REAL openevolve engine for this gauntlet's
+        # content (best-effort, off-thread). The DB record stays authoritative.
+        _maybe_run_openevolve_bg(
+            {
+                "system": "evolutionary",
+                "problem_statement": payload.get("content")
+                or f"Validate solution for gauntlet: {gauntlet_name}",
+                "context": f"evolution_mode={payload.get('evolution_mode', 'standard')}",
+                "parameters": payload.get("parameters") or {},
+                "llm": {},
+            },
+            execution_id,
+        )
 
         logger.info(
             "gauntlet_execution_started",

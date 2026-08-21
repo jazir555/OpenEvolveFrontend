@@ -5,7 +5,9 @@ Workflow execution management: start, pause, resume, cancel, status.
 Follows CLAUDE.md principles: structured logging, background tasks, failure isolation.
 """
 
+import os
 import structlog
+import threading
 from typing import Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status, Query
@@ -21,8 +23,58 @@ from ..models import (
 from ..services.execution_service import execution_manager
 
 
+# Optional bridge to the REAL openevolve engine. The legacy execution routers
+# keep their DB-backed self-contained behavior (execution_manager) as the source
+# of truth and only consult the bridge when it is both importable and enabled
+# via OPENEVOLVE_BRIDGE_ENABLED. The bridge call is best-effort and never
+# alters the response shape or raises.
+try:
+    from ..core.openevolve_bridge import OpenEvolveBridgeError, run_openevolve_workflow
+
+    OPENEVOLVE_BRIDGE_AVAILABLE = True
+    _OPENEVOLVE_IMPORT_ERROR: Optional[str] = None
+except ImportError as _bridge_import_error:  # pragma: no cover - env dependent
+    OpenEvolveBridgeError = RuntimeError  # type: ignore[assignment,misc]
+    run_openevolve_workflow = None  # type: ignore[assignment]
+    OPENEVOLVE_BRIDGE_AVAILABLE = False
+    _OPENEVOLVE_IMPORT_ERROR = str(_bridge_import_error)
+
+
 logger = structlog.get_logger()
 router = APIRouter()
+
+# Latest REAL openevolve engine result per execution, populated only when the
+# bridge is enabled. Never surfaced in the response model.
+_execution_openevolve_results: dict[str, dict] = {}
+
+
+def _bridge_enabled() -> bool:
+    """True when the shared engine bridge should be consulted (env-gated)."""
+    return os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+
+
+def _maybe_run_openevolve_bg(request: dict, key: str) -> None:
+    """Spawn a best-effort, non-blocking real-engine run.
+
+    The result (or failure) is stashed in ``_execution_openevolve_results[key]``.
+    No-op and never raises when the bridge is unavailable/disabled.
+    """
+    if not (OPENEVOLVE_BRIDGE_AVAILABLE and _bridge_enabled()):
+        return
+
+    def _worker() -> None:
+        try:
+            _execution_openevolve_results[key] = run_openevolve_workflow(request)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning(
+                "openevolve_bridge_execution_run_failed", execution_id=key, error=str(exc)
+            )
+
+    threading.Thread(target=_worker, daemon=True).start()
 
 
 @router.post("", response_model=ExecutionResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -59,6 +111,19 @@ async def start_execution_direct(request: ExecutionStartRequest) -> ExecutionRes
             workflow_id=request.workflow_id,
             problem_statement=problem_statement,
             context=request.context,
+        )
+
+        # Optionally consult the REAL openevolve engine (best-effort, off-thread).
+        # The execution_manager record remains the source of truth.
+        _maybe_run_openevolve_bg(
+            {
+                "system": "evolutionary",
+                "problem_statement": problem_statement,
+                "context": request.context,
+                "parameters": {},
+                "llm": {},
+            },
+            execution["execution_id"],
         )
 
         return ExecutionResponse(**execution)
@@ -123,6 +188,19 @@ async def start_execution(workflow_id: str, inputs: WorkflowInputs) -> Execution
             workflow_id=workflow_id,
             problem_statement=problem_statement,
             context=inputs.context
+        )
+
+        # Optionally consult the REAL openevolve engine (best-effort, off-thread).
+        # The execution_manager record remains the source of truth.
+        _maybe_run_openevolve_bg(
+            {
+                "system": "evolutionary",
+                "problem_statement": problem_statement,
+                "context": inputs.context,
+                "parameters": {},
+                "llm": {},
+            },
+            execution["execution_id"],
         )
 
         logger.info(

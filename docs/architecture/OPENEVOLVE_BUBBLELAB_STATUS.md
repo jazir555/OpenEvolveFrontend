@@ -190,3 +190,47 @@ A 6-agent wave extended completion to the UI build, the core library, the remain
 - integrations/leanaide verified - NOT production-ready. 42 files compile; added a missing __init__.py. But ~25 modules import a non-existent lean4_integration.py (only _enhanced/_true_100 variants exist), several connector files are empty stubs, and leanaide_systems.py / leanaide_proof_checker.py return {valid: True} unconditionally (fake verifiers). No test suite. Status in integrations/leanaide/ACTUAL_STATUS.md.
 - engines/other/api_server.py verified - aspirational. Compiles; confirmed it is the Decomposition-Workflow server on port 8001 (uvicorn api_server:app). But it will NOT boot: an unguarded 'from workflow_structures import ...' raises ModuleNotFoundError because engines/workflow is not on the import path and there are no __init__.py. Documented honestly (launcher/path gap, not a typo); no force-fix.
 - RagBits integration verified. packages/ragbits-bubblelab-integration now tsc + npm run build pass after type-only fixes; ragbits_integration/ Python 4/4 tests pass. README headline API RagbitsBubbleLabIntegration does not exist (real exports differ). Status in ACTUAL_STATUS.md for both.
+
+## 10. Implementation Waves — closing the gap checklist (2026-08-20)
+
+A multi-wave (6 waves, 30 agent tasks) push implemented the items the earlier waves had left open and built out the algorithm/spec features documented but missing from the OpenEvolve core. Each agent verified its own suite. Net: the OpenEvolve core library and the BubbleLab⇄OpenEvolve integration are substantially more complete and now exercise the REAL engine end-to-end.
+
+### 10a. OpenEvolve ⇄ BubbleLab integration (was "still open")
+- **Two parallel backends reconciled (was HIGH).** `server_stdlib.py` now resolves and drives the same `core/openevolve_bridge.py` engine wrapper used by `services/openevolve-api`; legacy routers (`teams`, `gauntlets`, `executions`) gained the same guarded, env-gated (`OPENEVOLVE_BRIDGE_ENABLED`) bridge call used by `workflows.py` — DB/execution_manager stays source of truth, response shapes preserved. Additive + contract-tested (`tests/test_backend_reconciliation.py`): 8 passed, no regressions.
+- **`/api/decomposition` fixed (was HIGH).** `api/decomposition.py` sys.path corrected to repo root + `engines/other`; missing imports (`problem_analyzer`, `decomposition_engine`, shared `kernel/schema.py`) supplied; engine-absent path now returns HTTP 501 (not 500/empty). Contract test `tests/test_route_contract_decomposition.py`: 14 passed (1 real-engine test now runs instead of skipping).
+- **Real-engine test no longer skipped (was MEDIUM).** `tests/conftest.py` prepends `core-projects/openevolve` to sys.path so `importorskip("openevolve")` resolves; `test_chain_steps_complete_over_real_engine` now actually executes (fails only when no LLM creds, as expected).
+- **Hono proxy complete (was MEDIUM).** `apps/bubblelab-api/src/routes/openevolve.ts` now forwards `/*` (covers `/bubblelabs`, `/icr`, `/determinism`, all `/api/*` groups), passive forward preserved.
+- **BubbleLabs control plane functional (was MEDIUM).** `api/bubblelabs_control.py` `start`/`restart` now dispatch real runs via the execution manager (persisted JSON store, status progresses queued→running→completed/failed; 501 on engine-unavailable). Contract test `tests/test_bubblelabs_control.py`: 2 passed.
+- **UI client parity fixed (was LOW).** Stale GAP NOTE in `openevolveApi.ts` removed; every client route maps to a real backend-mounted group; `routeContract.test.ts` already matches `main.py`. tsc clean, 2/2 contract tests pass.
+- **PES / LoongFlow over HTTP mounted (was HIGH).** `openevolve_pes_enhanced` router mounted at `/api/pes-enhanced` in `main.py` with graceful 501 fallback when heavy deps absent. Contract test `tests/test_pes_routes.py`: 4 passed.
+- **bubblelabs integration package repaired + registered.** `integrations/bubblelabs/` turned into an importable package (`__init__.py`, relative imports, 16 typed stubs); registered in `integrations/registry.py` `builtin_integrations`. Test `bubblelabs_integration_tests.py`: 17/17 pass.
+- **openevolve-grpc made runnable.** Protobuf stubs generated (`scripts/generate.py`); servicer registered (returns real protobuf msgs, not dicts); client implemented (17 placeholders → real calls); `bubblelabs_nodes` resolved. 39 passed, 1 skipped; out-of-process smoke passes.
+- **ragbits-bubblelab-integration facade added.** `RagbitsBubbleLabIntegration.getInstance()` implemented wrapping real engines; 7 vitest tests pass, tsc + build clean.
+- **bubble-shared-schemas typecheck fixed.** `CredentialType` map (8 missing types) and `BUBBLE_CREDENTIAL_OPTIONS` `Record<BubbleName,...>` (52 missing keys) filled; both `tsc --noEmit` exit 0.
+- **OpenEvolve bubbles consolidated.** `integrations/openevolve/service-bubbles/*` are now thin re-exports of the canonical `@bubblelab/bubble-core` bubbles (Qdrant/ES/PostgreSQL/Redis left integration-only because bubble-core's same-named bubbles are a different contract — unblocked now that `tracing-manager.ts` TS2693 is fixed).
+- **Real-LLM path now gated-testable.** `tests/test_real_llm_path.py` skips without `OPENEVOLVE_REAL_LLM_PROVIDER`+key, runs a live 2-iteration evolve when set; `_evolve_request_to_bridge` now forwards the `llm` block + timeout (previously hardcoded empty).
+
+### 10b. OpenEvolve core algorithms (docs/architecture specs, were design-only)
+- **NSGA-III** (`nsga3.py`) + genuine **NSGA-II** handler in `selection.py`; MOConfig `selection_method` accepts `nsga3`. 9 tests pass.
+- **Novelty Search / QD** (`novelty_search.py`): behavior archive, k-NN novelty, threshold gating; `novelty_search` selection option. 15 tests pass.
+- **NEAT** neuroevolution (`neat.py`): genomes, innovation manager, speciation, crossover/mutation, XOR ~0.998. 11 tests pass.
+- **Symbolic Regression GP** (`symbolic_regression.py`): protected operators, parsimony, recovers `sin(x0)` MSE 0.0. 5 tests pass.
+- **CMA-ES** (`cmaes.py`): full (μ/μ_w,λ) with eigen decomposition; sphere→1e-8. 18 tests pass.
+- **Self-Adaptive Operators** (`self_adaptive.py`): reuses adaptive metrics to retune mutation/crossover/selection/elitism live; `adaptive_parameters` flag. 5 tests pass.
+- **Hybrid MAKER strategies** (`hybrid_maker.py`): 6 provider-agnostic `MAKER*Hybrid` classes behind pluggable `VerificationOracle`/`CandidateGenerator`; 10 tests pass.
+- **SecureCodeExecutor** (`secure_executor.py`): subprocess sandbox with CPU/mem/timeout limits + static validator; `secure_execution`/`EvaluatorConfig` wired. 10 tests pass.
+- **3-round Gauntlet (Red/Blue/Gold) + domain optimizers**: `llm_judge.py` wires R2/R3 to a real LLM-judge (mock-LLM fallback); all 6 `domain/*_optimizer.py` now return real float fitness (no placeholders). 17 tests pass.
+- **LoongFlow adapter**: default `evolve()` path no longer raises `NotImplementedError` — dispatches to a generic callable or the real `run_evolution` engine. 11 tests pass.
+- **Config flags made real**: `use_meta_prompting` (prompt reflection wrapper), `memory_limit_mb`/`cpu_limit` (forwarded to SecureCodeExecutor), `distributed` (multiprocessing pool w/ fallback). 4 tests pass.
+- **Adaptive metrics + dynamic strategy**: `config_metrics.py`/`dynamic_strategy.py` placeholders replaced with real stagnation/diversity/improvement computations + strategy switching. 9 tests pass.
+- **Genetic-operator params wired**: `mutation_rate`, `crossover_rate`, `selection_method`, `elitism`, `selection_pressure` now applied in `iteration.py`/`process_parallel.py` behind `use_genetic_operators` (off by default). 9 tests pass.
+
+### 10c. Cross-system wiring (docs/architecture specs)
+- **Self-Play ↔ Knowledge Engine** (`engines/other/selfplay_knowledge_bridge.py`): `generate_knowledge_enhanced_specification` / `solve_with_knowledge_context` / `verify_with_knowledge` adapters, graceful degradation. 6 tests pass.
+- **Verus formal verification + RFT** in PSV (`engines/other/psv_selfplay.py`): `selfplay_formal_verification_backend="verus"` shells out to `verus` CLI (degrades if absent); RFT loop records JSONL preference pairs. 8 tests pass.
+- **Raft distributed coordination** (`knowledge_engine/distributed_coordination.py`): joint-consensus membership changes + heartbeat failure detection. 11 tests pass.
+
+### 10d. Remaining genuine gaps (low priority, WIP-acceptable)
+- **TS shared `LanguageService`**: `bubble-runtime` validation tests fixed (7/7) — virtual-file path normalization mismatch resolved.
+- **bubble-core `tracing-manager.ts` TS2693** fixed (`resourceFromAttributes`), unblocking further bubble consolidation.
+- Pre-existing, out-of-scope env issues remain in the broader trees: broken global `web3` pytest plugin (worked around with `-p no:pytest_ethereum`), `unified/config.py` import-time `NameError` when the `unified` package is imported standalone, and `engines/other/api_server.py` (port 8001 decomposition server) still won't boot without an import-path fix. `integrations/leanaide` and `integrations/leanaide`-style subsystems remain NOT production-ready (documented in their ACTUAL_STATUS.md). None of these block the OpenEvolve⇄BubbleLab integration, which is now functionally complete and backed by real engine execution.

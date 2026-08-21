@@ -861,7 +861,7 @@ class MOConfig(BaseModel):
     # === Selection Configuration (4 parameters) ===
     selection_method: str = Field(
         default="nsga2",
-        description="Multi-objective selection: nsga2, nsga3, spea2, moead, novelty_search, neat"
+        description="Multi-objective selection: nsga2, nsga3, spea2, moead, novelty_search, neat, cmaes"
     )
     tournament_size: int = Field(
         default=2,
@@ -910,11 +910,14 @@ class MOConfig(BaseModel):
             "novelty": "novelty_search",
             "neat": "neat",
             "neuroevolution": "neat",
+            "cmaes": "cmaes",
+            "cma": "cmaes",
+            "covariancematrixadaptation": "cmaes",
         }
         if normalized not in mapping:
             raise ValueError(
                 f"Invalid selection_method {v!r}. "
-                "Allowed: nsga2, nsga3 (nsga-iii), spea2, moead, novelty_search, neat"
+                "Allowed: nsga2, nsga3 (nsga-iii), spea2, moead, novelty_search, neat, cmaes (cma-es)"
             )
         return mapping[normalized]
 
@@ -927,8 +930,9 @@ class MOConfig(BaseModel):
     ) -> List[int]:
         """Dispatch environmental selection using this config's selection_method.
 
-        Routes `nsga2` to the crowding-distance NSGA-II routine and `nsga3`
-        to the reference-point NSGA-III routine in `openevolve.selection`.
+        Routes `nsga2` to the crowding-distance NSGA-II routine, `nsga3`
+        to the reference-point NSGA-III routine and `cmaes` to the CMA-ES
+        rank-based truncation routine in `openevolve.selection`.
         """
         from openevolve.selection import select_mo
 
@@ -1531,6 +1535,94 @@ class SymbolicRegressionConfig(BaseModel):
         )
 
 
+class CMAESConfig(BaseModel):
+    """CMA-ES (Covariance Matrix Adaptation Evolution Strategy) configuration.
+
+    Selectable via ``MOConfig.selection_method = "cmaes"`` for rank-based
+    (mu, lambda) truncation selection (mirrors how ``nsga3`` / ``novelty_search``
+    / ``neat`` are wired into the selection path). The continuous optimizer
+    itself lives in :mod:`openevolve.cmaes` and accepts these same parameters.
+    """
+
+    enabled: bool = Field(
+        default=False,
+        description="Enable the CMA-ES continuous optimizer",
+    )
+
+    # === Distribution parameters ===
+    dim: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Search-space dimension (required when calling run())",
+    )
+    initial_mean: Optional[List[float]] = Field(
+        default=None,
+        description="Initial distribution mean x0 (default: zeros / center of bounds)",
+    )
+    sigma0: float = Field(
+        default=0.5,
+        gt=0.0,
+        description="Initial global step size (coordinate standard deviation)",
+    )
+    pop_size: Optional[int] = Field(
+        default=None,
+        ge=4,
+        description="Offspring per generation lambda (default: 4 + floor(3 ln n))",
+    )
+    mu: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Number of parents used for recombination (default: lambda // 2)",
+    )
+    bounds: Optional[List[List[float]]] = Field(
+        default=None,
+        description="Optional box bounds as [[lo...], [hi...]] or per-dimension [lo, hi] pairs",
+    )
+
+    # === Termination ===
+    generations: int = Field(
+        default=100,
+        ge=0,
+        description="Maximum number of generations",
+    )
+    tol_fitness: Optional[float] = Field(
+        default=None,
+        description="Stop early when the objective drops to/below this value",
+    )
+    random_state: Optional[int] = Field(
+        default=None,
+        description="Random seed for reproducible sampling",
+    )
+
+    def run(
+        self,
+        objective_fn: Any,
+        dim: Optional[int] = None,
+        generations: Optional[int] = None,
+        verbose: bool = False,
+    ) -> Any:
+        """Minimize ``objective_fn`` with CMA-ES using these settings."""
+        from openevolve.selection import run_cmaes
+
+        effective_dim = dim if dim is not None else self.dim
+        if effective_dim is None:
+            raise ValueError("CMAESConfig.run requires dim (set config.dim or pass dim=)")
+
+        return run_cmaes(
+            objective_fn,
+            dim=effective_dim,
+            generations=generations if generations is not None else self.generations,
+            pop_size=self.pop_size,
+            x0=self.initial_mean,
+            sigma0=self.sigma0,
+            mu=self.mu,
+            bounds=self.bounds,
+            random_state=self.random_state,
+            tol_fitness=self.tol_fitness,
+            verbose=verbose,
+        )
+
+
 class UnifiedEvolutionConfig(BaseModel):
     """
     Unified Configuration for All Evolutionary Modes
@@ -1619,6 +1711,10 @@ class UnifiedEvolutionConfig(BaseModel):
     neuroevolution: Optional[NEATConfig] = Field(
         default=None,
         description="NEAT neuroevolution configuration"
+    )
+    cmaes: Optional[CMAESConfig] = Field(
+        default=None,
+        description="CMA-ES continuous optimizer configuration"
     )
     adversarial: Optional[AdversarialConfig] = Field(
         default=None,
@@ -1738,6 +1834,7 @@ class UnifiedEvolutionConfig(BaseModel):
             "qd": self.qd.model_dump() if self.qd else None,
             "mo": self.mo.model_dump() if self.mo else None,
             "neuroevolution": self.neuroevolution.model_dump() if self.neuroevolution else None,
+            "cmaes": self.cmaes.model_dump() if self.cmaes else None,
             "adversarial": self.adversarial.model_dump() if self.adversarial else None,
             "openevolve": self.openevolve.model_dump() if self.openevolve else None,
             "metadata": self.metadata,
@@ -1764,6 +1861,7 @@ class UnifiedEvolutionConfig(BaseModel):
         qd = QDConfig(**config_dict["qd"]) if config_dict.get("qd") else None
         mo = MOConfig(**config_dict["mo"]) if config_dict.get("mo") else None
         neuroevolution = NEATConfig(**config_dict["neuroevolution"]) if config_dict.get("neuroevolution") else None
+        cmaes = CMAESConfig(**config_dict["cmaes"]) if config_dict.get("cmaes") else None
         adversarial = AdversarialConfig(**config_dict["adversarial"]) if config_dict.get("adversarial") else None
         openevolve = OpenEvolveConfig(**config_dict["openevolve"]) if config_dict.get("openevolve") else None
 
@@ -1782,6 +1880,7 @@ class UnifiedEvolutionConfig(BaseModel):
             qd=qd,
             mo=mo,
             neuroevolution=neuroevolution,
+            cmaes=cmaes,
             adversarial=adversarial,
             openevolve=openevolve,
             metadata=config_dict.get("metadata", {})

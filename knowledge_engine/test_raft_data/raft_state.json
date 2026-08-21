@@ -1,0 +1,26 @@
+{
+  "current_term": 1,
+  "voted_for": null,
+  "log": [
+    {
+      "index": 1,
+      "term": 0,
+      "entry_type": "knowledge_add",
+      "data": {
+        "content": "test",
+        "id": "item-1"
+      },
+      "timestamp": "2026-08-21T04:52:00.185576"
+    },
+    {
+      "index": 2,
+      "term": 1,
+      "entry_type": "knowledge_add",
+      "data": {
+        "content": "test",
+        "id": "item-1"
+      },
+      "timestamp": "2026-08-21T04:52:27.963442"
+    }
+  ]
+}

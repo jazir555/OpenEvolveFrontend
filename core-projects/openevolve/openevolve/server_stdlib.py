@@ -16,17 +16,99 @@ POST /api/v1/workflows/orchestrate       -> spawn a workflow-style evolve run (2
 import json
 import logging
 import signal as _signal_module
+import sys as _sys
 import threading
 import uuid
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Dict, Optional
+from pathlib import Path as _Path
+from typing import Any, Callable, Dict, Optional
 
 import openevolve
 from openevolve.api import run_evolution
 from openevolve.config import Config, LLMModelConfig
 
 logger = logging.getLogger(__name__)
+
+# --------------------------------------------------------------------------- #
+# Optional bridge to the canonical engine wrapper
+# --------------------------------------------------------------------------- #
+# The FastAPI service (core-projects/BubbleLab/services/openevolve-api) wraps
+# the REAL openevolve engine in ``core/openevolve_bridge.py``. To reconcile both
+# servers onto a single engine-invocation path, this stdlib server delegates to
+# that bridge when it is reachable, falling back to the direct ``run_evolution``
+# call (still the real engine) when it is not. The bridge is resolved lazily so
+# that ``import openevolve.server_stdlib`` never requires the BubbleLab tree or
+# its dependencies to be present.
+_BRIDGE_RUN: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
+_BRIDGE_RESOLVED = False
+
+
+def _resolve_bridge() -> Optional[Callable[[Dict[str, Any]], Dict[str, Any]]]:
+    """Return ``run_openevolve_workflow`` from the shared bridge, or ``None``.
+
+    Resolution is attempted once (then memoized) by searching the known location
+    of the BubbleLab service's ``core`` directory relative to this file:
+    ``.../core-projects/openevolve/openevolve/server_stdlib.py`` ->
+    ``.../core-projects/BubbleLab/services/openevolve-api/core``.
+    """
+    global _BRIDGE_RUN, _BRIDGE_RESOLVED
+    if _BRIDGE_RESOLVED:
+        return _BRIDGE_RUN
+    _BRIDGE_RESOLVED = True
+
+    here = _Path(__file__).resolve()
+    candidates: list[str] = []
+    for depth in (3, 4, 2, 5):
+        try:
+            candidates.append(
+                str(here.parents[depth] / "BubbleLab" / "services" / "openevolve-api" / "core")
+            )
+        except IndexError:
+            continue
+
+    for root in candidates:
+        if not (_Path(root) / "openevolve_bridge.py").is_file():
+            continue
+        if root not in _sys.path:
+            _sys.path.insert(0, root)
+        try:
+            import openevolve_bridge as _mod  # type: ignore
+
+            _BRIDGE_RUN = _mod.run_openevolve_workflow
+            logger.info("openevolve_bridge_resolved", bridge_root=root)
+            return _BRIDGE_RUN
+        except Exception as exc:  # pragma: no cover - env dependent
+            logger.warning("openevolve_bridge_unavailable", error=str(exc))
+            try:
+                _sys.path.remove(root)
+            except ValueError:
+                pass
+    return None
+
+
+def _build_bridge_request(
+    initial_program: str,
+    evaluator: str,
+    config: Optional[Config],
+    iterations: Optional[int],
+) -> Dict[str, Any]:
+    """Translate a stdlib run into the shared bridge request contract."""
+    params: Dict[str, Any] = {}
+    if iterations is not None:
+        params["max_iterations"] = iterations
+    if config is not None:
+        try:
+            params["population_size"] = config.database.population_size
+        except Exception:  # pragma: no cover - defensive
+            pass
+    return {
+        "system": "evolutionary",
+        "initial_program": initial_program,
+        "evaluator": evaluator,
+        "parameters": params,
+        "llm": {},  # no credentials -> bridge selects the offline mock backend
+    }
 
 __all__ = [
     "RUNS",
@@ -158,18 +240,26 @@ def start_run(
 
     def _worker() -> None:
         try:
-            cfg = config or build_offline_config()
-            with _silence_signal_registration():
-                result = run_evolution(
-                initial_program=initial_program,
-                evaluator=evaluator,
-                config=cfg,
-                iterations=iterations,
-                cleanup=True,
-            )
+            bridge = _resolve_bridge()
+            if bridge is not None:
+                try:
+                    raw = bridge(
+                        _build_bridge_request(initial_program, evaluator, config, iterations)
+                    )
+                    result = raw if isinstance(raw, dict) else _result_to_dict(raw)
+                except Exception as exc:
+                    logger.warning(
+                        "openevolve_bridge_run_failed_falling_back",
+                        run_id=run_id,
+                        error=str(exc),
+                    )
+                    result = _run_legacy(initial_program, evaluator, config, iterations)
+            else:
+                result = _run_legacy(initial_program, evaluator, config, iterations)
+
             with _RUNS_LOCK:
                 RUNS[run_id]["status"] = "completed"
-                RUNS[run_id]["result"] = _result_to_dict(result)
+                RUNS[run_id]["result"] = result
         except Exception as exc:  # Never crash the server thread.
             logger.exception("Evolution run %s failed", run_id)
             with _RUNS_LOCK:
@@ -179,6 +269,29 @@ def start_run(
     thread = threading.Thread(target=_worker, daemon=True)
     thread.start()
     return run_id
+
+
+def _run_legacy(
+    initial_program: str,
+    evaluator: str,
+    config: Optional[Config],
+    iterations: Optional[int],
+) -> Dict[str, Any]:
+    """Drive the REAL openevolve engine directly (bridge-unavailable fallback).
+
+    This is the same engine the bridge wraps; kept only as a last-resort path so
+    the server still evolves when the shared bridge cannot be located.
+    """
+    cfg = config or build_offline_config()
+    with _silence_signal_registration():
+        result = run_evolution(
+            initial_program=initial_program,
+            evaluator=evaluator,
+            config=cfg,
+            iterations=iterations,
+            cleanup=True,
+        )
+    return _result_to_dict(result)
 
 
 def get_run(run_id: str) -> Optional[Dict[str, Any]]:

@@ -17,7 +17,7 @@ import {
   SimpleSpanProcessor,
   SpanProcessor,
 } from '@opentelemetry/sdk-trace-base';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes, type Resource } from '@opentelemetry/resources';
 import {
   SemanticResourceAttributes,
 } from '@opentelemetry/semantic-conventions';
@@ -150,7 +150,7 @@ export class TracingManager {
       attributes[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT] = process.env.NODE_ENV;
     }
 
-    return new Resource(attributes);
+    return resourceFromAttributes(attributes);
   }
 
   /**

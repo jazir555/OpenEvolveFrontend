@@ -39,3 +39,8 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: Slow-running tests"
     )
+    config.addinivalue_line(
+        "markers",
+        "real_llm: Gated tests that hit a REAL LLM provider (skip unless "
+        "OPENEVOLVE_REAL_LLM_PROVIDER + OPENEVOLVE_REAL_LLM_API_KEY are set)",
+    )

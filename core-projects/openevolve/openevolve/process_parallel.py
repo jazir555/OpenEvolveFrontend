@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from openevolve.config import Config
 from openevolve.database import Program, ProgramDatabase
+from openevolve.self_adaptive import SelfAdaptiveOperators
 from openevolve.utils.metrics_utils import safe_numeric_average
 from queue import Empty
 
@@ -199,6 +200,52 @@ def _run_iteration_worker(
         parent = programs[parent_id]
         inspirations = [programs[pid] for pid in inspiration_ids if pid in programs]
 
+        # Optional genetic-operator layer (OFF unless use_genetic_operators).
+        # Keeps the documented core-evolution params live in the production loop
+        # without changing the flag-off path.
+        llm_temperature = None
+        if getattr(_worker_config, "use_genetic_operators", False):
+            import random as _go_random
+
+            from openevolve.genetic_operators import (
+                crossover,
+                mutate_code,
+                mutation_temperature_scale,
+                select_parent,
+            )
+
+            go_rng = _go_random.Random(_worker_config.random_seed)
+            go_pop = list(programs.values())
+            go_fdims = db_snapshot.get("feature_dimensions", [])
+            go_method = getattr(_worker_config, "selection_method", "tournament")
+            if go_method in ("tournament", "roulette", "rank") and len(go_pop) > 1:
+                parent = select_parent(
+                    go_pop,
+                    method=go_method,
+                    selection_pressure=getattr(_worker_config, "selection_pressure", 1.0),
+                    feature_dimensions=go_fdims,
+                    rng=go_rng,
+                )
+            if getattr(_worker_config, "crossover_rate", 0.0) > 0.0 and len(go_pop) > 1:
+                others = [p for p in go_pop if p.id != parent.id]
+                if others and go_rng.random() < getattr(_worker_config, "crossover_rate", 0.0):
+                    second = select_parent(
+                        others,
+                        method=go_method,
+                        selection_pressure=getattr(_worker_config, "selection_pressure", 1.0),
+                        feature_dimensions=go_fdims,
+                        rng=go_rng,
+                    )
+                    parent.code = crossover(parent, second, _worker_config.crossover_rate, go_rng)
+            parent.code = mutate_code(
+                parent.code, getattr(_worker_config, "mutation_rate", 0.0), go_rng
+            )
+            base_temp = getattr(_worker_config.llm, "temperature", None)
+            llm_temperature = mutation_temperature_scale(
+                base_temp if base_temp is not None else 0.7,
+                getattr(_worker_config, "mutation_rate", 0.0),
+            )
+
         # Description of the change that produced the parent, used to seed the
         # evolution prompt (and to seed changes_description diffing when enabled).
         parent_changes_desc = getattr(parent, "changes_description", None) or ""
@@ -253,10 +300,14 @@ def _run_iteration_worker(
         # Generate code modification (sync wrapper for async)
         try:
             _log_to_queue(f"Generating code for iteration {iteration}")
+            generate_kwargs = {}
+            if llm_temperature is not None:
+                generate_kwargs["temperature"] = llm_temperature
             llm_response = _run_async(
                 _worker_llm_ensemble.generate_with_context(
                     system_message=prompt["system"],
                     messages=[{"role": "user", "content": prompt["user"]}],
+                    **generate_kwargs,
                 )
             )
         except Exception as e:
@@ -478,6 +529,17 @@ class ProcessParallelController:
         self.log_queue = log_queue if log_queue is not None else mp.Queue()
         self.shutdown_event = mp.Event()
         self.early_stopping_triggered = False
+
+        # Self-adaptive operator control. Only constructed when the
+        # ``adaptive_parameters`` flag is enabled, so existing runs (flag off)
+        # pay no cost and are completely unaffected.
+        self.self_adaptive = None
+        if self.config.adaptive_parameters:
+            self.self_adaptive = SelfAdaptiveOperators(self.config.self_adaptive)
+            logger.info(
+                "Self-adaptive operator control enabled: parameters will be "
+                "tuned each generation from adaptive progress metrics."
+            )
 
         # Number of worker processes. When <= 1 (or forced via
         # OPENEVOLVE_INPLACE=1) the controller runs iterations in-process instead
@@ -887,6 +949,9 @@ class ProcessParallelController:
                             f"{child_program.id}"
                         )
 
+                    # Self-adapt operator parameters for the next generation.
+                    self._apply_self_adaptation(completed_iteration)
+
                     # Checkpoint callback
                     # Don't checkpoint at iteration 0 (that's just the initial program)
                     if (
@@ -1027,6 +1092,58 @@ class ProcessParallelController:
             logger.info("✅ Evolution completed - Maximum iterations reached")
 
         return self.database.get_best_program()
+
+    def _apply_self_adaptation(self, generation: int) -> None:
+        """Adapt operator parameters for ``generation`` and apply them live.
+
+        Pulls the adaptive metrics from the current run, asks
+        :class:`SelfAdaptiveOperators` for the tuned parameters, and writes the
+        selections that actually drive sampling (elitism -> elite selection
+        ratio; selection pressure -> exploration/exploitation split) back into
+        the live :class:`ProgramDatabase` config so the very next sampled parent
+        uses them.
+        """
+        if self.self_adaptive is None:
+            return
+
+        best = self.database.get_best_program()
+        best_score = (
+            safe_numeric_average(best.metrics)
+            if best and best.metrics
+            else 0.0
+        )
+
+        # Population scores on the current island drive the diversity signal.
+        island = self.database.islands[self.database.current_island]
+        population_scores = []
+        for pid in island:
+            prog = self.database.programs.get(pid)
+            if prog and prog.metrics:
+                population_scores.append(safe_numeric_average(prog.metrics))
+
+        params = self.self_adaptive.update(
+            best_score, population_scores, generation=generation
+        )
+
+        db = self.config.database
+        # Elitism maps directly to the elite-selection ratio used when building
+        # inspiration sets.
+        db.elite_selection_ratio = params["elitism"]
+
+        # Higher selection pressure -> more exploitation, less exploration.
+        exploitation = min(0.9, max(0.05, 0.5 + 0.45 * params["selection_pressure"]))
+        # Leave a small random-sampling remainder; keep the sum valid (<= 1).
+        exploration = min(0.45, max(0.05, 1.0 - exploitation - 0.05))
+        db.exploitation_ratio = round(exploitation, 4)
+        db.exploration_ratio = round(exploration, 4)
+
+        logger.info(
+            f"Self-adaptive operators @gen {generation}: "
+            f"mutation_rate={params['mutation_rate']:.4f} "
+            f"crossover_rate={params['crossover_rate']:.4f} "
+            f"selection_pressure={params['selection_pressure']:.4f} "
+            f"elitism={params['elitism']:.4f}"
+        )
 
     def _submit_iteration(
         self, iteration: int, island_id: Optional[int] = None

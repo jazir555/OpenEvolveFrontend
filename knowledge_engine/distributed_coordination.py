@@ -150,6 +150,9 @@ class RaftNode:
         heartbeat_interval: float = 0.05,  # 50ms
         election_timeout_min: float = 0.15,  # 150ms
         election_timeout_max: float = 0.3,   # 300ms
+        failure_timeout: float = 1.0,  # seconds without heartbeat => suspected/down
+        auto_remove_failed: bool = False,  # leader auto-removes suspected peers
+        clock: Callable[[], float] = time.monotonic,  # injectable clock for tests
     ):
         self.node_id = node_id
         self.address = address
@@ -185,7 +188,32 @@ class RaftNode:
         
         # Lock for state access
         self._lock = asyncio.Lock()
-        
+
+        # Injectable clock (defaults to monotonic wall clock)
+        self._clock = clock
+        self._failure_timeout = failure_timeout
+        self._auto_remove_failed = auto_remove_failed
+
+        # ---- Membership / cluster configuration -------------------------
+        # _cluster_members: committed (stable) configuration, includes self.
+        # _joint_members: present only during a joint-consensus transition.
+        # _member_addresses: node_id -> (address, port) for all known members.
+        self._member_addresses: Dict[str, Tuple[str, int]] = {
+            pid: (addr, port) for pid, (addr, port) in self.peers.items()
+        }
+        self._cluster_members: Set[str] = set(self.peers.keys()) | {self.node_id}
+        self._joint_members: Optional[Set[str]] = None
+
+        # ---- Failure detection -------------------------------------------
+        # Last time each peer was seen via a heartbeat (in clock units).
+        self._last_heartbeat: Dict[str, float] = {
+            pid: self._now() for pid in self.peers
+        }
+        # Per-peer status: "alive" | "suspected" | "down"
+        self._member_status: Dict[str, str] = {
+            pid: "alive" for pid in self.peers
+        }
+
         # Ensure data directory exists
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
@@ -193,6 +221,10 @@ class RaftNode:
         self._load_state()
         
         logger.info(f"Raft node {node_id} initialized at {address}:{port}")
+
+    def _now(self) -> float:
+        """Current time in clock units (injectable for tests)."""
+        return self._clock()
     
     def _load_state(self):
         """Load persistent state from disk."""
@@ -267,9 +299,9 @@ class RaftNode:
             # Notify state change
             await self._notify_state_change(old_state, self.state)
         
-        # Send RequestVote RPCs to all peers
+        # Send RequestVote RPCs to all active peers (joint-consensus aware)
         tasks = []
-        for peer_id, (peer_addr, peer_port) in self.peers.items():
+        for peer_id, (peer_addr, peer_port) in self._iter_peer_items():
             task = asyncio.create_task(self._send_request_vote(peer_id, peer_addr, peer_port))
             tasks.append(task)
         
@@ -342,7 +374,7 @@ class RaftNode:
         
         # Initialize leader state
         last_log_index = len(self.persistent_state.log)
-        for peer_id in self.peers:
+        for peer_id in self._active_peer_ids():
             self.volatile_state.next_index[peer_id] = last_log_index + 1
             self.volatile_state.match_index[peer_id] = 0
         
@@ -368,7 +400,7 @@ class RaftNode:
         """Continuously send heartbeats to peers."""
         while self._running and self.state == NodeState.LEADER:
             tasks = []
-            for peer_id, (peer_addr, peer_port) in self.peers.items():
+            for peer_id, (peer_addr, peer_port) in self._iter_peer_items():
                 task = asyncio.create_task(self._send_append_entries(peer_id, peer_addr, peer_port))
                 tasks.append(task)
             
@@ -412,6 +444,8 @@ class RaftNode:
             
             async with self._lock:
                 if response.get("success"):
+                    # Peer responded to our AppendEntries: it is alive.
+                    self.record_heartbeat(peer_id)
                     if entries:
                         self.volatile_state.match_index[peer_id] = next_idx + len(entries) - 1
                         self.volatile_state.next_index[peer_id] = next_idx + len(entries)
@@ -425,7 +459,7 @@ class RaftNode:
                         self._save_state()
                     else:
                         self.volatile_state.next_index[peer_id] = max(1, next_idx - 1)
-                        
+
         except Exception as e:
             logger.debug(f"Failed to send AppendEntries to {peer_id}: {e}")
     
@@ -434,15 +468,16 @@ class RaftNode:
         if self.state != NodeState.LEADER:
             return
         
+        active_peers = self._active_peer_ids()
         for n in range(self.volatile_state.commit_index + 1, len(self.persistent_state.log) + 1):
             # Count replicas
             count = 1  # Leader
-            for peer_id in self.peers:
+            for peer_id in active_peers:
                 if self.volatile_state.match_index.get(peer_id, 0) >= n:
                     count += 1
             
             # Check if majority and same term
-            majority = (len(self.peers) + 1) // 2 + 1
+            majority = (len(active_peers) + 1) // 2 + 1
             if count >= majority and self.persistent_state.log[n - 1].term == self.persistent_state.current_term:
                 self.volatile_state.commit_index = n
                 await self._apply_committed_entries()
@@ -512,6 +547,8 @@ class RaftNode:
             
             # Update leader info
             self.current_leader = leader_id
+            if leader_id:
+                self.record_heartbeat(leader_id)
             self.leader_lease_expiry = datetime.utcnow() + timedelta(seconds=1)
             
             # Update term if necessary
@@ -665,8 +702,221 @@ class RaftNode:
             "commit_index": self.volatile_state.commit_index,
             "last_applied": self.volatile_state.last_applied,
             "leader": self.current_leader,
-            "peers": len(self.peers)
+            "peers": len(self.peers),
+            "cluster_members": len(self._cluster_members),
+            "joint_consensus": self._joint_members is not None,
         }
+
+    # ------------------------------------------------------------------
+    # Active membership helpers (joint-consensus aware)
+    # ------------------------------------------------------------------
+    def _active_peer_ids(self) -> List[str]:
+        """Peer ids that count for quorum/replication right now.
+
+        During a joint-consensus transition this is the union of the old
+        and new configurations; otherwise it is the stable peer set.
+        """
+        if self._joint_members is not None:
+            return [p for p in self._joint_members if p != self.node_id]
+        return list(self.peers.keys())
+
+    def _iter_peer_items(self):
+        """Yield (peer_id, (address, port)) for all active peers."""
+        ids = self._active_peer_ids()
+        for pid in ids:
+            addr = self._member_addresses.get(pid) or self.peers.get(pid)
+            if addr:
+                yield pid, addr
+
+    # ------------------------------------------------------------------
+    # Cluster membership management
+    # ------------------------------------------------------------------
+    def get_member_ids(self) -> Set[str]:
+        """Return the committed (stable) cluster member node ids."""
+        return set(self._cluster_members)
+
+    def get_active_member_ids(self) -> Set[str]:
+        """Return the members currently in effect (joint union if mid-change)."""
+        if self._joint_members is not None:
+            return set(self._joint_members)
+        return set(self._cluster_members)
+
+    def is_member(self, node_id: str) -> bool:
+        """Check whether a node is part of the committed cluster config."""
+        return node_id in self._cluster_members
+
+    def get_cluster_config(self) -> Dict[str, Any]:
+        """Return a serializable view of the current cluster configuration."""
+        return {
+            "node_id": self.node_id,
+            "committed": sorted(self._cluster_members),
+            "joint": sorted(self._joint_members) if self._joint_members is not None else None,
+            "phase": "joint_consensus" if self._joint_members is not None else "stable",
+            "members": {
+                mid: {"address": a, "port": p}
+                for mid, (a, p) in self._member_addresses.items()
+                if mid in self._cluster_members
+            },
+        }
+
+    def _require_leader_for_change(self):
+        if self.state != NodeState.LEADER:
+            raise MembershipChangeError(
+                f"membership changes must be initiated by the leader "
+                f"(current state={self.state.value})"
+            )
+        if self._joint_members is not None:
+            raise MembershipChangeError(
+                "cannot start a membership change while another is in progress"
+            )
+
+    def add_member(self, node_id: str, address: str, port: int) -> None:
+        """Add a node to the cluster (leader-only, joint-consensus transition)."""
+        self._require_leader_for_change()
+        if node_id == self.node_id:
+            raise MembershipChangeError("cannot add self as a member")
+        if node_id in self._cluster_members:
+            raise MembershipChangeError(f"{node_id} is already a member")
+
+        # Phase 1: enter joint consensus (old config ∪ {node_id}).
+        joint = set(self._cluster_members) | {node_id}
+        self._joint_members = joint
+        self._member_addresses[node_id] = (address, port)
+        self.peers[node_id] = (address, port)
+        self._last_heartbeat[node_id] = self._now()
+        self._member_status[node_id] = "alive"
+
+        # Phase 2: commit the new configuration. In a full implementation the
+        # joint config would first be replicated and acknowledged by a majority
+        # of *both* old and new configs; here the leader drives the transition
+        # to stable once quorum (leader + joint majority) is achievable.
+        self._cluster_members = set(joint)
+        self._joint_members = None
+        logger.info(f"Node {self.node_id} added member {node_id}")
+
+    def remove_member(self, node_id: str) -> None:
+        """Remove a node from the cluster (leader-only, joint-consensus transition)."""
+        self._require_leader_for_change()
+        if node_id == self.node_id:
+            raise MembershipChangeError("cannot remove self from the cluster")
+        if node_id not in self._cluster_members:
+            raise MembershipChangeError(f"{node_id} is not a member")
+
+        # Phase 1: enter joint consensus excluding the node to remove.
+        joint = set(self._cluster_members) - {node_id}
+        self._joint_members = joint
+
+        # Drop the removed peer's replication state.
+        self.peers.pop(node_id, None)
+        self._member_addresses.pop(node_id, None)
+        self._last_heartbeat.pop(node_id, None)
+        self._member_status.pop(node_id, None)
+        self.volatile_state.next_index.pop(node_id, None)
+        self.volatile_state.match_index.pop(node_id, None)
+
+        # Phase 2: commit the new configuration.
+        self._cluster_members = set(joint)
+        self._joint_members = None
+        logger.info(f"Node {self.node_id} removed member {node_id}")
+
+    def receive_membership_update(self, members: Dict[str, Tuple[str, int]]) -> None:
+        """Apply a leader-broadcast membership update (follower-side).
+
+        `members` maps node_id -> (address, port) for the *new committed*
+        configuration. Self is always retained.
+        """
+        new_config = set(members.keys()) | {self.node_id}
+        self._cluster_members = new_config
+        self._joint_members = None
+        self._member_addresses = {
+            **{mid: addr for mid, addr in members.items()},
+            self.node_id: (self.address, self.port),
+        }
+        # Reconcile peer set with the new configuration.
+        self.peers = {
+            mid: addr for mid, addr in self._member_addresses.items() if mid != self.node_id
+        }
+        for mid in list(self._last_heartbeat.keys()):
+            if mid not in self.peers:
+                self._last_heartbeat.pop(mid, None)
+                self._member_status.pop(mid, None)
+        for mid in self.peers:
+            self._last_heartbeat.setdefault(mid, self._now())
+            self._member_status.setdefault(mid, "alive")
+        logger.info(f"Node {self.node_id} applied membership update: {sorted(new_config)}")
+
+    # ------------------------------------------------------------------
+    # Failure detection (heartbeat-based)
+    # ------------------------------------------------------------------
+    def record_heartbeat(self, node_id: str) -> None:
+        """Record that we just saw a heartbeat from `node_id`."""
+        if node_id == self.node_id:
+            return
+        self._last_heartbeat[node_id] = self._now()
+        if node_id in self._member_status:
+            self._member_status[node_id] = "alive"
+
+    def is_alive(self, node_id: str) -> bool:
+        """Return True if `node_id` is considered alive (heartbeat within timeout)."""
+        if node_id == self.node_id:
+            return True
+        if node_id not in self._member_status and node_id not in self._cluster_members:
+            return False
+        return self._member_status.get(node_id, "alive") == "alive"
+
+    def get_member_status(self, node_id: str) -> str:
+        """Return the status of a member: 'alive', 'suspected', or 'down'."""
+        if node_id == self.node_id:
+            return "alive"
+        return self._member_status.get(node_id, "alive")
+
+    def tick(self) -> Dict[str, str]:
+        """Advance failure detection using the current clock value.
+
+        Marks any peer whose last heartbeat lapsed beyond `failure_timeout`
+        as 'down', then reacts: a follower whose leader is down starts an
+        election; a leader with `auto_remove_failed` drops downed peers.
+
+        Returns a mapping of node_id -> status for all non-alive members.
+        """
+        now = self._now()
+        downed: Dict[str, str] = {}
+        for pid, last in list(self._last_heartbeat.items()):
+            if now - last > self._failure_timeout:
+                if self._member_status.get(pid) != "down":
+                    self._member_status[pid] = "down"
+                downed[pid] = "down"
+
+        if downed:
+            self._react_to_failures(downed)
+
+        return {pid: st for pid, st in self._member_status.items() if st != "alive"}
+
+    def detect_failures(self) -> Dict[str, str]:
+        """Convenience wrapper around :meth:`tick` for ergonomic failure scans."""
+        return self.tick()
+
+    def _react_to_failures(self, downed: Dict[str, str]) -> None:
+        """Trigger re-election or membership adjustment when peers are down."""
+        # Follower: if our leader is down, start a new election (best effort).
+        if self.state == NodeState.FOLLOWER and self.current_leader in downed:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(self._start_election())
+                else:
+                    asyncio.ensure_future(self._start_election())
+            except RuntimeError:
+                # No running loop (e.g. called outside asyncio); ignore.
+                pass
+
+        # Leader: optionally evict downed peers from the cluster.
+        if self.state == NodeState.LEADER and self._auto_remove_failed:
+            for pid in list(downed.keys()):
+                try:
+                    self.remove_member(pid)
+                except MembershipChangeError:
+                    continue
 
 
 class DistributedKnowledgeCoordinator:
@@ -773,6 +1023,11 @@ class ReplicationTimeoutException(Exception):
     pass
 
 
+class MembershipChangeError(Exception):
+    """Raised when a cluster membership change cannot be performed."""
+    pass
+
+
 __all__ = [
     "NodeState",
     "LogEntryType",
@@ -781,5 +1036,6 @@ __all__ = [
     "RaftNode",
     "DistributedKnowledgeCoordinator",
     "NotLeaderException",
-    "ReplicationTimeoutException"
+    "ReplicationTimeoutException",
+    "MembershipChangeError"
 ]

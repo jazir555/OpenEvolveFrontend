@@ -5,8 +5,10 @@ Team management for AI agent orchestration.
 Follows CLAUDE.md principles: structured logging, CRUD operations.
 """
 
+import os
 import structlog
-from typing import List
+import threading
+from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 
@@ -14,11 +16,59 @@ from ..models import TeamCreate, TeamUpdate, TeamResponse, TeamListResponse, Tea
 from ..database import save_team, get_team, get_all_teams, delete_team as db_delete_team
 
 
+# Optional bridge to the REAL openevolve engine. This is the single engine
+# invocation path used by /api/v1/*; the legacy routers keep their DB-backed
+# self-contained behavior as the source of truth and only consult the bridge
+# when it is both importable and enabled via OPENEVOLVE_BRIDGE_ENABLED. The
+# bridge call is best-effort and never alters the response shape or raises.
+try:
+    from ..core.openevolve_bridge import OpenEvolveBridgeError, run_openevolve_workflow
+
+    OPENEVOLVE_BRIDGE_AVAILABLE = True
+    _OPENEVOLVE_IMPORT_ERROR: Optional[str] = None
+except ImportError as _bridge_import_error:  # pragma: no cover - env dependent
+    OpenEvolveBridgeError = RuntimeError  # type: ignore[assignment,misc]
+    run_openevolve_workflow = None  # type: ignore[assignment]
+    OPENEVOLVE_BRIDGE_AVAILABLE = False
+    _OPENEVOLVE_IMPORT_ERROR = str(_bridge_import_error)
+
+
 logger = structlog.get_logger()
 router = APIRouter()
 
 # Cache for in-memory access (backed by persistent storage)
 _teams_cache: dict[str, TeamResponse] = {}
+
+# Latest REAL openevolve engine result per team, populated only when the bridge
+# is enabled and a team is created/updated. Never surfaced in the response model.
+_teams_openevolve_results: dict[str, dict] = {}
+
+
+def _bridge_enabled() -> bool:
+    """True when the shared engine bridge should be consulted (env-gated)."""
+    return os.getenv("OPENEVOLVE_BRIDGE_ENABLED", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+
+
+def _maybe_run_openevolve_bg(request: dict, key: str) -> None:
+    """Spawn a best-effort, non-blocking real-engine run.
+
+    The result (or failure) is stashed in ``_teams_openevolve_results[key]``.
+    No-op and never raises when the bridge is unavailable/disabled.
+    """
+    if not (OPENEVOLVE_BRIDGE_AVAILABLE and _bridge_enabled()):
+        return
+
+    def _worker() -> None:
+        try:
+            _teams_openevolve_results[key] = run_openevolve_workflow(request)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("openevolve_bridge_team_run_failed", team_id=key, error=str(exc))
+
+    threading.Thread(target=_worker, daemon=True).start()
 
 
 def _ensure_member_ids(members: list[TeamMember]) -> list[TeamMember]:
@@ -84,6 +134,18 @@ async def create_team(team_data: TeamCreate) -> TeamResponse:
         
         # Update cache
         _teams_cache[team_id] = team
+
+        # Optionally consult the REAL openevolve engine (best-effort, off-thread).
+        _maybe_run_openevolve_bg(
+            {
+                "system": "evolutionary",
+                "problem_statement": f"Optimize team composition for: {team_data.name}",
+                "context": team_data.description or "",
+                "parameters": {},
+                "llm": {},
+            },
+            team_id,
+        )
 
         logger.info(
             "team_created",
@@ -210,6 +272,18 @@ async def update_team(team_id: str, team_data: TeamUpdate) -> TeamResponse:
         
         # Update cache
         _teams_cache[team_id] = existing
+
+        # Optionally consult the REAL openevolve engine (best-effort, off-thread).
+        _maybe_run_openevolve_bg(
+            {
+                "system": "evolutionary",
+                "problem_statement": f"Optimize team composition for: {existing.name}",
+                "context": existing.description or "",
+                "parameters": {},
+                "llm": {},
+            },
+            team_id,
+        )
 
         logger.info(
             "team_updated",

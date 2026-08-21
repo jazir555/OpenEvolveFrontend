@@ -26,6 +26,7 @@ from .config import (
     MOConfig,
     AdversarialConfig,
     OpenEvolveConfig,
+    CMAESConfig,
     EvolutionMode,
     DomainType,
 )
@@ -55,6 +56,7 @@ __all__ = [
     "MOConfig",
     "AdversarialConfig",
     "OpenEvolveConfig",
+    "CMAESConfig",
     "EvolutionMode",
     "DomainType",
     # Utilities

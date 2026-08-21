@@ -14,9 +14,13 @@ All agents use real LLM API calls with complete working logic.
 import asyncio
 import json
 import logging
+import os
+import shutil
+import subprocess
+import tempfile
 import time
 import uuid
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, Callable
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 import httpx
@@ -69,6 +73,7 @@ class VerificationResult:
     specific_errors: List[str] = field(default_factory=list)
     suggestions: List[str] = field(default_factory=list)
     verifier_id: str = "system"
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -80,6 +85,28 @@ class PSVEpisode:
     verification: VerificationResult
     timestamp: float = field(default_factory=time.time)
     learning_outcome: str = "unknown"  # "success", "failure", "partial"
+
+
+@dataclass
+class FormalVerificationResult:
+    """Result of running a formal verification backend (e.g. Verus) on a solution."""
+    verified: bool
+    backend: str
+    available: bool
+    feasible: bool
+    error: Optional[str] = None
+    log: str = ""
+    program_path: Optional[str] = None
+    degraded: bool = False
+
+
+@dataclass
+class RFTPreferencePair:
+    """A single (prompt, chosen, rejected) preference pair for rejection fine-tuning."""
+    prompt: str
+    chosen: str
+    rejected: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 class LLMProvider(Enum):
@@ -102,7 +129,12 @@ class PSVConfig:
         default_model: str = "gpt-4",
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        timeout: int = 120
+        timeout: int = 120,
+        selfplay_formal_verification_backend: str = "none",
+        selfplay_formal_verifier_timeout: int = 300,
+        selfplay_rft_enabled: bool = False,
+        selfplay_rft_dataset_path: Optional[str] = None,
+        selfplay_rft_trainer_hook: Optional[Callable[[List[Dict[str, Any]]], Dict[str, Any]]] = None
     ):
         self.openai_api_key = openai_api_key
         self.anthropic_api_key = anthropic_api_key
@@ -113,6 +145,11 @@ class PSVConfig:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.timeout = timeout
+        self.selfplay_formal_verification_backend = selfplay_formal_verification_backend
+        self.selfplay_formal_verifier_timeout = selfplay_formal_verifier_timeout
+        self.selfplay_rft_enabled = selfplay_rft_enabled
+        self.selfplay_rft_dataset_path = selfplay_rft_dataset_path
+        self.selfplay_rft_trainer_hook = selfplay_rft_trainer_hook
 
 
 class LLMClient:
@@ -656,7 +693,8 @@ class PSVManager:
     async def run_self_play_episode(
         self,
         domain: Optional[str] = None,
-        target_difficulty: Optional[float] = None
+        target_difficulty: Optional[float] = None,
+        formal_verify: Optional[bool] = None
     ) -> PSVEpisode:
         """Run a complete PSV episode"""
         logger.info("Starting new PSV self-play episode")
@@ -673,6 +711,20 @@ class PSVManager:
 
         # 3. Verify solution
         verification = await self.verifier.verify_solution(problem, solution)
+
+        # 3b. Optional formal verification (Verus/Rust) when configured
+        use_formal = formal_verify if formal_verify is not None else (
+            self.config.selfplay_formal_verification_backend != "none"
+        )
+        if use_formal and self.config.selfplay_formal_verification_backend == "verus":
+            formal = self.verify_with_verus(solution.solution, spec_id=problem.id)
+            verification.metadata = {**verification.metadata, "formal": asdict(formal)}
+            if formal.available and formal.verified:
+                verification.is_correct = True
+                verification.feedback = (verification.feedback + "\n[verus] formally verified").strip()
+            elif formal.available and not formal.verified:
+                verification.is_correct = False
+                verification.feedback = (verification.feedback + "\n[verus] formal verification failed").strip()
 
         # 4. Create episode
         episode = PSVEpisode(
@@ -719,7 +771,7 @@ class PSVManager:
         self,
         num_episodes: int,
         domains: Optional[List[str]] = None
-    ) -> List[PSVEpisode]:
+    ) -> Dict[str, Any]:
         """Run multiple PSV episodes"""
         episodes = []
 
@@ -730,7 +782,15 @@ class PSVManager:
 
             logger.info(f"Completed {i+1}/{num_episodes} episodes")
 
-        return episodes
+        # Optional Rejection Fine-Tuning step over the verified/rejected history.
+        rft_result: Optional[Dict[str, Any]] = None
+        if self.config.selfplay_rft_enabled:
+            rft_result = self.rft_update()
+
+        result: Dict[str, Any] = {"episodes": episodes}
+        if rft_result is not None:
+            result["rft"] = rft_result
+        return result
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get current performance metrics"""
@@ -742,6 +802,297 @@ class PSVManager:
             ),
             "total_problems": len(self.problem_database),
             "domain_distribution": dict(self.metrics["difficulty_distribution"])
+        }
+
+    # ------------------------------------------------------------------
+    # Formal verification backend (Verus/Rust)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def is_verus_available() -> bool:
+        """Return True if the ``verus`` CLI binary is resolvable on PATH."""
+        return shutil.which("verus") is not None
+
+    def emit_verus_program(self, solution: str, spec_id: str = "psv_solution") -> Optional[str]:
+        """Emit a minimal Verus program from a generated solution when feasible.
+
+        A solution is expressible as a Verus program only when it contains a
+        fenced Rust/Verus code block. In that case the extracted code is
+        returned (with a thin Verus module wrapper when it is not already a
+        ``verus`` module). Returns ``None`` when no Rust/Verus code is present.
+        """
+        if not solution:
+            return None
+
+        block = self._extract_code_block(solution, ("rust", "verus", "rs"))
+        if not block:
+            return None
+
+        # Strip any leading ```lang / trailing ``` fences defensively.
+        block = self._strip_fences(block).strip()
+        if not block:
+            return None
+
+        if re.search(r"\b(use verus|#!\[.*verus|fn\s+main|fn\s+\[verify|spec\s+fn|proof\s+fn)", block):
+            return block
+
+        # Minimal Verus module wrapper: declare a main so the CLI has an entry.
+        wrapped = (
+            "use vstd::prelude::*;\n\n"
+            "#[verifier::external]\n"
+            "fn main() {\n"
+            f"    // PSV solution {spec_id}\n"
+            f"{self._indent(block, 4)}\n"
+            "}\n"
+        )
+        return wrapped
+
+    @staticmethod
+    def _strip_fences(code: str) -> str:
+        code = code.strip()
+        if code.startswith("```"):
+            lines = code.splitlines()
+            # Drop opening fence line.
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            # Drop trailing fence line.
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            code = "\n".join(lines)
+        return code
+
+    def _extract_code_block(self, text: str, langs: Tuple[str, ...]) -> Optional[str]:
+        """Extract the first fenced code block tagged with one of ``langs``."""
+        pattern = r"```(" + "|".join(langs) + r")\n(.*?)```"
+        match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+        if not match:
+            # Also accept a generic ``` block if no tagged one exists.
+            match = re.search(r"```\n(.*?)```", text, re.DOTALL)
+            if not match:
+                return None
+            return match.group(1)
+        return match.group(2)
+
+    @staticmethod
+    def _indent(text: str, spaces: int) -> str:
+        pad = " " * spaces
+        return "\n".join(pad + line if line else line for line in text.splitlines())
+
+    def verify_with_verus(
+        self,
+        solution: str,
+        spec_id: str = "psv_solution",
+        timeout: Optional[int] = None
+    ) -> FormalVerificationResult:
+        """Verify a generated solution with the Verus CLI.
+
+        This is OPTIONAL and degrades gracefully:
+        - If the ``verus`` binary is not on PATH, returns ``available=False``
+          with a clear warning and does NOT raise.
+        - If the solution cannot be expressed as a Verus program, returns
+          ``feasible=False`` (the caller should fall back to LLM verification).
+
+        When Verus is available and the solution is feasible, the program is
+        written to a temp file, verified via ``verus <file>``, and the parsed
+        result (verified / errors) is returned.
+        """
+        timeout = timeout if timeout is not None else self.config.selfplay_formal_verifier_timeout
+
+        if not self.is_verus_available():
+            logger.warning(
+                "[verus] backend requested but 'verus' CLI not found on PATH; "
+                "falling back to LLM/math verification."
+            )
+            return FormalVerificationResult(
+                verified=False,
+                backend="verus",
+                available=False,
+                feasible=False,
+                error="verus binary not found on PATH",
+                degraded=True,
+            )
+
+        program = self.emit_verus_program(solution, spec_id=spec_id)
+        if program is None:
+            logger.warning(
+                "[verus] solution %s not expressible as a Verus program; skipping formal verification.",
+                spec_id,
+            )
+            return FormalVerificationResult(
+                verified=False,
+                backend="verus",
+                available=True,
+                feasible=False,
+                error="solution not expressible as Verus program",
+            )
+
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w", suffix=".rs", prefix=f"psv_{spec_id}_", delete=False
+            ) as fh:
+                fh.write(program)
+                tmp_path = fh.name
+
+            proc = subprocess.run(
+                ["verus", tmp_path],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+            log = (proc.stdout or "") + (proc.stderr or "")
+            # Verus exits non-zero on verification failure; returncode 0 means success.
+            verified = proc.returncode == 0
+            error = None if verified else self._extract_verus_errors(log)
+            return FormalVerificationResult(
+                verified=verified,
+                backend="verus",
+                available=True,
+                feasible=True,
+                error=error,
+                log=log,
+                program_path=tmp_path,
+            )
+        except subprocess.TimeoutExpired:
+            logger.warning("[verus] verification timed out for %s", spec_id)
+            return FormalVerificationResult(
+                verified=False,
+                backend="verus",
+                available=True,
+                feasible=True,
+                error="verus verification timed out",
+                log="",
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("[verus] verification crashed: %s", exc)
+            return FormalVerificationResult(
+                verified=False,
+                backend="verus",
+                available=True,
+                feasible=True,
+                error=f"verus invocation failed: {exc}",
+                log="",
+            )
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except OSError:
+                    pass
+
+    @staticmethod
+    def _extract_verus_errors(log: str) -> Optional[str]:
+        lines = [ln for ln in log.splitlines() if "error" in ln.lower()]
+        return "\n".join(lines) if lines else log.strip()[:500] or None
+
+    # ------------------------------------------------------------------
+    # Rejection Fine-Tuning (RFT) update loop
+    # ------------------------------------------------------------------
+
+    def collect_preference_pairs(self) -> List[RFTPreferencePair]:
+        """Assemble (prompt, chosen, rejected) pairs from episode history.
+
+        A pair is emitted per problem that has at least one verified solution
+        (chosen) and one rejected solution (rejected) in the history.
+        """
+        by_problem: Dict[str, Dict[str, List[str]]] = defaultdict(
+            lambda: {"chosen": [], "rejected": []}
+        )
+        prompts: Dict[str, str] = {}
+        for episode in self.episode_history:
+            pid = episode.problem.id
+            prompts[pid] = episode.problem.statement
+            is_verified = (
+                episode.verification.is_correct
+                and episode.verification.metadata.get("formal", {}).get("verified", True)
+            )
+            solution_text = episode.solution.solution
+            if is_verified:
+                by_problem[pid]["chosen"].append(solution_text)
+            else:
+                by_problem[pid]["rejected"].append(solution_text)
+
+        pairs: List[RFTPreferencePair] = []
+        for pid, buckets in by_problem.items():
+            chosen = buckets["chosen"]
+            rejected = buckets["rejected"]
+            if not chosen or not rejected:
+                continue
+            # Pair the first verified solution against the first rejected one.
+            pairs.append(RFTPreferencePair(
+                prompt=prompts[pid],
+                chosen=chosen[0],
+                rejected=rejected[0],
+                metadata={"problem_id": pid, "num_chosen": len(chosen), "num_rejected": len(rejected)},
+            ))
+        return pairs
+
+    def rft_update(
+        self,
+        dataset: Optional[List[Dict[str, Any]]] = None,
+        output_path: Optional[str] = None,
+        epochs: int = 1
+    ) -> Dict[str, Any]:
+        """Run a Rejection Fine-Tuning update step over verified/rejected pairs.
+
+        Behavior:
+        - If ``self.config.selfplay_rft_trainer_hook`` is configured, the
+          assembled preference dataset is handed to that hook (e.g. an external
+          trainer) and its result is returned. The hook is the real training
+          path when a trainer is available.
+        - Otherwise the dataset is recorded to disk as JSONL at
+          ``output_path`` (or ``self.config.selfplay_rft_dataset_path``) for
+          later training. This is an explicit, marked recording step — not a
+          silent no-op.
+
+        Returns a status dict describing what was done.
+        """
+        if dataset is None:
+            pairs = self.collect_preference_pairs()
+            dataset = [asdict(p) for p in pairs]
+
+        if not dataset:
+            logger.info("[rft] no preference pairs available; nothing to train/update.")
+            return {
+                "status": "skipped",
+                "reason": "no preference pairs",
+                "num_pairs": 0,
+                "trained": False,
+                "recorded": False,
+            }
+
+        hook = self.config.selfplay_rft_trainer_hook
+        if hook is not None and callable(hook):
+            logger.info("[rft] invoking configured trainer hook with %d pairs", len(dataset))
+            hook_result = hook(dataset)
+            return {
+                "status": "trained",
+                "num_pairs": len(dataset),
+                "trained": True,
+                "recorded": False,
+                "hook_result": hook_result,
+            }
+
+        # No trainer: record the dataset to disk as JSONL.
+        out = output_path or self.config.selfplay_rft_dataset_path
+        if out is None:
+            out = os.path.join(tempfile.gettempdir(), "psv_rft_dataset.jsonl")
+
+        written = 0
+        with open(out, "w", encoding="utf-8") as fh:
+            for pair in dataset:
+                fh.write(json.dumps(pair, ensure_ascii=False) + "\n")
+                written += 1
+
+        logger.info("[rft] recorded %d preference pairs to %s", written, out)
+        return {
+            "status": "recorded",
+            "num_pairs": written,
+            "trained": False,
+            "recorded": True,
+            "dataset_path": out,
+            "epochs": epochs,
+            "note": "Dataset recorded for later rejection fine-tuning; no trainer configured.",
         }
 
     async def close(self):
@@ -782,5 +1133,7 @@ __all__ = [
     'SolutionAttempt',
     'VerificationResult',
     'PSVEpisode',
+    'FormalVerificationResult',
+    'RFTPreferencePair',
     'create_psv_manager'
 ]

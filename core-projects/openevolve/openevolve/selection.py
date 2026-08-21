@@ -9,10 +9,11 @@ or invert maximize objectives before passing them in.
 
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from openevolve.cmaes import CMAESResult, cmaes_selection, evolve as _cmaes_evolve
 from openevolve.neat import neat_selection
 from openevolve.nsga3 import fast_non_dominated_sort, nsga3_selection
 from openevolve.novelty_search import novelty_selection
@@ -113,9 +114,17 @@ def select_mo(
             population_size,
             random_state=random_state,
         )
+    if normalized in ("cmaes", "cmaes_es", "covariancematrixadaptation"):
+        # CMA-ES uses rank-based (mu, lambda) truncation selection: scalarize
+        # the objective rows and keep the mu best in rank order.
+        return cmaes_selection(
+            objectives,
+            population_size,
+            random_state=random_state,
+        )
     raise ValueError(
         f"Unsupported multi-objective selection_method: {method!r}. "
-        "Supported: nsga2, nsga3, novelty_search, neat."
+        "Supported: nsga2, nsga3, novelty_search, neat, cmaes."
     )
 
 
@@ -155,5 +164,40 @@ def run_symbolic_regression(
         p_reproduction=p_reproduction,
         parsimony_coefficient=parsimony_coefficient,
         random_state=random_state,
+        verbose=verbose,
+    )
+
+
+def run_cmaes(
+    objective_fn: Callable[[np.ndarray], float],
+    dim: int,
+    generations: int = 100,
+    pop_size: Optional[int] = None,
+    x0: Optional[Sequence[float]] = None,
+    sigma0: float = 0.5,
+    mu: Optional[int] = None,
+    bounds: Optional[object] = None,
+    random_state: Optional[int] = None,
+    tol_fitness: Optional[float] = None,
+    verbose: bool = False,
+) -> "CMAESResult":
+    """Run CMA-ES on a continuous minimization problem.
+
+    Thin delegation to :func:`openevolve.cmaes.evolve`, mirroring how
+    ``select_mo`` delegates to ``nsga3`` / ``novelty_search`` and how
+    ``run_symbolic_regression`` delegates to the GP engine. Returns the best
+    solution vector, its objective value and the best-so-far history.
+    """
+    return _cmaes_evolve(
+        objective_fn,
+        dim=dim,
+        generations=generations,
+        pop_size=pop_size,
+        x0=x0,
+        sigma0=sigma0,
+        mu=mu,
+        bounds=bounds,
+        random_state=random_state,
+        tol_fitness=tol_fitness,
         verbose=verbose,
     )

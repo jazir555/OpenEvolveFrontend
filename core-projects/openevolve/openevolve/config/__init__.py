@@ -32,6 +32,7 @@ if _config_path.exists():
     DatabaseConfig = config_module.DatabaseConfig
     EvaluatorConfig = config_module.EvaluatorConfig
     EvolutionTraceConfig = config_module.EvolutionTraceConfig
+    SelfAdaptiveConfig = config_module.SelfAdaptiveConfig
     _resolve_env_var = config_module._resolve_env_var
 
 # Import new runtime config modules
@@ -52,6 +53,7 @@ __all__ = [
     "DatabaseConfig",
     "EvaluatorConfig",
     "EvolutionTraceConfig",
+    "SelfAdaptiveConfig",
     "_resolve_env_var",
 
     # Runtime config

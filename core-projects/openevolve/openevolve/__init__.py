@@ -12,6 +12,24 @@ from openevolve.api import (
     evolve_code,
     EvolutionResult,
 )
+from openevolve.hybrid_maker import (
+    MakerHybridStrategy,
+    MCTSThenMaker,
+    MakerThenEvolution,
+    MakerAdversarialHybrid,
+    AdaptiveMakerHybrid,
+    MakerMDAPParallel,
+    FullMakerHybrid,
+    VerificationOracle,
+    CandidateGenerator,
+    DefaultCandidateGenerator,
+    VerificationResult,
+    MakerHybridConfig,
+    MakerHybridMode,
+    MakerHybridResult,
+    create_maker_hybrid,
+    get_maker_hybrid_capabilities,
+)
 
 __all__ = [
     "OpenEvolve",
@@ -21,6 +39,22 @@ __all__ = [
     "evolve_algorithm",
     "evolve_code",
     "EvolutionResult",
+    "MakerHybridStrategy",
+    "MCTSThenMaker",
+    "MakerThenEvolution",
+    "MakerAdversarialHybrid",
+    "AdaptiveMakerHybrid",
+    "MakerMDAPParallel",
+    "FullMakerHybrid",
+    "VerificationOracle",
+    "CandidateGenerator",
+    "DefaultCandidateGenerator",
+    "VerificationResult",
+    "MakerHybridConfig",
+    "MakerHybridMode",
+    "MakerHybridResult",
+    "create_maker_hybrid",
+    "get_maker_hybrid_capabilities",
 ]
 
 # Ensure top-level knowledge_engine is available under openevolve.knowledge_engine

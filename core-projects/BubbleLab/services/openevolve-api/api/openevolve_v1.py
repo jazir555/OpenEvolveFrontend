@@ -171,14 +171,27 @@ def _evolve_request_to_bridge(body: Dict[str, Any]) -> Dict[str, Any]:
             if key in config:
                 parameters[key] = config[key]
 
-    return {
+    # Optional real-LLM config, mirroring /workflows/orchestrate. The bridge only
+    # selects a live model when a name AND an api_key are present; an absent or
+    # empty ``llm`` keeps the deterministic offline mock backend.
+    llm = body.get("llm")
+    llm = dict(llm) if isinstance(llm, dict) else {}
+
+    bridge_request: Dict[str, Any] = {
         "system": "evolutionary",
         "initial_program": initial_program,
         "evaluator": evaluator,
         "parameters": parameters,
-        # No live LLM credentials -> the bridge selects the offline mock backend.
-        "llm": {},
+        "llm": llm,
     }
+
+    # A live provider is slower than the mock backend; let callers raise the
+    # bridge's wall-clock ceiling for this run.
+    timeout_seconds = body.get("timeout_seconds")
+    if isinstance(timeout_seconds, (int, float)) and not isinstance(timeout_seconds, bool):
+        bridge_request["timeout_seconds"] = float(timeout_seconds)
+
+    return bridge_request
 
 
 def _orchestrate_request_to_bridge(body: Dict[str, Any]) -> Dict[str, Any]:

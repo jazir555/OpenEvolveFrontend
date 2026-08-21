@@ -141,7 +141,9 @@ class LanguageServiceTypechecker {
     const p = path.isAbsolute(fileName)
       ? fileName
       : path.join(rootDir, fileName);
-    return ts.sys.useCaseSensitiveFileNames ? p : p.toLowerCase();
+    // Use TS's canonical normalization (forward slashes, case-folded) so the
+    // key matches the path the LanguageService passes back to getScriptSnapshot.
+    return ts.normalizePath(p);
   }
 
   private getVirtualFiles(): string[] {

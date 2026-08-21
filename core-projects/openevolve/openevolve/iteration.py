@@ -1,5 +1,6 @@
 import uuid
 import logging
+import random
 import time
 from dataclasses import dataclass
 
@@ -50,6 +51,87 @@ async def run_iteration_with_shared_db(
             num_inspirations=config.prompt.num_top_programs
         )
 
+        # Optional genetic-operator layer (OFF unless config.use_genetic_operators).
+        # When enabled the documented core-evolution parameters become live:
+        #    - selection_method / selection_pressure: choose the parent
+        #    - crossover_rate: blend a second parent into the base code
+        #    - mutation_rate: mutate the base code + scale LLM temperature
+        #    - elitism / elite_ratio: preserve top-N candidates each generation
+        # The flag-off path below is unchanged from the original implementation.
+        parent_code = parent.code
+        llm_temperature = None
+        if getattr(config, "use_genetic_operators", False):
+            from openevolve.genetic_operators import (
+                crossover,
+                elite_programs,
+                mutate_code,
+                mutation_temperature_scale,
+                select_parent,
+            )
+
+            go_rng = random.Random(config.random_seed)
+            go_pop = list(database.programs.values())
+            go_fdims = database.config.feature_dimensions
+            go_method = getattr(config, "selection_method", "tournament")
+
+            # 1. Genetic parent selection
+            if go_method in ("tournament", "roulette", "rank") and len(go_pop) > 1:
+                parent = select_parent(
+                    go_pop,
+                    method=go_method,
+                    selection_pressure=getattr(config, "selection_pressure", 1.0),
+                    feature_dimensions=go_fdims,
+                    rng=go_rng,
+                )
+
+            # 2. Crossover: blend a second parent into the base code
+            if getattr(config, "crossover_rate", 0.0) > 0.0 and len(go_pop) > 1:
+                others = [p for p in go_pop if p.id != parent.id]
+                if others and go_rng.random() < getattr(config, "crossover_rate", 0.0):
+                    second = select_parent(
+                        others,
+                        method=go_method,
+                        selection_pressure=getattr(config, "selection_pressure", 1.0),
+                        feature_dimensions=go_fdims,
+                        rng=go_rng,
+                    )
+                    parent_code = crossover(parent, second, config.crossover_rate, go_rng)
+                else:
+                    parent_code = parent.code
+            else:
+                parent_code = parent.code
+
+            # 3. Code-level mutation of the base code
+            parent_code = mutate_code(
+                parent_code, getattr(config, "mutation_rate", 0.0), go_rng
+            )
+
+            # 4. Elitism: preserve top-N candidates across generations
+            if getattr(config, "elitism", False):
+                elite_n = int(getattr(config, "elite_ratio", 0.1) * len(go_pop))
+                if getattr(config, "elite_ratio", 0.1) > 1:
+                    elite_n = int(getattr(config, "elite_ratio", 0.1))
+                elite_n = max(0, elite_n)
+                for e in elite_programs(go_pop, elite_n, go_fdims):
+                    database.add(
+                        Program(
+                            code=e.code,
+                            language=config.language or e.language,
+                            parent_id=e.id,
+                            generation=e.generation,
+                            metrics=dict(e.metrics),
+                            iteration_found=iteration,
+                            metadata={**e.metadata, "elite": True},
+                        )
+                    )
+
+            # 5. Scale LLM temperature by mutation rate
+            base_temp = getattr(config.llm, "temperature", None)
+            llm_temperature = mutation_temperature_scale(
+                base_temp if base_temp is not None else 0.7,
+                getattr(config, "mutation_rate", 0.0),
+            )
+
         # Get artifacts for the parent program if available
         parent_artifacts = database.get_artifacts(parent.id)
 
@@ -62,8 +144,8 @@ async def run_iteration_with_shared_db(
 
         # Build prompt
         prompt = prompt_sampler.build_prompt(
-            current_program=parent.code,
-            parent_program=parent.code,
+            current_program=parent_code,
+            parent_program=parent_code,
             program_metrics=parent.metrics,
             previous_programs=[p.to_dict() for p in island_previous_programs],
             top_programs=[p.to_dict() for p in island_top_programs],
@@ -79,9 +161,13 @@ async def run_iteration_with_shared_db(
         iteration_start = time.time()
 
         # Generate code modification
+        generate_kwargs = {}
+        if llm_temperature is not None:
+            generate_kwargs["temperature"] = llm_temperature
         llm_response = await llm_ensemble.generate_with_context(
             system_message=prompt["system"],
             messages=[{"role": "user", "content": prompt["user"]}],
+            **generate_kwargs,
         )
 
         # Parse the response
