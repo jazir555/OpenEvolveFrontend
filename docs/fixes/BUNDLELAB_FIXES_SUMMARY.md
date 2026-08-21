@@ -1,7 +1,7 @@
 # BubbleLab-Converted Fixes Summary
 
 **Date**: 2026-02-12
-**Scope**: Fixed all CRITICAL and HIGH severity gaps in openevolve-sdk
+**Scope**: Fixed all CRITICAL and HIGH severity gaps in bubblelab-integration-sdk
 
 ---
 
@@ -25,8 +25,8 @@ All changes follow the Immutable Laws, particularly:
 
 ### 1. CRITICAL - Contract Tests for openevolveApi.ts ✅
 
-**File**: `openevolve-sdk/src/lib/openevolveApi.test.ts` (NEW)
-**Files Modified**: `openevolve-sdk/package.json`, `openevolve-sdk/vitest.config.ts` (NEW)
+**File**: `bubblelab-integration-sdk/src/lib/openevolveApi.test.ts` (NEW)
+**Files Modified**: `bubblelab-integration-sdk/package.json`, `bubblelab-integration-sdk/vitest.config.ts` (NEW)
 
 **What Was Done**:
 - Created comprehensive contract tests covering all 50+ API endpoints
@@ -73,7 +73,7 @@ All changes follow the Immutable Laws, particularly:
 
 ### 2. HIGH - Integrated Retry Logic ✅
 
-**File**: `openevolve-sdk/src/lib/openevolveApi.ts`
+**File**: `bubblelab-integration-sdk/src/lib/openevolveApi.ts`
 **Lines Modified**: 95-280
 
 **What Was Done**:
@@ -105,7 +105,7 @@ return retryWithBackoff(async () => {
 
 ### 3. HIGH - Integrated Circuit Breaker ✅
 
-**File**: `openevolve-sdk/src/lib/openevolveApi.ts`
+**File**: `bubblelab-integration-sdk/src/lib/openevolveApi.ts`
 **Lines Modified**: 95-280
 
 **What Was Done**:
@@ -145,7 +145,7 @@ return openevolveCircuitBreaker.execute(async () => {
 
 ### 4. HIGH - Added Timeout to GitHub API ✅
 
-**File**: `openevolve-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
+**File**: `bubblelab-integration-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
 **Lines Modified**: 141-180
 
 **What Was Done**:
@@ -186,7 +186,7 @@ const fetchGithub = async (path: string, options: RequestInit = {}) => {
 
 ### 5. HIGH - Moved GITHUB_API_BASE to Environment Variable ✅
 
-**File**: `openevolve-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
+**File**: `bubblelab-integration-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
 **Line Modified**: 41-44
 
 **What Was Done**:
@@ -208,7 +208,7 @@ const GITHUB_API_BASE = typeof process !== 'undefined' && process.env?.GITHUB_AP
 
 ### 6. MEDIUM - Replaced console.error with apiLogger ✅
 
-**File**: `openevolve-sdk/src/components/openevolve/main/OpenEvolveApp.tsx`
+**File**: `bubblelab-integration-sdk/src/components/openevolve/main/OpenEvolveApp.tsx`
 **Line Modified**: 86
 
 **What Was Done**:
@@ -240,7 +240,7 @@ apiLogger.error('Failed to parse saved state', e as Error, {
 
 ### 7. MEDIUM - Fixed Empty Catch Blocks ✅
 
-**File**: `openevolve-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
+**File**: `bubblelab-integration-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx`
 **Lines Modified**: 55-61, 354-361
 
 **What Was Done**:
@@ -297,12 +297,12 @@ try {
 
 ## Files Modified
 
-1. `openevolve-sdk/src/lib/openevolveApi.ts` (retry, circuit breaker, logging)
-2. `openevolve-sdk/src/lib/openevolveApi.test.ts` (NEW - contract tests)
-3. `openevolve-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx` (timeout, env var, logging)
-4. `openevolve-sdk/src/components/openevolve/main/OpenEvolveApp.tsx` (structured logging)
-5. `openevolve-sdk/package.json` (added test scripts)
-6. `openevolve-sdk/vitest.config.ts` (NEW - test configuration)
+1. `bubblelab-integration-sdk/src/lib/openevolveApi.ts` (retry, circuit breaker, logging)
+2. `bubblelab-integration-sdk/src/lib/openevolveApi.test.ts` (NEW - contract tests)
+3. `bubblelab-integration-sdk/src/components/openevolve/main/GithubIntegrationTab.tsx` (timeout, env var, logging)
+4. `bubblelab-integration-sdk/src/components/openevolve/main/OpenEvolveApp.tsx` (structured logging)
+5. `bubblelab-integration-sdk/package.json` (added test scripts)
+6. `bubblelab-integration-sdk/vitest.config.ts` (NEW - test configuration)
 
 ---
 
@@ -310,7 +310,7 @@ try {
 
 ### Run Contract Tests
 ```bash
-cd openevolve-sdk
+cd bubblelab-integration-sdk
 npm install
 npm run test:contract
 ```
@@ -326,7 +326,7 @@ npm run test:coverage
 ```
 
 ### Environment Setup
-Create a `.env` file in `openevolve-sdk/`:
+Create a `.env` file in `bubblelab-integration-sdk/`:
 ```bash
 OPENEVOLVE_API_BASE_URL=http://localhost:8000
 OPENEVOLVE_API_KEY=your-api-key-here

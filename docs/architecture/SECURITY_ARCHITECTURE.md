@@ -1,5 +1,13 @@
 # OpenEvolve Security Architecture - Production Ready
 
+> **STATUS: implemented** (see `engines/other/security_framework.py` — `SecurityConfig`, `Permission`, `Role`, `UserRole`, `UserContext`, `JWTManager`, `RateLimiter`, `InputValidator`, `APIKeyStatus`, `APIKeyRecord`, `APIKeyDatabase`, `AuditLogEntry`, `AuditLogger`, `SecurityHeadersMiddleware`, `RateLimitMiddleware`, `HTTPSRedirectMiddleware`, `AuditLogMiddleware`; supporting modules in `engines/security/` — `auth_system.py`, `rate_limiting.py`, `rbac_enhanced.py`, `secure_api.py`, `security_layer.py`, `security_utils.py`, `security_verification.py`; `UserContext` enforcement in `engines/other/workflow_engine.py`; the referenced test suite exists at `tests/real_security_tests.py`).
+>
+> **Note on file paths:** this document refers to `security_framework.py`, `workflow_engine.py`, and `real_security_tests.py` by bare filename; in this distribution they are `engines/other/security_framework.py`, `engines/other/workflow_engine.py`, and `tests/real_security_tests.py`.
+>
+> **Integration backend:** the HTTP surface these controls protect is `services/openevolve-api` (FastAPI, port 8000, `main.py`), which mounts all `/api/*` route groups and installs `MetricsMiddleware` and CORS; the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim to it. The security middleware above is defined in `engines/other/security_framework.py` and is not currently added by `services/openevolve-api/main.py`.
+>
+> **Last reconciled: 2026-08-20**
+
 **Version:** 2.0.0  
 **Date:** February 4, 2026  
 **Status:** PRODUCTION READY  

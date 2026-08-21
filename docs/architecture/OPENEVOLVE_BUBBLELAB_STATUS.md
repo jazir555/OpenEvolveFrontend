@@ -164,3 +164,16 @@ The gap analysis in sections 1-6 was written against an earlier tree. A re-scan 
 
 ### Bottom line
 The OpenEvolve ⇄ BubbleLab integration is functionally complete and verified end-to-end (GREY→GREEN). Remaining items are design consolidations (single backend source of truth, proxy hardening, real-LLM exercise), not breakage.
+
+---
+
+## 8. Wave 7 — rename, doc reconciliation, hardening (2026-08-20)
+
+A 6-agent wave continued completion work. Harness stayed GREEN (8/8).
+
+- **openevolve-sdk renamed to ubblelab-integration-sdk.** The old name was a misnomer: it is fully custom BubbleLab integration work (TS components ported from Python-on-OpenEvolve), NOT part of the OpenEvolve library. Renamed via git mv (94 files); package.json name + description updated; all 15 repo references updated; 	sc --noEmit + itest run (26 passed) green; repo-wide grep for openevolve-sdk now returns zero matches.
+- **Design-spec doc reconciliation (23 docs).** LEANAIDE_*, HYBRID_MCTS_*, EVOLUTION_ALGORITHM_ENHANCEMENT_SPEC, selfplay_*, ADAPTIVE_MDAP_PES, RAGBITS, UNIFIED/COMPLETE_ARCHITECTURE, SECURITY_ARCHITECTURE, OPENEVOLVE_API_REFERENCE, API_DOCUMENTATION, OPENEVOLVE_LOONGFLOW_* were stamped IMPLEMENTED / PARTIAL / DESIGN-ONLY with grep evidence; API_DOCUMENTATION.md's fictitious base URL was corrected to services/openevolve-api (FastAPI :8000) + the Hono proxy.
+- **Client consolidation.** The glue/adapters/bubblelab copy of openevolveApi.ts was calling unprefixed routes (/teams, /workflows, /gauntlets, …) that 404 on the canonical backend — fixed to /api/...; added a route-contract vitest (4/4). pps/bubble-studio/src/services/openevolveApi.ts confirmed canonical. (Known pre-existing: ubble-studio has a parse error in src/components/execution_logs/ExecutionHistory.tsx — outside this wave, does not affect the harness.)
+- **openevolve-grpc honestly demoted.** Despite ~10 \"CERTIFIED FOR PRODUCTION\" reports, it is a prototype: server.py has its RPCs commented out (serves UNIMPLEMENTED) and python/client.py is stubbed. tsc + 10 jest tests pass after 3 real fixes (proto-dir resolution from dist/, index % 0 channel bug, added jest config); recorded in ACTUAL_STATUS.md.
+- **OpenEvolve core lib tests + 2 source bug fixes.** Added 	ests/test_core_extra.py (23 tests). Fixed database.py (missing _remove_program_if_orphaned raised AttributeError on MAP-Elites cell replacement) and config.py (str/int/loat fields defaulting to None broke rom_dict/	o_dict round-trips → made Optional). Lib suite now 33 passed. (Pre-existing 	est_valid_configs.py UnicodeDecodeError on a non-ASCII example YAML is unrelated.)
+- **UI route-contract test.** Added pps/bubble-studio/src/services/__tests__/routeContract.test.ts locking the client↔backend route manifest (22 routes; mutation-checked, 2 passed).

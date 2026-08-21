@@ -20,7 +20,7 @@ All CRITICAL and HIGH severity gaps have been addressed across root-level `src/l
 **Verification:**
 - ✅ `leanaide-bubblelab-plugin/src/lib/`: No localhost defaults
 - ✅ `bubblelabs-ragbits-plugin/src/lib/`: No localhost defaults
-- ✅ `openevolve-sdk/src/lib/openevolveApi.ts`: Properly requires `OPENEVOLVE_API_BASE` via env validation
+- ✅ `bubblelab-integration-sdk/src/lib/openevolveApi.ts`: Properly requires `OPENEVOLVE_API_BASE` via env validation
 - ✅ All adapter clients properly require service URLs via configuration
 
 **Example from openevolveApi.ts (Lines 133-137):**
@@ -307,7 +307,7 @@ private async checkDependencyValidationStatus(
 
 ## 6. MEDIUM: Add Error Classification to openevolveApi.ts ✅ ALREADY PRESENT
 
-**File:** `openevolve-sdk/src/lib/openevolveApi.ts`
+**File:** `bubblelab-integration-sdk/src/lib/openevolveApi.ts`
 
 **Finding:** Error classification already implemented!
 

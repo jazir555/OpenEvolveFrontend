@@ -10,6 +10,7 @@ import * as protoLoader from '@grpc/proto-loader';
 import { EventEmitter } from 'events';
 
 import * as path from 'path';
+import * as fs from 'fs';
 
 // ============================================================================
 // Type Definitions
@@ -42,6 +43,10 @@ export interface GRPCClientConfig {
   
   // Load balancing
   loadBalancingPolicy?: string;
+
+  // Explicit path to the directory containing the .proto files.
+  // Defaults to auto-detection relative to this module.
+  protoDir?: string;
 }
 
 export interface ExecutionRequest {
@@ -183,10 +188,39 @@ export class OpenEvolveGRPCClient extends EventEmitter {
   }
 
   /**
+   * Resolve the directory containing the .proto files.
+   *
+   * The proto/ directory lives one level above the typescript/ package root.
+   * This must work for two different __dirname values:
+   *   - running from source (typescript/)      -> ../proto
+   *   - running from compiled output (dist/)   -> ../../proto
+   * An explicit protoDir in the config always wins.
+   */
+  private resolveProtoDir(): string {
+    const candidates = this.config.protoDir
+      ? [this.config.protoDir]
+      : [
+          path.join(__dirname, '..', 'proto'),
+          path.join(__dirname, '..', '..', 'proto'),
+        ];
+
+    for (const dir of candidates) {
+      if (fs.existsSync(path.join(dir, 'common.proto'))) {
+        return dir;
+      }
+    }
+
+    throw new Error(
+      `Unable to locate the OpenEvolve proto directory. Looked in: ${candidates.join(', ')}. ` +
+        `Set 'protoDir' in the client config to the directory containing common.proto.`
+    );
+  }
+
+  /**
    * Load protobuf definitions
    */
   private loadProto(): void {
-    const protoDir = path.join(__dirname, '..', 'proto');
+    const protoDir = this.resolveProtoDir();
     
     const protoFiles = [
       path.join(protoDir, 'common.proto'),
@@ -305,6 +339,11 @@ export class OpenEvolveGRPCClient extends EventEmitter {
    * Get next channel from pool (round-robin)
    */
   private getChannel(): grpc.Client {
+    if (this.channels.length === 0) {
+      throw new Error(
+        'No gRPC channel available: call connect() before issuing requests.'
+      );
+    }
     const channel = this.channels[this.currentChannelIndex];
     this.currentChannelIndex = (this.currentChannelIndex + 1) % this.channels.length;
     return channel;

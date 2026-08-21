@@ -1,5 +1,13 @@
 # Evolution Algorithm Enhancement Specification
 
+> **STATUS: design-only / not implemented in this distribution.** None of the classes specified here exist in the codebase: greps for `class EnhancedEvolutionEngine`, `class MAPElites`, `class NoveltySearch`, `class NSGAIII`, `class MultiObjectiveSelection`, `class AdaptationEngine` (in an evolution context), `class SelfAdaptiveOperators`, `class NEAT`, `class DifferentiableArchitectureSearch`, `class SymbolicRegressionGP`, and `class SecureCodeExecutor` all return no matches under `core-projects/openevolve`, `openevolve/`, or `engines/`.
+>
+> *Adjacent capabilities that do exist:* a MAP-Elites feature grid inside `core-projects/openevolve/openevolve/database.py` (`island_feature_maps`, `feature_bins`, `feature_dimensions`), and quality-diversity / multi-objective strategy modes plus an `nsga2` multi-objective algorithm option in `core-projects/openevolve/unified/config.py` (`QD`, `MO`). Treat this document as a forward-looking spec, not as a description of shipped code.
+>
+> **Integration backend:** the distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups; the BubbleLab Hono proxy is `apps/bubblelab-api/src/routes/openevolve.ts`. No `/api/*` route group corresponds to the enhancements below.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Document Information
 - **Version**: 1.0
 - **Date**: February 1, 2026

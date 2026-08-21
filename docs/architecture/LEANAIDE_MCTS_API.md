@@ -1,5 +1,11 @@
 # LeanAide MCTS API Reference
 
+> **STATUS: implemented** (see `integrations/leanaide/leanaide_mcts.py` — `MCTSConfig`, `MCTSResult`, `ProofState`, `MCTSNode`, `MCTSTree`, `MCTSSelection`, `MCTSExpansion`, `MCTSSimulation`, `MCTSBackpropagation`, `MCTS`; plus `integrations/leanaide/leanaide_mcts_strategies.py`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [Core Classes](#core-classes)

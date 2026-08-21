@@ -1,5 +1,15 @@
 # Adaptive MDAP + PES Enhanced Integration Design
 
+> **STATUS: implemented** (see `engines/adaptive/adaptive_mdap_pes_integration.py` — `AdaptivePESConfig`, `ComplexityAnalysisResult`, `PESAllocationDecision`, `UnifiedBudgetStatus`, `UnifiedBudgetTracker`, `ComplexityPESBridge`, `AdaptivePESCoordinator`, `AdaptivePESIntegrationWrapper`, plus the `create_cost_aware_coordinator` / `create_performance_coordinator` / `create_fully_featured_coordinator` factories; demo in `engines/mcts_mdap/adaptive_mdap_pes_demo.py`).
+>
+> *System 1 — PES Enhanced:* `openevolve_pes_enhanced/cost_optimizer.py` (`CostOptimizer`, `CostAwarePlanner`), `openevolve_pes_enhanced/execution_monitor.py` (`ExecutionMonitor`), `openevolve_pes_enhanced/budget_enforcer.py`, `openevolve_pes_enhanced/summarization_engine.py`. The doc's `PESPlanner` is named `CostAwarePlanner` here; a literal `PESPlanner` exists in `openevolve_loongflow_integration/pes_planner.py`.
+>
+> *System 2 — Adaptive MDAP:* `adaptive_mdap/classifiers/task_complexity_classifier.py` (`TaskComplexityClassifier`), `adaptive_mdap/__init__.py` (`AdaptiveMDAPAllocator`), `engines/other/adaptive_mdap.py`, `engines/other/config_loader.py` (`AdaptiveMDAPConfig`).
+>
+> **Integration backend:** `openevolve_pes_enhanced/api_routes.py` defines a `/pes-enhanced/*` FastAPI router, but it is **not** currently included by the canonical backend. That backend is `services/openevolve-api` (FastAPI, port 8000, `main.py`) which mounts all `/api/*` route groups; the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim to it (default `http://localhost:8000`).
+>
+> **Last reconciled: 2026-08-20**
+
 ## Executive Summary
 
 This document describes the integration between **Adaptive MDAP** (complexity-based resource allocation) and **PES Enhanced** (cost-aware evolution with early stopping) to create a unified system that achieves **40-60% cost reduction** compared to either system alone.

@@ -2,6 +2,12 @@
 
 **Complete Parameter Guide for OpenEvolve Integration**
 
+> **STATUS: implemented** (see `engines/config/parameter_definitions.py` — `DEFAULT_PARAMETER_DEFINITIONS` defines exactly the 19 categories documented here: `core_evolution`, `model_config`, `quality_diversity`, `multi_objective`, `adversarial`, `island_model`, `selection`, `evaluation`, `prompt_engineering`, `artifact_management`, `resource_management`, `database_storage`, `evolution_tracing`, `early_stopping`, `distributed_processing`, `advanced_research`, `custom_requirements`, `ui_visualization`, `experimental`. Types, ranges and defaults match, e.g. `evolution_mode` options `standard|quality_diversity|multi_objective|adversarial|problem_decomposition`, `max_iterations` 1–1000 default 10, `population_size` 1–1000 default 20, `temperature` 0.0–2.0 default 0.7, `max_tokens` default 2048. Supporting code: `engines/config/parameter_sync_manager.py`, `engines/config/unified_configuration.py`, `engines/config/config_validation.py`).
+>
+> **Integration backend:** these parameters are served over HTTP by `services/openevolve-api` (FastAPI, port 8000): `api/parameters.py` exposes `GET /api/parameters/schema`, `GET /api/parameters/defaults`, `GET /api/parameters/categories`, and `POST /api/parameters/validate`; per-feature defaults live under `/api/settings/*`. The BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim to that service (default `http://localhost:8000`).
+>
+> **Last reconciled: 2026-08-20**
+
 ---
 
 ## Overview

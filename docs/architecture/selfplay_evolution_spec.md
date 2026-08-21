@@ -1,5 +1,13 @@
 # Self-Play Evolution Implementation Specification (PSV: Propose, Solve, Verify)
 
+> **STATUS: partially implemented** (see `engines/other/psv_selfplay.py` — `PSVConfig`, `PSVManager`, `PSVEpisode`, `MathematicalProblemProposer`, `MathematicalProblemSolver`, `MathematicalProblemVerifier`, `VerificationResult`).
+>
+> *Design-only parts:* the Verus/Rust formal-specification pipeline and rejection fine-tuning (RFT) described below are not present — greps for `verus`, `rust`, and `rft` in `engines/other/psv_selfplay.py` return no matches; the shipped proposer/solver/verifier operate on mathematical problems via an LLM client. The module is also self-contained: `PSVManager`/`PSVConfig` have no callers elsewhere in the repository.
+>
+> **Integration backend:** PSV is not exposed over HTTP. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`; there is no self-play route group.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Overview
 This specification outlines the implementation of PSV (Propose, Solve, Verify) self-play functionality in the OpenEvolve framework. PSV is a self-play algorithm for code generation that leverages formal verification to provide reliable correctness signals, preventing error propagation and reward hacking that occurs with unit test-based approaches.
 

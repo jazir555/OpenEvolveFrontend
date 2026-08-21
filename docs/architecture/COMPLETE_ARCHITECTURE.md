@@ -1,5 +1,15 @@
 # Complete OpenEvolve Frontend Architecture
 
+> **STATUS: partially implemented.**
+>
+> *Implemented:* `engines/other/decomposition_mcp_tools.py`, `engines/other/decomposition_crewai_bridge.py`, `integrations/openevolve/openevolve_mcp_tools.py`, `integrations/other/steer_mcp_tools.py`, `integrations/other/steer_crewai_bridge.py`; CrewAI is vendored at `core-projects/crewAI`, Steer at `core-projects/steer`, and the evolution engine (MAP-Elites feature grid + island model) at `core-projects/openevolve/openevolve/database.py`. Decomposition stages live under `engines/decomposition/` and teams/gauntlets under `engines/teams/` and `engines/gauntlets/`.
+>
+> *Not present in this distribution:* `crewai_openevolve_bridge.py`, `openevolve_hephaustus_delegation.py`, `openevolve_hephaustus_adapter.py` (no matching files anywhere in the repo). Note also that the "Integration Files" table lists bare filenames — none of them sit at the repository root; they are under `engines/other/`, `integrations/openevolve/`, and `integrations/other/`, so the `import` examples below need those paths on `sys.path`.
+>
+> **Integration backend:** the HTTP backend for this architecture is `services/openevolve-api` (FastAPI, port 8000, `main.py`), which mounts all `/api/*` route groups — `/api/workflows`, `/api/teams`, `/api/gauntlets`, `/api/executions`, `/api/settings`, `/api/decomposition`, `/api/v1/*`, plus `/api/parameters`, `/api/monitoring`, `/api/validation`, `/api/analytics`, `/api/crewai`, `/api/version-control`, `/api/evaluators`, `/api/integrated`, `/api/knowledge`, `/api/bubblelabs/leanaide/*` — and `/icr`, `/determinism`, `/bubblelabs`. The BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim to it.
+>
+> **Last reconciled: 2026-08-20**
+
 **Date**: 2025-12-29
 **Status**: PRODUCTION-READY ✅
 **All Components Integrated**: CrewAI + OpenEvolve + Decomposition + Steer

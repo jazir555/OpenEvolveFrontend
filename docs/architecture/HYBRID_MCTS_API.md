@@ -1,5 +1,13 @@
 # Hybrid MCTS-Evolution API Reference
 
+> **STATUS: implemented** (see `engines/plugins/hybrid_mcts_framework.py` — `HybridMCTSConfig`, `HybridMCTSApproach`, `HybridMCTSResult`, `HybridMCTSEngine`, `AdaptiveHybridSelector`, `CombinedHybridMCTS`, `HybridMCTSPresets`, `HybridMCTSMonitor`, `HybridBenchmark`, `HybridMCTSWorkflowIntegrator`; evolved-policy API in `engines/mcts_mdap/mcts_evolved_policies.py` — `RolloutPolicyGenome`, `TacticRolloutPolicy`, `PolicyPopulation`, `PolicyEvolutionEngine`, `EvolvedPolicyMCTS`, `AdaptivePolicyMCTS`; evolutionary-node API in `engines/mcts_mdap/mcts_evolutionary_nodes.py` — `ActionSequence`, `EvolutionaryNode`, `SequenceCrossover`, `SequenceMutation`, `EvolutionaryMCTS`; coevolution API in `engines/mcts_mdap/mcts_coevolution.py` and `engines/mcts_mdap/mcts_coevolution_mdap.py`; unified framework in `engines/mcts_mdap/mdap_maker_mcts_unified.py`).
+>
+> **Note on the import path:** there is no top-level `hybrid_mcts` package in this distribution — the framework module is `engines/plugins/hybrid_mcts_framework.py` and the approach-specific classes live under `engines/mcts_mdap/`.
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [Overview](#overview)

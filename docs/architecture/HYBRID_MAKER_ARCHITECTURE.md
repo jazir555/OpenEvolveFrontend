@@ -1,5 +1,15 @@
 # HYBRID MAKER ARCHITECTURE
 
+> **STATUS: partially implemented.**
+>
+> *Implemented:* `engines/plugins/hybrid_maker_integration.py` (`HybridMAKEREngine`, `HybridMode`, `HybridMAKERConfig`), `engines/plugins/hybrid_maker_config.py` (`HybridMakerConfig` plus `MakerConfig`/`MCTSConfig`/`EvolutionConfig`/`MDAPConfig` sub-configs and `HybridStrategyProfile`), `engines/plugins/hybrid_maker_workflow.py` (`HybridMakerWorkflowOrchestrator`, staged workflow + progress monitoring), `engines/plugins/hybrid_strategy_orchestrator.py`, `engines/plugins/hybrid_advanced_plugins.py` (tactic-generator / fitness / selection / crossover / mutation plugin points), `engines/other/maker_engine.py`, `engines/other/mdap_engine.py`.
+>
+> *Design-only:* the generic `MAKER*Hybrid` strategy class names used in the diagrams are not present; the shipped strategy implementations are LeanAide-specialised in `integrations/leanaide/leanaide_hybrid_maker_enhanced.py` and `integrations/leanaide/leanaide_hybrid_strategies.py`.
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## System Architecture Overview
 
 The Hybrid MAKER architecture integrates the MAKER framework (arXiv:2511.09030) with multiple computational strategies including MCTS, Evolutionary Algorithms, and Adversarial Testing. This document provides a comprehensive architectural overview of the hybrid system.

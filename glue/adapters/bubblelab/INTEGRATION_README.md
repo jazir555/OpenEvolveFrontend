@@ -151,7 +151,7 @@ console.log('Workflow statistics:', stats);
 ## File Structure
 
 ```
-openevolve-sdk/src/
+bubblelab-integration-sdk/src/
 ├── lib/
 │   ├── plugin-registry.ts          # Plugin management system
 │   ├── workflow-orchestrator.ts    # Workflow execution engine

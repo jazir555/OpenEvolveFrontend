@@ -1,5 +1,13 @@
 # LeanAide MDAP/MAKER Architecture
 
+> **STATUS: implemented** (see `engines/other/mdap_engine.py` — `MDAPOrchestrator`, `MDAPTask`, `MDAPStep`, `MDAPRunResult`, `RedFlagger`; `engines/other/maker_engine.py`; `engines/other/roma_mdap_maker_engine.py` — `ROMAMDAPMakerEngine`; `engines/other/maker_workflow_integration.py`; `engines/other/workflow_engine.py`; Lean-specific layer in `integrations/leanaide/leanaide_mdap.py` — `LeanMDAPOrchestrator`, `LeanProofAgent`, `LeanAgentSelector` — and `integrations/leanaide/leanaide_maker.py`).
+>
+> **Note on file paths:** the doc's `demo_mdap_maker.py` is not present; the demo in this distribution is `integrations/leanaide/leanaide_mdap_demo.py`.
+>
+> **Integration backend:** MDAP/MAKER is reachable over HTTP through `services/openevolve-api` (FastAPI, port 8000): `api/settings.py` serves `/api/settings/mdap-maker` and `/api/settings/roma-mdap-maker`, and `api/mdap_maker.py` defines `/mdap-maker/status`, `/mdap-maker/solve`, `/roma-mdap-maker/status`, `/roma-mdap-maker/solve` (that router is present but not yet included in `main.py`). The BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` to this service.
+>
+> **Last reconciled: 2026-08-20**
+
 **Document Version:** 1.0
 **Date:** 2025-12-30
 **Project:** OpenEvolve Frontend - LeanAide MDAP/MAKER Integration

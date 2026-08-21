@@ -2,6 +2,16 @@
 
 Complete API reference for Hybrid MAKER strategies integration.
 
+> **STATUS: partially implemented.**
+>
+> *Implemented:* `engines/plugins/hybrid_maker_integration.py` (`HybridMAKERConfig`, `HybridMAKEREngine`, `HybridMode`, `create_hybrid_maker_engine`), `engines/plugins/hybrid_maker_config.py` (`HybridMakerConfig`, `MakerConfig`, `MCTSConfig`, `EvolutionConfig`, `MDAPConfig`, `HybridStrategyProfile`, `AdaptiveConfig`, `HybridMakerConfigPreset`), `engines/plugins/hybrid_maker_workflow.py` (`HybridMakerWorkflowConfig`, `HybridMakerWorkflowOrchestrator`, `HybridMakerProgressMonitor`), `engines/plugins/hybrid_strategy_orchestrator.py` (`HybridStrategyOrchestrator`, `CostBudget`), `engines/other/maker_engine.py` (`MakerEngine`), `engines/other/evolution_maker_integration.py` (`MAKEREvolutionEngine`).
+>
+> *Design-only (names not present in this distribution):* `MAKERHybridConfig`, `MAKERHybridMode`, `MCTSThenMAKER`, `MAKERThenEvolution`, `MAKERAdversarialHybrid`, `AdaptiveMAKERHybrid`, `MAKERMDAPParallel`, `FullMAKERHybrid`. The shipped equivalents are LeanAide-specialised: `integrations/leanaide/leanaide_hybrid_maker_enhanced.py` (`LeanAideThenMAKER`, `MAKERThenLeanAideVerify`, `AdaptiveLeanAideMAKER`, `LeanAideMCTSHybrid`, `EvolutionaryLeanAideMAKER`, `ParallelLeanAideMAKER`) and `integrations/leanaide/leanaide_hybrid_strategies.py` (`MCTSThenEvolution`, `MCTSThenMDAP`, `MDAPMCTSParallel`, `AdaptiveMDAPMCTS`, `HybridStrategyFactory`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 **Version:** 1.0.0
 **Paper:** arXiv:2511.09030
 **Last Updated:** 2025-12-30

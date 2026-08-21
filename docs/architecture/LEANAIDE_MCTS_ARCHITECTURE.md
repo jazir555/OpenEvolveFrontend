@@ -1,5 +1,11 @@
 # LeanAide MCTS Architecture
 
+> **STATUS: implemented** (see `integrations/leanaide/leanaide_mcts.py` — `MCTS`, `MCTSTree`, `MCTSNode`, and the four phase classes `MCTSSelection`/`MCTSExpansion`/`MCTSSimulation`/`MCTSBackpropagation`; plus `integrations/leanaide/leanaide_mcts_strategies.py`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [System Architecture](#system-architecture)

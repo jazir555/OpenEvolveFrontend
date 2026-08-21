@@ -1,5 +1,11 @@
 # LeanAide MDAP-Enhanced Evolution - API Reference
 
+> **STATUS: implemented** (see `integrations/leanaide/leanaide_evolution_mdap.py` — `MDAPEvolutionConfig`, `MDAPResult`, `MDAPLeanPopulation`, `MDAPLeanSelector`, `MDAPLeanCrossover`, `MDAPLeanMutator`; plus `integrations/leanaide/leanaide_evolution_mdap_workflow.py` and `engines/other/evolution_maker_integration.py` for `MAKEREvolutionEngine`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 **Document Version:** 1.0
 **Date:** 2025-12-30
 **Project:** OpenEvolve Frontend - LeanAide Evolution + MDAP Integration

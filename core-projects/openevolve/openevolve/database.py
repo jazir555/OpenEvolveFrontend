@@ -1915,6 +1915,45 @@ class ProgramDatabase:
         # Clean up any stale island best program references after removal
         self._cleanup_stale_island_bests()
 
+    def _remove_program_if_orphaned(self, program_id: str) -> None:
+        """Remove a program that owns no MAP-Elites cell and belongs to no island.
+
+        After a cell replacement, the displaced program may no longer own any cell
+        and may not belong to any island population. Such "zombie" programs can
+        never be sampled again but still occupy a population slot, so they are
+        removed here.
+        """
+        if program_id is None or program_id not in self.programs:
+            return
+
+        # Owns a cell in some island's feature map?
+        owns_cell = any(
+            program_id in island_map.values()
+            for island_map in self.island_feature_maps
+        )
+        # Belongs to an island population?
+        in_island = any(program_id in island for island in self.islands)
+
+        if owns_cell or in_island:
+            return
+
+        # Never drop the tracked absolute best program.
+        if program_id == self.best_program_id:
+            return
+
+        if program_id in self.programs:
+            del self.programs[program_id]
+        for island in self.islands:
+            island.discard(program_id)
+        self.archive.discard(program_id)
+
+        # Clear any stale island-best reference pointing at the removed program.
+        for idx, best_id in enumerate(self.island_best_programs):
+            if best_id == program_id:
+                self.island_best_programs[idx] = None
+
+        logger.debug(f"Removed orphaned program {program_id}")
+
     # Island management methods
     def set_current_island(self, island_idx: int) -> None:
         """Set which island is currently being evolved"""

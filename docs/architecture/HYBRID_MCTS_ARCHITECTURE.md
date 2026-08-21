@@ -1,5 +1,13 @@
 # Hybrid MCTS-Evolution Architecture
 
+> **STATUS: implemented** (see `engines/plugins/hybrid_mcts_framework.py` — `HybridMCTSApproach`, `HybridMCTSEngine`, `AdaptiveHybridSelector`, `CombinedHybridMCTS`, `HybridCache`, `HybridBenchmark`; the three approaches are implemented in `engines/mcts_mdap/mcts_evolved_policies.py`, `engines/mcts_mdap/mcts_evolutionary_nodes.py`, and `engines/mcts_mdap/mcts_coevolution.py`).
+>
+> **Note on the import path:** there is no top-level `hybrid_mcts` package in this distribution — the framework module is `engines/plugins/hybrid_mcts_framework.py`.
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [System Overview](#system-overview)

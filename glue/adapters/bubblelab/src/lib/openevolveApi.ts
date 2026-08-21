@@ -305,80 +305,80 @@ async function request<T>(
 
 export const openevolveApi = {
   listTeams: (config?: ApiConfig) =>
-    request<{ teams: TeamSummary[]; total: number }>("/teams", {}, config),
+    request<{ teams: TeamSummary[]; total: number }>("/api/teams", {}, config),
   getTeam: (teamName: string, config?: ApiConfig) =>
-    request<Team>(`/teams/${encodeURIComponent(teamName)}`, {}, config),
+    request<Team>(`/api/teams/${encodeURIComponent(teamName)}`, {}, config),
   createTeam: (team: Team, config?: ApiConfig) =>
     request<{ message: string; team_name: string }>(
-      "/teams",
+      "/api/teams",
       { method: "POST", body: JSON.stringify(team) },
       config,
     ),
   updateTeam: (teamName: string, team: Team, config?: ApiConfig) =>
     request<{ message: string; team_name: string }>(
-      `/teams/${encodeURIComponent(teamName)}`,
+      `/api/teams/${encodeURIComponent(teamName)}`,
       { method: "PUT", body: JSON.stringify(team) },
       config,
     ),
   deleteTeam: (teamName: string, config?: ApiConfig) =>
     request<{ success: boolean }>(
-      `/teams/${encodeURIComponent(teamName)}`,
+      `/api/teams/${encodeURIComponent(teamName)}`,
       { method: "DELETE" },
       config,
     ),
   listGauntlets: (config?: ApiConfig) =>
-    request<{ gauntlets: GauntletSummary[]; total: number }>("/gauntlets", {}, config),
+    request<{ gauntlets: GauntletSummary[]; total: number }>("/api/gauntlets", {}, config),
   getGauntlet: (name: string, config?: ApiConfig) =>
-    request<GauntletDefinition>(`/gauntlets/${encodeURIComponent(name)}`, {}, config),
+    request<GauntletDefinition>(`/api/gauntlets/${encodeURIComponent(name)}`, {}, config),
   createGauntlet: (gauntlet: GauntletDefinition, config?: ApiConfig) =>
     request<{ message: string; gauntlet_name: string }>(
-      "/gauntlets",
+      "/api/gauntlets",
       { method: "POST", body: JSON.stringify(gauntlet) },
       config,
     ),
   updateGauntlet: (name: string, gauntlet: GauntletDefinition, config?: ApiConfig) =>
     request<{ message: string; gauntlet_name: string }>(
-      `/gauntlets/${encodeURIComponent(name)}`,
+      `/api/gauntlets/${encodeURIComponent(name)}`,
       { method: "PUT", body: JSON.stringify(gauntlet) },
       config,
     ),
   deleteGauntlet: (name: string, config?: ApiConfig) =>
     request<{ success: boolean }>(
-      `/gauntlets/${encodeURIComponent(name)}`,
+      `/api/gauntlets/${encodeURIComponent(name)}`,
       { method: "DELETE" },
       config,
     ),
   listWorkflows: (config?: ApiConfig) =>
-    request<{ workflows: WorkflowSummary[]; total: number }>("/workflows", {}, config),
+    request<{ workflows: WorkflowSummary[]; total: number }>("/api/workflows", {}, config),
   getWorkflow: (workflowId: string, config?: ApiConfig) =>
-    request<WorkflowDetail>(`/workflows/${encodeURIComponent(workflowId)}`, {}, config),
+    request<WorkflowDetail>(`/api/workflows/${encodeURIComponent(workflowId)}`, {}, config),
   createWorkflow: (payload: WorkflowCreateRequest, config?: ApiConfig) =>
     request<WorkflowCreateResponse>(
-      "/workflows",
+      "/api/workflows",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   pauseWorkflow: (workflowId: string, config?: ApiConfig) =>
     request<{ message: string; workflow_id: string; status: string }>(
-      `/workflows/${encodeURIComponent(workflowId)}/pause`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/pause`,
       { method: "POST" },
       config,
     ),
   resumeWorkflow: (workflowId: string, config?: ApiConfig) =>
     request<{ message: string; workflow_id: string; status: string }>(
-      `/workflows/${encodeURIComponent(workflowId)}/resume`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/resume`,
       { method: "POST" },
       config,
     ),
   deleteWorkflow: (workflowId: string, config?: ApiConfig) =>
     request<{ message: string; workflow_id: string }>(
-      `/workflows/${encodeURIComponent(workflowId)}`,
+      `/api/workflows/${encodeURIComponent(workflowId)}`,
       { method: "DELETE" },
       config,
     ),
   getWorkflowResults: (workflowId: string, config?: ApiConfig) =>
     request<WorkflowResults>(
-      `/workflows/${encodeURIComponent(workflowId)}/results`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/results`,
       {},
       config,
     ),
@@ -393,40 +393,40 @@ export const openevolveApi = {
     }
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request<{ metrics: PerformanceMetric[]; total: number }>(
-      `/analytics/performance-metrics${suffix}`,
+      `/api/analytics/performance-metrics${suffix}`,
       {},
       config,
     );
   },
   getAnalyticsKnowledgeStats: (config?: ApiConfig) =>
-    request<AnalyticsKnowledgeStats>("/analytics/knowledge-stats", {}, config),
+    request<AnalyticsKnowledgeStats>("/api/analytics/knowledge-stats", {}, config),
   getWorkflowPlan: (workflowId: string, config?: ApiConfig) =>
     request<WorkflowPlanResponse>(
-      `/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
       {},
       config,
     ),
   getWorkflowTelemetry: (workflowId: string, config?: ApiConfig) =>
     request<WorkflowTelemetry>(
-      `/workflows/${encodeURIComponent(workflowId)}/telemetry`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/telemetry`,
       {},
       config,
     ),
   getWorkflowMetrics: (config?: ApiConfig) =>
     request<{ metrics: AnalyticsWorkflowMetric[]; total: number }>(
-      "/analytics/workflow-metrics",
+      "/api/analytics/workflow-metrics",
       {},
       config,
     ),
   listSovereignPlans: (config?: ApiConfig) =>
     request<{ plans: SovereignPlan[] }>("/sovereign/plans", {}, config),
   getMonitoringDashboard: (config?: ApiConfig) =>
-    request<MonitoringDashboardMetrics>("/monitoring/dashboard", {}, config),
+    request<MonitoringDashboardMetrics>("/api/monitoring/dashboard", {}, config),
   getMonitoringAlerts: (config?: ApiConfig) =>
-    request<{ alerts: MonitoringAlert[] }>("/monitoring/alerts", {}, config),
+    request<{ alerts: MonitoringAlert[] }>("/api/monitoring/alerts", {}, config),
   getMonitoringServices: (config?: ApiConfig) =>
     request<{ services: MonitoringService[]; timestamp?: string }>(
-      "/monitoring/services",
+      "/api/monitoring/services",
       {},
       config,
     ),
@@ -436,7 +436,7 @@ export const openevolveApi = {
     if (source) params.set("source", source);
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request<{ entries: MonitoringLogEntry[]; total: number }>(
-      `/monitoring/logs${suffix}`,
+      `/api/monitoring/logs${suffix}`,
       {},
       config,
     );
@@ -450,21 +450,21 @@ export const openevolveApi = {
     if (params.start_time) search.set("start_time", params.start_time);
     if (params.end_time) search.set("end_time", params.end_time);
     const suffix = search.toString() ? `?${search.toString()}` : "";
-    return request<{ metrics: MonitoringMetric[] }>(`/monitoring/metrics${suffix}`, {}, config);
+    return request<{ metrics: MonitoringMetric[] }>(`/api/monitoring/metrics${suffix}`, {}, config);
   },
   getMonitoringHealth: (config?: ApiConfig) =>
-    request<Record<string, unknown>>("/monitoring/health", {}, config),
+    request<Record<string, unknown>>("/api/monitoring/health", {}, config),
   listCrewaiWorkflows: (config?: ApiConfig) =>
-    request<{ workflows: CrewAIWorkflowSummary[]; total: number }>("/crewai/workflows", {}, config),
+    request<{ workflows: CrewAIWorkflowSummary[]; total: number }>("/api/crewai/workflows", {}, config),
   getCrewaiWorkflow: (workflowId: string, config?: ApiConfig) =>
     request<Record<string, unknown>>(
-      `/crewai/workflows/${encodeURIComponent(workflowId)}`,
+      `/api/crewai/workflows/${encodeURIComponent(workflowId)}`,
       {},
       config,
     ),
   getCrewaiWorkflowTickets: (workflowId: string, config?: ApiConfig) =>
     request<{ tickets: CrewAIWorkflowTicket[]; total: number; status_breakdown?: Record<string, number> }>(
-      `/crewai/workflows/${encodeURIComponent(workflowId)}/tickets`,
+      `/api/crewai/workflows/${encodeURIComponent(workflowId)}/tickets`,
       {},
       config,
     ),
@@ -560,41 +560,41 @@ export const openevolveApi = {
 
   // Knowledge Base
   listKnowledgeArtifacts: (config?: ApiConfig) =>
-    request<{ artifacts: KnowledgeArtifact[] }>("/knowledge/artifacts", {}, config),
+    request<{ artifacts: KnowledgeArtifact[] }>("/api/knowledge/artifacts", {}, config),
   getKnowledgeArtifact: (artifactId: string, config?: ApiConfig) =>
-    request<KnowledgeArtifact>(`/knowledge/artifacts/${encodeURIComponent(artifactId)}`, {}, config),
+    request<KnowledgeArtifact>(`/api/knowledge/artifacts/${encodeURIComponent(artifactId)}`, {}, config),
   createKnowledgeArtifact: (payload: Record<string, unknown>, config?: ApiConfig) =>
     request<KnowledgeArtifact>(
-      "/knowledge/artifacts",
+      "/api/knowledge/artifacts",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   deleteKnowledgeArtifact: (artifactId: string, config?: ApiConfig) =>
     request<{ success: boolean }>(
-      `/knowledge/artifacts/${encodeURIComponent(artifactId)}`,
+      `/api/knowledge/artifacts/${encodeURIComponent(artifactId)}`,
       { method: "DELETE" },
       config,
     ),
   searchKnowledge: (payload: Record<string, unknown>, config?: ApiConfig) =>
     request<{ results: KnowledgeArtifact[] }>(
-      "/knowledge/search",
+      "/api/knowledge/search",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   getKnowledgeGraph: (config?: ApiConfig) =>
-    request<KnowledgeGraph>("/knowledge/graph", {}, config),
-  getKnowledgeStats: (config?: ApiConfig) => request<KnowledgeStats>("/knowledge/stats", {}, config),
+    request<KnowledgeGraph>("/api/knowledge/graph", {}, config),
+  getKnowledgeStats: (config?: ApiConfig) => request<KnowledgeStats>("/api/knowledge/stats", {}, config),
   getKnowledgeRecommendations: (payload: Record<string, unknown>, config?: ApiConfig) =>
     request<KnowledgeRecommendations>(
-      "/knowledge/recommendations",
+      "/api/knowledge/recommendations",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   exportKnowledgeBase: (config?: ApiConfig) =>
-    request<Record<string, unknown>>("/knowledge/export", {}, config),
+    request<Record<string, unknown>>("/api/knowledge/export", {}, config),
   importKnowledgeBase: (payload: Record<string, unknown>, config?: ApiConfig) =>
     request<{ success: boolean }>(
-      "/knowledge/import",
+      "/api/knowledge/import",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -664,59 +664,59 @@ export const openevolveApi = {
       config,
     ),
   getParameterSchema: (config?: ApiConfig) =>
-    request<{ parameters: ParameterDefinition[] }>("/parameters/schema", {}, config),
+    request<{ parameters: ParameterDefinition[] }>("/api/parameters/schema", {}, config),
   getParameterDefaults: (config?: ApiConfig) =>
-    request<Record<string, unknown>>("/parameters/defaults", {}, config),
+    request<Record<string, unknown>>("/api/parameters/defaults", {}, config),
   validateParameters: (payload: Record<string, unknown>, config?: ApiConfig) =>
     request<ParameterValidationResult>(
-      "/parameters/validate",
+      "/api/parameters/validate",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   getParameterCategories: (config?: ApiConfig) =>
-    request<{ categories: string[] }>("/parameters/categories", {}, config),
+    request<{ categories: string[] }>("/api/parameters/categories", {}, config),
 
   // Version control
   listVersions: (config?: ApiConfig) =>
     request<{ versions: VersionEntry[]; current_version_id?: string | null }>(
-      "/version-control/versions",
+      "/api/version-control/versions",
       {},
       config,
     ),
   getVersion: (versionId: string, config?: ApiConfig) =>
-    request<VersionEntry>(`/version-control/versions/${encodeURIComponent(versionId)}`, {}, config),
+    request<VersionEntry>(`/api/version-control/versions/${encodeURIComponent(versionId)}`, {}, config),
   getCurrentVersion: (config?: ApiConfig) =>
-    request<{ current: VersionEntry | null }>("/version-control/current", {}, config),
+    request<{ current: VersionEntry | null }>("/api/version-control/current", {}, config),
   createVersion: (
     payload: { protocol_text: string; version_name?: string; comment?: string; author?: string },
     config?: ApiConfig,
   ) =>
     request<{ version_id: string; version: VersionEntry }>(
-      "/version-control/versions",
+      "/api/version-control/versions",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   loadVersion: (versionId: string, config?: ApiConfig) =>
     request<{ loaded: boolean; current: VersionEntry | null }>(
-      `/version-control/versions/${encodeURIComponent(versionId)}/load`,
+      `/api/version-control/versions/${encodeURIComponent(versionId)}/load`,
       { method: "POST" },
       config,
     ),
   branchVersion: (versionId: string, payload: { new_version_name: string }, config?: ApiConfig) =>
     request<{ version_id: string; version: VersionEntry }>(
-      `/version-control/versions/${encodeURIComponent(versionId)}/branch`,
+      `/api/version-control/versions/${encodeURIComponent(versionId)}/branch`,
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   compareVersions: (payload: { version_id_1: string; version_id_2: string }, config?: ApiConfig) =>
     request<VersionCompareResult>(
-      "/version-control/compare",
+      "/api/version-control/compare",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   deleteVersion: (versionId: string, config?: ApiConfig) =>
     request<{ deleted: boolean }>(
-      `/version-control/versions/${encodeURIComponent(versionId)}`,
+      `/api/version-control/versions/${encodeURIComponent(versionId)}`,
       { method: "DELETE" },
       config,
     ),
@@ -724,13 +724,13 @@ export const openevolveApi = {
   // Validation manager
   listValidationRules: (config?: ApiConfig) =>
     request<{ rules: Record<string, ValidationRule>; rule_names: string[] }>(
-      "/validation/rules",
+      "/api/validation/rules",
       {},
       config,
     ),
   getValidationRule: (ruleName: string, config?: ApiConfig) =>
     request<{ name: string; rule: ValidationRule }>(
-      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      `/api/validation/rules/${encodeURIComponent(ruleName)}`,
       {},
       config,
     ),
@@ -746,7 +746,7 @@ export const openevolveApi = {
     config?: ApiConfig,
   ) =>
     request<{ created: boolean; rule_name: string; rule: ValidationRule }>(
-      "/validation/rules",
+      "/api/validation/rules",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -763,25 +763,25 @@ export const openevolveApi = {
     config?: ApiConfig,
   ) =>
     request<{ updated: boolean; rule_name: string; rule: ValidationRule }>(
-      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      `/api/validation/rules/${encodeURIComponent(ruleName)}`,
       { method: "PUT", body: JSON.stringify(payload) },
       config,
     ),
   deleteValidationRule: (ruleName: string, config?: ApiConfig) =>
     request<{ deleted: boolean; rule_name: string }>(
-      `/validation/rules/${encodeURIComponent(ruleName)}`,
+      `/api/validation/rules/${encodeURIComponent(ruleName)}`,
       { method: "DELETE" },
       config,
     ),
   runValidation: (payload: { content: string; rule_names: string[] }, config?: ApiConfig) =>
     request<ValidationRunResult>(
-      "/validation/run",
+      "/api/validation/run",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   runComplianceCheck: (payload: { content: string; framework?: string }, config?: ApiConfig) =>
     request<ComplianceCheckResult>(
-      "/validation/compliance",
+      "/api/validation/compliance",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -840,7 +840,7 @@ export const openevolveApi = {
     config?: ApiConfig,
   ) =>
     request<Record<string, unknown>>(
-      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/parameters`,
+      `/bubblelabs/workflow-instances/${encodeURIComponent(instanceId)}/api/parameters`,
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -920,16 +920,16 @@ export const openevolveApi = {
     ),
 
   // Evaluators
-  listEvaluators: (config?: ApiConfig) => request<EvaluatorListResponse>("/evaluators", {}, config),
+  listEvaluators: (config?: ApiConfig) => request<EvaluatorListResponse>("/api/evaluators", {}, config),
   uploadEvaluator: (payload: { code: string }, config?: ApiConfig) =>
     request<EvaluatorUploadResponse>(
-      "/evaluators",
+      "/api/evaluators",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   deleteEvaluator: (evaluatorId: string, config?: ApiConfig) =>
     request<{ success: boolean; evaluator_id: string }>(
-      `/evaluators/${encodeURIComponent(evaluatorId)}`,
+      `/api/evaluators/${encodeURIComponent(evaluatorId)}`,
       { method: "DELETE" },
       config,
     ),
@@ -937,19 +937,19 @@ export const openevolveApi = {
   // Decomposition plan updates
   updateWorkflowPlan: (workflowId: string, payload: WorkflowPlanUpdateRequest, config?: ApiConfig) =>
     request<{ message: string; execution_order: string[] }>(
-      `/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
       { method: "PUT", body: JSON.stringify(payload) },
       config,
     ),
   getWorkflowResourceUsage: (workflowId: string, config?: ApiConfig) =>
     request<WorkflowResourceUsageResponse>(
-      `/workflows/${encodeURIComponent(workflowId)}/resource-usage`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/resource-usage`,
       {},
       config,
     ),
   optimizeWorkflowResources: (workflowId: string, config?: ApiConfig) =>
     request<WorkflowResourceOptimizationResponse>(
-      `/workflows/${encodeURIComponent(workflowId)}/resource-optimization`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/resource-optimization`,
       { method: "POST" },
       config,
     ),
@@ -1058,7 +1058,7 @@ export const openevolveApi = {
     request<BubbleLabsActionResponse>("/bubblelabs/analytics/dashboard", {}, config),
   bubblelabsLeanAideProve: (payload: { theorem: string }, config?: ApiConfig) =>
     request<BubbleLabsActionResponse>(
-      "/bubblelabs/leanaide/prove",
+      "/api/bubblelabs/leanaide/prove",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -1178,24 +1178,24 @@ export const openevolveApi = {
 
   // LeanAide
   bubblelabsLeanAideStatus: (config?: ApiConfig) =>
-    request<LeanAideStatusResponse>("/bubblelabs/leanaide/status", {}, config),
+    request<LeanAideStatusResponse>("/api/bubblelabs/leanaide/status", {}, config),
   bubblelabsLeanAideExecute: (
     payload: { task_type: string; payload: Record<string, unknown> },
     config?: ApiConfig,
   ) =>
     request<LeanAideExecuteResponse>(
-      "/bubblelabs/leanaide/execute",
+      "/api/bubblelabs/leanaide/execute",
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   bubblelabsLeanAideTrees: (config?: ApiConfig) =>
-    request<LeanAideTreeListResponse>("/bubblelabs/leanaide/trees", {}, config),
+    request<LeanAideTreeListResponse>("/api/bubblelabs/leanaide/trees", {}, config),
   bubblelabsLeanAideTree: (treeId: string, config?: ApiConfig) =>
-    request<LeanAideTreeResponse>(`/bubblelabs/leanaide/trees/${encodeURIComponent(treeId)}`, {}, config),
+    request<LeanAideTreeResponse>(`/api/bubblelabs/leanaide/trees/${encodeURIComponent(treeId)}`, {}, config),
   bubblelabsLeanAideProofs: (config?: ApiConfig) =>
-    request<LeanAideProofListResponse>("/bubblelabs/leanaide/proofs", {}, config),
+    request<LeanAideProofListResponse>("/api/bubblelabs/leanaide/proofs", {}, config),
   bubblelabsLeanAideProof: (proofId: string, config?: ApiConfig) =>
-    request<LeanAideProofResponse>(`/bubblelabs/leanaide/proofs/${encodeURIComponent(proofId)}`, {}, config),
+    request<LeanAideProofResponse>(`/api/bubblelabs/leanaide/proofs/${encodeURIComponent(proofId)}`, {}, config),
 
   // Evolution and adversarial runs
   startEvolutionRun: (payload: {
@@ -1244,13 +1244,13 @@ export const openevolveApi = {
     parameters?: Record<string, unknown>;
   }, config?: ApiConfig) =>
     request<EvolutionRunResponse>(
-      `/gauntlets/${encodeURIComponent(gauntletName)}/execute`,
+      `/api/gauntlets/${encodeURIComponent(gauntletName)}/execute`,
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
   getGauntletExecutionStatus: (executionId: string, config?: ApiConfig) =>
     request<EvolutionRunStatus>(
-      `/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
+      `/api/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
       {},
       config,
     ),
@@ -1259,7 +1259,7 @@ export const openevolveApi = {
     if (gauntletName) params.set("gauntlet_name", gauntletName);
     const suffix = params.toString() ? `?${params.toString()}` : "";
     return request<{ executions: Array<EvolutionRunStatus> }>(
-      `/gauntlets/executions${suffix}`,
+      `/api/gauntlets/executions${suffix}`,
       {},
       config,
     );
@@ -1276,7 +1276,7 @@ export const openevolveApi = {
     parameters?: Record<string, unknown>;
   }, config?: ApiConfig) =>
     request<{ execution_id: string; status: string }>(
-      `/workflows/${encodeURIComponent(workflowId)}/execute-decomposition`,
+      `/api/workflows/${encodeURIComponent(workflowId)}/execute-decomposition`,
       { method: "POST", body: JSON.stringify(payload) },
       config,
     ),
@@ -1340,7 +1340,7 @@ export const openevolveApi = {
     switch (executionType) {
       case 'gauntlet':
         return request<EvolutionRunStatus>(
-          `/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
+          `/api/gauntlets/executions/${encodeURIComponent(executionId)}/status`,
           {},
           config,
         );

@@ -10,7 +10,7 @@ Three moving parts:
 1. **Backend** — a large FastAPI app (`engines/other/api_server.py`, ~7.7k lines) exposing
    evolution, adversarial, workflow, knowledge, LeanAide, Maker, and monitoring routes.
    > **Reconciliation (2026-08-20):** `engines/other/api_server.py` is the **Decomposition-Workflow**
-   > server (port **8001**) described here for the `openevolve-sdk` decomposition-workflow surface.
+   > server (port **8001**) described here for the `bubblelab-integration-sdk` decomposition-workflow surface.
    > It is **not** the OpenEvolve ⇄ BubbleLab integration backend. The OpenEvolve ⇄ BubbleLab
    > integration backend is **`core-projects/BubbleLab/services/openevolve-api`** (FastAPI,
    > port **8000**), whose routers are mounted **already `/api`-prefixed** (no `rewrite_api_prefix`
@@ -22,13 +22,19 @@ Three moving parts:
  2. **Glue** (`glue/`) — TypeScript integration library (resilience, logging, validation,
    metrics, event bus) consumed by the UI-facing API client.
 3. **UI** — two consumers: the canonical converted component/client package
-   (`openevolve-sdk/`) and the actual React app (`core-projects/BubbleLab/`, a separate
+   (`bubblelab-integration-sdk/`) and the actual React app (`core-projects/BubbleLab/`, a separate
    pnpm+turbo monorepo).
 
-The frontend↔backend contract is owned by `openevolve-sdk`, not by the React app.
-`openevolve-sdk` was renamed from `bubblelab-converted`; it is the OpenEvolve TypeScript
+The frontend↔backend contract is owned by `bubblelab-integration-sdk`, not by the React app.
+`bubblelab-integration-sdk` was renamed from `bubblelab-converted`; it is the OpenEvolve TypeScript
 SDK / contract package — the TypeScript types plus the API client that own the
 frontend↔backend contract.
+
+> **IMPORTANT — naming clarification:** `bubblelab-integration-sdk` is **NOT** part of the OpenEvolve
+> library and is **not** OpenEvolve's official SDK. The previous name was a misnomer that incorrectly
+> implied this was OpenEvolve's SDK. This is **custom BubbleLab integration work** — TypeScript
+> components ported from Python code that originally built on top of OpenEvolve. It depends on
+> OpenEvolve-style contracts but is independently owned and maintained as BubbleLab integration code.
 
 ## Repo layout
 
@@ -37,7 +43,7 @@ frontend↔backend contract.
 | Backend API (Decomposition-Workflow) | `engines/other/api_server.py` | FastAPI; `start_api_server()` defaults to port **8001** (line 5535). `__main__` just calls it (line 7708). **This is the Decomposition-Workflow server, NOT the OpenEvolve ⇄ BubbleLab integration backend.** |
 | Glue library | `glue/lib/` | 17 root `.ts` modules + `glue/lib/metrics/`. This is the part that typechecks clean. |
 | Glue (out of typecheck) | `glue/orchestration/`, `glue/schemas/`, `glue/adapters/`, `glue/tests/` | See boundary section — partially pulled in via imports. |
-| Canonical contract | `openevolve-sdk/src/lib/openevolveApi.ts`, `openevolve-sdk/src/lib/types.ts` | Source of truth for response shapes. |
+| Canonical contract | `bubblelab-integration-sdk/src/lib/openevolveApi.ts`, `bubblelab-integration-sdk/src/lib/types.ts` | Source of truth for response shapes. |
 | React UI | `core-projects/BubbleLab/` | Own `pnpm-workspace.yaml` + `turbo.json`; apps `bubble-studio`, `bubblelab-api`; 6 `packages/*`. |
 | Divergent client | `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts` | 726 lines, separate implementation. Known debt. |
 
@@ -47,7 +53,7 @@ naturally absent from the TS build.
 ## API contract & the `/api` prefix
 
 The canonical client is the functional `openevolveApi` object exported from
-`openevolve-sdk/src/lib/openevolveApi.ts` (~1243 lines). It:
+`bubblelab-integration-sdk/src/lib/openevolveApi.ts` (~1243 lines). It:
 
 - issues **unprefixed** paths (`/teams`, `/workflows`, `/evolution/runs`,
   `/bubblelabs/leanaide/trees`, …);
@@ -57,8 +63,8 @@ The canonical client is the functional `openevolveApi` object exported from
   `glue/lib` via relative paths (`../../../glue/lib/...`, lines 95–97);
 - sends `X-API-Key` and `X-Correlation-ID`, and enforces an `AbortController` timeout.
 
-Response shapes live in `openevolve-sdk/src/lib/types.ts` (canonical contract types;
-client in `openevolve-sdk/src/lib/openevolveApi.ts`). The BubbleLab app mirrors both
+Response shapes live in `bubblelab-integration-sdk/src/lib/types.ts` (canonical contract types;
+client in `bubblelab-integration-sdk/src/lib/openevolveApi.ts`). The BubbleLab app mirrors both
 locally: types in `core-projects/BubbleLab/apps/bubble-studio/src/types/openevolve.ts`
 and the matching client in `core-projects/BubbleLab/apps/bubble-studio/src/services/openevolveApi.ts`.
 Examples confirmed:
@@ -69,7 +75,7 @@ Examples confirmed:
 `LeanAideStatusResponse.execution_history_count` (line 1148).
 
 **Contract tests pass against a live backend and skip cleanly offline.** `npx vitest run`
-in `openevolve-sdk/` is GREEN offline (no running OpenEvolve backend): passing tests plus
+in `bubblelab-integration-sdk/` is GREEN offline (no running OpenEvolve backend): passing tests plus
 skipped tests, **zero failures**. The live-contract suites probe backend reachability in a
 `beforeAll` (timed `fetch` to `/health`) and call a `liveBackend(ctx)` helper that invokes
 `ctx.skip()` when the backend is unreachable, so the suites SKIP — not fail — when
@@ -111,14 +117,14 @@ Measured scope via `tsc --listFiles`: **28 project files**, broken down as
 > `glue/orchestration/event-bus.ts`, `glue/schemas/rese-canonical.ts`. Breaking one of
 > those *will* fail root typecheck.
 
-Nothing in `core-projects/*` (React/UI), `openevolve-sdk/`, or any test file is
+Nothing in `core-projects/*` (React/UI), `bubblelab-integration-sdk/`, or any test file is
 covered. Real builds are per-package:
 
 - `core-projects/BubbleLab/` — pnpm workspace (`apps/*`, `packages/*`, `tools/*`, `docs`,
   and `../bubblelabs-ragbits-plugin`) driven by `turbo.json` with `build`, `typecheck`,
   `test`, `lint` tasks, each `dependsOn: ["^build"]`. **There is no `turbo.json` or
   `pnpm-workspace.yaml` at the repo root** — turbo is scoped to the BubbleLab subtree.
-- `openevolve-sdk/` — own `tsc` build (`npm run build`) + vitest.
+- `bubblelab-integration-sdk/` — own `tsc` build (`npm run build`) + vitest.
 - Root `npm run build` only builds `glue/orchestration/workflows` and `glue/orchestration`
   (i.e. code the root typecheck largely skips).
 
@@ -128,7 +134,7 @@ The adversarial/decomposition workflow is fully wired end-to-end: the canonical 
 a glue resilience facade, and seven BubbleLab React feature components. All route references
 below were verified against `engines/other/api_server.py`.
 
-### Canonical SDK client — `openevolve-sdk/src/lib/openevolveApi.ts`
+### Canonical SDK client — `bubblelab-integration-sdk/src/lib/openevolveApi.ts`
 
 The `openevolveApi` object now implements the complete surface, all routed through the same
 `request()` helper (CircuitBreaker + retryWithBackoff + apiLogger) described in the API-contract
@@ -198,7 +204,7 @@ during verification: `AnalyticsDashboard.tsx` used a non-existent `lucide-react`
 `ArrowPathIcon` (→ `RefreshCw`), and `TeamForm.tsx` assigned `undefined` to the required
 `api_key` string field (now only the optional `api_base` is coerced to `undefined`).
 
-The `openevolve-sdk` package additionally ships a **Workflow Visual Editor**
+The `bubblelab-integration-sdk` package additionally ships a **Workflow Visual Editor**
 (`src/components/openevolve/main/WorkflowVisualEditorTab.tsx`) — a three-pane
 palette / canvas / step-editor builder over `WorkflowDefinition`, registered as a new
 tab in `OpenEvolveApp` + `Sidebar`. See Open items.
@@ -242,14 +248,14 @@ tech debt, not architecture.
   diverging: `createTeam`/`listTeams` (lines 636/650), `createGauntlet`/`listGauntlets`
   (776/790), `uploadEvaluator` (941), `createWorkflow`/`listWorkflows`/`pauseWorkflow`/
   `resumeWorkflow` (396/412/1028/1047), plus `listExecutions`/`getExecution` (546/535). Its
-  local types shadow `openevolve-sdk/src/lib/types.ts`, so the two clients stay in lockstep and
+  local types shadow `bubblelab-integration-sdk/src/lib/types.ts`, so the two clients stay in lockstep and
   the duplicate-client debt no longer blocks deletion of the `/api` shims. The `/api` prefix is
   still rewritten by middleware (see Known integration shims), and the BubbleLab app still ships
   its own local types — consolidation onto the canonical client remains possible but is no
   longer urgent.
-- **Package rename — DONE.** `bubblelab-converted` was renamed to `openevolve-sdk` (the
+- **Package rename — DONE.** `bubblelab-converted` was renamed to `bubblelab-integration-sdk` (the
   OpenEvolve TypeScript SDK / contract package). All references in this doc now use
-  `openevolve-sdk`.
+  `bubblelab-integration-sdk`.
 - **Port standardized to 8000 — DONE.** BubbleLab `env.ts` and `api-client.ts` default to
   `http://localhost:8000`, matching contract tests and the dev runtime. Backend `start_api_server`
   still defaults to 8001 (line 5535) — callers pass `port=8000` explicitly.
@@ -259,7 +265,7 @@ tech debt, not architecture.
 - **`exclude` list is misleading** — it lists `glue/orchestration` / `glue/schemas` /
   `core-projects` even though `include` already scopes everything to `glue/lib`, and the
   exclusions don't actually hold for imported files. Don't trust it as a scope description.
-- **openevolve-sdk test suite green offline — DONE.** `src/lib/openevolveApi.test.ts` and
+- **bubblelab-integration-sdk test suite green offline — DONE.** `src/lib/openevolveApi.test.ts` and
   `src/tests/contract/openevolve-api.test.ts` previously *failed* without a backend
   (`fetch failed`). Both now do a `beforeAll` reachability probe and skip cleanly when the
   OpenEvolve backend is unreachable (mirroring `execution-api.test.ts`), so `npx vitest run`
@@ -267,12 +273,12 @@ tech debt, not architecture.
   `localStorage` behind `typeof localStorage !== 'undefined'`, eliminating the Node-env
   `localStorage is not defined` noise. Final suite: 9 passed / 1 skipped file, 26 passed /
   89 skipped tests, **0 failures**.
-- **Workflow Visual Editor — DONE (Medium).** Implemented in `openevolve-sdk` as
+- **Workflow Visual Editor — DONE (Medium).** Implemented in `bubblelab-integration-sdk` as
   `WorkflowVisualEditorTab` (plugin palette / canvas / step editor over `WorkflowDefinition`,
   with `validateWorkflow` checks and JSON export) and registered in `OpenEvolveApp` +
   `Sidebar`. Additive; the SDK stays at 0 type errors.
 - **OpenEvolve feature surface expanded in SDK — DONE.** Documented backend capabilities that
-  previously had **no client method and no UI** are now implemented in `openevolve-sdk`:
+  previously had **no client method and no UI** are now implemented in `bubblelab-integration-sdk`:
   RAGBits (search/ingest/stats), DSPy assess/fix + PyGraphistry visualization, Determinism
   generate/check, BubbleLabs integrations (list/health/control catalog-discover-execute) + Web3,
   Workflow research-approval & truth-package & instance-parameters, and ICR analytics breadth

@@ -1,5 +1,11 @@
 # LeanAide MCTS-MDAP API Reference
 
+> **STATUS: implemented** (see `integrations/leanaide/leanaide_mcts_mdap.py` — `MDAPMCTS`, `MDAPMCTSConfig`, `MDAPMCTSResult`, `MCTSSelectionPolicy`, `LeanAIDEMCTSMdap`; plus `integrations/leanaide/leanaide_mcts_mdap_complete.py` and `engines/mcts_mdap/mdap_maker_mcts_unified.py`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Table of Contents
 
 1. [Core Classes](#core-classes)

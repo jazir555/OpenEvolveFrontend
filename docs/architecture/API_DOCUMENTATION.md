@@ -1,14 +1,38 @@
 # Sovereign-Grade Problem Decomposition System - API Documentation
 
+> **STATUS: partially implemented — endpoint paths below are design-only; the base URL is corrected in place.**
+>
+> *Implemented equivalents in `services/openevolve-api`:* decomposition (`api/decomposition.py` → `POST /api/decomposition/plan`, `POST /api/decomposition/workflows/{workflow_id}/execute-decomposition`, execution-status routes), gauntlets (`api/gauntlets.py` → `/api/gauntlets`), teams (`api/teams.py`, `api/teams_enhanced.py` → `/api/teams`), analytics (`api/analytics.py` → `/api/analytics/performance-metrics`, `/api/analytics/workflow-metrics`, `/api/analytics/knowledge-stats`), workflows (`api/workflows.py` → `/api/workflows`), executions (`api/execution.py` → `/api/executions`), evaluators/validation (`api/evaluators.py`, `api/validation.py`), and LeanAide (`api/leanaide.py` → `/api/bubblelabs/leanaide/health|status|execute|trees|proofs|prove`). The generic `POST /problems`, `POST /decompositions`, `POST /solutions`, `POST /assignments`, `POST /auth/api-keys` shapes documented below are not implemented as written.
+>
+> *LeanAide translate/prove/elaborate routes* (`/translate_thm`, `/translate_def`, `/prove_for_formalization`, `/elaborate`, `/math_query`) belong to the upstream LeanAide server; in this distribution they are reached through `apps/bubblelab-api/src/routes/leanaide.ts` (`POST /generate`, `POST /verify`, `GET /models`, `POST /benchmark/start`, `GET /benchmark/{benchmarkId}/results`) and `services/openevolve-api/services/adapters/leanaide_adapter.py`. The `/leanaide/phase1..phase6` pipeline is design-only.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Overview
 
 The Sovereign-Grade Problem Decomposition System provides a comprehensive framework for breaking down complex problems into manageable components using AI-powered analysis, multi-team validation, and systematic orchestration.
 
 ## Base URL
 
+**CORRECTED (2026-08-20):** `https://api.sovereign-decomposition.com/v1` is not the backend in this
+distribution. The real backend is the FastAPI service `services/openevolve-api`
+(`core-projects/BubbleLab/services/openevolve-api/main.py`) listening on port 8000, which mounts all
+`/api/*` route groups. A BubbleLab Hono proxy at
+`core-projects/BubbleLab/apps/bubblelab-api/src/routes/openevolve.ts` (mounted at `/` in
+`apps/bubblelab-api/src/index.ts`) forwards `/api/*` requests verbatim to it via
+`OPENEVOLVE_API_URL`.
+
 ```
-https://api.sovereign-decomposition.com/v1
+http://localhost:8000          # services/openevolve-api (FastAPI) — direct
+http://localhost:3001          # BubbleLab Hono API — proxies /api/* to OPENEVOLVE_API_URL
 ```
+
+Route groups mounted by `services/openevolve-api/main.py`: `/api/workflows`, `/api/teams`,
+`/api/gauntlets`, `/api/executions`, `/api/settings`, `/api/decomposition`, `/api/v1/*`,
+`/api/parameters`, `/api/monitoring`, `/api/validation`, `/api/analytics`, `/api/crewai`,
+`/api/version-control`, `/api/evaluators`, `/api/integrated`, `/api/knowledge`,
+`/api/bubblelabs/leanaide/*`, plus `/icr`, `/determinism`, `/bubblelabs`, `/health`, and
+`/stream/workflow/{workflow_id}` (SSE).
 
 ## Authentication
 

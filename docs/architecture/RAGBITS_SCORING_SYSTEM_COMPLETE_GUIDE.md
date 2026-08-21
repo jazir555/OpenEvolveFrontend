@@ -1,5 +1,13 @@
 # RAGBits Integration - Complete Scoring System Documentation
 
+> **STATUS: implemented** (Python evaluation stack: `ragbits_integration/evaluation/metrics/evaluation_metrics.py` — `EvaluationMetricsCollector`; `ragbits_integration/evaluation/metrics/metrics_analyzer.py` — `MetricsAnalyzer`; `ragbits_integration/evaluation/comparison/historical_comparator.py` — `HistoricalComparator`; `ragbits_integration/evaluation/gauntlets/enhanced_gauntlet.py` — `EnhancedGauntletValidator`; `ragbits_integration/evaluation/dashboard/evaluation_dashboard.py`; knowledge base in `ragbits_integration/knowledge_base/rag_engine/advanced_rag.py` — `AdvancedRAGEngine` — plus `knowledge_base/extraction/`, `knowledge_base/enrichment/`, `knowledge_base/indexing/`. BubbleLab side: `core-projects/BubbleLab/packages/ragbits-bubblelab-integration/src/bubbles/` — `RAGBitsSearchBubble`, `RAGBitsIngestBubble`, `RAGBitsIndexBubble`, `RAGBitsGenerationBubble`).
+>
+> *Design-only class names:* `LLMScorer`, `HeuristicScorer`, `CustomScoringRules`, `StatisticalAnalyzer`, and `PatternExtractor` are not defined under `ragbits_integration/` — greps find no `class LLMScorer`/`class HeuristicScorer`/`class CustomScoringRules` anywhere, and `PatternExtractor`/`StatisticalAnalyzer` only exist in unrelated modules (`engines/knowledge/stage6_knowledge_extraction.py`, `openevolve_loongflow_integration/result_summarizer.py`, `core-projects/ROMA/src/roma_dspy/tools/utils/statistics.py`). Read those sections as design intent.
+>
+> **Integration backend:** the distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups — including `/api/evaluators` (`api/evaluators.py`), `/api/gauntlets` (`api/gauntlets.py`), `/api/analytics` (`api/analytics.py`) and `/api/knowledge` (`api/knowledge.py`). The BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim to it.
+>
+> **Last reconciled: 2026-08-20**
+
 **Version:** 1.0
 **Last Updated:** 2025-12-29
 **Phase:** 3 & 4 (Evaluation Framework + Enhanced Knowledge Base)

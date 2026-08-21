@@ -1,5 +1,11 @@
 # OpenEvolve + LoongFlow PES Integration Architecture
 
+> **STATUS: implemented** (see `openevolve_loongflow_integration/` — `pes_planner.py` (`PESPlanner`, `ProblemAnalyzer`, `CostEstimator`, `EvolutionPlan`, `BudgetAllocation`, `CostBudget`, `EvolutionMode`), `pes_executor.py`, `result_summarizer.py`, `budget_monitor.py`, `adapter.py` (`PESOpenEvolveAdapter`, `PESCallbacks`, `DirectedEvolutionStrategy`), `orchestrator.py` (`StrategySelector`, `StrategyOrchestrator`, `StrategyType`), `config.py`, `demo.py`. The strategy-orchestration layer is realised in `core-projects/openevolve/unified/config.py`, whose strategy enum defines `PES = "pes"` (Plan-Execute-Summarize / LoongFlow), `QD = "qd"` (Quality-Diversity MAP-Elites), `MO = "mo"` (multi-objective, default algorithm `nsga2`) and `STANDARD = "standard"`, with the public surface in `core-projects/openevolve/unified/unified_evolution_api.py` and mapping in `unified/config_mapper.py`. LoongFlow itself is vendored at `core-projects/LoongFlow`; the MAP-Elites island feature grid lives in `core-projects/openevolve/openevolve/database.py`).
+>
+> **Integration backend:** the canonical HTTP backend is `services/openevolve-api` (FastAPI, port 8000, `main.py`), which mounts all `/api/*` route groups plus the OpenEvolve `/api/v1/*` dialect (`api/openevolve_v1.py`); the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` (port 3001, mounted at `/`) forwards `/api/*` verbatim to it via `OPENEVOLVE_API_URL` (default `http://localhost:8000`). The `/pes-enhanced/*` router in `openevolve_pes_enhanced/api_routes.py` is not currently included by that service, so PES is driven in-process rather than over HTTP.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Executive Summary
 
 This document defines a unified integration architecture that combines **OpenEvolve's** powerful evolutionary optimization engine (MAP-Elites, NSGA-II, Lean 4/Z3 verification, language-agnostic code evolution) with **LoongFlow's** Plan-Execute-Summarize (PES) paradigm for cost-aware, directed search strategies.

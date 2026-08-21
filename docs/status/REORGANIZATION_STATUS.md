@@ -16,7 +16,7 @@ Frontend/
 │
 └── glue/                        ← ✅ THE GLUE LAYER (Proper Location)
     ├── adapters/
-    │   ├── bubblelab/           ← ✅ Moved from openevolve-sdk/
+    │   ├── bubblelab/           ← ✅ Moved from bubblelab-integration-sdk/
     │   │   └── src/
     │   │       ├── components/  ← Converted BubbleLab UI components
     │   │       ├── lib/          ← BubbleLab integration logic
@@ -84,7 +84,7 @@ Frontend/
 
 ### From Root Level → glue/adapters/
 
-1. ✅ `openevolve-sdk/` → `glue/adapters/bubblelab/`
+1. ✅ `bubblelab-integration-sdk/` → `glue/adapters/bubblelab/`
    - All converted UI components
    - BubbleLab integration logic
    - Workflow execution UI
@@ -108,7 +108,7 @@ Frontend/
 6. ✅ `openevolve-bubblelab-plugin/` → `glue/adapters/z3/`
    - OpenEvolve plugin implementation (contains Z3, etc.)
 
-### From openevolve-sdk/src/lib → glue/orchestration/workflow-system/
+### From bubblelab-integration-sdk/src/lib → glue/orchestration/workflow-system/
 
 7. ✅ `plugin-registry.ts`
 8. ✅ `plugin-orchestrator.ts`

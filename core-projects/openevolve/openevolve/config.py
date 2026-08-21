@@ -52,9 +52,9 @@ class LLMModelConfig:
     """Configuration for a single LLM model"""
 
     # API configuration
-    api_base: str = None
+    api_base: Optional[str] = None
     api_key: Optional[str] = None
-    name: str = None
+    name: Optional[str] = None
 
     # LLM provider: "openai" (default), "claude_code" (Claude Code CLI)
     provider: Optional[str] = None
@@ -69,12 +69,12 @@ class LLMModelConfig:
     system_message: Optional[str] = None
     temperature: float | None = None
     top_p: float | None = None
-    max_tokens: int = None
+    max_tokens: Optional[int] = None
 
     # Request parameters
-    timeout: int = None
-    retries: int = None
-    retry_delay: int = None
+    timeout: Optional[int] = None
+    retries: Optional[int] = None
+    retry_delay: Optional[int] = None
 
     # Reproducibility
     random_seed: Optional[int] = None
@@ -119,10 +119,10 @@ class LLMConfig(LLMModelConfig):
     evaluator_models: List[LLMModelConfig] = field(default_factory=lambda: [])
 
     # Backwardes compatibility with primary_model(_weight) options
-    primary_model: str = None
-    primary_model_weight: float = None
-    secondary_model: str = None
-    secondary_model_weight: float = None
+    primary_model: Optional[str] = None
+    primary_model_weight: Optional[float] = None
+    secondary_model: Optional[str] = None
+    secondary_model_weight: Optional[float] = None
 
     # Reasoning parameters (inherited from LLMModelConfig but can be overridden)
     reasoning_effort: Optional[str] = None
@@ -428,7 +428,7 @@ class Config:
     log_level: str = "INFO"
     log_dir: Optional[str] = None
     random_seed: Optional[int] = 42
-    language: str = None
+    language: Optional[str] = None
     file_suffix: str = ".py"
 
     # Component configurations

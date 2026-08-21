@@ -1,5 +1,11 @@
 # LeanAide Evolutionary API Reference
 
+> **STATUS: implemented** (all four modules exist: `integrations/leanaide/leanaide_evolution.py` — `LeanProofPopulation`, `LeanProofMutator`, `LeanProofCrossover`, `LeanProofEvaluator`; `integrations/leanaide/leanaide_adversarial.py` — `LeanBlueTeamAgent`, `LeanRedTeamAgent`, `LeanCounterexampleGenerator`, `LeanAdversarialArena`; `integrations/leanaide/leanaide_selfplay.py` — `SelfPlayResult`, `LeanProofExperienceBuffer`; `integrations/leanaide/leanaide_strategies.py` — `LeanTacticLibrary`, `LeanProofTemplate`).
+>
+> **Integration backend:** these are library modules; they are not exposed as HTTP routes. The distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups, fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`.
+>
+> **Last reconciled: 2026-08-20**
+
 **Document Version:** 1.0
 **Date:** 2025-12-30
 **Project:** OpenEvolve Frontend - LeanAide Evolutionary Integration

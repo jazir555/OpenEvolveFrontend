@@ -217,7 +217,7 @@ To verify the integration is working:
 
 1. **Start the application**
    ```bash
-    cd openevolve-sdk
+    cd bubblelab-integration-sdk
    npm run dev
    ```
 

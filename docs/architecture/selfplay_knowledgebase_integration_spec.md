@@ -1,5 +1,11 @@
 # Self-Play Evolution Integration with Knowledgebase Specification
 
+> **STATUS: design-only / not implemented in this distribution.** Both halves exist separately — PSV self-play in `engines/other/psv_selfplay.py` (`PSVManager`, `MathematicalProblemProposer/Solver/Verifier`) and the knowledge stack in `knowledge_engine/engine.py` (`KnowledgeEngine`), `knowledge_engine/indexer.py` (`CodeIndexer`), `knowledge_engine/enhanced_engine.py`, `knowledge_engine/orchestration.py` — but the wiring described here does not exist: greps for `knowledge` in `engines/other/psv_selfplay.py` and for `psv`/`PSVManager` under `knowledge_engine/` both return no matches.
+>
+> **Integration backend:** the distribution's real backend is `services/openevolve-api` (FastAPI, port 8000) which mounts all `/api/*` route groups including `/api/knowledge` (`api/knowledge.py`), fronted by the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts`. There is no self-play route group.
+>
+> **Last reconciled: 2026-08-20**
+
 ## Overview
 This specification outlines the integration of PSV (Propose, Solve, Verify) self-play functionality with the existing knowledgebase system in OpenEvolve. The integration will enable the self-play system to leverage knowledge from various sources (documents, code repositories, specifications) to enhance the propose, solve, and verify phases.
 

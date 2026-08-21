@@ -1,5 +1,13 @@
 # UNIFIED ARCHITECTURE DESIGN
 
+> **STATUS: implemented** (the merged plugin exists at `OpenEvolve-Plugin/src/` with `core/plugin/`, `core/types/`, `core/utils/`, `nodes/`, `components/` (69 `.tsx` files), `services/api/`, `services/hooks/`, `hooks/`, `schemas/`, `stores/`, `pages/`, `lib/`, `types/`, `utils/`, and `plugin.ts` / `components.ts` / `index.ts` entry points. Node system present: `nodes/BaseNode.ts`, `OpenEvolveBaseNode.ts`, `DecompositionNode.ts`, `SolutionNode.ts`, `VerificationNode.ts`, `registry.ts`, plus `MDAPNode.ts`, `MAKERNode.ts`, `LeanAIDENode.ts`, `ROMANode.ts`, `CrewAINode.ts`, `PyGraphistryNode.ts`).
+>
+> *File-name drift vs. this spec:* `core/plugin/` ships `PluginDefinition.ts` + `BubbleLabPluginDefinition.ts` (no separate `services.ts` / `endpoints.ts` / `lifecycle.ts`); `core/types/` ships `plugin-types.ts`, `enhanced-plugin-types.ts`, `extended-plugin-types.ts`, `nodes.ts`, `plugin.ts`; `core/utils/` ships `validators.ts`, `helpers.ts`, `advancedUtilities.ts`, `nodeFactory.ts`, `constants.ts`, `createOpenEvolvePlugin.ts`, `createEnhancedOpenEvolvePlugin.ts`, `enhancedErrorHandling.ts`. The naming-convention examples `services/api/evolution.ts` and `services/hooks/useEvolution.ts` do not exist — the actual files are `services/api/client.ts`, `services/api/endpoints.ts`, `services/api/OpenEvolveAPI.ts`, `services/api/websocket.ts` and `services/hooks/useApi.ts`, `useWorkflows.ts`, `useKnowledge.ts`, `useRealtime.ts`, `useWebSocket.ts`.
+>
+> **Integration backend:** the plugin's API client targets `services/openevolve-api` (FastAPI, port 8000), which mounts all `/api/*` route groups; the BubbleLab Hono proxy at `apps/bubblelab-api/src/routes/openevolve.ts` forwards `/api/*` verbatim (mounted at `/` in `apps/bubblelab-api/src/index.ts`).
+>
+> **Last reconciled: 2026-08-20**
+
 **Phase**: 2 - Architecture Design
 **Status**: COMPLETE
 **Based On**: Complete Feature Inventory (107 files from 3 plugins)
