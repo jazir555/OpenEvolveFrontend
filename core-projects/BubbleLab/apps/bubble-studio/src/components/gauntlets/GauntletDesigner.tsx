@@ -24,7 +24,7 @@ import { GauntletForm } from './GauntletForm';
 type EditorState =
   | { mode: 'closed' }
   | { mode: 'create' }
-  | { mode: 'edit'; definition: GauntletDefinition };
+  | { mode: 'edit'; definition: GauntletDefinition; id: string };
 
 export function GauntletDesigner() {
   const [gauntlets, setGauntlets] = useState<GauntletSummary[]>([]);
@@ -59,23 +59,23 @@ export function GauntletDesigner() {
     setEditor({ mode: 'create' });
   };
 
-  const handleEdit = async (name: string) => {
+  const handleEdit = async (summary: GauntletSummary) => {
     setError(null);
     try {
-      const definition = await openevolveApi.getGauntletDefinition(name);
-      setEditor({ mode: 'edit', definition });
+      const definition = await openevolveApi.getGauntletDefinition(summary.id);
+      setEditor({ mode: 'edit', definition, id: summary.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load gauntlet.');
     }
   };
 
-  const handleDelete = async (name: string) => {
-    if (!window.confirm(`Delete gauntlet "${name}"? This cannot be undone.`)) {
+  const handleDelete = async (summary: GauntletSummary) => {
+    if (!window.confirm(`Delete gauntlet "${summary.name}"? This cannot be undone.`)) {
       return;
     }
     setError(null);
     try {
-      await openevolveApi.deleteGauntlet(name);
+      await openevolveApi.deleteGauntlet(summary.id);
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete gauntlet.');
@@ -87,7 +87,7 @@ export function GauntletDesigner() {
     setError(null);
     try {
       if (editor.mode === 'edit') {
-        await openevolveApi.updateGauntlet(definition.name, definition);
+        await openevolveApi.updateGauntlet(editor.id, definition);
       } else {
         await openevolveApi.createGauntletDefinition({
           ...createDefaultGauntlet(),
@@ -190,14 +190,14 @@ export function GauntletDesigner() {
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => void handleEdit(gauntlet.name)}
+                        onClick={() => void handleEdit(gauntlet)}
                         className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
-                        onClick={() => void handleDelete(gauntlet.name)}
+                          onClick={() => void handleDelete(gauntlet)}
                         className="inline-flex items-center rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
                       >
                         Delete

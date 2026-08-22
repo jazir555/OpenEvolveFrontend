@@ -508,6 +508,13 @@ not see any run outcome (the `:8000` run proxy was write-only). Both gaps are no
   when a `version=0` row was re-inserted. Fixed by converting `schema_version` to a single-row
   `id INTEGER PRIMARY KEY CHECK (id = 1)` table with a `_reset_version_table()` (drop/recreate,
   `INSERT (1,0)`) helper, and scoping the `UPDATE ... WHERE id = 1`. Persistence tests still 4/4.
-- The `:8001` status is still not written back to `:8000` (no completion callback) — the UI reads
-  live state via the proxy routes instead (by-design; acceptable). Pickle blobs are
-  process/schema-bound (a `WorkflowState` schema change would need a migration guard).
+- **`:8001` → `:8000` status write-back — RESOLVED.** Added `api/workflow_status_sync.py`
+  with `sync_engine_statuses()` + `start_status_sync_loop(interval_seconds=10)` (daemon thread
+  started in `main.py` lifespan). It polls `:8001/workflows/{last_engine_workflow_id}` for every
+  `:8000` workflow currently `RUNNING` with a stored engine id, maps the engine `status`
+  (running/completed/failed/paused/cancelled) to `WorkflowStatus`, and on a terminal transition
+  updates + persists the `:8000` record (and best-effort stores `parameters["engine_results"]`).
+  Per-workflow calls are try/except-guarded (404/timeout are no-ops) and it is a no-op unless
+  `OPENEVOLVE_API_KEY` is set (the engine requires the admin `X-API-Key`). `tests/test_workflow_status_sync.py`
+  (4 tests) pass; regression suite (13) still green.
+- Pickle blobs are process/schema-bound (a `WorkflowState` schema change would need a migration guard).

@@ -34,6 +34,7 @@ export function TeamManager() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -68,8 +69,9 @@ export function TeamManager() {
   const openEdit = async (summary: TeamSummary) => {
     setSubmitError(null);
     try {
-      const full = await openevolveApi.getTeamDefinition(summary.name);
+      const full = await openevolveApi.getTeamDefinition(summary.id);
       setEditingTeam(full);
+      setEditingTeamId(summary.id);
       setIsFormOpen(true);
     } catch (err) {
       setError(
@@ -82,19 +84,21 @@ export function TeamManager() {
     if (isSubmitting) return;
     setIsFormOpen(false);
     setEditingTeam(null);
+    setEditingTeamId(null);
   };
 
   const handleSubmit = async (team: Team) => {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      if (editingTeam) {
-        await openevolveApi.updateTeam(editingTeam.name, team);
+      if (editingTeamId) {
+        await openevolveApi.updateTeam(editingTeamId, team);
       } else {
         await openevolveApi.createTeamDefinition(team);
       }
       setIsFormOpen(false);
       setEditingTeam(null);
+      setEditingTeamId(null);
       await loadTeams();
     } catch (err) {
       setSubmitError(
@@ -109,7 +113,7 @@ export function TeamManager() {
     if (!deletingTeam) return;
     setIsDeleting(true);
     try {
-      await openevolveApi.deleteTeam(deletingTeam.name);
+      await openevolveApi.deleteTeam(deletingTeam.id);
       setDeletingTeam(null);
       await loadTeams();
     } catch (err) {

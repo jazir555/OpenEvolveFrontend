@@ -423,6 +423,7 @@ export interface Team {
  * Condensed team row returned by `GET /teams`.
  */
 export interface TeamSummary {
+  id: string;
   name: string;
   role: TeamRole;
   description?: string | null;
@@ -505,6 +506,7 @@ export interface GauntletDefinition {
  * Condensed gauntlet row returned by `GET /gauntlets`.
  */
 export interface GauntletSummary {
+  id: string;
   name: string;
   team_name: string;
   description?: string | null;

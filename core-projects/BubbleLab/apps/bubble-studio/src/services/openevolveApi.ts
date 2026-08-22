@@ -876,21 +876,24 @@ export const openevolveApi = {
   },
 
   /**
-   * Get a full team definition by name (`GET /teams/{team_name}`).
+   * Get a full team definition by id (`GET /api/teams/{team_id}`).
    *
-   * NOTE: the backend projects each member down to
+   * NOTE: the backend keys teams by their `id` (a `team_*` UUID), not by name,
+   * so `teamId` must be the team's `id` (as returned in the list response).
+   *
+   * The backend projects each member down to
    * `{ model_id, temperature, max_tokens }`, so `api_key` and the other
    * `ModelConfig` fields are absent on responses even though the canonical
    * `Team` type declares them for request bodies.
    */
-  getTeamDefinition: async (teamName: string): Promise<Team> => {
+  getTeamDefinition: async (teamId: string): Promise<Team> => {
     logger.debug({
       msg: 'Getting team definition',
       component: 'openevolveApi',
-      team_name: teamName,
+      team_id: teamId,
     });
 
-    return openevolveApiClient.get<Team>(`/api/teams/${encodeURIComponent(teamName)}`);
+    return openevolveApiClient.get<Team>(`/api/teams/${encodeURIComponent(teamId)}`);
   },
 
   /**
@@ -914,40 +917,45 @@ export const openevolveApi = {
   },
 
   /**
-   * Update an existing team (`PUT /teams/{team_name}`).
+   * Update an existing team (`PUT /api/teams/{team_id}`).
+   *
+   * NOTE: the backend keys teams by their `id` (a `team_*` UUID), so `teamId`
+   * must be the team's `id` from the list response, not its name.
    */
   updateTeam: async (
-    teamName: string,
+    teamId: string,
     team: Team
   ): Promise<{ message: string; team_name: string }> => {
     logger.debug({
       msg: 'Updating team',
       component: 'openevolveApi',
-      team_name: teamName,
+      team_id: teamId,
       member_count: team.members.length,
     });
 
     return openevolveApiClient.put<{ message: string; team_name: string }>(
-      `/api/teams/${encodeURIComponent(teamName)}`,
+      `/api/teams/${encodeURIComponent(teamId)}`,
       team
     );
   },
 
   /**
-   * Delete a team (`DELETE /teams/{team_name}`, requires ADMIN role).
+   * Delete a team (`DELETE /api/teams/{team_id}`, requires ADMIN role).
    *
-   * NOTE: the backend returns `{ message, team_name }`; the canonical SDK still
-   * declares `{ success: boolean }` for this route (stale).
+   * NOTE: the backend keys teams by their `id`, so `teamId` is the team's `id`
+   * from the list response, not its name. The backend returns
+   * `{ message, team_name }`; the canonical SDK still declares
+   * `{ success: boolean }` for this route (stale).
    */
-  deleteTeam: async (teamName: string): Promise<{ message: string; team_name: string }> => {
+  deleteTeam: async (teamId: string): Promise<{ message: string; team_name: string }> => {
     logger.info({
       msg: 'Deleting team',
       component: 'openevolveApi',
-      team_name: teamName,
+      team_id: teamId,
     });
 
     return openevolveApiClient.delete<{ message: string; team_name: string }>(
-      `/api/teams/${encodeURIComponent(teamName)}`
+      `/api/teams/${encodeURIComponent(teamId)}`
     );
   },
 
@@ -1023,22 +1031,24 @@ export const openevolveApi = {
   },
 
   /**
-   * Get a full gauntlet definition by name (`GET /gauntlets/{gauntlet_name}`).
+   * Get a full gauntlet definition by id (`GET /api/gauntlets/{gauntlet_id}`).
    *
-   * NOTE: the backend projects each round down to
+   * NOTE: the backend keys gauntlets by their `id` (a `gauntlet_*` UUID), so
+   * `gauntletId` must be the gauntlet's `id` from the list response, not its
+   * name. The backend projects each round down to
    * `{ round_number, quorum_required_approvals, quorum_from_panel_size, min_overall_confidence }`,
    * so the remaining `GauntletRoundRule` fields are absent on responses even
    * though the canonical type declares them for request bodies.
    */
-  getGauntletDefinition: async (gauntletName: string): Promise<GauntletDefinition> => {
+  getGauntletDefinition: async (gauntletId: string): Promise<GauntletDefinition> => {
     logger.debug({
       msg: 'Getting gauntlet definition',
       component: 'openevolveApi',
-      gauntlet_name: gauntletName,
+      gauntlet_id: gauntletId,
     });
 
     return openevolveApiClient.get<GauntletDefinition>(
-      `/api/gauntlets/${encodeURIComponent(gauntletName)}`
+      `/api/gauntlets/${encodeURIComponent(gauntletId)}`
     );
   },
 
@@ -1063,42 +1073,48 @@ export const openevolveApi = {
   },
 
   /**
-   * Update an existing gauntlet (`PUT /gauntlets/{gauntlet_name}`).
+   * Update an existing gauntlet (`PUT /api/gauntlets/{gauntlet_id}`).
+   *
+   * NOTE: the backend keys gauntlets by their `id` (a `gauntlet_*` UUID), so
+   * `gauntletId` must be the gauntlet's `id` from the list response, not its
+   * name.
    */
   updateGauntlet: async (
-    gauntletName: string,
+    gauntletId: string,
     gauntlet: GauntletDefinition
   ): Promise<{ message: string; gauntlet_name: string }> => {
     logger.debug({
       msg: 'Updating gauntlet',
       component: 'openevolveApi',
-      gauntlet_name: gauntletName,
+      gauntlet_id: gauntletId,
       rounds_count: gauntlet.rounds.length,
     });
 
     return openevolveApiClient.put<{ message: string; gauntlet_name: string }>(
-      `/api/gauntlets/${encodeURIComponent(gauntletName)}`,
+      `/api/gauntlets/${encodeURIComponent(gauntletId)}`,
       gauntlet
     );
   },
 
   /**
-   * Delete a gauntlet (`DELETE /gauntlets/{gauntlet_name}`, requires ADMIN role).
+   * Delete a gauntlet (`DELETE /api/gauntlets/{gauntlet_id}`, requires ADMIN role).
    *
-   * NOTE: the backend returns `{ message, gauntlet_name }`; the canonical SDK
-   * still declares `{ success: boolean }` for this route (stale).
+   * NOTE: the backend keys gauntlets by their `id`, so `gauntletId` is the
+   * gauntlet's `id` from the list response, not its name. The backend returns
+   * `{ message, gauntlet_name }`; the canonical SDK still declares
+   * `{ success: boolean }` for this route (stale).
    */
   deleteGauntlet: async (
-    gauntletName: string
+    gauntletId: string
   ): Promise<{ message: string; gauntlet_name: string }> => {
     logger.info({
       msg: 'Deleting gauntlet',
       component: 'openevolveApi',
-      gauntlet_name: gauntletName,
+      gauntlet_id: gauntletId,
     });
 
     return openevolveApiClient.delete<{ message: string; gauntlet_name: string }>(
-      `/api/gauntlets/${encodeURIComponent(gauntletName)}`
+      `/api/gauntlets/${encodeURIComponent(gauntletId)}`
     );
   },
 
