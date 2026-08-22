@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "generatedAt": "2026-02-18T06:16:24.044Z",
-  "totalCount": 109,
+  "totalCount": 176,
   "bubbles": [
     {
       "name": "hello-world",
@@ -1313,6 +1313,676 @@
       "inputSchema": "{\n  problem_statement: string,\n  learn_from_history: boolean,\n  iterations: number,\n  population_size: number,\n  workflow_type: string,\n  base_url: string,\n  auth_token: string | undefined\n}",
       "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: {\n    total: number\n  }\n}",
       "usageExample": "// Example usage of openevolve-adaptive-evolution bubble\nconst openevolveAdaptiveEvolution = new OpenEvolveAdaptiveEvolutionBubble({\n  problem_statement: \"example string\",\n  learn_from_history: true // default,\n  iterations: 100 // default,\n  population_size: 50 // default,\n});\n\nconst result = await openevolveAdaptiveEvolution.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: {\n//     total: number\n//   }\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-plan-get",
+      "alias": "openevolve-decomposition-plan-get",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition plan get service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-plan-get bubble\nconst openevolveDecompositionPlanGet = new OpenEvolveDecompositionPlanGetBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionPlanGet.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-plan-get failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-plan-update",
+      "alias": "openevolve-decomposition-plan-update",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition plan update service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-plan-update bubble\nconst openevolveDecompositionPlanUpdate = new OpenEvolveDecompositionPlanUpdateBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionPlanUpdate.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-plan-update failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-execute",
+      "alias": "openevolve-decomposition-execute",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition execute service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-execute bubble\nconst openevolveDecompositionExecute = new OpenEvolveDecompositionExecuteBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionExecute.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-execute failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-execution-status",
+      "alias": "openevolve-decomposition-execution-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition execution status service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-execution-status bubble\nconst openevolveDecompositionExecutionStatus = new OpenEvolveDecompositionExecutionStatusBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionExecutionStatus.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-execution-status failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-settings",
+      "alias": "openevolve-decomposition-settings",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition settings service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-settings bubble\nconst openevolveDecompositionSettings = new OpenEvolveDecompositionSettingsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionSettings.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-settings failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-results",
+      "alias": "openevolve-decomposition-results",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition results service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-results bubble\nconst openevolveDecompositionResults = new OpenEvolveDecompositionResultsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionResults.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-results failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-telemetry",
+      "alias": "openevolve-decomposition-telemetry",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition telemetry service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-telemetry bubble\nconst openevolveDecompositionTelemetry = new OpenEvolveDecompositionTelemetryBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionTelemetry.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-telemetry failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-truth-package",
+      "alias": "openevolve-decomposition-truth-package",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition truth package service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-truth-package bubble\nconst openevolveDecompositionTruthPackage = new OpenEvolveDecompositionTruthPackageBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionTruthPackage.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-truth-package failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-resource-usage",
+      "alias": "openevolve-decomposition-resource-usage",
+      "type": "service",
+      "shortDescription": "OpenEvolve decomposition resource usage service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-resource-usage bubble\nconst openevolveDecompositionResourceUsage = new OpenEvolveDecompositionResourceUsageBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionResourceUsage.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-resource-usage failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gauntlet-execute",
+      "alias": "openevolve-gauntlet-execute",
+      "type": "service",
+      "shortDescription": "OpenEvolve gauntlet execute service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gauntlet-execute bubble\nconst openevolveGauntletExecute = new OpenEvolveGauntletExecuteBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveGauntletExecute.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-gauntlet-execute failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gauntlet-execution-status",
+      "alias": "openevolve-gauntlet-execution-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve gauntlet execution status service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gauntlet-execution-status bubble\nconst openevolveGauntletExecutionStatus = new OpenEvolveGauntletExecutionStatusBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveGauntletExecutionStatus.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-gauntlet-execution-status failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gauntlet-executions-list",
+      "alias": "openevolve-gauntlet-executions-list",
+      "type": "service",
+      "shortDescription": "OpenEvolve gauntlet executions list service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gauntlet-executions-list bubble\nconst openevolveGauntletExecutionsList = new OpenEvolveGauntletExecutionsListBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveGauntletExecutionsList.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-gauntlet-executions-list failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-adversarial-run",
+      "alias": "openevolve-adversarial-run",
+      "type": "service",
+      "shortDescription": "OpenEvolve adversarial run service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-adversarial-run bubble\nconst openevolveAdversarialRun = new OpenEvolveAdversarialRunBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAdversarialRun.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-adversarial-run failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-evolution-run",
+      "alias": "openevolve-evolution-run",
+      "type": "service",
+      "shortDescription": "OpenEvolve evolution run service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-evolution-run bubble\nconst openevolveEvolutionRun = new OpenEvolveEvolutionRunBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveEvolutionRun.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-evolution-run failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-graph",
+      "alias": "openevolve-knowledge-graph",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge graph service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-graph bubble\nconst openevolveKnowledgeGraph = new OpenEvolveKnowledgeGraphBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeGraph.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-graph failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-stats",
+      "alias": "openevolve-knowledge-stats",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge stats service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-stats bubble\nconst openevolveKnowledgeStats = new OpenEvolveKnowledgeStatsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeStats.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-stats failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-recommendations",
+      "alias": "openevolve-knowledge-recommendations",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge recommendations service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-recommendations bubble\nconst openevolveKnowledgeRecommendations = new OpenEvolveKnowledgeRecommendationsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeRecommendations.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-recommendations failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-export",
+      "alias": "openevolve-knowledge-export",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge export service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-export bubble\nconst openevolveKnowledgeExport = new OpenEvolveKnowledgeExportBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeExport.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-export failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-import",
+      "alias": "openevolve-knowledge-import",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge import service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-import bubble\nconst openevolveKnowledgeImport = new OpenEvolveKnowledgeImportBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeImport.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-import failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-get",
+      "alias": "openevolve-knowledge-get",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge get service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-get bubble\nconst openevolveKnowledgeGet = new OpenEvolveKnowledgeGetBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeGet.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-get failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-delete",
+      "alias": "openevolve-knowledge-delete",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge delete service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-delete bubble\nconst openevolveKnowledgeDelete = new OpenEvolveKnowledgeDeleteBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeDelete.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-delete failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-documents",
+      "alias": "openevolve-knowledge-documents",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge documents service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-documents bubble\nconst openevolveKnowledgeDocuments = new OpenEvolveKnowledgeDocumentsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeDocuments.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-documents failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-embed",
+      "alias": "openevolve-knowledge-embed",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge embed service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-embed bubble\nconst openevolveKnowledgeEmbed = new OpenEvolveKnowledgeEmbedBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeEmbed.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-embed failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-sync",
+      "alias": "openevolve-knowledge-sync",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge sync service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-sync bubble\nconst openevolveKnowledgeSync = new OpenEvolveKnowledgeSyncBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveKnowledgeSync.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-knowledge-sync failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-dashboard",
+      "alias": "openevolve-monitoring-dashboard",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring dashboard service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-dashboard bubble\nconst openevolveMonitoringDashboard = new OpenEvolveMonitoringDashboardBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringDashboard.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-dashboard failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-alerts",
+      "alias": "openevolve-monitoring-alerts",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring alerts service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-alerts bubble\nconst openevolveMonitoringAlerts = new OpenEvolveMonitoringAlertsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringAlerts.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-alerts failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-services",
+      "alias": "openevolve-monitoring-services",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring services service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-services bubble\nconst openevolveMonitoringServices = new OpenEvolveMonitoringServicesBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringServices.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-services failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-logs",
+      "alias": "openevolve-monitoring-logs",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring logs service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-logs bubble\nconst openevolveMonitoringLogs = new OpenEvolveMonitoringLogsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringLogs.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-logs failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-metrics",
+      "alias": "openevolve-monitoring-metrics",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring metrics service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-metrics bubble\nconst openevolveMonitoringMetrics = new OpenEvolveMonitoringMetricsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringMetrics.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-metrics failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-monitoring-health",
+      "alias": "openevolve-monitoring-health",
+      "type": "service",
+      "shortDescription": "OpenEvolve monitoring health service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-monitoring-health bubble\nconst openevolveMonitoringHealth = new OpenEvolveMonitoringHealthBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveMonitoringHealth.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-monitoring-health failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-analytics-statistics",
+      "alias": "openevolve-analytics-statistics",
+      "type": "service",
+      "shortDescription": "OpenEvolve analytics statistics service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-analytics-statistics bubble\nconst openevolveAnalyticsStatistics = new OpenEvolveAnalyticsStatisticsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAnalyticsStatistics.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-analytics-statistics failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-analytics-performance",
+      "alias": "openevolve-analytics-performance",
+      "type": "service",
+      "shortDescription": "OpenEvolve analytics performance service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-analytics-performance bubble\nconst openevolveAnalyticsPerformance = new OpenEvolveAnalyticsPerformanceBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAnalyticsPerformance.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-analytics-performance failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-analytics-knowledge",
+      "alias": "openevolve-analytics-knowledge",
+      "type": "service",
+      "shortDescription": "OpenEvolve analytics knowledge service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-analytics-knowledge bubble\nconst openevolveAnalyticsKnowledge = new OpenEvolveAnalyticsKnowledgeBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAnalyticsKnowledge.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-analytics-knowledge failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-analytics-workflow",
+      "alias": "openevolve-analytics-workflow",
+      "type": "service",
+      "shortDescription": "OpenEvolve analytics workflow service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-analytics-workflow bubble\nconst openevolveAnalyticsWorkflow = new OpenEvolveAnalyticsWorkflowBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAnalyticsWorkflow.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-analytics-workflow failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-settings-icr",
+      "alias": "openevolve-settings-icr",
+      "type": "service",
+      "shortDescription": "OpenEvolve settings icr service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-settings-icr bubble\nconst openevolveSettingsIcr = new OpenEvolveSettingsIcrBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveSettingsIcr.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-settings-icr failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-settings-determinism",
+      "alias": "openevolve-settings-determinism",
+      "type": "service",
+      "shortDescription": "OpenEvolve settings determinism service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-settings-determinism bubble\nconst openevolveSettingsDeterminism = new OpenEvolveSettingsDeterminismBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveSettingsDeterminism.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-settings-determinism failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-settings-adaptive-decomposition",
+      "alias": "openevolve-settings-adaptive-decomposition",
+      "type": "service",
+      "shortDescription": "OpenEvolve settings adaptive decomposition service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-settings-adaptive-decomposition bubble\nconst openevolveSettingsAdaptiveDecomposition = new OpenEvolveSettingsAdaptiveDecompositionBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveSettingsAdaptiveDecomposition.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-settings-adaptive-decomposition failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-settings-mdap-maker",
+      "alias": "openevolve-settings-mdap-maker",
+      "type": "service",
+      "shortDescription": "OpenEvolve settings mdap maker service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-settings-mdap-maker bubble\nconst openevolveSettingsMdapMaker = new OpenEvolveSettingsMdapMakerBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveSettingsMdapMaker.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-settings-mdap-maker failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-settings-roma-mdap-maker",
+      "alias": "openevolve-settings-roma-mdap-maker",
+      "type": "service",
+      "shortDescription": "OpenEvolve settings roma mdap maker service",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-settings-roma-mdap-maker bubble\nconst openevolveSettingsRomaMdapMaker = new OpenEvolveSettingsRomaMdapMakerBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveSettingsRomaMdapMaker.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-settings-roma-mdap-maker failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-decomposition-to-evolution",
+      "alias": "openevolve-decomposition-to-evolution",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve decomposition to evolution workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-decomposition-to-evolution bubble\nconst openevolveDecompositionToEvolution = new OpenEvolveDecompositionToEvolutionBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveDecompositionToEvolution.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-decomposition-to-evolution failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gauntlet-red-blue-gold",
+      "alias": "openevolve-gauntlet-red-blue-gold",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve gauntlet red blue gold workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gauntlet-red-blue-gold bubble\nconst openevolveGauntletRedBlueGold = new OpenEvolveGauntletRedBlueGoldBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveGauntletRedBlueGold.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-gauntlet-red-blue-gold failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-adversarial-to-evolution",
+      "alias": "openevolve-adversarial-to-evolution",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve adversarial to evolution workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-adversarial-to-evolution bubble\nconst openevolveAdversarialToEvolution = new OpenEvolveAdversarialToEvolutionBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveAdversarialToEvolution.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-adversarial-to-evolution failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-full-evolution-lifecycle",
+      "alias": "openevolve-full-evolution-lifecycle",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve full evolution lifecycle workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-full-evolution-lifecycle bubble\nconst openevolveFullEvolutionLifecycle = new OpenEvolveFullEvolutionLifecycleBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveFullEvolutionLifecycle.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-full-evolution-lifecycle failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-workflow-decomposition-pipeline",
+      "alias": "openevolve-workflow-decomposition-pipeline",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve workflow decomposition pipeline workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-workflow-decomposition-pipeline bubble\nconst openevolveWorkflowDecompositionPipeline = new OpenEvolveWorkflowDecompositionPipelineBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveWorkflowDecompositionPipeline.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-workflow-decomposition-pipeline failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-verified-deployment",
+      "alias": "openevolve-verified-deployment",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve verified deployment workflow",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-verified-deployment bubble\nconst openevolveVerifiedDeployment = new OpenEvolveVerifiedDeploymentBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openevolveVerifiedDeployment.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-verified-deployment failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-team-members",
+      "alias": "openevolve-team-members",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-team-members service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-team-members bubble\nconst openEvolveTeamMembersBubble = new OpenEvolveTeamMembersBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveTeamMembersBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-team-members failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-team-assign",
+      "alias": "openevolve-team-assign",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-team-assign service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-team-assign bubble\nconst openEvolveTeamAssignBubble = new OpenEvolveTeamAssignBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveTeamAssignBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-team-assign failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-team-templates",
+      "alias": "openevolve-team-templates",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-team-templates service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-team-templates bubble\nconst openEvolveTeamTemplatesBubble = new OpenEvolveTeamTemplatesBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveTeamTemplatesBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-team-templates failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-team-llms",
+      "alias": "openevolve-team-llms",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-team-llms service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-team-llms bubble\nconst openEvolveTeamLlmsBubble = new OpenEvolveTeamLlmsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveTeamLlmsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-team-llms failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-team-credentials",
+      "alias": "openevolve-team-credentials",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-team-credentials service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-team-credentials bubble\nconst openEvolveTeamCredentialsBubble = new OpenEvolveTeamCredentialsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveTeamCredentialsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-team-credentials failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-version-control",
+      "alias": "openevolve-version-control",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-version-control service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-version-control bubble\nconst openEvolveVersionControlBubble = new OpenEvolveVersionControlBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveVersionControlBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-version-control failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-validation",
+      "alias": "openevolve-validation",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-validation service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-validation bubble\nconst openEvolveValidationBubble = new OpenEvolveValidationBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveValidationBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-validation failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-parameters",
+      "alias": "openevolve-parameters",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-parameters service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-parameters bubble\nconst openEvolveParametersBubble = new OpenEvolveParametersBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveParametersBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-parameters failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-providers",
+      "alias": "openevolve-providers",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-providers service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-providers bubble\nconst openEvolveProvidersBubble = new OpenEvolveProvidersBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveProvidersBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-providers failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-audit-logs",
+      "alias": "openevolve-audit-logs",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-audit-logs service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-audit-logs bubble\nconst openEvolveAuditLogsBubble = new OpenEvolveAuditLogsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveAuditLogsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-audit-logs failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-auto-approval",
+      "alias": "openevolve-auto-approval",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-auto-approval service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-auto-approval bubble\nconst openEvolveAutoApprovalBubble = new OpenEvolveAutoApprovalBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveAutoApprovalBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-auto-approval failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-prompts",
+      "alias": "openevolve-prompts",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-prompts service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-prompts bubble\nconst openEvolvePromptsBubble = new OpenEvolvePromptsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolvePromptsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-prompts failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-content-templates",
+      "alias": "openevolve-content-templates",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-content-templates service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-content-templates bubble\nconst openEvolveContentTemplatesBubble = new OpenEvolveContentTemplatesBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveContentTemplatesBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-content-templates failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-content-validate",
+      "alias": "openevolve-content-validate",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-content-validate service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-content-validate bubble\nconst openEvolveContentValidateBubble = new OpenEvolveContentValidateBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveContentValidateBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-content-validate failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-security",
+      "alias": "openevolve-security",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-security service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-security bubble\nconst openEvolveSecurityBubble = new OpenEvolveSecurityBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveSecurityBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-security failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gateway",
+      "alias": "openevolve-gateway",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-gateway service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gateway bubble\nconst openEvolveGatewayBubble = new OpenEvolveGatewayBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveGatewayBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-gateway failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-v1-evolve",
+      "alias": "openevolve-v1-evolve",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-v1-evolve service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-v1-evolve bubble\nconst openEvolveV1EvolveBubble = new OpenEvolveV1EvolveBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveV1EvolveBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-v1-evolve failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-v1-runs",
+      "alias": "openevolve-v1-runs",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-v1-runs service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-v1-runs bubble\nconst openEvolveV1RunsBubble = new OpenEvolveV1RunsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveV1RunsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-v1-runs failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-v1-workflow-lifecycle",
+      "alias": "openevolve-v1-workflow-lifecycle",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-v1-workflow-lifecycle service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-v1-workflow-lifecycle bubble\nconst openEvolveV1WorkflowLifecycleBubble = new OpenEvolveV1WorkflowLifecycleBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveV1WorkflowLifecycleBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-v1-workflow-lifecycle failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-integrated-run",
+      "alias": "openevolve-integrated-run",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-integrated-run service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-integrated-run bubble\nconst openEvolveIntegratedRunBubble = new OpenEvolveIntegratedRunBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveIntegratedRunBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-integrated-run failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-orchestration-models",
+      "alias": "openevolve-orchestration-models",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-orchestration-models service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-orchestration-models bubble\nconst openEvolveOrchestrationModelsBubble = new OpenEvolveOrchestrationModelsBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveOrchestrationModelsBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-orchestration-models failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-orchestration-ensemble",
+      "alias": "openevolve-orchestration-ensemble",
+      "type": "service",
+      "shortDescription": "OpenEvolve openevolve-orchestration-ensemble service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-orchestration-ensemble bubble\nconst openEvolveOrchestrationEnsembleBubble = new OpenEvolveOrchestrationEnsembleBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveOrchestrationEnsembleBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-orchestration-ensemble failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
       "requiredCredentials": []
     }
   ]

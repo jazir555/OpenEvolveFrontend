@@ -15,12 +15,15 @@ try:
     from .api import (
         workflows,
         teams,
+        teams_enhanced,
         gauntlets,
         execution,
         settings,
         icr,
         determinism,
         decomposition,
+        adversarial,
+        evolution,
     )
     from .api.openevolve_v1 import router as openevolve_v1_router
     from .api.parameters import router as parameters_router
@@ -44,12 +47,15 @@ except ImportError:
     from api import (
         workflows,
         teams,
+        teams_enhanced,
         gauntlets,
         execution,
         settings,
         icr,
         determinism,
         decomposition,
+        adversarial,
+        evolution,
     )
     from api.openevolve_v1 import router as openevolve_v1_router
     from api.parameters import router as parameters_router
@@ -139,6 +145,16 @@ app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
 app.include_router(icr.router, prefix="/icr", tags=["icr"])
 app.include_router(determinism.router, prefix="/determinism", tags=["determinism"])
 app.include_router(decomposition.router, prefix="/api/decomposition", tags=["decomposition"])
+
+# Adversarial + Evolution run routers (real, self-contained endpoints that
+# implement the BubbleLab SDK contract for starting/stopping/listing runs).
+app.include_router(adversarial.router, prefix="/api/adversarial", tags=["adversarial"])
+app.include_router(evolution.router, prefix="/api/evolution", tags=["evolution"])
+
+# Enhanced team management (members/assign/templates/llms/credentials).
+# Mounted under a distinct prefix so it never collides with the legacy
+# /api/teams router.
+app.include_router(teams_enhanced.router, prefix="/api/teams-enhanced", tags=["teams-enhanced"])
 
 # OpenEvolve /api/v1/* dialect (mirrors openevolve/server_stdlib.py) so the
 # BubbleLab integration bubbles can drive the REAL engine through this service.

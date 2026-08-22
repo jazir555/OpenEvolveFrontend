@@ -587,6 +587,72 @@ export class BubbleFactory {
     const { OpenEvolveDecompositionWorkflowBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-decomposition-workflow-bubble.js'
     )) ?? {};
+    const { OpenEvolveTeamMembersBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-team-members-bubble.js'
+    )) ?? {};
+    const { OpenEvolveTeamAssignBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-team-assign-bubble.js'
+    )) ?? {};
+    const { OpenEvolveTeamTemplatesBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-team-templates-bubble.js'
+    )) ?? {};
+    const { OpenEvolveTeamLlmsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-team-llms-bubble.js'
+    )) ?? {};
+    const { OpenEvolveTeamCredentialsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-team-credentials-bubble.js'
+    )) ?? {};
+    const { OpenEvolveVersionControlBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-version-control-bubble.js'
+    )) ?? {};
+    const { OpenEvolveValidationBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-validation-bubble.js'
+    )) ?? {};
+    const { OpenEvolveParametersBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-parameters-bubble.js'
+    )) ?? {};
+    const { OpenEvolveProvidersBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-providers-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAuditLogsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-audit-logs-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAutoApprovalBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-auto-approval-bubble.js'
+    )) ?? {};
+    const { OpenEvolvePromptsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-prompts-bubble.js'
+    )) ?? {};
+    const { OpenEvolveContentTemplatesBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-content-templates-bubble.js'
+    )) ?? {};
+    const { OpenEvolveContentValidateBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-content-validate-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSecurityBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-security-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGatewayBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-gateway-bubble.js'
+    )) ?? {};
+    const { OpenEvolveV1EvolveBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-v1-evolve-bubble.js'
+    )) ?? {};
+    const { OpenEvolveV1RunsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-v1-runs-bubble.js'
+    )) ?? {};
+    const { OpenEvolveV1WorkflowLifecycleBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-v1-workflow-lifecycle-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIntegratedRunBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-integrated-run-bubble.js'
+    )) ?? {};
+    const { OpenEvolveOrchestrationModelsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-orchestration-models-bubble.js'
+    )) ?? {};
+    const { OpenEvolveOrchestrationEnsembleBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-orchestration-ensemble-bubble.js'
+    )) ?? {};
     const { OpenEvolveKnowledgeEngineBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-knowledge-engine-bubble.js'
     )) ?? {};
@@ -803,6 +869,142 @@ export class BubbleFactory {
     const { ZoomBubble } = await import(
       './bubbles/service-bubble/zoom/index.js'
     );
+
+    const { OpenEvolveDecompositionPlanGetBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-plan-get-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionPlanUpdateBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-plan-update-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionExecuteBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-execute-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionExecutionStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-execution-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionSettingsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-settings-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionResultsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-results-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionTelemetryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-telemetry-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionTruthPackageBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-truth-package-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionResourceUsageBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-decomposition-resource-usage-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGauntletExecuteBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-gauntlet-execute-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGauntletExecutionStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-gauntlet-execution-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGauntletExecutionsListBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-gauntlet-executions-list-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdversarialRunBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adversarial-run-bubble.js'
+    )) ?? {};
+    const { OpenEvolveEvolutionRunBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-evolution-run-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeGraphBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-graph-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeStatsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-stats-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeRecommendationsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-recommendations-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExportBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-export-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeImportBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-import-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeGetBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-get-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeDeleteBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-delete-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeDocumentsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-documents-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeEmbedBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-embed-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeSyncBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-sync-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringDashboardBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-dashboard-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringAlertsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-alerts-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringServicesBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-services-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringLogsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-logs-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringMetricsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-metrics-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMonitoringHealthBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-monitoring-health-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAnalyticsStatisticsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-analytics-statistics-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAnalyticsPerformanceBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-analytics-performance-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAnalyticsKnowledgeBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-analytics-knowledge-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAnalyticsWorkflowBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-analytics-workflow-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSettingsIcrBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-settings-icr-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSettingsDeterminismBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-settings-determinism-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSettingsAdaptiveDecompositionBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-settings-adaptive-decomposition-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSettingsMdapMakerBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-settings-mdap-maker-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSettingsRomaMdapMakerBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-settings-roma-mdap-maker-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDecompositionToEvolutionBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-decomposition-to-evolution-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGauntletRedBlueGoldBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-gauntlet-red-blue-gold-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdversarialToEvolutionBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-adversarial-to-evolution-bubble.js'
+    )) ?? {};
+    const { OpenEvolveFullEvolutionLifecycleBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-full-evolution-lifecycle-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWorkflowDecompositionPipelineBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-workflow-decomposition-pipeline-bubble.js'
+    )) ?? {};
+    const { OpenEvolveVerifiedDeploymentBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-verified-deployment-bubble.js'
+    )) ?? {};
 
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
@@ -1138,6 +1340,274 @@ export class BubbleFactory {
     this.register(
       'openevolve-decomposition-workflow' as BubbleName,
       OpenEvolveDecompositionWorkflowBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team-members' as BubbleName,
+      OpenEvolveTeamMembersBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team-assign' as BubbleName,
+      OpenEvolveTeamAssignBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team-templates' as BubbleName,
+      OpenEvolveTeamTemplatesBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team-llms' as BubbleName,
+      OpenEvolveTeamLlmsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team-credentials' as BubbleName,
+      OpenEvolveTeamCredentialsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-version-control' as BubbleName,
+      OpenEvolveVersionControlBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-validation' as BubbleName,
+      OpenEvolveValidationBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-parameters' as BubbleName,
+      OpenEvolveParametersBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-providers' as BubbleName,
+      OpenEvolveProvidersBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-audit-logs' as BubbleName,
+      OpenEvolveAuditLogsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-auto-approval' as BubbleName,
+      OpenEvolveAutoApprovalBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-prompts' as BubbleName,
+      OpenEvolvePromptsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-content-templates' as BubbleName,
+      OpenEvolveContentTemplatesBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-content-validate' as BubbleName,
+      OpenEvolveContentValidateBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-security' as BubbleName,
+      OpenEvolveSecurityBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gateway' as BubbleName,
+      OpenEvolveGatewayBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-v1-evolve' as BubbleName,
+      OpenEvolveV1EvolveBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-v1-runs' as BubbleName,
+      OpenEvolveV1RunsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-v1-workflow-lifecycle' as BubbleName,
+      OpenEvolveV1WorkflowLifecycleBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-integrated-run' as BubbleName,
+      OpenEvolveIntegratedRunBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-orchestration-models' as BubbleName,
+      OpenEvolveOrchestrationModelsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-orchestration-ensemble' as BubbleName,
+      OpenEvolveOrchestrationEnsembleBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-plan-get' as BubbleName,
+      OpenEvolveDecompositionPlanGetBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-plan-update' as BubbleName,
+      OpenEvolveDecompositionPlanUpdateBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-execute' as BubbleName,
+      OpenEvolveDecompositionExecuteBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-execution-status' as BubbleName,
+      OpenEvolveDecompositionExecutionStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-settings' as BubbleName,
+      OpenEvolveDecompositionSettingsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-results' as BubbleName,
+      OpenEvolveDecompositionResultsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-telemetry' as BubbleName,
+      OpenEvolveDecompositionTelemetryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-truth-package' as BubbleName,
+      OpenEvolveDecompositionTruthPackageBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-resource-usage' as BubbleName,
+      OpenEvolveDecompositionResourceUsageBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet-execute' as BubbleName,
+      OpenEvolveGauntletExecuteBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet-execution-status' as BubbleName,
+      OpenEvolveGauntletExecutionStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet-executions-list' as BubbleName,
+      OpenEvolveGauntletExecutionsListBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-adversarial-run' as BubbleName,
+      OpenEvolveAdversarialRunBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-evolution-run' as BubbleName,
+      OpenEvolveEvolutionRunBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-graph' as BubbleName,
+      OpenEvolveKnowledgeGraphBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-stats' as BubbleName,
+      OpenEvolveKnowledgeStatsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-recommendations' as BubbleName,
+      OpenEvolveKnowledgeRecommendationsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-export' as BubbleName,
+      OpenEvolveKnowledgeExportBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-import' as BubbleName,
+      OpenEvolveKnowledgeImportBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-get' as BubbleName,
+      OpenEvolveKnowledgeGetBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-delete' as BubbleName,
+      OpenEvolveKnowledgeDeleteBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-documents' as BubbleName,
+      OpenEvolveKnowledgeDocumentsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-embed' as BubbleName,
+      OpenEvolveKnowledgeEmbedBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-sync' as BubbleName,
+      OpenEvolveKnowledgeSyncBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-dashboard' as BubbleName,
+      OpenEvolveMonitoringDashboardBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-alerts' as BubbleName,
+      OpenEvolveMonitoringAlertsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-services' as BubbleName,
+      OpenEvolveMonitoringServicesBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-logs' as BubbleName,
+      OpenEvolveMonitoringLogsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-metrics' as BubbleName,
+      OpenEvolveMonitoringMetricsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-monitoring-health' as BubbleName,
+      OpenEvolveMonitoringHealthBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-analytics-statistics' as BubbleName,
+      OpenEvolveAnalyticsStatisticsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-analytics-performance' as BubbleName,
+      OpenEvolveAnalyticsPerformanceBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-analytics-knowledge' as BubbleName,
+      OpenEvolveAnalyticsKnowledgeBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-analytics-workflow' as BubbleName,
+      OpenEvolveAnalyticsWorkflowBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings-icr' as BubbleName,
+      OpenEvolveSettingsIcrBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings-determinism' as BubbleName,
+      OpenEvolveSettingsDeterminismBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings-adaptive-decomposition' as BubbleName,
+      OpenEvolveSettingsAdaptiveDecompositionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings-mdap-maker' as BubbleName,
+      OpenEvolveSettingsMdapMakerBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings-roma-mdap-maker' as BubbleName,
+      OpenEvolveSettingsRomaMdapMakerBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-to-evolution' as BubbleName,
+      OpenEvolveDecompositionToEvolutionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet-red-blue-gold' as BubbleName,
+      OpenEvolveGauntletRedBlueGoldBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-adversarial-to-evolution' as BubbleName,
+      OpenEvolveAdversarialToEvolutionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-full-evolution-lifecycle' as BubbleName,
+      OpenEvolveFullEvolutionLifecycleBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-workflow-decomposition-pipeline' as BubbleName,
+      OpenEvolveWorkflowDecompositionPipelineBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-verified-deployment' as BubbleName,
+      OpenEvolveVerifiedDeploymentBubble as BubbleClassWithMetadata
     );
     this.register(
       'openevolve-knowledge-engine' as BubbleName,

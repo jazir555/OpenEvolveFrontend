@@ -582,6 +582,43 @@ Closed the gaps where bubbles were missing, orphaned, or stubbed.
   bubbles present in both `bubbles.json`.
 
 **Residual:** the `/openevolve/evolution` Run action calls the OpenEvolve `:8000`
-BubbleLabs control-plane endpoints (`createBubblelabsWorkflowDefinition` etc.); those
-require the OpenEvolve API running and the endpoints implemented server-side. The button
+BubbleLabs control-plane endpoints (`createBubblelabsWorkflowDefinition` etc.). Those
+require the OpenEvolve API running with those endpoints implemented server-side. The button
 surfaces any backend error rather than faking a result.
+
+### §17.3 — Full OpenEvolve SDK + decomposition/adversarial bubble integration (2026-08-22)
+
+Completed a large bubble-integration pass so the OpenEvolve SDK surface and the
+decomposition/adversarial workflows are represented as chainable BubbleLab bubbles.
+
+- **Backend routers backfilled** (`services/openevolve-api`): created + mounted
+  `api/adversarial.py` (`/api/adversarial/runs` start/list/get/stop, in-memory store +
+  background thread) and `api/evolution.py` (`/api/evolution/runs`); mounted the
+  previously-unmounted `api/teams_enhanced.py` at `/api/teams-enhanced`. Existing
+  decomposition/gauntlet/knowledge/monitoring/analytics/settings routers confirmed mounted.
+- **Wave 1 (45 bubbles):** decomposition planner (plan get/update, execute,
+  execution-status, settings, results, telemetry, truth-package, resource-usage),
+  adversarial + gauntlet (gauntlet-execute, gauntlet-execution-status, gauntlet-executions-list,
+  adversarial-run, evolution-run), full knowledge store surface (graph/stats/recommendations/
+  export/import/get/delete/documents/embed/sync), monitoring (dashboard/alerts/services/logs/
+  metrics/health), analytics (statistics/performance/knowledge/workflow), settings complete
+  (icr/determinism/adaptive-decomposition/mdap-maker/roma-mdap-maker), plus 6 workflow
+  compositions (decomposition-to-evolution, gauntlet-red-blue-gold, adversarial-to-evolution,
+  full-evolution-lifecycle, workflow-decomposition-pipeline, verified-deployment).
+- **Wave 2 (22 bubbles):** teams-enhanced (members/assign/templates/llms/credentials),
+  version-control, validation, parameters, providers, audit-logs, auto-approval, prompts,
+  content (templates/validate), security (proxies `:8001`), gateway, openevolve_v1
+  (evolve/runs/workflow-lifecycle), integrated-run, orchestration (models/ensemble).
+- **Registration:** every new bubble added to the `BubbleName` union, the
+  `BUBBLE_CREDENTIAL_OPTIONS` Record, `bubble-factory.ts` (import + `this.register`), and
+  BOTH `bubbles.json` files. Backend now also serves `/api/adversarial/runs`,
+  `/api/evolution/runs`, `/api/teams-enhanced/*` (verified live: 200).
+- **Verification:** `tsc --noEmit` → 0 errors for `bubble-shared-schemas`, `bubble-core`,
+  `bubble-studio`, `bubblelab-api`; all 67 new bubbles present in both `bubbles.json`.
+
+**Deferred (need backend router modules, would 404 otherwise — Wave 3):**
+`bubblelabs` control-plane sub-routes (workflow definitions/instances, ace skillbook/patterns,
+z3/roma/knowledge/analytics/leanaide-prove, control catalog/discover/execute), `web3`,
+`maker`, knowledge-explorer, `suggestions`, `ragbits`, `dspy`/`pygraphistry`, and the
+unmounted ICR analytics / Adaptive-MDAP / Sovereign routers. These require implementing
+the corresponding `api/*.py` routers before their bubbles are wired.
