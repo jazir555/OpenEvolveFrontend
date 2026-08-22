@@ -55,7 +55,7 @@ def _render_leanaide_integration(self):
             LEAN4_AVAILABLE
             )
         except ImportError:
-            from              import (
+            from bubblelabs_leanaide_integration import (
             LEANAIDE_AVAILABLE,
             MCTS_AVAILABLE,
             MDAP_AVAILABLE,
@@ -311,7 +311,7 @@ def register_leanaide_workflow_nodes():
             MDAP_AVAILABLE
             )
         except ImportError:
-            from              import (
+            from bubblelabs_leanaide_integration import (
             LEANAIDE_AVAILABLE,
             MCTS_AVAILABLE,
             MDAP_AVAILABLE
@@ -571,7 +571,7 @@ def example_integrated_workflow():
         LeanAideTaskType
         )
     except ImportError:
-        from          import (
+        from bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         initialize_leanaide_integration,
         LeanAideTaskType

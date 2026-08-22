@@ -157,3 +157,54 @@ if _kg_models_available:
         'KnowledgeSource',
         'ConfidenceLevel'
     ])
+
+# Import query + analytics subpackages (with fallback)
+try:
+    from .query import (
+        QueryParser, QueryValidator, QueryNormalizer, QueryBuilder,
+        QueryOptimizer, ExecutionPlanner, ExecutionPlan, PlanOptimizer,
+        BackendSelector, ResultCache, StatisticsCollector, GraphBackend,
+        InMemoryNetworkXBackend, create_backend, MultiLanguageTranslator,
+        QueryExecutionEngine, CypherCompiler, GraphTraverser, EngineConfig,
+    )
+    _query_available = True
+except ImportError as e:
+    _query_available = False
+    logger.debug(f"query subpackage unavailable: {e}")
+
+try:
+    from .analytics import (
+        AnalyticsEngine, AnalyticsRequest, CentralityAnalyzer,
+        CommunityDetector, PathAnalyzer, PatternMiner, TemporalAnalyzer,
+        SpatialAnalyzer, MLIntegrator,
+    )
+    _analytics_available = True
+except ImportError as e:
+    _analytics_available = False
+    logger.debug(f"analytics subpackage unavailable: {e}")
+
+try:
+    from .kg_query_engine import UnifiedKGQueryAnalyticsEngine
+    _unified_qa_available = True
+except ImportError as e:
+    _unified_qa_available = False
+    logger.debug(f"unified query+analytics engine unavailable: {e}")
+
+if _query_available:
+    __all__.extend([
+        'QueryParser', 'QueryValidator', 'QueryNormalizer', 'QueryBuilder',
+        'QueryOptimizer', 'ExecutionPlanner', 'ExecutionPlan', 'PlanOptimizer',
+        'BackendSelector', 'ResultCache', 'StatisticsCollector', 'GraphBackend',
+        'InMemoryNetworkXBackend', 'create_backend', 'MultiLanguageTranslator',
+        'QueryExecutionEngine', 'CypherCompiler', 'GraphTraverser', 'EngineConfig',
+    ])
+
+if _analytics_available:
+    __all__.extend([
+        'AnalyticsEngine', 'AnalyticsRequest', 'CentralityAnalyzer',
+        'CommunityDetector', 'PathAnalyzer', 'PatternMiner', 'TemporalAnalyzer',
+        'SpatialAnalyzer', 'MLIntegrator',
+    ])
+
+if _unified_qa_available:
+    __all__.append('UnifiedKGQueryAnalyticsEngine')

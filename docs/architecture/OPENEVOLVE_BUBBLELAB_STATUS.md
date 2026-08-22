@@ -234,3 +234,35 @@ A multi-wave (6 waves, 30 agent tasks) push implemented the items the earlier wa
 - **TS shared `LanguageService`**: `bubble-runtime` validation tests fixed (7/7) — virtual-file path normalization mismatch resolved.
 - **bubble-core `tracing-manager.ts` TS2693** fixed (`resourceFromAttributes`), unblocking further bubble consolidation.
 - Pre-existing, out-of-scope env issues remain in the broader trees: broken global `web3` pytest plugin (worked around with `-p no:pytest_ethereum`), `unified/config.py` import-time `NameError` when the `unified` package is imported standalone, and `engines/other/api_server.py` (port 8001 decomposition server) still won't boot without an import-path fix. `integrations/leanaide` and `integrations/leanaide`-style subsystems remain NOT production-ready (documented in their ACTUAL_STATUS.md). None of these block the OpenEvolve⇄BubbleLab integration, which is now functionally complete and backed by real engine execution.
+
+## 11. BubbleLabs dual-mode import fix (2026-08-21)
+
+The earlier dual-mode relative→flat transform (making `integrations/bubblelabs` relative
+imports fall back to the legacy flat `sys.path` layout) left 6 modules with the module
+name wiped from the flat-fallback `from ... import (` line, producing `from          import (`
+— a `SyntaxError`. The package `__init__.py` itself was intact (it already had correct
+paired `try: from .X` / `except ImportError: from X` blocks).
+
+### Affected modules (fixed)
+- `bubblelabs_mcp_tools.py`
+- `bubblelabs_mcp_tools_security_patch.py`
+- `bubblelabs_leanaide_examples.py`
+- `bubblelabs_leanaide_integration_patch.py`
+- `bubblelabs_leanaide_ui.py`
+- `test_bubblelabs_integration.py`
+
+The blank module name in each flat fallback was recovered from its paired relative-import
+line and restored, preserving the dual-mode `try/except` structure.
+
+### Verification
+- `python -m py_compile` over **all** `engines/` + `integrations/bubblelabs` `.py` files
+  (599 total): **599 OK, 0 FAIL** (run via a script file to avoid the PowerShell
+  "filename or extension is too long" arg-length limit).
+- Isolated per-module import (fresh subprocess, `integrations` on `sys.path`): the
+  package and all 6 fixed modules import cleanly.
+- Flat-mode fallback spot-checked: loading a fixed module with `integrations/bubblelabs`
+  directly on `sys.path` (forcing the relative import to fail and the flat fallback to
+  fire) imports successfully — confirming the dual-mode logic is sound.
+
+`integrations/bubblelabs` is now fully compilable and importable in both relative-package
+and flat-sys.path modes.

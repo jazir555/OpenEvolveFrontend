@@ -43,6 +43,8 @@ from .defaults import (
     list_domains,
 )
 
+from .strategy_selector import EnsembleStrategySelector
+
 __all__ = [
     # Main config classes
     "UnifiedEvolutionConfig",
@@ -62,6 +64,8 @@ __all__ = [
     # Utilities
     "ConfigMapper",
     "ConfigValidator",
+    # Strategy selector
+    "EnsembleStrategySelector",
     # Domain presets
     "get_finance_config",
     "get_trading_config",

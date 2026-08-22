@@ -102,6 +102,100 @@ def _ensure_ui_safe() -> None:
     """No-op placeholder for legacy safety checks."""
     return None
 
+
+# ---------------------------------------------------------------------------
+# Resource tracking & analytics (Task 3)
+#
+# ``ResourceTracker`` samples CPU / memory / wall-time usage for a workflow
+# run; ``AnalyticsManager`` records structured analytics events. Both degrade
+# gracefully: ``ResourceTracker`` is a no-op when ``psutil`` is unavailable,
+# and both swallow internal errors so they never break a workflow.
+# ---------------------------------------------------------------------------
+from collections import deque  # noqa: E402  (kept local to the tracking block)
+
+
+class ResourceTracker:
+    """Tracks CPU / memory / wall-time resource usage for a workflow run."""
+
+    def __init__(self, workflow_id: Optional[str] = None, enabled: bool = True):
+        self.workflow_id = workflow_id
+        self.enabled = enabled
+        self._start_wall = time.time()
+        self._peak_rss_mb = 0.0
+        self._cpu_samples: List[float] = []
+        self._samples: List[Dict[str, Any]] = []
+        self._process = None
+        if enabled:
+            try:
+                import psutil  # type: ignore
+                self._process = psutil.Process()
+            except Exception:
+                self._process = None
+
+    def sample(self, label: Optional[str] = None) -> None:
+        """Record a resource-usage sample (no-op if psutil unavailable)."""
+        if self._process is None:
+            return
+        try:
+            rss = self._process.memory_info().rss / (1024 * 1024)
+            self._peak_rss_mb = max(self._peak_rss_mb, rss)
+            cpu = self._process.cpu_percent(interval=None)
+            self._cpu_samples.append(cpu)
+            self._samples.append({"label": label, "rss_mb": rss, "cpu_percent": cpu})
+        except Exception:
+            pass
+
+    def stop(self) -> None:
+        self._elapsed = time.time() - self._start_wall
+        self.sample("stop")
+
+    def get_usage_summary(self) -> Dict[str, Any]:
+        elapsed = getattr(self, "_elapsed", time.time() - self._start_wall)
+        avg_cpu = (sum(self._cpu_samples) / len(self._cpu_samples)) if self._cpu_samples else 0.0
+        return {
+            "workflow_id": self.workflow_id,
+            "peak_rss_mb": round(self._peak_rss_mb, 2),
+            "elapsed_seconds": round(elapsed, 3),
+            "cpu_samples": len(self._cpu_samples),
+            "avg_cpu_percent": round(avg_cpu, 2),
+        }
+
+
+class AnalyticsManager:
+    """Emits and stores structured analytics events for workflow runs."""
+
+    def __init__(self, max_events: int = 2000):
+        self._events: deque = deque(maxlen=max_events)
+        self._counters: Dict[str, int] = {}
+
+    def emit(self, event_type: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        evt = {
+            "event_type": event_type,
+            "timestamp": datetime.utcnow().isoformat(),
+            "payload": payload or {},
+        }
+        self._events.append(evt)
+        self._counters[event_type] = self._counters.get(event_type, 0) + 1
+        return evt
+
+    def stage_transition(self, workflow_id: Optional[str], from_stage: str, to_stage: str) -> Dict[str, Any]:
+        return self.emit(
+            "stage_transition",
+            {"workflow_id": workflow_id, "from": from_stage, "to": to_stage},
+        )
+
+    def get_events(self, event_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        if event_type is None:
+            return list(self._events)
+        return [e for e in self._events if e["event_type"] == event_type]
+
+    def get_summary(self) -> Dict[str, Any]:
+        return {"total_events": len(self._events), "counters": dict(self._counters)}
+
+    def get_counters(self) -> Dict[str, int]:
+        return dict(self._counters)
+
+
 from ui_components import render_manual_review_panel # Import for Stage 2 UI
 from memory_agent import MemoryAgent
 
@@ -191,12 +285,36 @@ def _record_workflow_completion(
     workflow_state: WorkflowState,
     resource_manager: ResourceManager,
     started_at: float,
-    status: str
+    status: str,
+    analytics: Optional[Any] = None,
+    tracker: Optional[Any] = None,
 ) -> None:
     """Record workflow completion metrics and resource usage."""
     duration = time.time() - started_at
     workflow_state.performance_metrics["execution_time_seconds"] = duration
     workflow_state.resource_usage = resource_manager.get_usage_summary()
+
+    # Task 3: fold resource-tracker + analytics output into the workflow state.
+    if tracker is not None:
+        try:
+            tracker.stop()
+            tracker.sample("completed")
+            ru = tracker.get_usage_summary()
+            existing = workflow_state.performance_metrics.get("resource_usage") or {}
+            workflow_state.performance_metrics["resource_usage"] = {**existing, **ru}
+        except Exception as exc:  # never break completion on tracking failure
+            logger.warning("ResourceTracker finalize failed: %s", exc)
+
+    if analytics is not None:
+        try:
+            analytics.emit(
+                "workflow_completed" if status in ("completed", "succeeded") else "workflow_failed",
+                {"status": status},
+            )
+            workflow_state.performance_metrics["analytics_summary"] = analytics.get_summary()
+            workflow_state.performance_metrics["analytics_event_count"] = len(analytics.get_events())
+        except Exception as exc:
+            logger.warning("Analytics finalize failed: %s", exc)
 
     add_metric(
         "workflow_duration_seconds",
@@ -1687,6 +1805,13 @@ async def run_sovereign_workflow(
     workflow_state.status = "running"
     resource_manager = ResourceManager()
     workflow_started_at = time.time()
+
+    # Task 3: resource tracking + analytics for this workflow run.
+    analytics = AnalyticsManager()
+    tracker = ResourceTracker(workflow_state.workflow_id)
+    tracker.sample("start")
+    analytics.emit("workflow_started", {"workflow_id": workflow_state.workflow_id})
+
     add_metric(
         "workflows_started_total",
         1,
@@ -1706,7 +1831,7 @@ async def run_sovereign_workflow(
                 solver_generation_gauntlet]):
         st.error("One or more required teams or gauntlets are missing or invalid. Workflow cannot proceed.")
         workflow_state.status = "failed"
-        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
         return
 
     # --- Stage 0: Content Analysis ---
@@ -1795,7 +1920,7 @@ async def run_sovereign_workflow(
         elif review_status == "rejected":
             st.error("[Manual Review & Override] Decomposition plan rejected by user. Workflow terminated.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return # Terminate workflow.
         else: # review_status == "pending"
             # If the plan is still pending review, we need to stop execution here
@@ -1819,7 +1944,7 @@ async def run_sovereign_workflow(
                    "2. Optionally set crewai_API_BASE (default: http://localhost:8080)\n"
                    "3. Optionally set crewai_PROJECT_ID (default: openevolve-workflows)")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
         
         # Initialize the comprehensive crewai integration
@@ -1834,7 +1959,7 @@ async def run_sovereign_workflow(
         if not success:
             st.error("Fatal: Failed to initialize crewai workflow. Error creating main workflow epic or sub-problem tickets.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
         
         st.success("crewai workflow initialized successfully with complete integration.")
@@ -1858,7 +1983,7 @@ async def run_sovereign_workflow(
         if not workflow_state.decomposition_plan or not workflow_state.decomposition_plan.sub_problems:
             st.error("Decomposition plan is missing or empty. Cannot proceed with sub-problem solving. Workflow failed.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
 
         sub_problems_by_id = {sp.id: sp for sp in workflow_state.decomposition_plan.sub_problems}
@@ -1878,7 +2003,7 @@ async def run_sovereign_workflow(
                 else:
                     st.error(f"Sub-problem '{sp_id}' has an invalid dependency: '{dep_id}'. Workflow failed.")
                     workflow_state.status = "failed"
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                     return
         
         # Initialize the queue with sub-problems that have no unmet dependencies (in-degree of 0).
@@ -1899,7 +2024,7 @@ async def run_sovereign_workflow(
         if not queue and len(workflow_state.solved_sub_problem_ids) < len(workflow_state.decomposition_plan.sub_problems):
             st.error("Circular dependency detected or no solvable sub-problems initially. Workflow failed.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
 
         # Process sub-problems in topological order (i.e., only after all their dependencies are met).
@@ -2060,7 +2185,7 @@ async def run_sovereign_workflow(
             if generated_content.startswith("Failed to generate solution:"):
                 st.error(f"Failed to generate solution for sub-problem {current_sp_id}. Workflow failed.")
                 workflow_state.status = "failed"
-                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                 return # Halt workflow execution if solution generation fails.
 
             solution_attempt = SolutionAttempt(
@@ -2392,7 +2517,7 @@ async def run_sovereign_workflow(
         if len(workflow_state.solved_sub_problem_ids) < len(workflow_state.decomposition_plan.sub_problems):
             st.error("Could not solve all sub-problems. Possible circular dependency or unsolvable problem. Workflow failed.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
 
         st.success(f"[{workflow_state.current_stage}] All sub-problems solved.")
@@ -2415,7 +2540,7 @@ async def run_sovereign_workflow(
         if not assembler_team.members:
             st.error(f"Assembler Team '{assembler_team.name}' has no members. Please configure the team in the Team Manager.")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
 
         model_config = assembler_team.members[0] # Use the first model in the team for reassembly.
@@ -2465,12 +2590,12 @@ async def run_sovereign_workflow(
             else:
                 st.error(f"OpenEvolve failed to reassemble the final solution. Result: {result}")
                 workflow_state.status = "failed"
-                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                 return
         except Exception as e:
             st.error(f"Error running OpenEvolve for reassembly: {e}")
             workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
             return
         
         # Store the final assembled solution attempt in the workflow state.
@@ -2546,7 +2671,7 @@ async def run_sovereign_workflow(
                 if not problematic_sub_problem_ids:
                     st.error("  - Red Team rejected, but no specific problematic sub-problems identified. Cannot self-heal. Please review the Red Team's LLM output or prompt for actionable feedback.")
                     workflow_state.status = "failed"
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                     return
 
                 st.info(f"  - Problematic sub-problems identified: {', '.join(problematic_sub_problem_ids)}. Re-queuing for re-solve.")
@@ -2630,7 +2755,7 @@ async def run_sovereign_workflow(
                 if not problematic_sub_problem_ids:
                     st.error("  - Gold Team rejected, but no specific problematic sub-problems identified. Cannot self-heal. Please review the Gold Team's LLM output or prompt for actionable feedback.")
                     workflow_state.status = "failed"
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                     return
 
                 st.info(f"  - Problematic sub-problems identified: {', '.join(problematic_sub_problem_ids)}. Re-queuing for re-solve.")
@@ -2710,7 +2835,7 @@ async def run_sovereign_workflow(
                     if not problematic_sub_problem_ids:
                         st.error("  - Formal verification rejected, but no sub-problems identified. Cannot self-heal.")
                         workflow_state.status = "failed"
-                        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                         return
 
                     st.info(
@@ -2760,7 +2885,7 @@ async def run_sovereign_workflow(
                 problematic_sub_problem_ids = list(workflow_state.sub_problem_solutions.keys())
                 if not problematic_sub_problem_ids:
                     workflow_state.status = "failed"
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
                     return
 
                 for sp_id in problematic_sub_problem_ids:
@@ -2810,7 +2935,7 @@ async def run_sovereign_workflow(
                     "team_role": "gold"
                 }
             )
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "completed")
+            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "completed", analytics=analytics, tracker=tracker)
             
             # Close workflow in crewai if integration is active
             crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
@@ -2862,7 +2987,7 @@ async def run_sovereign_workflow(
             MetricType.COUNTER,
             {"workflow_id": workflow_state.workflow_id}
         )
-        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
         
         # Close workflow in crewai if integration is active
         crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")

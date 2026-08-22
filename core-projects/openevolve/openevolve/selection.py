@@ -18,6 +18,8 @@ from openevolve.neat import neat_selection
 from openevolve.nsga3 import fast_non_dominated_sort, nsga3_selection
 from openevolve.novelty_search import novelty_selection
 from openevolve.symbolic_regression import SymbolicRegressionResult, evolve as _sr_evolve
+from openevolve.map_elites import map_elites_selection
+from openevolve.multi_objective_selection import multi_objective_selection
 
 
 def _crowding_distance(objectives: np.ndarray, front: List[int]) -> np.ndarray:
@@ -94,6 +96,22 @@ def select_mo(
             divisions=divisions,
             random_state=random_state,
         )
+    if normalized in ("mapelites", "map_elites", "qd", "qualitydiversity"):
+        # The "objectives" matrix is interpreted as [fitness, behavior_1, ...];
+        # keep the fittest individual per behavior cell.
+        return map_elites_selection(
+            objectives,
+            population_size,
+            random_state=random_state,
+        )
+    if normalized in ("multiobjective", "mosel", "pareto"):
+        # Generic Pareto ranking + crowding truncation (supports senses via
+        # ``divisions`` being reinterpreted as a per-objective direction hint).
+        return multi_objective_selection(
+            objectives,
+            population_size,
+            random_state=random_state,
+        )
     if normalized == "nsga2":
         return nsga2_selection(
             objectives, population_size, random_state=random_state
@@ -124,7 +142,8 @@ def select_mo(
         )
     raise ValueError(
         f"Unsupported multi-objective selection_method: {method!r}. "
-        "Supported: nsga2, nsga3, novelty_search, neat, cmaes."
+        "Supported: nsga2, nsga3, novelty_search, neat, cmaes, "
+        "map_elites, multi_objective."
     )
 
 

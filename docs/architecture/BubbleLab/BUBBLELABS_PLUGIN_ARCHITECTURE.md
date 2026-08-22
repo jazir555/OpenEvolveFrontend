@@ -92,7 +92,7 @@ Primary visualizations should be designed to mount within the **Consolidated Sid
 - [ ] **Type Safety:** `npx tsc --noEmit` passes in the plugin directory.
 - [ ] **Prefixing:** All backend routes start with `/api/openevolve`.
 - [ ] **Normalization:** Frontend uses `camelCase`, Backend uses `snake_case`.
-- [ ] **Zero Logic Simulation:** All `setTimeout` and `mockResult` placeholders are replaced with `fetch` calls.
+- [x] **Zero Logic Simulation:** All `setTimeout` and `mockResult` placeholders are replaced with `fetch` calls. Remaining `setTimeout` uses are legitimate `AbortController` request timeouts; `generateMockResult` is retained only as a test utility. The one backend-backed operation that previously returned a hardcoded list (`openevolve-leanaide` `get_models`) now issues a real `GET /api/openevolve/leanaide/models` fetch, with a clearly-marked `offline: true` fallback used only when the OpenEvolve server is unreachable.
 - [ ] **Default State:** All features are `disabled` until the user manually toggles them.
 - [ ] **Error Handling:** Backend returns `HTTPException` instead of demo data.
 - [ ] **Registry Registration:** The plugin is added to `builtin_integrations` in `registry.py`.

@@ -34,44 +34,117 @@ logger = logging.getLogger(__name__)
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Import RESE pipeline (optional dependency; guarded so module loads without it)
+# Import the REAL RESE pipeline (glue/orchestration/rese_pipeline.py).
+#
+# The validation harness calls ``pipeline.run(problem=..., phases=..., use_cache=...)``
+# and then reads ``result.status``, ``result.phase_results``, ``result.aci_history``,
+# etc. The real ``RESEPipeline`` exposes ``execute(problem_statement, context)`` and
+# returns a dict, so we wrap it in a thin adapter that preserves the harness's API.
+# If the real module cannot be imported, we degrade to the original
+# NotImplementedError stub instead of crashing at import time.
 try:
-    from rese_pipeline import (
-        RESEPipeline,
-        ProblemInput,
-        PipelineStatus,
-        PhaseStatus,
-    )
+    import os as _os
+    import sys as _sys
+    _repo_root = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+    _glue_orch = _os.path.join(_repo_root, "glue", "orchestration")
+    # Append (do NOT insert at front) so the script's own directory keeps
+    # priority over its own ``config``/``rese_pipeline`` siblings and we do not
+    # shadow local modules.
+    if _os.path.isdir(_glue_orch) and _glue_orch not in _sys.path:
+        _sys.path.append(_glue_orch)
+    from rese_pipeline import RESEPipeline as _RealRESEPipeline  # noqa: F401
     RESE_PIPELINE_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"RESE pipeline not available: {e}")
+except Exception as _e:  # pragma: no cover - environment without the real pipeline
+    logger.warning(f"RESE pipeline not available: {_e}")
     RESE_PIPELINE_AVAILABLE = False
+    _RealRESEPipeline = None
 
-    from enum import Enum
-    from dataclasses import dataclass, field
-    from typing import Any, Dict, List
 
-    class PipelineStatus(Enum):
-        COMPLETED = "completed"
-        FAILED = "failed"
-        RUNNING = "running"
-        PENDING = "pending"
+from enum import Enum
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
 
-    class PhaseStatus(Enum):
-        COMPLETED = "completed"
-        FAILED = "failed"
-        RUNNING = "running"
-        PENDING = "pending"
 
-    @dataclass
-    class ProblemInput:
-        id: str = ""
-        description: str = ""
-        constraints: List[Any] = field(default_factory=list)
-        variables: Dict[str, Any] = field(default_factory=dict)
-        objective: str = ""
-        domain: str = ""
+class PipelineStatus(Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+    RUNNING = "running"
+    PENDING = "pending"
 
+
+class PhaseStatus(Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+    RUNNING = "running"
+    PENDING = "pending"
+
+
+@dataclass
+class ProblemInput:
+    id: str = ""
+    description: str = ""
+    constraints: List[Any] = field(default_factory=list)
+    variables: Dict[str, Any] = field(default_factory=dict)
+    objective: str = ""
+    domain: str = ""
+
+
+class _PhaseResultView:
+    """Adapts a real phase-result dict into the shape the harness reads."""
+
+    def __init__(self, data: Dict[str, Any]):
+        self.status = PipelineStatus(data.get("status", "completed"))
+        self.output = data.get("data", {}) or {}
+        self.errors = [data["error"]] if data.get("error") else []
+        self.elapsed_seconds = (data.get("execution_time_ms") or 0) / 1000.0
+
+
+class _ReseResult:
+    """Adapts the real ``RESEPipeline.execute()`` dict into the harness's API."""
+
+    _PHASE_ALIASES = {
+        "phase_i": "phase1",
+        "phase_ii": "phase2",
+        "phase_iii": "phase3",
+        "phase_iv": "phase4",
+    }
+
+    def __init__(self, raw: Dict[str, Any]):
+        self.status = PipelineStatus(raw.get("status", "completed"))
+        self.elapsed_seconds = (raw.get("execution_time_ms") or 0) / 1000.0
+        self.aci_history: List[float] = raw.get("aci_history", [])
+        self.validation_score: float = raw.get("validation_score", 0.0)
+        self.confidence: float = raw.get("confidence", 0.0)
+        self.final_solution: Any = raw.get("final_solution")
+        results = raw.get("results", {}) or {}
+        self.phase_results: Dict[str, _PhaseResultView] = {}
+        for key, val in results.items():
+            alias = self._PHASE_ALIASES.get(key, key)
+            self.phase_results[alias] = _PhaseResultView(val)
+
+
+if RESE_PIPELINE_AVAILABLE:
+    class RESEPipeline:
+        """Thin adapter over the real ``glue.orchestration.rese_pipeline.RESEPipeline``."""
+
+        def __init__(self, config=None):
+            self._real = _RealRESEPipeline(config)
+
+        def run(self, problem=None, phases=None, use_cache=False):
+            problem_statement = getattr(problem, "description", None) or (
+                problem if isinstance(problem, str) else ""
+            )
+            context = {
+                "constraints": getattr(problem, "constraints", None),
+                "variables": getattr(problem, "variables", None),
+                "objective": getattr(problem, "objective", None),
+                "domain": getattr(problem, "domain", None),
+                "phases": list(phases) if phases else None,
+                "use_cache": use_cache,
+            }
+            raw = self._real.execute(problem_statement, context=context)
+            return _ReseResult(raw)
+else:
     class RESEPipeline:
         """Fallback stub used when rese_pipeline is unavailable."""
 

@@ -44,7 +44,7 @@ try:
         LEAN4_AVAILABLE
         )
     except ImportError:
-        from          import (
+        from bubblelabs_leanaide_integration import (
         get_leanaide_bridge,
         LeanAideTaskType,
         LeanAideIntegrationBridge,

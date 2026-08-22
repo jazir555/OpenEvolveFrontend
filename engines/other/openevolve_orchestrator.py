@@ -18,7 +18,13 @@ import requests # Added this line
 import logging # Added this line
 import asyncio
 from datetime import datetime
-from ui_components import render_team_manager, render_gauntlet_designer # NEW IMPORT
+from ui_components import (  # NEW IMPORT
+    render_team_manager,
+    render_gauntlet_designer,
+    render_analytics_dashboard,
+    render_knowledge_base_interface,
+    render_dependency_graph,
+)
 from team_manager import TeamManager # NEW IMPORT
 from gauntlet_manager import GauntletManager # NEW IMPORT
 from template_manager import TemplateManager  # NEW IMPORT
@@ -928,20 +934,43 @@ def render_openevolve_orchestrator_ui():
     
     orchestrator = st.session_state.orchestrator
     
-    # Main tabs
-    tabs = st.tabs(["Create Workflow", "Monitoring Panel", "History", "Configuration"])
-    
+    # Main tabs (Task 7: added Analytics / Knowledge Base / Dependency Graph)
+    tabs = st.tabs([
+        "Create Workflow", "Monitoring Panel", "History", "Configuration",
+        "Analytics", "Knowledge Base", "Dependency Graph",
+    ])
+
     with tabs[0]:  # Create Workflow
         render_create_workflow_tab(orchestrator)
-    
+
     with tabs[1]:  # Monitoring
         render_monitoring_tab(orchestrator)
-    
+
     with tabs[2]:  # History
         render_history_tab(orchestrator)
-    
+
     with tabs[3]:  # Configuration
         render_configuration_tab(orchestrator)
+
+    with tabs[4]:  # Analytics Dashboard
+        render_analytics_dashboard()
+
+    with tabs[5]:  # Knowledge Base Interface
+        try:
+            from knowledge_manager import KnowledgeManager
+            _km = KnowledgeManager()
+        except Exception:
+            _km = None
+        render_knowledge_base_interface(_km)
+
+    with tabs[6]:  # Dependency Graph
+        _sub_problems = []
+        for _ws in (getattr(orchestrator, "workflows", {}) or {}).values():
+            _plan = getattr(_ws, "decomposition_plan", None)
+            if _plan is not None:
+                for _sp in (getattr(_plan, "sub_problems", None) or []):
+                    _sub_problems.append(getattr(_sp, "__dict__", _sp))
+        render_dependency_graph(_sub_problems)
 
 
 def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):

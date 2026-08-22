@@ -26,7 +26,7 @@ try:
     TestWorkflowLifecycleController,
     )
 except ImportError:
-    from      import (
+    from bubblelabs_integration_tests import (
     TestAnalyticsMonitoringDashboard,
     TestIntegration,
     TestOpenEvolveBubbleLabsAPI,

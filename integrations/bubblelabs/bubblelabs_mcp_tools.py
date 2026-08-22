@@ -89,7 +89,7 @@ try:
         SecurityContext
         )
     except ImportError:
-        from          import (
+        from bubblelabs_security import (
         validate_uuid,
         validate_workflow_type,
         validate_workflow_action,
@@ -117,7 +117,7 @@ try:
         WorkflowMetrics
         )
     except ImportError:
-        from          import (
+        from openevolve_bubblelabs_api import (
         OpenEvolveBubbleLabsIntegration,
         WorkflowStatus,
         WorkflowMetrics

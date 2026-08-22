@@ -196,8 +196,12 @@ to their correct `engines/<sub>` dirs; removed dead `sentence_transformers` impo
   Chroma/transformers, BubbleLab/rese/DataPizza siblings, web3. These are documented, not fixed.
 
 ### 7f. Verdict (updated)
-- Compiles: 525+ / 525+ (new files added; all `py_compile` clean). 519 engine modules got
-  `from __future__ import annotations`.
+- Compiles: `python -m py_compile` over **all** `engines/` + `integrations/bubblelabs` `.py`
+  files (599 total, run via a script file to dodge the PowerShell arg-length limit):
+  **599 OK, 0 FAIL**. 519 engine modules got `from __future__ import annotations`.
+- The 6 `integrations/bubblelabs` modules whose dual-mode flat-fallback `from` line had its
+  module name wiped (a `SyntaxError`) were repaired (see `docs/architecture/OPENEVOLVE_BUBBLELAB_STATUS.md`
+  §11); they and the package now import cleanly in both relative-package and flat-sys.path modes.
 - Shared-sweep count (all subdirs on one sys.path) is artificially depressed by flat-package
   name collisions; the authoritative measure is isolated per-module import.
 - Isolated per-module re-measurement of the 50 modules that failed the shared sweep: **48/50

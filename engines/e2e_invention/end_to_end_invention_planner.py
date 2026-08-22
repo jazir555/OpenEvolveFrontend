@@ -124,6 +124,20 @@ except ImportError:
     LEANAIDE_AVAILABLE = False
     logger.warning("LeanAide not available - math formalization will be simulated")
 
+# Task 6: make the real Z3-Lean integration reachable. The module lives in
+# ``integrations/z3`` (a flat module directory); add it to sys.path so the
+# plain ``from z3_to_lean_invention_integration import ...`` resolves instead
+# of raising ``ModuleNotFoundError: z3_to_lean_invention_integration``.
+import os as _os
+import sys as _sys
+_z3_dir = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+    "integrations",
+    "z3",
+)
+if _os.path.isdir(_z3_dir) and _z3_dir not in _sys.path:
+    _sys.path.append(_z3_dir)
+
 # Try to import Z3-Lean integration (CRITICAL: Enables hybrid Z3+Lean verification)
 try:
     from z3_to_lean_invention_integration import (

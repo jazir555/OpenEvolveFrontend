@@ -134,11 +134,37 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
             context: this.params.context,
             options: this.params.options,
           }, startTime);
-        case 'get_models':
+        case 'get_models': {
+          // Real backend call: GET {base_url}/api/openevolve/leanaide/models
+          // -> { models: [{ provider, models: [...] }] }.
+          const remote = await this.request(
+            'GET',
+            '/api/openevolve/leanaide/models',
+            undefined,
+            startTime
+          );
+
+          const data = remote.data;
+          const hasModels =
+            remote.success &&
+            typeof data === 'object' &&
+            data !== null &&
+            !Array.isArray(data) &&
+            Array.isArray((data as Record<string, unknown>).models);
+
+          if (hasModels) {
+            return remote;
+          }
+
+          // OFFLINE / DEV FALLBACK ONLY: the OpenEvolve server is unreachable
+          // or does not expose the leanaide/models endpoint. Never used in
+          // production (where the real fetch above always succeeds). Clearly
+          // flagged via `offline: true` so callers can distinguish demo data.
           return {
             success: true,
             operation: ((this.params.operation as string) as string),
             data: {
+              offline: true,
               models: [
                 { provider: 'OpenAI', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
                 { provider: 'Anthropic', models: ['claude-3-opus', 'claude-3-sonnet'] },
@@ -146,8 +172,10 @@ export class OpenEvolveLeanAideBubble extends ServiceBubble<
                 { provider: 'OpenRouter', models: ['openai/gpt-4', 'anthropic/claude-3-opus'] },
               ],
             },
+            error: `[offline fallback] ${remote.error ?? 'OpenEvolve leanaide/models endpoint unavailable'}`,
             timing: Date.now() - startTime,
           };
+        }
         default:
           return {
             success: false,

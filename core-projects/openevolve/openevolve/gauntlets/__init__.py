@@ -28,6 +28,9 @@ from .three_round_orchestrator import (
     Round3Result,
 )
 
+from .red_team import RedTeamEvaluator, RedTeamResult
+from .gold_team import GoldTeamEvaluator, GoldTeamResult
+
 from .multi_round_orchestrator import (
     MultiRoundGauntletOrchestrator,
     GauntletState,
@@ -69,4 +72,10 @@ __all__ = [
     'probe_solution',
     'robustness_from_probes',
     'verify_solution',
+
+    # Red Team (Round 2) and Gold Team (Round 3) evaluators
+    'RedTeamEvaluator',
+    'RedTeamResult',
+    'GoldTeamEvaluator',
+    'GoldTeamResult',
 ]

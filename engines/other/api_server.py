@@ -7,6 +7,20 @@ Decomposition Workflow system.
 from __future__ import annotations
 
 
+import os
+import sys
+
+# Boot fix (Task 4): ensure the flat ``engines/other`` module directory is on
+# the import path so ``from workflow_structures import ...`` (and the other flat
+# sibling modules this server imports) resolve even when the server is launched
+# via ``python -m uvicorn api_server:app`` from a different working directory.
+# Without this the server fails at import time with
+# ``ModuleNotFoundError: workflow_structures``.
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _THIS_DIR not in sys.path:
+    sys.path.insert(0, _THIS_DIR)
+
+
 from fastapi import FastAPI, HTTPException, Depends, Header, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -15,7 +29,7 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional
 from collections import deque
 from enum import Enum
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 import threading
 import asyncio
 import uvicorn
@@ -7715,6 +7729,227 @@ class EndpointRateLimiter:
         count = self.requests.get(key, 0)
         self.requests[key] = count + 1
         return True
+
+# ===========================================================================
+# Sovereign-Grade Decomposition System REST endpoints (Task 8)
+#
+# Implemented per docs/Architecture/SOVEREIGN_API_DOCUMENTATION.md. All
+# external modules are imported lazily inside the handlers so a missing
+# optional dependency degrades to a clean HTTP 500 rather than breaking server
+# boot. Module directories are added to sys.path on demand to avoid name
+# collisions with the flat engines/other package.
+# ===========================================================================
+def _ensure_on_path(*dirs) -> None:
+    """Append ``dirs`` to ``sys.path`` (deduplicated) for lazy imports."""
+    for d in dirs:
+        d = os.path.abspath(d)
+        if os.path.isdir(d) and d not in sys.path:
+            sys.path.append(d)
+
+
+def _serialize_obj(obj: Any) -> Any:
+    """Best-effort JSON-serializable representation of an arbitrary object."""
+    if obj is None:
+        return None
+    if hasattr(obj, "to_dict"):
+        try:
+            return obj.to_dict()
+        except Exception:
+            pass
+    if is_dataclass(obj):
+        try:
+            return asdict(obj)
+        except Exception:
+            pass
+    if isinstance(obj, dict):
+        return obj
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_obj(o) for o in obj]
+    if hasattr(obj, "__dict__"):
+        return {k: _serialize_obj(v) for k, v in vars(obj).items()}
+    return str(obj)
+
+
+def _build_decomposition_plan(data: Any):
+    """Reconstruct a :class:`DecompositionPlan` from a dict or pass-through."""
+    from decomposition_engine import DecompositionPlan, SubProblem
+
+    if isinstance(data, DecompositionPlan):
+        return data
+    data = data or {}
+    subs = []
+    for sp in data.get("sub_problems", []) or []:
+        if isinstance(sp, SubProblem):
+            subs.append(sp)
+        elif isinstance(sp, dict):
+            try:
+                subs.append(SubProblem(**sp))
+            except Exception:
+                subs.append(SubProblem(
+                    id=str(sp.get("id", f"sp_{len(subs)}")),
+                    description=str(sp.get("description", "")),
+                ))
+        else:
+            subs.append(sp)
+    return DecompositionPlan(
+        problem_id=data.get("problem_id", "") or "",
+        strategy=data.get("strategy", "hierarchical") or "hierarchical",
+        sub_problems=subs,
+        metadata=data.get("metadata", {}) or {},
+    )
+
+
+def _serialize_gauntlet_results(results: Any) -> Any:
+    if isinstance(results, dict):
+        return {k: _serialize_obj(v) for k, v in results.items()}
+    return _serialize_obj(results)
+
+
+class DecompositionAnalyzeRequest(BaseModel):
+    problem_text: str = Field(..., min_length=10, description="The problem to analyze")
+    title: str = Field("", description="Optional problem title")
+    strategy: Optional[str] = Field(None, description="Optional decomposition strategy hint")
+
+
+class DecompositionDecomposeRequest(BaseModel):
+    problem_text: str = Field(..., min_length=10, description="The problem to decompose")
+    title: str = Field("", description="Optional problem title")
+    strategy: str = Field("hybrid", description="Decomposition strategy (semantic/dependency/complexity/hybrid)")
+
+
+class DecompositionPlanRequest(BaseModel):
+    plan: Dict[str, Any] = Field(..., description="A decomposition plan (dict or to_dict() output)")
+    problem_text: Optional[str] = None
+    title: Optional[str] = None
+
+
+class SGDWorkflowRequest(BaseModel):
+    problem_statement: str = Field(..., min_length=5, description="Problem to run through the SGD workflow")
+    config: Dict[str, Any] = Field(default_factory=dict, description="Optional team/gauntlet/config overrides")
+
+
+@app.post("/decomposition/analyze", tags=["Decomposition System"])
+async def decomposition_analyze(req: DecompositionAnalyzeRequest):
+    """Analyze a problem into a structured ProblemDefinition."""
+    _ensure_on_path(_THIS_DIR)
+    try:
+        from problem_analyzer import ProblemAnalyzer
+        analyzer = ProblemAnalyzer()
+        problem = analyzer.analyze_problem(req.problem_text, req.title)
+        return {"status": "ok", "problem": _serialize_obj(problem)}
+    except Exception as exc:  # graceful degradation
+        logger.error("Decomposition analyze failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}")
+
+
+@app.post("/decomposition/decompose", tags=["Decomposition System"])
+async def decomposition_decompose(req: DecompositionDecomposeRequest):
+    """Produce a full decomposition plan for a problem."""
+    _ensure_on_path(_THIS_DIR)
+    try:
+        from problem_analyzer import ProblemAnalyzer
+        from decomposition_engine import DecompositionEngine
+        analyzer = ProblemAnalyzer()
+        problem = analyzer.analyze_problem(req.problem_text, req.title)
+        engine = DecompositionEngine(analyzer)
+        plan = engine.decompose(problem, strategy=req.strategy or "hybrid")
+        return {
+            "status": "ok",
+            "strategy": req.strategy,
+            "plan": _serialize_obj(plan),
+        }
+    except Exception as exc:
+        logger.error("Decomposition decompose failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Decomposition failed: {exc}")
+
+
+@app.post("/decomposition/gauntlet", tags=["Decomposition System"])
+async def decomposition_gauntlet(req: DecompositionPlanRequest):
+    """Run the decomposition gauntlets and return validation results + quality."""
+    _ensure_on_path(_THIS_DIR, os.path.join(_THIS_DIR, "..", "gauntlets"))
+    try:
+        from sovereign_gauntlets import GauntletSystem
+        plan_obj = _build_decomposition_plan(req.plan)
+        system = GauntletSystem()
+        results = system.run_decomposition_gauntlets(plan_obj)
+        overall = system.get_overall_quality(results)
+        return {
+            "status": "ok",
+            "overall_quality": overall,
+            "results": _serialize_gauntlet_results(results),
+        }
+    except Exception as exc:
+        logger.error("Decomposition gauntlet failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Gauntlet failed: {exc}")
+
+
+@app.post("/decomposition/critique", tags=["Decomposition System"])
+async def decomposition_critique(req: DecompositionPlanRequest):
+    """Critique a decomposition plan via the gauntlet feedback processor."""
+    _ensure_on_path(_THIS_DIR, os.path.join(_THIS_DIR, "..", "gauntlets"))
+    try:
+        from sovereign_gauntlets import GauntletSystem
+        plan_obj = _build_decomposition_plan(req.plan)
+        system = GauntletSystem()
+        results = system.run_decomposition_gauntlets(plan_obj)
+        feedback = system.process_gauntlet_feedback(results)
+        overall = system.get_overall_quality(results)
+        return {
+            "status": "ok",
+            "overall_quality": overall,
+            "critique": _serialize_obj(feedback),
+            "gauntlet_results": _serialize_gauntlet_results(results),
+        }
+    except Exception as exc:
+        logger.error("Decomposition critique failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Critique failed: {exc}")
+
+
+@app.post("/decomposition/sgd-workflow", tags=["Decomposition System"])
+async def decomposition_sgd_workflow(req: SGDWorkflowRequest):
+    """Create a Sovereign-Grade Decomposition (SGD) workflow run."""
+    _ensure_on_path(os.path.join(_THIS_DIR, "..", "workflow"))
+    try:
+        from sgd_workflow_orchestrator import SGDWorkflowOrchestrator
+        cfg = req.config or {}
+        orchestrator = SGDWorkflowOrchestrator(
+            CREWAI_api_base=cfg.get("crewai_api_base", "http://localhost:8002"),
+            openevolve_api_base=cfg.get("openevolve_api_base", "http://localhost:8000"),
+            enable_icr=bool(cfg.get("enable_icr", True)),
+        )
+        workflow_id = orchestrator.create_workflow(
+            problem_statement=req.problem_statement,
+            content_analyzer_team=cfg.get("content_analyzer_team", "default"),
+            planner_team=cfg.get("planner_team", "default"),
+            solver_team=cfg.get("solver_team", "default"),
+            patcher_team=cfg.get("patcher_team", "default"),
+            assembler_team=cfg.get("assembler_team", "default"),
+            sub_problem_red_gauntlet=cfg.get("sub_problem_red_gauntlet", "default"),
+            sub_problem_gold_gauntlet=cfg.get("sub_problem_gold_gauntlet", "default"),
+            final_red_gauntlet=cfg.get("final_red_gauntlet", "default"),
+            final_gold_gauntlet=cfg.get("final_gold_gauntlet", "default"),
+            mdap_enabled=bool(cfg.get("mdap_enabled", False)),
+            maker_enabled=bool(cfg.get("maker_enabled", False)),
+        )
+        return {"status": "ok", "workflow_id": workflow_id}
+    except Exception as exc:
+        logger.error("SGD workflow creation failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"SGD workflow creation failed: {exc}")
+
+
+@app.get("/decomposition/sgd-workflow/{workflow_id}", tags=["Decomposition System"])
+async def decomposition_sgd_workflow_status(workflow_id: str):
+    """Retrieve the status of a previously created SGD workflow."""
+    _ensure_on_path(os.path.join(_THIS_DIR, "..", "workflow"))
+    try:
+        from sgd_workflow_orchestrator import SGDWorkflowOrchestrator
+        orchestrator = SGDWorkflowOrchestrator()
+        state = orchestrator.get_workflow_status(workflow_id)
+        return {"status": "ok", "workflow_id": workflow_id, "state": _serialize_obj(state)}
+    except Exception as exc:
+        logger.error("SGD workflow status failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail=f"SGD status failed: {exc}")
+
 
 if __name__ == "__main__":
     start_api_server()

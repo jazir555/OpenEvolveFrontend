@@ -21,7 +21,7 @@ try:
         auth_manager
         )
     except ImportError:
-        from          import (
+        from bubblelabs_security import (
         validate_uuid,
         validate_workflow_action,
         auth_manager
