@@ -518,3 +518,33 @@ not see any run outcome (the `:8000` run proxy was write-only). Both gaps are no
   `OPENEVOLVE_API_KEY` is set (the engine requires the admin `X-API-Key`). `tests/test_workflow_status_sync.py`
   (4 tests) pass; regression suite (13) still green.
 - Pickle blobs are process/schema-bound (a `WorkflowState` schema change would need a migration guard).
+
+### §17.1 — Live smoke-test pass (2026-08-22)
+
+Booted `:8000` (`uvicorn openevolve_api.main:app`) and `:8001` (`python api_server.py`
+with `OPENEVOLVE_API_KEY`) and probed every path the BubbleLab client actually calls.
+
+- **P0 `security_proxy` prefix — RESOLVED.** `main.py` mounted `security_proxy_router`
+  at `prefix="/security"`, but the client calls `/api/security/*`, so the entire
+  OpenEvolve API-Keys UI (keys/roles/audit) 404'd. Changed the mount to
+  `prefix="/api/security"`. Verified `GET /api/security/roles` and
+  `GET /api/security/api-keys` now return 200 (with the admin key).
+- **Teams/Gauntlets edit + delete — RESOLVED.** The client + `TeamManager`/`GauntletDesigner`
+  passed the resource **name** in the URL (`PUT/DELETE /api/teams/{name}`), but the backend
+  routers key by generated **`id`** (`/api/teams/{team_id}`), so edit/delete returned 404.
+  Switched `updateTeam`/`deleteTeam`/`updateGauntlet`/`deleteGauntlet` and the two UI
+  components to use the `id` from the list response (added `id` to `TeamSummary`/
+  `GauntletSummary`). `test_teams.py` + `test_gauntlets.py` (3 tests) pass; `npx tsc --noEmit`
+  clean.
+- **Per-workflow decomposition settings/plan — VERIFIED.** Client uses
+  `GET/PUT /api/workflows/{id}/settings` and `GET/PUT /api/workflows/{id}/decomposition-plan`
+  (not the earlier guessed global `/api/workflows/settings` or `/api/decomposition/plan`).
+  End-to-end create (201) → settings (200) → plan (200) → list (200) confirmed.
+- **Analytics paths — VERIFIED.** Client uses `/api/analytics/performance-metrics`,
+  `/knowledge-stats`, `/workflow-metrics` (not `/dashboard`); all 200.
+- All other client paths (`/api/workflows`, `/teams`, `/gauntlets`, `/evaluators`,
+  `/monitoring/metrics`, `/knowledge/stats`, `/parameters/{schema,defaults,categories}`)
+  return 200. No remaining 404/405 on any real client path.
+- **Boot note:** `:8000` still requires the `services/openevolve_api` → `openevolve-api`
+  junction (or `pip install -e .` of the `openevolve-api` package) to import the app module;
+  the junction is intentionally retained so `uvicorn openevolve_api.main:app` works.
