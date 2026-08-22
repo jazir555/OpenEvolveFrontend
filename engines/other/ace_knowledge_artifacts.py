@@ -1075,6 +1075,65 @@ class SkillbookStore:
         return ranked[:limit]
 
 
+class InMemoryArtifactStore:
+    """Thread-safe in-memory store for KnowledgeArtifacts (Stage 6).
+
+    Provides a lightweight, process-local registry used by the ACE workflow
+    knowledge extractor to persist learned patterns as knowledge artifacts
+    without requiring on-disk persistence.
+    """
+
+    def __init__(self):
+        self._artifacts: Dict[str, KnowledgeArtifact] = {}
+        self._lock = threading.RLock()
+
+    def add(self, artifact: KnowledgeArtifact) -> str:
+        """Store an artifact and return its id."""
+        if not isinstance(artifact, KnowledgeArtifact):
+            raise TypeError("InMemoryArtifactStore only accepts KnowledgeArtifact")
+        with self._lock:
+            self._artifacts[artifact.metadata.artifact_id] = artifact
+            return artifact.metadata.artifact_id
+
+    def get(self, artifact_id: str) -> Optional[KnowledgeArtifact]:
+        with self._lock:
+            return self._artifacts.get(artifact_id)
+
+    def remove(self, artifact_id: str) -> bool:
+        with self._lock:
+            return self._artifacts.pop(artifact_id, None) is not None
+
+    def all(self) -> List[KnowledgeArtifact]:
+        with self._lock:
+            return list(self._artifacts.values())
+
+    def search(self, query: str, limit: int = 50) -> List[KnowledgeArtifact]:
+        """Case-insensitive substring search over title/description/content."""
+        if not query:
+            return self.all()
+        q = query.lower()
+        with self._lock:
+            matches = [
+                a for a in self._artifacts.values()
+                if q in a.title.lower()
+                or q in a.description.lower()
+                or q in a.content.lower()
+            ]
+        return matches[:limit]
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._artifacts)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._artifacts.clear()
+
+    def to_dict_list(self) -> List[Dict[str, Any]]:
+        with self._lock:
+            return [a.to_dict() for a in self._artifacts.values()]
+
+
 # Export all classes
 __all__ = [
     # Enums
@@ -1100,6 +1159,7 @@ __all__ = [
     "create_decomposition_strategy",
     "create_refinement_template",
     "SkillbookStore",
+    "InMemoryArtifactStore",
 ]
 
 class ACEKnowledgeManager:

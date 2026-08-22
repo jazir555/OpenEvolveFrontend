@@ -2,6 +2,8 @@
 
 > **REALITY CHECK (2026-08-19):** This document describes an *aspirational* integration between the Python "BubbleLab UI" application and the TypeScript "BubbleLabs" UI. It is **not implemented**. The claims of "complete and total control" and "every configuration knob fully accessible" are false: the `@openevolve/bubblelab-components` package is not wired into the BubbleLab app, its `tsc` build is not configured, and the wider repo does not compile (merge-conflict markers in `core-projects/Iterative-Contextual-Refinements/MathSolver/`, broken glue-adapter tests). Treat this as a specification, not a status report.
 
+> **IMPLEMENTATION STATUS (2026-08-21):** A working integration point now exists. The TS package `glue/adapters/bubblelab` ships `src/component-manifest.json` (every config knob) compiled into its `tsc` build, and a `tsconfig.components.json` + `build:components` script wire the React components into `tsc`. The Python "BubbleLab UI" app (`engines/other/bubblelabs_ui_component.py`) gains a **BubbleLab Components** tab backed by `engines/other/bubblelab_components_bridge.py`, which discovers the package, exposes all knobs, can `build()` (npm/tsc) and `serve()` the built `dist/`, and degrades gracefully when the TS toolchain or build is absent. See `MASTER_TASKS.md` task 41.
+
 ## Executive Overview
 
 The OpenEvolve BubbleLabs Integration is *intended* to provide control over the OpenEvolve workflow system through the BubbleLabs user interface. This enterprise-grade integration is *designed* to enable comprehensive visualization, management, and orchestration of complex AI workflows, making it easier to understand, monitor, and control sophisticated evolutionary computing processes.

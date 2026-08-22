@@ -20,6 +20,12 @@ _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 if _THIS_DIR not in sys.path:
     sys.path.insert(0, _THIS_DIR)
 
+# Allow importing sibling flat modules from the security subdirectory
+# (e.g. engines/security/rbac_enhanced.py) via the flat sys.path layout.
+_SECURITY_DIR = os.path.join(os.path.dirname(_THIS_DIR), "security")
+if _SECURITY_DIR not in sys.path:
+    sys.path.insert(0, _SECURITY_DIR)
+
 
 from fastapi import FastAPI, HTTPException, Depends, Header, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -805,6 +811,259 @@ def record_audit_event(
         "success": success,
         "details": details or {}
     })
+    # Persist the same event into the rbac_enhanced audit trail when available.
+    if RBAC_ENHANCED_AVAILABLE:
+        try:
+            _rbac.audit(user, operation, resource, resource_id, success, details)
+        except Exception as _audit_exc:
+            logger.warning("RBAC: audit persistence failed: %s", _audit_exc)
+
+
+# ============================================================================
+# RBAC ENHANCEMENT (Roadmap B.1) — wire engines/security/rbac_enhanced.py
+# ============================================================================
+# Real (non-stub) role-based access control, API-key authentication, input
+# validation/sanitization, and audit trails for the decomposition workflow
+# server.
+#
+# GRACEFUL DEGRADATION: enforcement is OFF unless SOVEREIGN_RBAC_ENFORCE=1/true.
+# If the RBAC subsystem fails to initialize for ANY reason, the server still
+# boots in "open" mode (all requests allowed) but keeps emitting best-effort
+# in-memory audit entries. API keys created via the management endpoints are
+# stored hashed at rest and re-hydrated into the auth backend on restart.
+
+import hashlib as _hashlib
+
+# Enforcement is env-gated so the server boots without security configuration.
+_RBAC_ENFORCE = os.getenv("SOVEREIGN_RBAC_ENFORCE", "0").strip().lower() in ("1", "true", "yes")
+_RBAC_STORAGE_DIR = os.getenv("SOVEREIGN_RBAC_STORAGE_DIR", os.path.join("data", "rbac"))
+
+try:
+    os.makedirs(_RBAC_STORAGE_DIR, exist_ok=True)
+    from rbac_enhanced import (
+        RBACSystem,
+        RBACError,
+        AuthBackend,
+        AuditLog,
+    )
+    _rbac_system = RBACSystem(
+        storage_backend="file",
+        storage_config={"file_path": os.path.join(_RBAC_STORAGE_DIR, "rbac_data.json")},
+    )
+    RBAC_ENHANCED_AVAILABLE = True
+    logger.info("RBAC: rbac_enhanced.py initialized (enforce=%s)", _RBAC_ENFORCE)
+except Exception as _rbac_init_err:
+    RBAC_ENHANCED_AVAILABLE = False
+    _rbac_system = None
+    logger.warning("RBAC: rbac_enhanced unavailable, running in OPEN mode: %s", _rbac_init_err)
+
+
+class _RBACIntegration:
+    """Thin integration wrapper around rbac_enhanced.RBACSystem."""
+
+    def __init__(self, system):
+        self.system = system
+        self.available = system is not None
+        self.api_key_registry: Dict[str, Any] = _load_json_store(
+            os.path.join(_RBAC_STORAGE_DIR, "api_keys.json")
+        )
+        self._hydrate_api_keys()
+
+    # -- API-key registry (persisted, hashed at rest) -----------------------
+    def _hydrate_api_keys(self) -> None:
+        """Re-bind managed keys into the rbac API-key backend after restart."""
+        if not self.available:
+            return
+        backend = self.system.auth_backends.get(AuthBackend.API_KEY)
+        if not backend:
+            return
+        backend.api_keys = {}
+        for entry in self.api_key_registry.values():
+            if not entry.get("revoked") and entry.get("api_key"):
+                backend.api_keys[entry["api_key"]] = entry.get("user_id")
+
+    def _save_registry(self) -> None:
+        _save_json_store(os.path.join(_RBAC_STORAGE_DIR, "api_keys.json"), self.api_key_registry)
+
+    def authenticate_api_key(self, raw_key: str):
+        """Return (user_id, username, roles, permissions) for a valid key or None."""
+        if not self.available or not raw_key:
+            return None
+        key_hash = _hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+        entry = None
+        for e in self.api_key_registry.values():
+            if e.get("key_hash") == key_hash and not e.get("revoked"):
+                entry = e
+                break
+        if not entry:
+            # Fallback: keys held in-memory by the rbac backend (pre-restart).
+            user = self.system.verify_token(raw_key)
+            if user:
+                return (user.user_id, user.username, list(user.role_names),
+                        self._permissions_for(user))
+            return None
+        user = self.system.get_user(entry.get("user_id"))
+        if user is None:
+            return None
+        return (user.user_id, user.username, list(user.role_names),
+                entry.get("permissions", []))
+
+    def _permissions_for(self, user) -> List[str]:
+        # Superusers and members of the rbac 'admin' role get full access.
+        if user.is_superuser or "admin" in user.role_names:
+            return ["*"]
+        perms: set = set()
+        for role_name in user.role_names:
+            role = self.system.get_role(role_name)
+            if role:
+                perms |= set(role.permissions)
+        return sorted(perms)
+
+    def create_api_key(self, username: str, email: str, roles: List[str], created_by: str):
+        if not self.available:
+            raise RuntimeError("RBAC subsystem unavailable")
+        roles = roles or ["viewer"]
+        import secrets as _secrets
+        user = self.system.get_user_by_username(username)
+        if user is None:
+            user = self.system.create_user(
+                username=username,
+                email=email or f"{username}@local",
+                password=_secrets.token_hex(16),
+                roles=roles,
+            )
+        else:
+            merged = set(user.role_names) | set(roles)
+            self.system.update_user(user.user_id, {"role_names": list(merged)})
+            user = self.system.get_user(user.user_id)
+        backend = self.system.auth_backends[AuthBackend.API_KEY]
+        raw_key = backend.generate_api_key(user.user_id)
+        key_id = f"key_{_hashlib.sha256(raw_key.encode()).hexdigest()[:16]}"
+        self.api_key_registry[key_id] = {
+            "key_id": key_id,
+            "key_hash": _hashlib.sha256(raw_key.encode("utf-8")).hexdigest(),
+            "user_id": user.user_id,
+            "username": username,
+            "roles": roles,
+            "permissions": self._permissions_for(user),
+            "created_at": datetime.utcnow().isoformat(),
+            "created_by": created_by or "system",
+            "revoked": False,
+        }
+        self._save_registry()
+        self._hydrate_api_keys()
+        return raw_key, key_id, user
+
+    def revoke_api_key(self, key_id: str) -> bool:
+        entry = self.api_key_registry.get(key_id)
+        if not entry:
+            return False
+        entry["revoked"] = True
+        self._save_registry()
+        self._hydrate_api_keys()
+        return True
+
+    def list_api_keys(self) -> List[Dict[str, Any]]:
+        return [
+            {k: v for k, v in e.items() if k != "key_hash"}
+            for e in self.api_key_registry.values()
+        ]
+
+    # -- Audit trail ---------------------------------------------------------
+    def audit(self, user, operation: str, resource: str, resource_id, success: bool,
+              details: Optional[Dict[str, Any]] = None) -> None:
+        if not self.available:
+            return
+        try:
+            uid = getattr(user, "rbac_user_id", None) or getattr(user, "name", "anonymous")
+            self.system.storage.create_audit_log(AuditLog(
+                log_id=f"audit_{_hashlib.sha256((str(uid) + operation + str(resource_id) + datetime.utcnow().isoformat()).encode()).hexdigest()[:20]}",
+                user_id=str(uid),
+                action=operation,
+                resource_type=resource,
+                resource_id=str(resource_id) if resource_id is not None else None,
+                success=bool(success),
+                timestamp=datetime.utcnow(),
+                details=details or {},
+            ))
+        except Exception as exc:
+            logger.warning("RBAC: failed to persist audit log: %s", exc)
+
+
+_rbac = _RBACIntegration(_rbac_system)
+
+
+# Default permission sets per legacy role (used when a caller has no
+# rbac-managed key, or to derive enforcement from the env-based role).
+# Keyed by role *value* string so this is safe at module-import time
+# (UserRole is defined later in this file).
+_ROLE_DEFAULT_PERMISSIONS: Dict[str, List[str]] = {
+    "admin": ["*"],
+    "user": [
+        "workflow:create", "workflow:read", "workflow:update",
+        "workflow:execute", "api:access",
+    ],
+    "readonly": ["workflow:read", "api:access"],
+}
+
+
+def _effective_permissions(user: "AuthUser") -> set:
+    perms = getattr(user, "permissions", None)
+    if perms:
+        return set(perms)
+    role_value = user.role.value if hasattr(user.role, "value") else str(user.role)
+    return set(_ROLE_DEFAULT_PERMISSIONS.get(role_value, []))
+
+
+def enforce_rbac_permission(user: "AuthUser", permission: str) -> None:
+    """Enforce a single RBAC permission on an already-authenticated user.
+
+    In OPEN mode (default) this is a no-op so the server always boots and is
+    usable without security configuration. In ENFORCE mode it raises 403 when
+    the principal lacks the permission.
+    """
+    if not _RBAC_ENFORCE:
+        return
+    perms = _effective_permissions(user)
+    if "*" in perms:
+        return
+    if permission not in perms:
+        logger.warning(
+            "RBAC: DENIED '%s' for user=%s (perms=%s)",
+            permission, getattr(user, "name", "?"), sorted(perms),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Permission denied: '{permission}' required",
+        )
+
+
+def rbac_enforce(permission: str):
+    """FastAPI dependency factory binding a permission to an endpoint."""
+    def _guard(user: AuthUser = Depends(verify_api_key)) -> AuthUser:
+        enforce_rbac_permission(user, permission)
+        return user
+    return _guard
+
+
+def _sanitize_text(value, max_len: int = 20000, allow_newlines: bool = True) -> str:
+    """Strip control characters, normalize whitespace, and cap length.
+
+    Used to validate/sanitize untrusted request inputs before they reach the
+    decomposition engine, LLM prompts, or the persistence layer.
+    """
+    if value is None:
+        return value
+    import re as _re
+    text = str(value)
+    if allow_newlines:
+        text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text)
+    else:
+        text = _re.sub(r"[\x00-\x1f\x7f]", "", text)
+    text = text.strip()
+    if max_len and len(text) > max_len:
+        text = text[:max_len]
+    return text
 
 
 def _evaluate_auto_approval_rule(rule: Dict[str, Any], plan: Dict[str, Any]) -> bool:
@@ -1802,6 +2061,8 @@ class AuthUser(BaseModel):
     api_key: str
     role: UserRole
     name: str
+    permissions: List[str] = Field(default_factory=list)
+    rbac_user_id: Optional[str] = None
 
 
 class IcrRefinementEvent(BaseModel):
@@ -1863,6 +2124,31 @@ def verify_api_key(x_api_key: str = Header(...)) -> AuthUser:
     success = False
 
     try:
+        # rbac_enhanced-managed API keys take precedence when available.
+        if RBAC_ENHANCED_AVAILABLE:
+            principal = _rbac.authenticate_api_key(x_api_key)
+            if principal is not None:
+                user_id, username, roles, permissions = principal
+                role = UserRole.READONLY
+                if "admin" in roles or "*" in permissions:
+                    role = UserRole.ADMIN
+                elif any(
+                    p in permissions
+                    for p in ("workflow:create", "workflow:update", "workflow:execute")
+                ):
+                    role = UserRole.USER
+                user = AuthUser(
+                    api_key=x_api_key,
+                    role=role,
+                    name=username,
+                    permissions=permissions,
+                    rbac_user_id=user_id,
+                )
+                success = True
+                duration = time.time() - start_time
+                _track_api_performance("verify_api_key", True, duration, "verify_api_key", 200)
+                return user
+
         # First, try database-backed validation via security framework
         if SECURITY_FRAMEWORK_AVAILABLE:
             try:
@@ -2039,6 +2325,122 @@ def health_check():
         "version": "1.0.0",
         "timestamp": datetime.utcnow().isoformat(),
     }
+
+
+# ---------------------------------------------------------------------------
+# RBAC security management endpoints (Roadmap B.1)
+# All require ADMIN; in ENFORCE mode the caller must additionally hold the
+# relevant sensitive-operation permission (api:admin / system:admin).
+# ---------------------------------------------------------------------------
+
+class ApiKeyCreateRequest(BaseModel):
+    username: str = Field(..., min_length=1, max_length=256)
+    email: Optional[str] = Field(None, max_length=512)
+    roles: List[str] = Field(default_factory=list)
+
+
+class RoleCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    description: str = Field(default_factory=str)
+    permissions: List[str] = Field(default_factory=list)
+
+
+@app.post("/security/api-keys", summary="Create an API key (admin)")
+def create_api_key_endpoint(
+    req: ApiKeyCreateRequest,
+    user: AuthUser = Depends(require_role(UserRole.ADMIN)),
+):
+    """Create (and return, once) a new API key bound to a user/roles."""
+    enforce_rbac_permission(user, "api:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        raise HTTPException(status_code=503, detail="RBAC subsystem unavailable")
+    try:
+        raw_key, key_id, rbac_user = _rbac.create_api_key(
+            req.username, req.email, req.roles, created_by=user.name
+        )
+    except RBACError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to create API key: {exc}")
+    record_audit_event(
+        user, "CREATE_API_KEY", "api_key", key_id, True,
+        {"username": req.username, "roles": req.roles},
+    )
+    return {
+        "key_id": key_id,
+        "api_key": raw_key,
+        "user_id": rbac_user.user_id,
+        "username": req.username,
+        "roles": req.roles,
+        "warning": "Store this API key securely; it is shown only once.",
+    }
+
+
+@app.get("/security/api-keys", summary="List API keys (admin)")
+def list_api_keys_endpoint(user: AuthUser = Depends(require_role(UserRole.ADMIN))):
+    """List managed API keys (hashes redacted)."""
+    enforce_rbac_permission(user, "api:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        return {"api_keys": [], "rbac_available": False}
+    return {"api_keys": _rbac.list_api_keys(), "rbac_available": True}
+
+
+@app.delete("/security/api-keys/{key_id}", summary="Revoke an API key (admin)")
+def revoke_api_key_endpoint(
+    key_id: str,
+    user: AuthUser = Depends(require_role(UserRole.ADMIN)),
+):
+    """Revoke (disable) a managed API key."""
+    enforce_rbac_permission(user, "api:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        raise HTTPException(status_code=503, detail="RBAC subsystem unavailable")
+    ok = _rbac.revoke_api_key(key_id)
+    record_audit_event(user, "REVOKE_API_KEY", "api_key", key_id, ok, {})
+    if not ok:
+        raise HTTPException(status_code=404, detail="API key not found")
+    return {"status": "revoked", "key_id": key_id}
+
+
+@app.get("/security/audit-logs", summary="Read audit trail (admin)")
+def read_audit_logs_endpoint(
+    limit: int = 200,
+    user: AuthUser = Depends(require_role(UserRole.ADMIN)),
+):
+    """Read the persisted RBAC audit trail (falls back to in-memory)."""
+    enforce_rbac_permission(user, "system:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        return {"audit_logs": AUDIT_LOGS[-limit:], "source": "in_memory"}
+    entries = _rbac.system.storage.get_audit_logs(limit=limit)
+    return {"audit_logs": [e.to_dict() for e in entries], "source": "rbac"}
+
+
+@app.get("/security/roles", summary="List roles (admin)")
+def list_roles_endpoint(user: AuthUser = Depends(require_role(UserRole.ADMIN))):
+    """List configured RBAC roles."""
+    enforce_rbac_permission(user, "system:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        return {"roles": [], "rbac_available": False}
+    return {"roles": [r.to_dict() for r in _rbac.system.list_roles()], "rbac_available": True}
+
+
+@app.post("/security/roles", summary="Create a role (admin)")
+def create_role_endpoint(
+    req: RoleCreateRequest,
+    user: AuthUser = Depends(require_role(UserRole.ADMIN)),
+):
+    """Create a new RBAC role with the given permission set."""
+    enforce_rbac_permission(user, "system:admin")
+    if not RBAC_ENHANCED_AVAILABLE:
+        raise HTTPException(status_code=503, detail="RBAC subsystem unavailable")
+    try:
+        role = _rbac.system.create_role(req.name, req.description, req.permissions)
+    except RBACError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    record_audit_event(
+        user, "CREATE_ROLE", "role", req.name, True,
+        {"permissions": req.permissions},
+    )
+    return role.to_dict()
 
 
 @app.get("/evolutions")
@@ -2398,7 +2800,7 @@ def get_token(request: TokenRequest):
 @app.post(
     "/workflows",
     response_model=WorkflowResponse,
-    dependencies=[Depends(require_role(UserRole.USER))],
+    dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:create"))],
     summary="Create a new workflow",
     description="Create a new decomposition workflow with specified teams and gauntlets",
     responses={
@@ -2427,6 +2829,16 @@ def create_workflow(
     tenant_id: str = Depends(get_tenant_id)
 ):
     """Create a new workflow."""
+    # Input validation / sanitization (Roadmap B.1)
+    request.problem_statement = _sanitize_text(request.problem_statement, max_len=20000)
+    for _f in (
+        "content_analyzer_team", "planner_team", "solver_team", "patcher_team",
+        "assembler_team", "sub_problem_red_gauntlet", "sub_problem_gold_gauntlet",
+        "final_red_gauntlet", "final_gold_gauntlet", "solver_generation_gauntlet",
+    ):
+        _v = getattr(request, _f, None)
+        if isinstance(_v, str):
+            setattr(request, _f, _sanitize_text(_v, max_len=256, allow_newlines=False))
     logger.info(f"Workflow creation request by {user.name} for problem: {request.problem_statement[:50]}...")
     try:
         tenant_team_manager = get_tenant_team_manager(tenant_id)
@@ -2521,7 +2933,7 @@ def create_workflow(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/workflows", dependencies=[Depends(verify_api_key)])
+@app.get("/workflows", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def list_workflows(
     user: AuthUser = Depends(verify_api_key),
     tenant_id: str = Depends(get_tenant_id)
@@ -2551,7 +2963,7 @@ def list_workflows(
     }
 
 
-@app.get("/workflows/{workflow_id}", response_model=WorkflowDetailResponse, dependencies=[Depends(verify_api_key)])
+@app.get("/workflows/{workflow_id}", response_model=WorkflowDetailResponse, dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def get_workflow(
     workflow_id: str,
     user: AuthUser = Depends(verify_api_key),
@@ -2592,7 +3004,7 @@ def get_workflow(
     )
 
 
-@app.get("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(verify_api_key)])
+@app.get("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def get_workflow_decomposition_plan(
     workflow_id: str,
     user: AuthUser = Depends(verify_api_key),
@@ -2645,7 +3057,7 @@ def get_workflow_decomposition_plan(
     }
 
 
-@app.put("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(require_role(UserRole.USER))])
+@app.put("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:update"))])
 def update_workflow_decomposition_plan(
     workflow_id: str,
     request: DecompositionPlanUpdateRequest,
@@ -2774,7 +3186,7 @@ def update_workflow_decomposition_plan(
     return {"message": "Decomposition plan updated", "execution_order": execution_order}
 
 
-@app.get("/workflows/{workflow_id}/telemetry", dependencies=[Depends(verify_api_key)])
+@app.get("/workflows/{workflow_id}/telemetry", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def get_workflow_telemetry(
     workflow_id: str,
     user: AuthUser = Depends(verify_api_key),
@@ -2828,7 +3240,7 @@ def get_workflow_telemetry(
     }
 
 
-@app.get("/workflows/{workflow_id}/resource-usage", dependencies=[Depends(verify_api_key)])
+@app.get("/workflows/{workflow_id}/resource-usage", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def get_workflow_resource_usage(
     workflow_id: str,
     user: AuthUser = Depends(verify_api_key),
@@ -2848,7 +3260,7 @@ def get_workflow_resource_usage(
     return {"workflow_id": wf.workflow_id, "resource_usage": wf.resource_usage}
 
 
-@app.post("/workflows/{workflow_id}/resource-optimization", dependencies=[Depends(require_role(UserRole.USER))])
+@app.post("/workflows/{workflow_id}/resource-optimization", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:update"))])
 def optimize_workflow_resources(
     workflow_id: str,
     user: AuthUser = Depends(require_role(UserRole.USER)),
@@ -2872,7 +3284,7 @@ def optimize_workflow_resources(
     return {"workflow_id": wf.workflow_id, "suggestions": suggestions}
 
 
-@app.post("/workflows/{workflow_id}/pause", dependencies=[Depends(require_role(UserRole.USER))])
+@app.post("/workflows/{workflow_id}/pause", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:execute"))])
 def pause_workflow(
     workflow_id: str,
     user: AuthUser = Depends(require_role(UserRole.USER)),
@@ -2906,7 +3318,7 @@ def pause_workflow(
     }
 
 
-@app.post("/workflows/{workflow_id}/resume", dependencies=[Depends(require_role(UserRole.USER))])
+@app.post("/workflows/{workflow_id}/resume", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:execute"))])
 def resume_workflow(
     workflow_id: str,
     user: AuthUser = Depends(require_role(UserRole.USER)),
@@ -2940,7 +3352,7 @@ def resume_workflow(
     }
 
 
-@app.get("/workflows/{workflow_id}/results", dependencies=[Depends(verify_api_key)])
+@app.get("/workflows/{workflow_id}/results", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
 def get_workflow_results(
     workflow_id: str,
     user: AuthUser = Depends(verify_api_key),
@@ -3000,7 +3412,7 @@ def get_workflow_results(
     return results
 
 
-@app.delete("/workflows/{workflow_id}", dependencies=[Depends(require_role(UserRole.ADMIN))])
+@app.delete("/workflows/{workflow_id}", dependencies=[Depends(require_role(UserRole.ADMIN)), Depends(rbac_enforce("workflow:delete"))])
 def delete_workflow(
     workflow_id: str,
     user: AuthUser = Depends(require_role(UserRole.ADMIN)),
@@ -4406,7 +4818,7 @@ async def get_bubblelabs_integration_health(name: str):
     return await integration.check_integration_health(name)
 
 
-@app.post("/workflows/{workflow_id}/truth-package", dependencies=[Depends(require_role(UserRole.USER))])
+@app.post("/workflows/{workflow_id}/truth-package", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:read"))])
 def generate_workflow_truth_package(workflow_id: str, user: AuthUser = Depends(require_role(UserRole.USER))):
     """Generate a Truth Package binary trust artifact for a completed workflow."""
     integration = _get_bubblelabs_workflow_integration()
@@ -4420,7 +4832,7 @@ def generate_workflow_truth_package(workflow_id: str, user: AuthUser = Depends(r
     return result
 
 
-@app.post("/workflows/{workflow_id}/research-approval/{stage_id}", dependencies=[Depends(require_role(UserRole.USER))])
+@app.post("/workflows/{workflow_id}/research-approval/{stage_id}", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:update"))])
 def approve_research_stage(workflow_id: str, stage_id: int, user: AuthUser = Depends(require_role(UserRole.USER))):
     """Approve a Research-Quest stage and trigger autonomous execution."""
     integration = _get_bubblelabs_workflow_integration()
@@ -5555,6 +5967,39 @@ async def rewrite_api_prefix(request: Request, call_next):
 
 server = None
 
+
+def _build_tls_context(cert_path: Optional[str], key_path: Optional[str]):
+    """Build a stdlib TLS context for uvicorn from cert/key paths."""
+    import ssl
+    if not cert_path or not key_path:
+        raise ValueError("Both cert_path and key_path are required for TLS")
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(certfile=cert_path, keyfile=key_path)
+    return ctx
+
+
+try:
+    from starlette.middleware.base import BaseHTTPMiddleware as _SecurityHeadersMiddleware
+except Exception:  # starlette always ships with FastAPI; keep import resilient
+    _SecurityHeadersMiddleware = None
+
+
+async def _security_headers_dispatch(request, call_next):
+    """Attach hardening response headers for secure in-transit communication."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault(
+        "Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'"
+    )
+    if _RBAC_ENFORCE:
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+    return response
+
+
 def start_api_server(
     host: str = "0.0.0.0", 
     port: int = 8001,
@@ -5588,6 +6033,15 @@ def start_api_server(
             key_path = SecurityConfig.TLS_KEY_PATH
     else:
         use_tls = False
+
+    # RBAC-driven TLS: honor SOVEREIGN_TLS_CERT / SOVEREIGN_TLS_KEY so the
+    # server can terminate TLS without the (optional) security_framework dep.
+    _tls_cert = os.getenv("SOVEREIGN_TLS_CERT")
+    _tls_key = os.getenv("SOVEREIGN_TLS_KEY")
+    if (not use_tls) and _tls_cert and _tls_key:
+        use_tls = True
+        cert_path = _tls_cert
+        key_path = _tls_key
     
     # Configure uvicorn
     config_kwargs = {
@@ -5599,8 +6053,7 @@ def start_api_server(
     # Add TLS configuration if enabled
     if use_tls:
         try:
-            from security_framework import create_ssl_context
-            ssl_context = create_ssl_context(cert_path, key_path)
+            ssl_context = _build_tls_context(cert_path, key_path)
             config_kwargs["ssl_version"] = ssl_context
             logger.info(f"Starting API server with TLS on {host}:{port}")
             logger.info(f"Using certificate: {cert_path}")
@@ -5609,6 +6062,16 @@ def start_api_server(
             logger.warning("Starting API server WITHOUT TLS - this is insecure!")
     else:
         logger.info(f"Starting API server on {host}:{port} (no TLS)")
+
+    # Security response headers (HSTS in enforce mode) for secure in-transit comms.
+    if _RBAC_ENFORCE or os.getenv("SOVEREIGN_SECURITY_HEADERS") == "1":
+        try:
+            app.add_middleware(
+                _SecurityHeadersMiddleware,
+                dispatch=_security_headers_dispatch,
+            )
+        except Exception as e:
+            logger.warning("RBAC: could not attach security headers middleware: %s", e)
     
     config = uvicorn.Config(**config_kwargs)
     server = uvicorn.Server(config)

@@ -932,7 +932,13 @@ class RBACStorage:
                         continue
                     if action and log_data.get('action') != action:
                         continue
-                    logs.append(AuditLog(**log_data))
+                    _ts = log_data.get('timestamp')
+                    if isinstance(_ts, str):
+                        try:
+                            _ts = datetime.fromisoformat(_ts)
+                        except Exception:
+                            _ts = datetime.utcnow()
+                    logs.append(AuditLog(**{**log_data, 'timestamp': _ts}))
                 logs = logs[:limit]
 
             else:  # file
@@ -942,7 +948,13 @@ class RBACStorage:
                         continue
                     if action and log_data.get('action') != action:
                         continue
-                    logs.append(AuditLog(**log_data))
+                    _ts = log_data.get('timestamp')
+                    if isinstance(_ts, str):
+                        try:
+                            _ts = datetime.fromisoformat(_ts)
+                        except Exception:
+                            _ts = datetime.utcnow()
+                    logs.append(AuditLog(**{**log_data, 'timestamp': _ts}))
                 logs = logs[:limit]
 
             return logs

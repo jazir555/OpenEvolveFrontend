@@ -475,6 +475,75 @@ def render_ragbits_component() -> None:
             st.info("Indexing requested. This feature is being wired to the backend.")
 
 
+def render_bubblelab_components_tab() -> None:
+    """Render the BubbleLab Components (TypeScript) integration panel.
+
+    Bridges the Python BubbleLab UI to the ``@openevolve/bubblelab-components``
+    TS package so every configuration knob is reachable. Degrades gracefully when
+    the TS toolchain or build output is missing.
+    """
+    st.header("🔌 BubbleLab Components (TypeScript)")
+
+    try:
+        from bubblelab_components_bridge import get_bridge
+    except Exception as exc:  # pragma: no cover - bridge is colocated
+        st.error(f"BubbleLab Components bridge not importable: {exc}")
+        return
+
+    bridge = get_bridge()
+    status = bridge.status()
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Package Found", "YES" if status["available"] else "NO")
+    col2.metric("Manifest", "YES" if status["has_manifest"] else "NO")
+    col3.metric("Components", status["component_count"])
+    col4.metric("Config Knobs", status["knob_count"])
+
+    if status["package_dir"]:
+        st.markdown(f"**Package:** `{status['package_dir']}`")
+    if status.get("build_script_configured"):
+        st.success("TS `tsc` build script (`build:components`) is configured.")
+    else:
+        st.warning("TS `build:components` script not detected in the package.")
+
+    if not status["has_manifest"]:
+        st.error(
+            "Component manifest not found. The Python side cannot enumerate config "
+            "knobs until the TS package is present."
+        )
+        return
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("🔨 Build TS components (tsc)", use_container_width=True):
+            with st.spinner("Running `npm run build:components`..."):
+                result = bridge.build()
+            if result.get("success"):
+                st.success("Build succeeded.")
+            else:
+                st.error(f"Build did not complete: {result.get('reason')}")
+                if result.get("stderr"):
+                    st.code(result.get("stderr", "")[:2000])
+    with c2:
+        if st.button("🌐 Serve built components", use_container_width=True):
+            srv = bridge.serve()
+            st.success(f"Serving at {srv['url']} (mode={srv['mode']})")
+
+    st.divider()
+    st.subheader("Configuration Knobs (every BubbleLab UI control)")
+    for comp in bridge.get_components():
+        with st.expander(f"{comp['name']}  ·  {len(comp.get('knobs', []))} knobs"):
+            for knob in comp.get("knobs", []):
+                ctrl = knob.get("control", "?")
+                if knob.get("options"):
+                    extra = f" options={knob['options']}"
+                elif "min" in knob or "max" in knob:
+                    extra = f" range=[{knob.get('min')}, {knob.get('max')}]"
+                else:
+                    extra = ""
+                st.markdown(f"- `{knob['id']}` — {knob['label']} ({ctrl}){extra}")
+
+
 def render_component_tab(tab_name: str) -> None:
     """Render a specific component tab."""
     if tab_name == "ace":
@@ -491,6 +560,8 @@ def render_component_tab(tab_name: str) -> None:
         render_leanaide_component()
     elif tab_name == "ragbits":
         render_ragbits_component()
+    elif tab_name == "bubblelab_components":
+        render_bubblelab_components_tab()
 
 
 def render_extended_ui() -> None:
@@ -508,7 +579,7 @@ def render_extended_ui() -> None:
     
     page = st.sidebar.radio(
         "Go to",
-        ["Dashboard", "ACE", "Z3", "ROMA", "Knowledge", "Analytics", "LeanAIDE", "Ragbits"],
+        ["Dashboard", "ACE", "Z3", "ROMA", "Knowledge", "Analytics", "LeanAIDE", "Ragbits", "BubbleLab Components"],
     )
     
     # Sidebar - Status summary
@@ -545,6 +616,8 @@ def render_extended_ui() -> None:
         render_leanaide_component()
     elif page == "Ragbits":
         render_ragbits_component()
+    elif page == "BubbleLab Components":
+        render_bubblelab_components_tab()
 
 
 # =============================================================================

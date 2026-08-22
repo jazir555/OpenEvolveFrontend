@@ -50,7 +50,7 @@ import { WorkflowExecutionTab } from './WorkflowExecutionTab';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { apiLogger } from '../../../../../../lib/structuredLogger';
-import { useBubbleLabIntegration } from '../../hooks/useBubbleLabIntegration';
+import { useBubbleLabIntegration } from '../../../hooks/useBubbleLabIntegration';
 
 interface OpenEvolveAppState {
   protocolText: string;

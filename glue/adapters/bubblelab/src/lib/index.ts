@@ -78,6 +78,22 @@ export {
 export { openevolveApi } from './openevolveApi';
 export type { ApiConfig } from './openevolveApi';
 
+// Component Manifest (single source of truth for every config knob)
+export {
+  bubbleLabComponentManifest,
+  getComponentManifest,
+  getAllConfigKnobs,
+  getConfigKnob,
+  getComponentKnobIds
+} from './component-manifest';
+export type {
+  BubbleLabComponentManifest,
+  ComponentManifestEntry,
+  ComponentCategory,
+  ConfigKnob,
+  ControlKind
+} from './component-manifest';
+
 // Types
 export * from './types';
 

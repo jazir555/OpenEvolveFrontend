@@ -1,0 +1,223 @@
+{
+  "package": "@openevolve/bubblelab-components",
+  "version": "1.0.0",
+  "generatedFrom": "docs/Architecture/BubbleLab/BUBBLELABS_INTEGRATION.md",
+  "description": "Canonical manifest of every BubbleLab UI configuration knob exposed through the @openevolve/bubblelab-components TypeScript package. Consumed by the Python BubbleLab UI bridge so each knob is reachable from Python.",
+  "components": [
+    {
+      "id": "provider-config",
+      "name": "Provider Configuration",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#provider-configuration",
+      "knobs": [
+        { "id": "provider", "label": "Provider", "control": "select", "options": ["openai", "anthropic", "google", "mistral", "local"] },
+        { "id": "api_key", "label": "API Key", "control": "password" },
+        { "id": "base_url", "label": "Base URL", "control": "text" },
+        { "id": "model", "label": "Model", "control": "select", "options": ["gpt-4o", "claude-3-5-sonnet", "gemini-1.5-pro", "mistral-large"] },
+        { "id": "ensemble_enabled", "label": "Multi-model Ensemble", "control": "boolean", "default": false },
+        { "id": "primary_model", "label": "Primary Model", "control": "select" },
+        { "id": "fallback_model", "label": "Fallback Model", "control": "select" },
+        { "id": "primary_weight", "label": "Primary Weight", "control": "slider", "min": 0, "max": 1, "step": 0.05, "default": 0.7 },
+        { "id": "fallback_weight", "label": "Fallback Weight", "control": "slider", "min": 0, "max": 1, "step": 0.05, "default": 0.3 },
+        { "id": "extra_headers", "label": "Extra Headers", "control": "json", "default": "{}" }
+      ]
+    },
+    {
+      "id": "parameter-presets",
+      "name": "Parameter Presets",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#parameter-presets",
+      "knobs": [
+        { "id": "load_preset", "label": "Load Preset", "control": "select" },
+        { "id": "save_config", "label": "Save Configuration", "control": "button" },
+        { "id": "delete_config", "label": "Delete Configuration", "control": "button" }
+      ]
+    },
+    {
+      "id": "generation-params",
+      "name": "Generation Parameters",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#generation-parameters",
+      "knobs": [
+        { "id": "temperature", "label": "Temperature", "control": "slider", "min": 0, "max": 2, "step": 0.01, "default": 0.7 },
+        { "id": "top_p", "label": "Top-P", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 1.0 },
+        { "id": "frequency_penalty", "label": "Frequency Penalty", "control": "slider", "min": -2, "max": 2, "step": 0.01, "default": 0.0 },
+        { "id": "presence_penalty", "label": "Presence Penalty", "control": "slider", "min": -2, "max": 2, "step": 0.01, "default": 0.0 },
+        { "id": "max_tokens", "label": "Max Tokens", "control": "number", "min": 1, "max": 100000, "default": 4096 },
+        { "id": "seed", "label": "Seed", "control": "number", "default": 0 },
+        { "id": "reasoning_effort", "label": "Reasoning Effort", "control": "select", "options": ["low", "medium", "high"], "default": "medium" }
+      ]
+    },
+    {
+      "id": "evolution-params",
+      "name": "Evolution Parameters",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#evolution-parameters",
+      "knobs": [
+        { "id": "max_iterations", "label": "Max Iterations", "control": "number", "min": 1, "max": 200, "default": 20 },
+        { "id": "population_size", "label": "Population Size", "control": "number", "min": 1, "max": 100, "default": 20 },
+        { "id": "num_islands", "label": "Number of Islands", "control": "number", "min": 1, "max": 10, "default": 1 },
+        { "id": "migration_interval", "label": "Migration Interval", "control": "number", "min": 1, "max": 100, "default": 10 },
+        { "id": "migration_rate", "label": "Migration Rate", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.1 },
+        { "id": "archive_size", "label": "Archive Size", "control": "number", "min": 0, "max": 100, "default": 0 },
+        { "id": "elite_ratio", "label": "Elite Ratio", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.1 },
+        { "id": "exploration_ratio", "label": "Exploration Ratio", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.3 },
+        { "id": "exploitation_ratio", "label": "Exploitation Ratio", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.7 },
+        { "id": "checkpoint_interval", "label": "Checkpoint Interval", "control": "number", "min": 1, "max": 100, "default": 10 },
+        { "id": "language", "label": "Language", "control": "select", "options": ["python", "typescript", "rust", "go"], "default": "python" },
+        { "id": "file_suffix", "label": "File Suffix", "control": "text", "default": ".py" },
+        { "id": "feature_dimensions", "label": "Feature Dimensions", "control": "multiselect", "options": ["code_length", "complexity", "test_pass", "runtime"] },
+        { "id": "feature_bins", "label": "Feature Bins", "control": "number", "min": 1, "max": 100, "default": 10 },
+        { "id": "diversity_metric", "label": "Diversity Metric", "control": "select", "options": ["levenshtein", "jaccard", "cosine", "hamming"], "default": "levenshtein" }
+      ]
+    },
+    {
+      "id": "advanced-evolution",
+      "name": "Advanced Evolution Features",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#advanced-evolution-features",
+      "knobs": [
+        { "id": "enable_qd_evolution", "label": "Quality-Diversity Evolution", "control": "boolean", "default": false },
+        { "id": "enable_multi_objective", "label": "Multi-Objective Optimization", "control": "boolean", "default": false },
+        { "id": "enable_adversarial_evolution", "label": "Adversarial Evolution", "control": "boolean", "default": false },
+        { "id": "enable_symbolic_regression", "label": "Symbolic Regression", "control": "boolean", "default": false },
+        { "id": "enable_neuroevolution", "label": "Neuroevolution", "control": "boolean", "default": false },
+        { "id": "enable_evolution_tracing", "label": "Evolution Tracing", "control": "boolean", "default": false },
+        { "id": "enable_artifact_feedback", "label": "Artifact Feedback", "control": "boolean", "default": false },
+        { "id": "enable_llm_feedback", "label": "LLM Feedback", "control": "boolean", "default": false },
+        { "id": "enable_early_stopping", "label": "Early Stopping", "control": "boolean", "default": false },
+        { "id": "early_stopping_patience", "label": "Early Stopping Patience", "control": "number", "min": 1, "max": 100, "default": 10 },
+        { "id": "enable_double_selection", "label": "Double Selection", "control": "boolean", "default": false },
+        { "id": "enable_adaptive_feature_dimensions", "label": "Adaptive Feature Dimensions", "control": "boolean", "default": false },
+        { "id": "enable_multi_strategy_sampling", "label": "Multi-Strategy Sampling", "control": "boolean", "default": false },
+        { "id": "enable_ring_topology", "label": "Ring Topology", "control": "boolean", "default": false },
+        { "id": "enable_coevolutionary", "label": "Coevolutionary Approach", "control": "boolean", "default": false },
+        { "id": "enable_hardware_optimization", "label": "Hardware Optimization", "control": "boolean", "default": false },
+        { "id": "enable_template_stochasticity", "label": "Template Stochasticity", "control": "boolean", "default": false },
+        { "id": "enable_diff_based_evolution", "label": "Diff-Based Evolution", "control": "boolean", "default": false },
+        { "id": "enable_cascade_evaluation", "label": "Cascade Evaluation", "control": "boolean", "default": false },
+        { "id": "cascade_threshold_1", "label": "Cascade Threshold 1", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.5 },
+        { "id": "cascade_threshold_2", "label": "Cascade Threshold 2", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.7 },
+        { "id": "cascade_threshold_3", "label": "Cascade Threshold 3", "control": "slider", "min": 0, "max": 1, "step": 0.01, "default": 0.9 }
+      ]
+    },
+    {
+      "id": "performance-optimization",
+      "name": "Performance Optimization",
+      "category": "sidebar",
+      "source": "BUBBLELABS_INTEGRATION.md#performance-optimization",
+      "knobs": [
+        { "id": "memory_limit_mb", "label": "Memory Limit (MB)", "control": "number", "min": 100, "max": 32768, "default": 2048 },
+        { "id": "cpu_limit", "label": "CPU Limit (cores)", "control": "slider", "min": 0.1, "max": 32, "step": 0.1, "default": 1.0 },
+        { "id": "parallel_evaluations", "label": "Parallel Evaluations", "control": "number", "min": 1, "max": 32, "default": 4 },
+        { "id": "max_code_length", "label": "Max Code Length", "control": "number", "min": 100, "max": 100000, "default": 8000 },
+        { "id": "evaluator_timeout", "label": "Evaluator Timeout (s)", "control": "number", "min": 10, "max": 3600, "default": 120 },
+        { "id": "max_evaluation_retries", "label": "Max Evaluation Retries", "control": "number", "min": 1, "max": 10, "default": 3 }
+      ]
+    },
+    {
+      "id": "evolution-tab",
+      "name": "Evolution Tab",
+      "category": "main",
+      "source": "BUBBLELABS_INTEGRATION.md#evolution-tab",
+      "knobs": [
+        { "id": "content", "label": "Content", "control": "textarea" },
+        { "id": "evolution_mode", "label": "Evolution Mode", "control": "select", "options": ["standard", "cascade", "adversarial", "qd"], "default": "standard" },
+        { "id": "prompts", "label": "Prompts", "control": "textarea" },
+        { "id": "run_evolution", "label": "Run Evolution", "control": "button" },
+        { "id": "stop_evolution", "label": "Stop Evolution", "control": "button" }
+      ]
+    },
+    {
+      "id": "adversarial-testing-tab",
+      "name": "Adversarial Testing Tab",
+      "category": "main",
+      "source": "BUBBLELABS_INTEGRATION.md#adversarial-testing-tab",
+      "knobs": [
+        { "id": "red_team_models", "label": "Red Team Models", "control": "multiselect" },
+        { "id": "blue_team_models", "label": "Blue Team Models", "control": "multiselect" },
+        { "id": "evaluator_models", "label": "Evaluator Models", "control": "multiselect" },
+        { "id": "red_sample_size", "label": "Red Team Sample Size", "control": "number", "min": 1, "default": 5 },
+        { "id": "blue_sample_size", "label": "Blue Team Sample Size", "control": "number", "min": 1, "default": 5 },
+        { "id": "evaluator_sample_size", "label": "Evaluator Sample Size", "control": "number", "min": 1, "default": 5 },
+        { "id": "rotation_strategy", "label": "Rotation Strategy", "control": "select", "options": ["round_robin", "weighted", "random"], "default": "round_robin" },
+        { "id": "confidence_threshold", "label": "Confidence Threshold", "control": "slider", "min": 50, "max": 100, "step": 1, "default": 80 },
+        { "id": "evaluation_threshold", "label": "Evaluation Threshold", "control": "slider", "min": 0, "max": 100, "step": 1, "default": 75 },
+        { "id": "budget_limit", "label": "Budget Limit", "control": "number", "min": 0, "default": 1000 },
+        { "id": "critique_quality", "label": "Critique Quality", "control": "slider", "min": 0, "max": 100, "step": 1, "default": 80 },
+        { "id": "patch_quality", "label": "Patch Quality", "control": "slider", "min": 0, "max": 100, "step": 1, "default": 80 },
+        { "id": "compliance_requirements", "label": "Compliance Requirements", "control": "textarea" },
+        { "id": "multi_objective_targets", "label": "Multi-Objective Targets", "control": "multiselect" },
+        { "id": "data_augmentation", "label": "Data Augmentation", "control": "boolean", "default": false },
+        { "id": "human_feedback", "label": "Human Feedback", "control": "boolean", "default": false }
+      ]
+    },
+    {
+      "id": "github-integration-tab",
+      "name": "GitHub Integration Tab",
+      "category": "main",
+      "source": "BUBBLELABS_INTEGRATION.md#github-integration-tab",
+      "knobs": [
+        { "id": "github_token", "label": "GitHub Token", "control": "password" },
+        { "id": "repository", "label": "Repository", "control": "text" },
+        { "id": "file_operations", "label": "File Operations", "control": "button" }
+      ]
+    },
+    {
+      "id": "analytics-dashboard-tab",
+      "name": "Analytics Dashboard Tab",
+      "category": "main",
+      "source": "BUBBLELABS_INTEGRATION.md#analytics-dashboard-tab",
+      "knobs": [
+        { "id": "kpi_metrics", "label": "KPI Metrics", "control": "display" },
+        { "id": "visualization_controls", "label": "Visualization Controls", "control": "select", "options": ["line", "bar", "scatter", "heatmap"] },
+        { "id": "report_generation", "label": "Report Generation", "control": "button" }
+      ]
+    },
+    {
+      "id": "workflow-designer",
+      "name": "Workflow Designer",
+      "category": "bubblelabs",
+      "source": "BUBBLELABS_INTEGRATION.md#bubblelabs-integration-components",
+      "knobs": [
+        { "id": "canvas_layout", "label": "Canvas Layout", "control": "select", "options": ["free", "grid", "hierarchical"] }
+      ]
+    },
+    {
+      "id": "parameter-manager",
+      "name": "Parameter Manager",
+      "category": "bubblelabs",
+      "source": "BUBBLELABS_INTEGRATION.md#bubblelabs-integration-components",
+      "knobs": [
+        { "id": "import_config", "label": "Import Configuration", "control": "button" },
+        { "id": "export_config", "label": "Export Configuration", "control": "button" },
+        { "id": "validate_config", "label": "Validate", "control": "button" }
+      ]
+    },
+    {
+      "id": "control-center",
+      "name": "Workflow Control Center",
+      "category": "bubblelabs",
+      "source": "BUBBLELABS_INTEGRATION.md#bubblelabs-integration-components",
+      "knobs": [
+        { "id": "start", "label": "Start", "control": "button" },
+        { "id": "pause", "label": "Pause", "control": "button" },
+        { "id": "resume", "label": "Resume", "control": "button" },
+        { "id": "stop", "label": "Stop", "control": "button" },
+        { "id": "restart", "label": "Restart", "control": "button" },
+        { "id": "debug", "label": "Debug", "control": "button" }
+      ]
+    },
+    {
+      "id": "analytics-hub",
+      "name": "Analytics Hub",
+      "category": "bubblelabs",
+      "source": "BUBBLELABS_INTEGRATION.md#bubblelabs-integration-components",
+      "knobs": [
+        { "id": "kpi_view", "label": "KPI View", "control": "display" },
+        { "id": "trends", "label": "Trends", "control": "display" },
+        { "id": "export_report", "label": "Export Report", "control": "button" }
+      ]
+    }
+  ]
+}

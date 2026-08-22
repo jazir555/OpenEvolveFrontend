@@ -6,6 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "build:components": "tsc -p tsconfig.components.json",
+    "build:all": "tsc && tsc -p tsconfig.components.json",
     "dev": "tsc --watch",
     "lint": "eslint src --ext ts,tsx",
     "test": "vitest run",

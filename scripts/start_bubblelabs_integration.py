@@ -19,6 +19,7 @@ import threading
 import time
 import signal
 import atexit
+from pathlib import Path
 from typing import List, Tuple
 import logging
 
@@ -116,6 +117,9 @@ class OpenEvolveBubbleLabsLauncher:
 
         self.services_running = True
 
+        # BubbleLab Components (TypeScript) integration point
+        self._maybe_serve_bubblelab_components()
+
         # Start analytics and monitoring server
         print("Starting analytics and monitoring services...")
         self.start_analytics_server()
@@ -125,6 +129,39 @@ class OpenEvolveBubbleLabsLauncher:
         self.start_main_ui()
 
         print("=" * 60)
+
+    def _maybe_serve_bubblelab_components(self):
+        """
+        Best-effort integration with the TS ``@openevolve/bubblelab-components`` package.
+
+        Discovers the package via :mod:`bubblelab_components_bridge`, logs its status,
+        and - when ``BUBBLELAB_SERVE_COMPONENTS=1`` - builds (if needed) and serves the
+        built components. Degrades silently if the package or toolchain is missing.
+        """
+        try:
+            ibl = Path(__file__).resolve().parent.parent / "engines" / "other"
+            if not ibl.is_dir():
+                return
+            if str(ibl) not in sys.path:
+                sys.path.insert(0, str(ibl))
+            from bubblelab_components_bridge import get_bridge
+        except Exception as e:
+            logger.warning(f"BubbleLab components bridge unavailable: {e}")
+            return
+
+        bridge = get_bridge()
+        st = bridge.status()
+        logger.info(
+            f"BubbleLab components: available={st['available']} "
+            f"manifest={st['has_manifest']} knobs={st['knob_count']}"
+        )
+        if not os.environ.get("BUBBLELAB_SERVE_COMPONENTS") == "1":
+            return
+        if not st["has_dist"]:
+            res = bridge.build()
+            logger.info(f"Component build: success={res.get('success')} reason={res.get('reason')}")
+        srv = bridge.serve()
+        logger.info(f"Serving BubbleLab components at {srv['url']} (mode={srv['mode']})")
         print("🎉 All services started successfully!")
         print("🌐 OpenEvolve API: http://localhost:8001")
         print("🔧 Configure BubbleLab frontend to use the OpenEvolve API endpoints")
