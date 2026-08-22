@@ -47,7 +47,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, ref }) => {
     | '/openevolve/decomposition'
     | '/openevolve/monitoring'
     | '/openevolve/analytics'
-    | '/openevolve/knowledge';
+    | '/openevolve/knowledge'
+    | '/openevolve/security';
 
   const renderOpenEvolveLink = (
     to: OpenEvolveTo,
@@ -362,6 +363,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, ref }) => {
         {renderOpenEvolveLink('/openevolve/monitoring', 'Monitoring', Activity)}
         {renderOpenEvolveLink('/openevolve/analytics', 'Analytics', BarChart3)}
         {renderOpenEvolveLink('/openevolve/knowledge', 'Knowledge', Database)}
+        {renderOpenEvolveLink('/openevolve/security', 'API Keys', KeyRound)}
 
         {/* Tools section */}
         {isOpen && (

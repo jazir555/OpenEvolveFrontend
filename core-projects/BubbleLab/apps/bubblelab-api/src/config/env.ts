@@ -97,6 +97,11 @@ export const env = {
   LEANAIDE_TIMEOUT: process.env.LEANAIDE_TIMEOUT
     ? parseInt(process.env.LEANAIDE_TIMEOUT, 10)
     : 300000,
+  Z3_API_URL: process.env.Z3_API_URL,
+  Z3_TIMEOUT: process.env.Z3_TIMEOUT
+    ? parseInt(process.env.Z3_TIMEOUT, 10)
+    : undefined,
+  MUTATION_ENGINE_URL: process.env.MUTATION_ENGINE_URL,
   // BrowserBase credentials (system-level)
   BROWSERBASE_API_KEY: process.env.BROWSERBASE_API_KEY,
   BROWSERBASE_PROJECT_ID: process.env.BROWSERBASE_PROJECT_ID,

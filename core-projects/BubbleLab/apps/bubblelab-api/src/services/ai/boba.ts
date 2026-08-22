@@ -329,7 +329,7 @@ export async function runBoba(
     inputsSchema: result.data.inputsSchema,
     isValid: actualIsValid,
     success: result.success,
-    error: result.error,
+    error: result.error ?? '',
     toolCalls: result.data.toolCalls,
     bubbleCount: Object.keys(validationResult.bubbleParameters ?? {}).length,
     serviceUsage,

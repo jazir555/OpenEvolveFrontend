@@ -37,6 +37,7 @@ try:
     from .api.rese import router as rese_router
     from .api.gateway import gateway_router
     from .api.bubblelabs_control import router as bubblelabs_control_router
+    from .api.security_proxy import router as security_proxy_router
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
@@ -65,6 +66,7 @@ except ImportError:
     from api.rese import router as rese_router
     from api.gateway import gateway_router
     from api.bubblelabs_control import router as bubblelabs_control_router
+    from api.security_proxy import router as security_proxy_router
     from services.execution_service import execution_manager
 
 # Structured logging
@@ -150,6 +152,10 @@ app.include_router(rese_router, tags=["rese"])
 # Unified API Gateway capability surface (auth/registry/lb/cache/stats).
 if gateway_router is not None:
     app.include_router(gateway_router, prefix="/gateway", tags=["gateway"])
+
+# Security proxy: transparently forward /security/* to the :8001 engine so the
+# BubbleLab UI can manage OpenEvolve API keys / roles / audit logs through :8000.
+app.include_router(security_proxy_router, prefix="/security", tags=["security"])
 
 # PES Enhanced router. The module lives at the repo root
 # (openevolve_pes_enhanced/) and is NOT part of this service package, so it is

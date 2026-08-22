@@ -362,5 +362,85 @@ Every workflow system/setting is now configurable end-to-end (BubbleLab UI → R
   `total_steps`, `max_parallel`, `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`,
   `allow_overshoot`. `create_resource_limits_from_config` maps the decomposition-plan schema; the solving
   loop acquires/releases parallel slots, records per-sub-problem usage, and caps batch size at `max_parallel`;
-  `ResourceLimitExceeded` fails the workflow gracefully. 11 new `test_resource_manager_limits.py` tests pass
-  (28 total with the engine-core suite).
+   `ResourceLimitExceeded` fails the workflow gracefully. 11 new `test_resource_manager_limits.py` tests pass
+   (28 total with the engine-core suite).
+
+---
+
+## §15 — BubbleLab functionality verification & error fixes (2026-08-22)
+
+A verification pass (frontend build + backend smoke test + contract audit) surfaced two error
+clusters, both now fixed:
+
+### A. CRITICAL — `:8000` vs `:8001` decomposition-workflow divergence (RESOLVED)
+The UI client `apps/bubble-studio/src/services/openevolveApi.ts` is a single client targeting
+`OPENEVOLVE_API_BASE_URL` (`:8000`). The decomposition settings/plan/run routes it calls
+(`GET/PUT /api/workflows/{id}/settings`, `GET/PUT /api/workflows/{id}/decomposition-plan`,
+`POST /api/workflows/{id}/run`) only existed on `engines/other/api_server.py` (`:8001`), which
+uses **unprefixed** `/workflows/...` paths and a different `run` shape
+(`POST /workflows/run` with `{problem_statement, team_ids, gauntlet_ids, config}`). Result:
+settings/plan → 404, plan PUT → 405, run → 404.
+
+**Fix (`:8000` made the unified authority):**
+- `services/openevolve-api/api/engine_proxy.py` (NEW): `run_workflow_on_engine()` forwards
+  `POST <ENGINE_API_BASE_URL>/workflows/run` via `httpx.AsyncClient` (default
+  `http://localhost:8001`, env `ENGINE_API_BASE_URL`/`OPENEVOLVE_ENGINE_URL`), forwarding the
+  inbound `X-API-Key` header. No hardcoded secrets.
+- `services/openevolve-api/api/workflows.py`: added `WorkflowSettings`/`WorkflowSettingsUpdate`
+  models + `GET/PUT /{id}/settings`, `GET/PUT /{id}/decomposition-plan` (persisted on the
+  workflow, topological order returned), and `POST /{id}/run` (merges stored settings + caller
+  `config`, proxies to `:8001`, returns engine response; 502 on engine-down).
+- `engines/other/api_server.py`: `_load_api_keys()` now also registers `OPENEVOLVE_API_KEY` as
+  an admin key so the same env value validates on both servers.
+- Frontend contract unchanged. New `tests/test_workflow_run_and_settings.py` (5 tests) pass;
+  existing route/contract tests (29) still pass.
+
+### B. `bubblelab-api` TypeScript errors (RESOLVED — 77 → 0)
+`apps/bubblelab-api` `tsc --noEmit` had 77 errors. Fixed in two passes:
+- Genuine broken types (38): added missing env vars (`Z3_API_URL`, `Z3_TIMEOUT`,
+  `MUTATION_ENGINE_URL`), corrected enum/literal mismatches in `subscription.ts`/`boba.ts`/
+  `evolution-graph.ts`, widened `CredentialType`/`AvailableModel` in workspace packages, added
+  `user_credentials.isDefault`, implemented the missing `mergeCredentialsByBubbleName` export.
+- Missing evolution DB tables (39): defined all 9 tables (`evolution_requests`, `evolution_designs`,
+  `evolution_judge_scores`, `evolution_results`, `evolution_screenshots` mirrored from
+  `drizzle-sqlite/0017_evolution_schema.sql`; `evolution_runs`, `evolution_nodes`,
+  `evolution_assets`, `idempotency_keys` inferred from usage) in `schema-sqlite.ts`/
+  `schema-postgres.ts` + `schema.ts`, with a consolidated `0018_evolution_tables.sql` migration
+   (both dialects) verified via `drizzle-kit migrate`. Final `tsc --noEmit`: **0 errors**.
+
+---
+
+## §16 — OpenEvolve API-key system surfaced in BubbleLab UI (2026-08-22)
+
+OpenEvolve's own key-management system lives on `:8001` (`engines/other/api_server.py`:
+`POST/GET/DELETE /security/api-keys`, `GET/POST /security/roles`, `GET /security/audit-logs`,
+all admin-gated, requiring `RBAC_ENHANCED_AVAILABLE`). The frontend only talks to `:8000`, which
+had no `/security` routes, so keys were previously unmanageable from the UI.
+
+**Fix (same `:8000` unified-authority pattern as the workflow proxy):**
+- `services/openevolve-api/api/security_proxy.py` (NEW): catch-all `APIRouter` at
+  `/security/{path}` forwards GET/POST/PUT/DELETE/PATCH to `:8001/security/{path}` via
+  `httpx`, forwarding the inbound `X-API-Key` (+ `Authorization`) and body; returns 502 on
+  engine-unreachable. Reuses `ENGINE_API_BASE_URL` from `engine_proxy.py`.
+- `main.py:158`: `app.include_router(security_proxy_router, prefix="/security", tags=["security"])`.
+  The caller's stored `openevolve_api_key` is already registered as **admin** on `:8001`
+  (`api_server.py:2287-2289`), satisfying the admin gate.
+
+**Frontend (`apps/bubble-studio`):**
+- `src/types/openevolve.ts`: added `ApiKeyCreateRequest/Response`, `ApiKeyListItem`,
+  `ApiKeyListResponse`, `RevokeApiKeyResponse`, `SecurityRole`, `SecurityRoleCreateRequest`,
+  `RolesResponse`, `AuditLogsResponse`.
+- `src/services/openevolveApi.ts`: added `createApiKey`, `listApiKeys`, `revokeApiKey`,
+  `listRoles`, `createRole`, `getAuditLogs` (all `/api/security/...` via `:8000`).
+- `src/routes/openevolve/security.tsx` (NEW): "API Keys" page with 3 tabs — API Keys
+  (create form + list + revoke; the raw secret is shown ONCE with copy + "Use this key"
+  which writes `localStorage['openevolve_api_key']` so subsequent requests use it), Roles
+  (read-only + create), Audit Logs (read-only). RBAC-unavailable / 503 handled with a banner.
+- `src/components/Sidebar.tsx`: added `API Keys` → `/openevolve/security` (`KeyRound` icon).
+- `src/routeTree.gen.ts`: regenerated (route `/openevolve/security` registered).
+
+**Verification:** `npm run build` (tsc -b && vite build) → exit 0; backend
+`test_security_proxy.py` + existing route/contract tests pass (14 tests, no regressions).
+Residual (ops, not code): key management requires the `:8001` engine to boot in RBAC mode
+(`engines/security/rbac_enhanced.py` importable); otherwise list returns empty and create
+returns 503. Live `:8001` round-trip unexercised (no running engine in env).

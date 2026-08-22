@@ -260,11 +260,11 @@ app.openapi(getSubscriptionStatusRoute, async (c) => {
       // 3. User's plan hasn't expired (checked via private metadata if present)
       const plan = subscriptionInfo.plan;
       const executionLimit = APP_PLAN_TO_MONTHLY_LIMITS[plan]?.executionLimit ?? 0;
-      const hasValidPlan = plan !== 'free' || currentUsage < executionLimit;
+      const hasValidPlan = plan !== 'free_user' || currentUsage < executionLimit;
       const hasActiveOffer = !!hackathonOffer?.isActive || !!specialOffer?.isActive;
       
       // Check if there's an expiration date in private metadata
-      const planExpiresAt = privateMetadata?.subscription?.expiresAt;
+      const planExpiresAt = privateMetadata?.planExpiresAt;
       const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false;
       
       isActive = (hasValidPlan || hasActiveOffer) && !isExpired;

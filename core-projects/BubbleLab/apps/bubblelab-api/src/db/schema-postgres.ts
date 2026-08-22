@@ -8,6 +8,7 @@ import {
   unique,
   jsonb,
   doublePrecision,
+  index,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { CredentialMetadata } from '@bubblelab/shared-schemas';
@@ -132,6 +133,7 @@ export const userCredentials = pgTable('user_credentials', {
   oauthTokenType: text('oauth_token_type').default('Bearer'), // Token type (usually Bearer)
   oauthProvider: text('oauth_provider'), // Provider name (google, slack, github, etc.)
   isOauth: boolean('is_oauth').default(false), // Flag to identify OAuth vs API key credentials
+  isDefault: boolean('is_default').default(false), // Whether this credential is the default for its type
 
   // BrowserBase session credential fields
   isBrowserSession: boolean('is_browser_session').default(false), // Flag for browser session credentials
@@ -239,3 +241,322 @@ export const bubbleFlowEvaluationsRelations = relations(
 );
 
 // No relations needed for userCredentials as it's a standalone table
+
+// ============================================================================
+// EVOLUTION TABLES
+// ============================================================================
+
+export const evolutionRequests = pgTable(
+  'evolution_requests',
+  {
+    id: serial().primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.clerkId, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    mode: text('mode').notNull().default('standard'),
+    parameters: jsonb('parameters'),
+    constraints: jsonb('constraints'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    userIdIdx: index('evolution_requests_user_id_idx').on(table.userId),
+  })
+);
+
+export const evolutionDesigns = pgTable(
+  'evolution_designs',
+  {
+    id: serial().primaryKey(),
+    requestId: integer('request_id')
+      .notNull()
+      .references(() => evolutionRequests.id, { onDelete: 'cascade' }),
+    generation: integer('generation').notNull(),
+    html: text('html').notNull(),
+    css: text('css'),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    requestGenerationIdx: index(
+      'evolution_designs_request_generation_idx'
+    ).on(table.requestId, table.generation),
+  })
+);
+
+export const evolutionJudgeScores = pgTable(
+  'evolution_judge_scores',
+  {
+    id: serial().primaryKey(),
+    designId: integer('design_id')
+      .notNull()
+      .references(() => evolutionDesigns.id, { onDelete: 'cascade' }),
+    agent: text('agent').notNull(),
+    score: doublePrecision('score').notNull(),
+    reasoning: text('reasoning'),
+    highlights: jsonb('highlights'),
+    issues: jsonb('issues'),
+    recommendations: jsonb('recommendations'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    designIdIdx: index('evolution_judge_scores_design_id_idx').on(
+      table.designId
+    ),
+  })
+);
+
+export const evolutionResults = pgTable(
+  'evolution_results',
+  {
+    id: serial().primaryKey(),
+    requestId: integer('request_id')
+      .notNull()
+      .references(() => evolutionRequests.id, { onDelete: 'cascade' }),
+    bestDesignId: integer('best_design_id').references(
+      () => evolutionDesigns.id,
+      { onDelete: 'set null' }
+    ),
+    summary: jsonb('summary'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    requestIdIdx: index('evolution_results_request_id_idx').on(
+      table.requestId
+    ),
+  })
+);
+
+export const evolutionRuns = pgTable(
+  'evolution_runs',
+  {
+    id: serial().primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.clerkId, { onDelete: 'cascade' }),
+    evolutionId: text('evolution_id').notNull(),
+    status: text('status').notNull(),
+    name: text('name'),
+    config: jsonb('config'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    userEvolutionUnique: unique().on(table.userId, table.evolutionId),
+  })
+);
+
+export const evolutionAssets = pgTable('evolution_assets', {
+  id: serial().primaryKey(),
+  runId: integer('run_id')
+    .notNull()
+    .references(() => evolutionRuns.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.clerkId, { onDelete: 'cascade' }),
+  kind: text('kind').notNull(),
+  contentType: text('content_type').notNull(),
+  filePath: text('file_path').notNull(),
+  size: integer('size').notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const evolutionNodes = pgTable(
+  'evolution_nodes',
+  {
+    id: serial().primaryKey(),
+    runId: integer('run_id')
+      .notNull()
+      .references(() => evolutionRuns.id, { onDelete: 'cascade' }),
+    nodeId: text('node_id').notNull(),
+    parentNodeId: text('parent_node_id'),
+    generation: integer('generation').notNull(),
+    status: text('status').notNull(),
+    fitness: doublePrecision('fitness'),
+    score: doublePrecision('score'),
+    label: text('label'),
+    htmlAssetId: integer('html_asset_id').references(() => evolutionAssets.id, {
+      onDelete: 'set null',
+    }),
+    thumbnailAssetId: integer('thumbnail_asset_id').references(
+      () => evolutionAssets.id,
+      { onDelete: 'set null' }
+    ),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: timestamp('updated_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    runNodeUnique: unique().on(table.runId, table.nodeId),
+  })
+);
+
+export const evolutionScreenshots = pgTable(
+  'evolution_screenshots',
+  {
+    id: serial().primaryKey(),
+    designId: integer('design_id')
+      .notNull()
+      .references(() => evolutionDesigns.id, { onDelete: 'cascade' }),
+    assetId: integer('asset_id').references(() => evolutionAssets.id, {
+      onDelete: 'set null',
+    }),
+    kind: text('kind').notNull().default('thumbnail'),
+    width: integer('width'),
+    height: integer('height'),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    designIdIdx: index('evolution_screenshots_design_id_idx').on(
+      table.designId
+    ),
+  })
+);
+
+export const idempotencyKeys = pgTable(
+  'idempotency_keys',
+  {
+    id: serial().primaryKey(),
+    key: text('key').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.clerkId, { onDelete: 'cascade' }),
+    endpoint: text('endpoint'),
+    params: jsonb('params'),
+    response: jsonb('response'),
+    statusCode: integer('status_code').notNull(),
+    expiresAt: timestamp('expires_at', { mode: 'date' }),
+    createdAt: timestamp('created_at', { mode: 'date' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    keyUserUnique: unique().on(table.key, table.userId),
+  })
+);
+
+export const evolutionRequestsRelations = relations(
+  evolutionRequests,
+  ({ many }) => ({
+    designs: many(evolutionDesigns),
+    results: many(evolutionResults),
+  })
+);
+
+export const evolutionDesignsRelations = relations(
+  evolutionDesigns,
+  ({ one, many }) => ({
+    request: one(evolutionRequests, {
+      fields: [evolutionDesigns.requestId],
+      references: [evolutionRequests.id],
+    }),
+    judgeScores: many(evolutionJudgeScores),
+    screenshots: many(evolutionScreenshots),
+  })
+);
+
+export const evolutionJudgeScoresRelations = relations(
+  evolutionJudgeScores,
+  ({ one }) => ({
+    design: one(evolutionDesigns, {
+      fields: [evolutionJudgeScores.designId],
+      references: [evolutionDesigns.id],
+    }),
+  })
+);
+
+export const evolutionResultsRelations = relations(
+  evolutionResults,
+  ({ one }) => ({
+    request: one(evolutionRequests, {
+      fields: [evolutionResults.requestId],
+      references: [evolutionRequests.id],
+    }),
+    bestDesign: one(evolutionDesigns, {
+      fields: [evolutionResults.bestDesignId],
+      references: [evolutionDesigns.id],
+    }),
+  })
+);
+
+export const evolutionRunsRelations = relations(
+  evolutionRuns,
+  ({ many }) => ({
+    nodes: many(evolutionNodes),
+    assets: many(evolutionAssets),
+  })
+);
+
+export const evolutionAssetsRelations = relations(
+  evolutionAssets,
+  ({ one, many }) => ({
+    run: one(evolutionRuns, {
+      fields: [evolutionAssets.runId],
+      references: [evolutionRuns.id],
+    }),
+    screenshots: many(evolutionScreenshots),
+    htmlNodes: many(evolutionNodes, { relationName: 'assetHtml' }),
+    thumbnailNodes: many(evolutionNodes, {
+      relationName: 'assetThumbnail',
+    }),
+  })
+);
+
+export const evolutionNodesRelations = relations(
+  evolutionNodes,
+  ({ one }) => ({
+    run: one(evolutionRuns, {
+      fields: [evolutionNodes.runId],
+      references: [evolutionRuns.id],
+    }),
+    htmlAsset: one(evolutionAssets, {
+      fields: [evolutionNodes.htmlAssetId],
+      references: [evolutionAssets.id],
+      relationName: 'assetHtml',
+    }),
+    thumbnailAsset: one(evolutionAssets, {
+      fields: [evolutionNodes.thumbnailAssetId],
+      references: [evolutionAssets.id],
+      relationName: 'assetThumbnail',
+    }),
+  })
+);
+
+export const evolutionScreenshotsRelations = relations(
+  evolutionScreenshots,
+  ({ one }) => ({
+    design: one(evolutionDesigns, {
+      fields: [evolutionScreenshots.designId],
+      references: [evolutionDesigns.id],
+    }),
+    asset: one(evolutionAssets, {
+      fields: [evolutionScreenshots.assetId],
+      references: [evolutionAssets.id],
+    }),
+  })
+);
+
+// No relations needed for idempotencyKeys as it's a standalone table

@@ -10,10 +10,12 @@ import json
 import sqlite3
 import os
 import asyncio
+import httpx
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, status, Query, Body
+from fastapi import APIRouter, HTTPException, status, Query, Body, Header
+from pydantic import BaseModel, Field
 
 from ..models import (
     WorkflowCreate,
@@ -149,6 +151,217 @@ async def _run_openevolve_for_workflow(
     )
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Sovereign-Grade workflow settings + plan helpers (unified :8000 authority)
+#
+# The shapes mirror the canonical :8001 engine ``WorkflowSettings`` Pydantic
+# model so the BubbleLab UI can round-trip settings/plan against :8000 alone,
+# without depending on :8001 for storage.
+# ---------------------------------------------------------------------------
+class _ResourceLimits(BaseModel):
+    total_tokens: int = 0
+    total_time_seconds: int = 0
+    total_steps: int = 0
+    max_parallel: int = 0
+    tokens_per_sub_problem: int = 0
+    time_per_sub_problem: int = 0
+    steps_per_sub_problem: int = 0
+    allow_overshoot: bool = False
+
+
+class _RedFlagRules(BaseModel):
+    max_tokens: int = 0
+    max_characters: int = 0
+    blocked_patterns: List[str] = Field(default_factory=list)
+    min_confidence: float = 0.0
+    require_schema_match: bool = False
+
+
+class _Web3Settings(BaseModel):
+    enabled: bool = False
+    project_path: str = ""
+    run_fuzzing: bool = False
+    slither_timeout_seconds: int = 0
+    forge_timeout_seconds: int = 0
+
+
+class _FormalVerificationSettings(BaseModel):
+    z3_enabled: bool = False
+    leanaide_enabled: bool = False
+    formal_verification_enabled: bool = False
+    formal_verification_mode: str = "hybrid"
+
+
+class WorkflowSettings(BaseModel):
+    """Canonical, fully-configurable settings contract (all fields optional)."""
+
+    mdap_enabled: Optional[bool] = None
+    mdap_config: Optional[Dict[str, Any]] = None
+    maker_enabled: Optional[bool] = None
+    maker_config: Optional[Dict[str, Any]] = None
+    max_refinement_loops: Optional[int] = None
+    auto_approval_enabled: Optional[bool] = None
+    auto_approval_criteria: Optional[Dict[str, Any]] = None
+    parallel_processing_enabled: Optional[bool] = None
+    max_parallel_sub_problems: Optional[int] = None
+    resource_limits: Optional[_ResourceLimits] = None
+    learning_enabled: Optional[bool] = None
+    learning_config: Optional[Dict[str, Any]] = None
+    distributed: Optional[bool] = None
+    distributed_backend: Optional[str] = None
+    entanglement_strict_mode: Optional[bool] = None
+    knowledge_engine_enabled: Optional[bool] = None
+    knowledge_engine_path: Optional[str] = None
+    red_flag_rules: Optional[_RedFlagRules] = None
+    web3: Optional[_Web3Settings] = None
+    formal_verification: Optional[_FormalVerificationSettings] = None
+    circular_dependency_guard: Optional[bool] = None
+
+
+class WorkflowSettingsUpdate(BaseModel):
+    """Partial settings update (PUT body)."""
+
+    mdap_enabled: Optional[bool] = None
+    mdap_config: Optional[Dict[str, Any]] = None
+    maker_enabled: Optional[bool] = None
+    maker_config: Optional[Dict[str, Any]] = None
+    max_refinement_loops: Optional[int] = None
+    auto_approval_enabled: Optional[bool] = None
+    auto_approval_criteria: Optional[Dict[str, Any]] = None
+    parallel_processing_enabled: Optional[bool] = None
+    max_parallel_sub_problems: Optional[int] = None
+    resource_limits: Optional[_ResourceLimits] = None
+    learning_enabled: Optional[bool] = None
+    learning_config: Optional[Dict[str, Any]] = None
+    distributed: Optional[bool] = None
+    distributed_backend: Optional[str] = None
+    entanglement_strict_mode: Optional[bool] = None
+    knowledge_engine_enabled: Optional[bool] = None
+    knowledge_engine_path: Optional[str] = None
+    red_flag_rules: Optional[_RedFlagRules] = None
+    web3: Optional[_Web3Settings] = None
+    formal_verification: Optional[_FormalVerificationSettings] = None
+    circular_dependency_guard: Optional[bool] = None
+
+
+class WorkflowRunRequest(BaseModel):
+    """Body for ``POST /{workflow_id}/run`` (UI sends ``{ config }``)."""
+
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+# Sensible defaults so GET always returns a fully-populated, non-null contract
+# (matches the frontend ``defaultWorkflowSettings`` shape).
+DEFAULT_WORKFLOW_SETTINGS: Dict[str, Any] = {
+    "mdap_enabled": False,
+    "mdap_config": {},
+    "maker_enabled": False,
+    "maker_config": {},
+    "max_refinement_loops": 5,
+    "auto_approval_enabled": False,
+    "auto_approval_criteria": {},
+    "parallel_processing_enabled": False,
+    "max_parallel_sub_problems": 4,
+    "resource_limits": {
+        "total_tokens": 1_000_000,
+        "total_time_seconds": 3600,
+        "total_steps": 1000,
+        "max_parallel": 4,
+        "tokens_per_sub_problem": 100_000,
+        "time_per_sub_problem": 600,
+        "steps_per_sub_problem": 100,
+        "allow_overshoot": False,
+    },
+    "learning_enabled": False,
+    "learning_config": {},
+    "distributed": False,
+    "distributed_backend": "local",
+    "entanglement_strict_mode": False,
+    "knowledge_engine_enabled": False,
+    "knowledge_engine_path": "",
+    "red_flag_rules": {
+        "max_tokens": 200_000,
+        "max_characters": 1_000_000,
+        "blocked_patterns": [],
+        "min_confidence": 0.5,
+        "require_schema_match": False,
+    },
+    "web3": {
+        "enabled": False,
+        "project_path": "",
+        "run_fuzzing": False,
+        "slither_timeout_seconds": 120,
+        "forge_timeout_seconds": 300,
+    },
+    "formal_verification": {
+        "z3_enabled": False,
+        "leanaide_enabled": False,
+        "formal_verification_enabled": False,
+        "formal_verification_mode": "off",
+    },
+    "circular_dependency_guard": True,
+}
+
+
+def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively merge ``override`` onto ``base`` (returns a new dict)."""
+    merged = dict(base)
+    for key, value in (override or {}).items():
+        if (
+            isinstance(value, dict)
+            and isinstance(merged.get(key), dict)
+        ):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _build_settings_response(workflow: WorkflowResponse) -> Dict[str, Any]:
+    """Merge stored settings over defaults into a full ``WorkflowSettings`` dict."""
+    stored = (workflow.parameters or {}).get("workflow_settings") or {}
+    return _deep_merge(DEFAULT_WORKFLOW_SETTINGS, stored)
+
+
+def _compute_execution_order(
+    sub_problems: List[Dict[str, Any]]
+) -> List[str]:
+    """Topological order of sub-problem ids from their ``dependencies`` (Kahn)."""
+    ids = [sp.get("id") for sp in sub_problems if sp.get("id")]
+    deps: Dict[str, List[str]] = {
+        sp["id"]: list(sp.get("dependencies") or [])
+        for sp in sub_problems
+        if sp.get("id")
+    }
+    # Drop dependency edges that reference unknown ids.
+    for sid in deps:
+        deps[sid] = [d for d in deps[sid] if d in deps]
+
+    indegree = {sid: 0 for sid in ids}
+    for sid in ids:
+        for dep in deps[sid]:
+            indegree[sid] += 1
+
+    from collections import deque
+
+    queue = deque([sid for sid in ids if indegree[sid] == 0])
+    order: List[str] = []
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+        for sid in ids:
+            if node in deps[sid]:
+                indegree[sid] -= 1
+                if indegree[sid] == 0:
+                    queue.append(sid)
+
+    # Append any nodes left unvisited due to cycles so the client still gets a list.
+    for sid in ids:
+        if sid not in order:
+            order.append(sid)
+    return order
 
 
 def _get_db() -> sqlite3.Connection:
@@ -874,6 +1087,11 @@ async def get_workflow_decomposition_plan(workflow_id: str) -> dict:
         if workflow is not None:
             problem_statement = getattr(workflow, "problem_statement", "") or ""
 
+        # Prefer a stored plan (from PUT /decomposition-plan) when present.
+        stored_plan = (workflow.parameters if workflow else {}).get("decomposition_plan")
+        if stored_plan:
+            return stored_plan
+
         return _build_representative_plan(workflow_id, problem_statement)
 
     except Exception as e:
@@ -887,6 +1105,245 @@ async def get_workflow_decomposition_plan(workflow_id: str) -> dict:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get decomposition plan"
+        )
+
+
+@router.get("/{workflow_id}/settings", response_model=WorkflowSettings, status_code=status.HTTP_200_OK)
+async def get_workflow_settings(workflow_id: str) -> WorkflowSettings:
+    """
+    Get the Sovereign-Grade workflow settings for a workflow.
+
+    Served from the :8000 store (``workflow.parameters["workflow_settings"]``),
+    merged over sensible defaults so the contract is always fully populated.
+    """
+    try:
+        workflow = _workflows.get(workflow_id)
+        if workflow is None:
+            logger.warning("workflow_settings_not_found", workflow_id=workflow_id)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workflow '{workflow_id}' not found",
+            )
+
+        settings = _build_settings_response(workflow)
+        logger.debug("workflow_settings_retrieved", workflow_id=workflow_id)
+        return WorkflowSettings(**settings)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_settings_get_failed",
+            workflow_id=workflow_id,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get workflow settings",
+        )
+
+
+@router.put("/{workflow_id}/settings", response_model=WorkflowSettings, status_code=status.HTTP_200_OK)
+async def update_workflow_settings(
+    workflow_id: str,
+    settings: WorkflowSettingsUpdate,
+) -> WorkflowSettings:
+    """
+    Update the Sovereign-Grade workflow settings (partial merge).
+
+    Persisted under ``workflow.parameters["workflow_settings"]`` via the existing
+    SQLite store. Returns the full, merged settings contract.
+    """
+    try:
+        workflow = _workflows.get(workflow_id)
+        if workflow is None:
+            logger.warning("workflow_settings_update_not_found", workflow_id=workflow_id)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workflow '{workflow_id}' not found",
+            )
+
+        parameters = dict(workflow.parameters or {})
+        stored = dict(parameters.get("workflow_settings") or {})
+        provided = settings.dict(exclude_unset=True)
+        merged = _deep_merge(stored, provided)
+        parameters["workflow_settings"] = merged
+        workflow.parameters = parameters
+        workflow.updated_at = datetime.now(timezone.utc)
+        _save_workflow_to_db(workflow)
+
+        response = _build_settings_response(workflow)
+        logger.info("workflow_settings_updated", workflow_id=workflow_id)
+        return WorkflowSettings(**response)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_settings_update_failed",
+            workflow_id=workflow_id,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update workflow settings",
+        )
+
+
+@router.put("/{workflow_id}/decomposition-plan", status_code=status.HTTP_200_OK)
+async def update_workflow_decomposition_plan(
+    workflow_id: str,
+    payload: Dict[str, Any] = Body(...),
+) -> Dict[str, Any]:
+    """
+    Update the decomposition plan / sub-problems for a workflow.
+
+    Stores the full plan under ``workflow.parameters["decomposition_plan"]`` and
+    returns ``{ message, execution_order }`` (the freshly computed topological
+    order). The stored plan is returned verbatim by ``GET .../decomposition-plan``.
+    """
+    try:
+        workflow = _workflows.get(workflow_id)
+        if workflow is None:
+            logger.warning("workflow_plan_update_not_found", workflow_id=workflow_id)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workflow '{workflow_id}' not found",
+            )
+
+        sub_problems = payload.get("sub_problems") or []
+        execution_order = _compute_execution_order(sub_problems)
+
+        dependency_graph = {
+            "edges": {sp["id"]: sp.get("dependencies") or [] for sp in sub_problems if sp.get("id")},
+            "execution_order": execution_order,
+        }
+        stored_plan = {
+            "workflow_id": workflow_id,
+            "plan": payload,
+            "dependency_graph": dependency_graph,
+        }
+
+        parameters = dict(workflow.parameters or {})
+        parameters["decomposition_plan"] = stored_plan
+        workflow.parameters = parameters
+        workflow.updated_at = datetime.now(timezone.utc)
+        _save_workflow_to_db(workflow)
+
+        logger.info(
+            "workflow_plan_updated",
+            workflow_id=workflow_id,
+            sub_problem_count=len(sub_problems),
+        )
+        return {
+            "message": f"Decomposition plan for '{workflow_id}' updated",
+            "execution_order": execution_order,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "workflow_plan_update_failed",
+            workflow_id=workflow_id,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update workflow decomposition plan",
+        )
+
+
+@router.post("/{workflow_id}/run", status_code=status.HTTP_200_OK)
+async def run_workflow(
+    workflow_id: str,
+    body: WorkflowRunRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+) -> Dict[str, Any]:
+    """
+    Run a workflow by delegating to the :8001 Decomposition-Workflow engine.
+
+    The :8000 service is the orchestrator: it looks up the workflow's problem
+    statement and merges the stored settings/plan into a ``config`` dict, then
+    forwards to ``POST :8001/workflows/run`` with the inbound ``X-API-Key`` header.
+    """
+    try:
+        from .engine_proxy import run_workflow_on_engine
+
+        workflow = _workflows.get(workflow_id)
+        if workflow is None:
+            logger.warning("workflow_run_not_found", workflow_id=workflow_id)
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workflow '{workflow_id}' not found",
+            )
+
+        problem_statement = getattr(workflow, "problem_statement", "") or ""
+        if not problem_statement or not problem_statement.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Problem statement is required to run the workflow",
+            )
+
+        parameters = dict(workflow.parameters or {})
+        config = dict(parameters.get("workflow_settings") or {})
+        config.update(body.config or {})
+
+        logger.info("workflow_run_forwarding", workflow_id=workflow_id)
+        result = await run_workflow_on_engine(
+            problem_statement=problem_statement,
+            config=config,
+            api_key=x_api_key,
+        )
+
+        # Surface the engine-assigned id on the :8000 workflow for correlation.
+        engine_workflow_id = result.get("workflow_id")
+        if engine_workflow_id:
+            workflow.parameters = {
+                **parameters,
+                "last_engine_workflow_id": engine_workflow_id,
+            }
+            workflow.updated_at = datetime.now(timezone.utc)
+            _save_workflow_to_db(workflow)
+
+        return result
+
+    except HTTPException:
+        raise
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            "workflow_run_engine_error",
+            workflow_id=workflow_id,
+            status_code=e.response.status_code,
+            detail=e.response.text[:500],
+        )
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Engine rejected run request: {e.response.text[:300]}",
+        )
+    except httpx.HTTPError as e:
+        logger.error(
+            "workflow_run_engine_unreachable",
+            workflow_id=workflow_id,
+            error=str(e),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Decomposition engine unreachable: {str(e)}",
+        )
+    except Exception as e:
+        logger.error(
+            "workflow_run_failed",
+            workflow_id=workflow_id,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to run workflow",
         )
 
 

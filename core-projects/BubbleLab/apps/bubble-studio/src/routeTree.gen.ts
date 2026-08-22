@@ -35,6 +35,7 @@ import { Route as OpenevolveDecompositionRouteImport } from './routes/openevolve
 import { Route as OpenevolveGauntletsRouteImport } from './routes/openevolve/gauntlets'
 import { Route as OpenevolveKnowledgeRouteImport } from './routes/openevolve/knowledge'
 import { Route as OpenevolveMonitoringRouteImport } from './routes/openevolve/monitoring'
+import { Route as OpenevolveSecurityRouteImport } from './routes/openevolve/security'
 import { Route as OpenevolveTeamsRouteImport } from './routes/openevolve/teams'
 import { Route as OpenevolveWorkflowsRouteImport } from './routes/openevolve/workflows'
 import { Route as OeWorkflowsWorkflowIdExecuteRouteImport } from './routes/oe-workflows.$workflowId.execute'
@@ -169,6 +170,11 @@ const OpenevolveMonitoringRoute = OpenevolveMonitoringRouteImport.update({
   path: '/openevolve/monitoring',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OpenevolveSecurityRoute = OpenevolveSecurityRouteImport.update({
+  id: '/openevolve/security',
+  path: '/openevolve/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpenevolveTeamsRoute = OpenevolveTeamsRouteImport.update({
   id: '/openevolve/teams',
   path: '/openevolve/teams',
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
+  '/openevolve/security': typeof OpenevolveSecurityRoute
   '/openevolve/teams': typeof OpenevolveTeamsRoute
   '/openevolve/workflows': typeof OpenevolveWorkflowsRoute
   '/gket/': typeof GketIndexRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
+  '/openevolve/security': typeof OpenevolveSecurityRoute
   '/openevolve/teams': typeof OpenevolveTeamsRoute
   '/openevolve/workflows': typeof OpenevolveWorkflowsRoute
   '/gket': typeof GketIndexRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
+  '/openevolve/security': typeof OpenevolveSecurityRoute
   '/openevolve/teams': typeof OpenevolveTeamsRoute
   '/openevolve/workflows': typeof OpenevolveWorkflowsRoute
   '/gket/': typeof GketIndexRoute
@@ -306,6 +315,7 @@ export interface FileRouteTypes {
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
+    | '/openevolve/security'
     | '/openevolve/teams'
     | '/openevolve/workflows'
     | '/gket/'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
+    | '/openevolve/security'
     | '/openevolve/teams'
     | '/openevolve/workflows'
     | '/gket'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
+    | '/openevolve/security'
     | '/openevolve/teams'
     | '/openevolve/workflows'
     | '/gket/'
@@ -395,6 +407,7 @@ export interface RootRouteChildren {
   OpenevolveGauntletsRoute: typeof OpenevolveGauntletsRoute
   OpenevolveKnowledgeRoute: typeof OpenevolveKnowledgeRoute
   OpenevolveMonitoringRoute: typeof OpenevolveMonitoringRoute
+  OpenevolveSecurityRoute: typeof OpenevolveSecurityRoute
   OpenevolveTeamsRoute: typeof OpenevolveTeamsRoute
   OpenevolveWorkflowsRoute: typeof OpenevolveWorkflowsRoute
   GketIndexRoute: typeof GketIndexRoute
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpenevolveMonitoringRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/openevolve/security': {
+      id: '/openevolve/security'
+      path: '/openevolve/security'
+      fullPath: '/openevolve/security'
+      preLoaderRoute: typeof OpenevolveSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/openevolve/teams': {
       id: '/openevolve/teams'
       path: '/openevolve/teams'
@@ -691,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   OpenevolveGauntletsRoute: OpenevolveGauntletsRoute,
   OpenevolveKnowledgeRoute: OpenevolveKnowledgeRoute,
   OpenevolveMonitoringRoute: OpenevolveMonitoringRoute,
+  OpenevolveSecurityRoute: OpenevolveSecurityRoute,
   OpenevolveTeamsRoute: OpenevolveTeamsRoute,
   OpenevolveWorkflowsRoute: OpenevolveWorkflowsRoute,
   GketIndexRoute: GketIndexRoute,

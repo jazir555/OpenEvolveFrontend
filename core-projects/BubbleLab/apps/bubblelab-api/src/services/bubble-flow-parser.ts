@@ -854,13 +854,16 @@ export function generateDisplayedBubbleParameters(
   let stepIndex = 0;
 
   // Step 1: Input/Listener bubbles (event sources)
-  for (const [key, bubble] of categorizedBubbles.input) {
+  for (const [, bubble] of categorizedBubbles.input) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-listener`;
     decomposition[stepKey] = {
       ...bubble,
       parameters: bubble.parameters.map(p => ({
         ...p,
-        value: p.value.startsWith('payload') ? p.value : `payload.${p.name}`,
+        value:
+          typeof p.value === 'string' && p.value.startsWith('payload')
+            ? p.value
+            : `payload.${p.name}`,
       })),
       hasAwait: false,
       hasActionCall: false,
@@ -868,7 +871,7 @@ export function generateDisplayedBubbleParameters(
   }
 
   // Step 2: Formatter/Parser bubbles (data transformation)
-  for (const [key, bubble] of categorizedBubbles.formatter) {
+  for (const [, bubble] of categorizedBubbles.formatter) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-parser`;
     decomposition[stepKey] = {
       ...bubble,
@@ -879,7 +882,7 @@ export function generateDisplayedBubbleParameters(
   }
 
   // Step 3: Database/Storage bubbles
-  for (const [key, bubble] of categorizedBubbles.database) {
+  for (const [, bubble] of categorizedBubbles.database) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-query`;
     decomposition[stepKey] = {
       ...bubble,
@@ -897,7 +900,7 @@ export function generateDisplayedBubbleParameters(
   }
 
   // Step 4: AI/Analysis bubbles
-  for (const [key, bubble] of categorizedBubbles.ai) {
+  for (const [, bubble] of categorizedBubbles.ai) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-analysis`;
     decomposition[stepKey] = {
       ...bubble,
@@ -910,7 +913,7 @@ export function generateDisplayedBubbleParameters(
   }
 
   // Step 5: Output/Responder bubbles
-  for (const [key, bubble] of categorizedBubbles.output) {
+  for (const [, bubble] of categorizedBubbles.output) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-responder`;
     decomposition[stepKey] = {
       ...bubble,
@@ -921,7 +924,7 @@ export function generateDisplayedBubbleParameters(
   }
 
   // Step 6: Any uncategorized bubbles
-  for (const [key, bubble] of categorizedBubbles.other) {
+  for (const [, bubble] of categorizedBubbles.other) {
     const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}`;
     decomposition[stepKey] = {
       ...bubble,
@@ -1042,7 +1045,10 @@ function generateDataFlowParameters(
   // Update parameter values to reference previous steps if appropriate
   return params.map(param => {
     // If parameter value already references a step, keep it
-    if (param.value.includes('.') || param.value.startsWith('process.env')) {
+    if (
+      typeof param.value === 'string' &&
+      (param.value.includes('.') || param.value.startsWith('process.env'))
+    ) {
       return param;
     }
 
@@ -1057,4 +1063,74 @@ function generateDataFlowParameters(
 
     return param;
   });
+}
+
+/**
+ * Carry over stored credentials from an existing BubbleFlow's bubbles onto a
+ * freshly parsed set of bubble parameters. Matching is done by `bubbleName`
+ * (not variable id) so credentials survive when variable ids change but the
+ * logical bubbles stay the same.
+ *
+ * @param params - Newly parsed bubble parameters (variable id -> bubble)
+ * @param existingFlowParams - Previously stored bubble parameters to copy credentials from
+ * @param _credentials - Reserved for callers that also pass a credential map
+ * @returns Bubble parameters with credentials merged in by bubble name
+ */
+export function mergeCredentialsByBubbleName(
+  params: Record<string | number, ParsedBubbleWithInfo>,
+  existingFlowParams: Record<string | number, ParsedBubbleWithInfo> | null,
+  _credentials?: unknown
+): Record<string | number, ParsedBubbleWithInfo> {
+  if (!existingFlowParams) {
+    return params;
+  }
+
+  // Index existing credential values by bubble name for fast lookup.
+  const credentialsByBubbleName = new Map<string, Record<string, unknown>>();
+  for (const bubble of Object.values(existingFlowParams)) {
+    const credParam = (bubble.parameters ?? []).find(
+      (p) => p.name === 'credentials'
+    );
+    if (
+      credParam &&
+      credParam.value &&
+      typeof credParam.value === 'object' &&
+      !Array.isArray(credParam.value)
+    ) {
+      credentialsByBubbleName.set(
+        bubble.bubbleName,
+        credParam.value as Record<string, unknown>
+      );
+    }
+  }
+
+  if (credentialsByBubbleName.size === 0) {
+    return params;
+  }
+
+  const merged: Record<string | number, ParsedBubbleWithInfo> = {};
+  for (const [varId, bubble] of Object.entries(params)) {
+    const carried = credentialsByBubbleName.get(bubble.bubbleName);
+    const alreadyHasCredentials = (bubble.parameters ?? []).some(
+      (p) => p.name === 'credentials'
+    );
+
+    if (carried && !alreadyHasCredentials) {
+      merged[varId] = {
+        ...bubble,
+        parameters: [
+          ...(bubble.parameters ?? []),
+          {
+            name: 'credentials',
+            type: BubbleParameterType.OBJECT,
+            value: carried,
+          },
+        ],
+      };
+    } else {
+      merged[varId] = bubble;
+    }
+  }
+
+  return merged;
 }

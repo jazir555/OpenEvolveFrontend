@@ -558,7 +558,7 @@ app.openapi(getEvolutionAssetRoute, async (c) => {
 
   try {
     const file = await fs.readFile(asset.filePath);
-    return c.body(file, 200, {
+    return c.body(new Uint8Array(file), 200, {
       'Content-Type': asset.contentType,
       'Cache-Control': 'public, max-age=3600',
     });

@@ -91,6 +91,14 @@ import type {
   ParameterDefinition,
   ParameterValidationResult,
   IntegratedWorkflowRequest,
+  ApiKeyCreateRequest,
+  ApiKeyCreateResponse,
+  ApiKeyListResponse,
+  RevokeApiKeyResponse,
+  RolesResponse,
+  SecurityRole,
+  SecurityRoleCreateRequest,
+  AuditLogsResponse,
 } from '@/types/openevolve';
 
 // Re-export the canonical decomposition/adversarial types so UI components can
@@ -123,6 +131,21 @@ export type {
   ExecutionRecord,
   ExecutionListResponse,
   ExecutionCreateRequest,
+} from '@/types/openevolve';
+
+// Re-export the security / RBAC contract so the API-key management UI can import
+// the client and its request/response shapes from a single module.
+export type {
+  ApiKeyCreateRequest,
+  ApiKeyCreateResponse,
+  ApiKeyListItem,
+  ApiKeyListResponse,
+  RevokeApiKeyResponse,
+  SecurityRole,
+  SecurityRoleCreateRequest,
+  RolesResponse,
+  AuditLogEntry,
+  AuditLogsResponse,
 } from '@/types/openevolve';
 
 // Create ApiClient with retry and timeout configuration
@@ -2429,6 +2452,100 @@ export const openevolveApi = {
     });
 
     return openevolveApiClient.post<Record<string, unknown>>('/api/integrated/run', payload);
+  },
+
+  // ============ Security / API Keys ============
+
+  /**
+   * Provision a new engine API key (`POST /api/security/api-keys`).
+   *
+   * Requires the currently active key to have the `admin` role. The response
+   * carries the RAW secret in `api_key` and the engine returns it exactly ONCE,
+   * so callers must surface it immediately; it is deliberately never logged here.
+   */
+  createApiKey: async (req: ApiKeyCreateRequest): Promise<ApiKeyCreateResponse> => {
+    logger.info({
+      msg: 'Creating OpenEvolve API key',
+      component: 'openevolveApi',
+      username: req.username,
+      roles: req.roles,
+    });
+
+    return openevolveApiClient.post<ApiKeyCreateResponse>('/api/security/api-keys', req);
+  },
+
+  /**
+   * List provisioned API keys (`GET /api/security/api-keys`).
+   *
+   * Raw secrets are never returned. `rbac_available: false` means the engine has
+   * no RBAC subsystem loaded, in which case `api_keys` is typically empty.
+   */
+  listApiKeys: async (): Promise<ApiKeyListResponse> => {
+    logger.debug({
+      msg: 'Listing OpenEvolve API keys',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<ApiKeyListResponse>('/api/security/api-keys');
+  },
+
+  /**
+   * Revoke an API key (`DELETE /api/security/api-keys/{key_id}`).
+   */
+  revokeApiKey: async (keyId: string): Promise<RevokeApiKeyResponse> => {
+    logger.info({
+      msg: 'Revoking OpenEvolve API key',
+      component: 'openevolveApi',
+      key_id: keyId,
+    });
+
+    return openevolveApiClient.delete<RevokeApiKeyResponse>(
+      `/api/security/api-keys/${encodeURIComponent(keyId)}`
+    );
+  },
+
+  /**
+   * List RBAC roles and their permissions (`GET /api/security/roles`).
+   */
+  listRoles: async (): Promise<RolesResponse> => {
+    logger.debug({
+      msg: 'Listing OpenEvolve RBAC roles',
+      component: 'openevolveApi',
+    });
+
+    return openevolveApiClient.get<RolesResponse>('/api/security/roles');
+  },
+
+  /**
+   * Create an RBAC role (`POST /api/security/roles`). Returns the created role.
+   */
+  createRole: async (payload: SecurityRoleCreateRequest): Promise<SecurityRole> => {
+    logger.info({
+      msg: 'Creating OpenEvolve RBAC role',
+      component: 'openevolveApi',
+      role: payload.name,
+      permission_count: payload.permissions.length,
+    });
+
+    return openevolveApiClient.post<SecurityRole>('/api/security/roles', payload);
+  },
+
+  /**
+   * Fetch security audit logs (`GET /api/security/audit-logs?limit=...`).
+   *
+   * `source` reports whether the entries came from the RBAC store (`rbac`) or the
+   * engine's in-memory fallback buffer (`in_memory`).
+   */
+  getAuditLogs: async (limit = 200): Promise<AuditLogsResponse> => {
+    logger.debug({
+      msg: 'Fetching OpenEvolve audit logs',
+      component: 'openevolveApi',
+      limit,
+    });
+
+    return openevolveApiClient.get<AuditLogsResponse>(
+      `/api/security/audit-logs?limit=${encodeURIComponent(String(limit))}`
+    );
   },
 };
 

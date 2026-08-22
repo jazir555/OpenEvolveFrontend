@@ -183,6 +183,15 @@ export const CREDENTIAL_TYPE_CONFIG: Record<CredentialType, CredentialConfig> =
         ignoreSSL: false,
       },
     },
+    [CredentialType.DEEPSEEK_CRED]: {
+      label: 'DeepSeek',
+      description: 'API key for DeepSeek AI models',
+      placeholder: 'sk-...',
+      namePlaceholder: 'My DeepSeek API Key',
+      credentialConfigurations: {
+        ignoreSSL: false,
+      },
+    },
     [CredentialType.FIREWORKS_CRED]: {
       label: 'Fireworks AI',
       description: 'API key for Fireworks AI inference services',
@@ -863,6 +872,7 @@ export const CREDENTIAL_ENV_MAP: Record<CredentialType, string> = {
   [CredentialType.TELEGRAM_BOT_TOKEN]: 'TELEGRAM_BOT_TOKEN',
   [CredentialType.RESEND_CRED]: 'RESEND_API_KEY',
   [CredentialType.OPENROUTER_CRED]: 'OPENROUTER_API_KEY',
+  [CredentialType.DEEPSEEK_CRED]: 'DEEPSEEK_API_KEY',
   [CredentialType.FIREWORKS_CRED]: 'FIREWORKS_API_KEY',
   [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: 'CLOUDFLARE_R2_ACCESS_KEY',
   [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: 'CLOUDFLARE_R2_SECRET_KEY',

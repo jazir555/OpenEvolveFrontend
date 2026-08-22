@@ -155,6 +155,16 @@
       "nodes": [],
       "edges": [],
       "created_at": "2026-08-21T05:10:23.180189+00:00"
+    },
+    "wfd_c618059e23e3": {
+      "id": "wfd_c618059e23e3",
+      "name": "x",
+      "description": "d",
+      "workflow_type": "t",
+      "parameters": {},
+      "nodes": [],
+      "edges": [],
+      "created_at": "2026-08-22T08:29:52.802537+00:00"
     }
   },
   "instances": {
@@ -330,6 +340,23 @@
         "ok": true,
         "engine": "mock"
       }
+    },
+    "wfi_d6fa6b3a63ef": {
+      "instance_id": "wfi_d6fa6b3a63ef",
+      "definition_id": "d",
+      "instance_name": "i",
+      "workflow_type": "sovereign",
+      "status": "created",
+      "current_stage": "initialized",
+      "problem_statement": "Execute workflow instance wfi_d6fa6b3a63ef",
+      "inputs": {},
+      "parameters": {},
+      "execution_id": null,
+      "start_time": null,
+      "end_time": null,
+      "progress": 0.0,
+      "error_message": null,
+      "result": null
     }
   }
 }

@@ -1095,6 +1095,90 @@ export interface IntegratedWorkflowRequest {
   keyword_penalty_weight?: number;
 }
 
+// ==================== Security / API Keys (RBAC) ====================
+
+/**
+ * Body for `POST /api/security/api-keys`.
+ *
+ * `username` is required (1..256 chars). `roles` are RBAC role names
+ * (e.g. `admin`, `user`, `readonly`). Requires an admin key on the wire.
+ */
+export interface ApiKeyCreateRequest {
+  username: string;
+  email?: string | null;
+  roles: string[];
+}
+
+/**
+ * Response of `POST /api/security/api-keys`.
+ *
+ * `api_key` is the RAW secret and is returned exactly ONCE by the engine — it is
+ * never included in `GET /api/security/api-keys`. Never log or persist it
+ * anywhere except (optionally) the caller's active-key storage.
+ */
+export interface ApiKeyCreateResponse {
+  key_id: string;
+  api_key: string;
+  user_id?: string;
+  username?: string;
+  roles?: string[];
+  warning?: string;
+}
+
+/** One entry of `GET /api/security/api-keys` (never contains the raw secret). */
+export interface ApiKeyListItem {
+  key_id: string;
+  username?: string;
+  roles?: string[];
+  permissions?: string[];
+  created_at?: string;
+  created_by?: string;
+  revoked?: boolean;
+  user_id?: string;
+}
+
+export interface ApiKeyListResponse {
+  api_keys: ApiKeyListItem[];
+  /** `false` when the engine has no RBAC subsystem loaded. */
+  rbac_available: boolean;
+}
+
+/** Response of `DELETE /api/security/api-keys/{key_id}`. */
+export interface RevokeApiKeyResponse {
+  status: string;
+  key_id: string;
+}
+
+export interface SecurityRole {
+  name: string;
+  description?: string;
+  permissions: string[];
+}
+
+/** Body for `POST /api/security/roles`. */
+export interface SecurityRoleCreateRequest {
+  name: string;
+  description?: string;
+  permissions: string[];
+}
+
+export interface RolesResponse {
+  roles: SecurityRole[];
+  rbac_available: boolean;
+}
+
+/**
+ * Audit log entries are engine-defined dicts. The commonly present keys are
+ * `timestamp`, `operation`, `resource`, `resource_id` and `success`, but the
+ * shape is intentionally loose so unknown fields survive.
+ */
+export type AuditLogEntry = Record<string, unknown>;
+
+export interface AuditLogsResponse {
+  audit_logs: AuditLogEntry[];
+  source: 'rbac' | 'in_memory';
+}
+
 // ==================== Canonical Factory Functions ====================
 
 /**

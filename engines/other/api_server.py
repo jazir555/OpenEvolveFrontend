@@ -2281,6 +2281,13 @@ def _load_api_keys() -> Dict[str, Dict[str, Any]]:
             except ValueError as e:
                 logger.warning(f"Failed to parse API key from {env_var}: {e}")
 
+    # Accept the shared OpenEvolve API key used by the :8000 service and the
+    # BubbleLab frontend (OPENEVOLVE_API_KEY) as an admin key so the same env
+    # value is honoured across both servers without hardcoding any secret.
+    shared_key = os.getenv("OPENEVOLVE_API_KEY")
+    if shared_key:
+        api_keys[shared_key] = {"role": UserRole("admin"), "name": "openevolve"}
+
     return api_keys
 
 
