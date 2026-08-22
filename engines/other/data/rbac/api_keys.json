@@ -1,0 +1,15 @@
+{
+  "key_b38eddd3be86c95d": {
+    "key_id": "key_b38eddd3be86c95d",
+    "key_hash": "b38eddd3be86c95d019887646eb9b7a151e852f3eaa92bebdc3f51159ce9f96e",
+    "user_id": "user_6e1c84236f5afc71",
+    "username": "alice",
+    "roles": [
+      "user"
+    ],
+    "permissions": [],
+    "created_at": "2026-08-22T10:05:15.794551",
+    "created_by": "openevolve",
+    "revoked": false
+  }
+}

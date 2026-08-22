@@ -1,0 +1,129 @@
+{
+  "users": {
+    "user_6e1c84236f5afc71": {
+      "user_id": "user_6e1c84236f5afc71",
+      "username": "alice",
+      "email": "alice@local",
+      "full_name": null,
+      "role_names": [
+        "user"
+      ],
+      "is_active": true,
+      "is_superuser": false,
+      "created_at": "2026-08-22T10:05:15.792029",
+      "updated_at": "2026-08-22T10:05:15.792029",
+      "last_login": null,
+      "metadata": {},
+      "password_hash": "e446bf99f0ec7c8bdb92a831e3156bb2:267b3db2240d2cbf352b6594bd403d85f3f039f3d2ac25d9dbf94b6bcc2f12bc"
+    }
+  },
+  "roles": {
+    "admin": {
+      "name": "admin",
+      "description": "Full system access",
+      "permissions": [
+        "create_user",
+        "read_user",
+        "update_user",
+        "delete_user",
+        "manage_users",
+        "manage_roles",
+        "create_content",
+        "read_content",
+        "update_content",
+        "delete_content",
+        "publish_content",
+        "create_project",
+        "read_project",
+        "update_project",
+        "delete_project",
+        "manage_project_members",
+        "system_admin",
+        "view_logs",
+        "manage_system",
+        "view_analytics",
+        "export_data",
+        "api_access",
+        "api_write"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T09:57:24.618822",
+      "updated_at": "2026-08-22T09:57:24.618822",
+      "metadata": {}
+    },
+    "editor": {
+      "name": "editor",
+      "description": "Can edit and manage content",
+      "permissions": [
+        "read_content",
+        "create_content",
+        "update_content",
+        "read_project"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T09:57:24.618822",
+      "updated_at": "2026-08-22T09:57:24.618822",
+      "metadata": {}
+    },
+    "viewer": {
+      "name": "viewer",
+      "description": "Read-only access",
+      "permissions": [
+        "read_content",
+        "read_project"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T09:57:24.618822",
+      "updated_at": "2026-08-22T09:57:24.618822",
+      "metadata": {}
+    }
+  },
+  "audit_logs": [
+    {
+      "log_id": "audit_b69386a0c6d6a150",
+      "user_id": "user_6e1c84236f5afc71",
+      "action": "CREATE_USER",
+      "resource_type": "user",
+      "resource_id": "user_6e1c84236f5afc71",
+      "success": true,
+      "timestamp": "2026-08-22T10:05:15.793547",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "username": "alice",
+        "email": "alice@local"
+      }
+    },
+    {
+      "log_id": "audit_532d0a84fdfed4b2cd12",
+      "user_id": "openevolve",
+      "action": "CREATE_API_KEY",
+      "resource_type": "api_key",
+      "resource_id": "key_b38eddd3be86c95d",
+      "success": true,
+      "timestamp": "2026-08-22T10:05:15.803588",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "username": "alice",
+        "roles": [
+          "user"
+        ]
+      }
+    },
+    {
+      "log_id": "audit_ecb85d5ce403bf241c2d",
+      "user_id": "openevolve",
+      "action": "LIST_WORKFLOWS",
+      "resource_type": "workflow",
+      "resource_id": "*",
+      "success": true,
+      "timestamp": "2026-08-22T10:05:19.936041",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    }
+  ]
+}

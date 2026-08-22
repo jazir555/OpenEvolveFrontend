@@ -495,9 +495,19 @@ not see any run outcome (the `:8000` run proxy was write-only). Both gaps are no
   left untouched.
 - `npm run build` (tsc -b && vite build) → **exit 0**.
 
-**Residual limitations (ops, not code):** the live `:8001` engine cannot boot in this env
-(pre-existing unrelated `knowledge_engine` import failure at `api_server.py:442`), so end-to-end
-was verified via monkeypatched `httpx` / isolated persistence tests, not a running engine. The
-`:8001` status is never written back to `:8000` (no completion callback) — the UI reads live
-state via the proxy routes instead. Pickle blobs are process/schema-bound (a `WorkflowState`
-schema change would need a migration guard).
+**Residual limitations / fixes (2026-08-22):**
+- **Engine boot blocker — RESOLVED.** The `:8001` engine failed to start with
+  `ModuleNotFoundError: knowledge_engine` (the `knowledge_engine` package lives at the repo
+  root, but `api_server.py` only added `engines/other` + `engines/security` to `sys.path`).
+  Fixed by adding the **repo root** to `sys.path` in `api_server.py` (boot path block, ~line 28).
+  Verified: the engine now boots (`GET /health` → 200 `{"status":"healthy"}`) and the full
+  `/security/api-keys` create+list flow works end-to-end against the live engine.
+- **Migration idempotency bug — RESOLVED (was blocking 2nd boot).** Both `workflow_persistence.py`
+  and `sovereign_persistence.py` used `version` as the `schema_version` PRIMARY KEY and an
+  unqualified `UPDATE schema_version SET version = ?`, which collided (UNIQUE) on the second boot
+  when a `version=0` row was re-inserted. Fixed by converting `schema_version` to a single-row
+  `id INTEGER PRIMARY KEY CHECK (id = 1)` table with a `_reset_version_table()` (drop/recreate,
+  `INSERT (1,0)`) helper, and scoping the `UPDATE ... WHERE id = 1`. Persistence tests still 4/4.
+- The `:8001` status is still not written back to `:8000` (no completion callback) — the UI reads
+  live state via the proxy routes instead (by-design; acceptable). Pickle blobs are
+  process/schema-bound (a `WorkflowState` schema change would need a migration guard).

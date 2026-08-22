@@ -109,14 +109,7 @@ class WorkflowRunStore:
                 )
                 """
             )
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS schema_version (
-                    version INTEGER PRIMARY KEY
-                )
-                """
-            )
-            cursor.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (0)")
+            self._reset_version_table(cursor)
             # Indexes for common historical queries.
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_wr_tenant ON workflow_runs(tenant_id)"
@@ -133,23 +126,38 @@ class WorkflowRunStore:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER PRIMARY KEY)"
+                "CREATE TABLE IF NOT EXISTS schema_version "
+                "(id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)"
             )
-            cursor.execute("SELECT version FROM schema_version")
+            cursor.execute("INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, 0)")
+            cursor.execute("SELECT version FROM schema_version WHERE id = 1")
             row = cursor.fetchone()
             return row[0] if row else 0
+
+    def _reset_version_table(self, cursor) -> None:
+        """Ensure a single-row ``schema_version`` (id=1) tracking the version.
+
+        The table is dropped and recreated so migration application is fully
+        idempotent regardless of any prior schema shape (an earlier version
+        used ``version`` as the PRIMARY KEY, which caused a UNIQUE collision on
+        the second boot when the unqualified ``UPDATE`` re-targeted a freshly
+        inserted ``version=0`` row).
+        """
+        cursor.execute("DROP TABLE IF EXISTS schema_version")
+        cursor.execute(
+            "CREATE TABLE schema_version "
+            "(id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)"
+        )
+        cursor.execute("INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, 0)")
 
     def apply_migrations(self) -> None:
         """Apply any pending migrations from ``migrations.MIGRATIONS``."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            # Self-sufficient: ensure the version table exists even if
-            # ``init_database`` has not committed it in this connection.
-            cursor.execute(
-                "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER PRIMARY KEY)"
-            )
-            cursor.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (0)")
-            cursor.execute("SELECT version FROM schema_version")
+            # Self-sufficient + idempotent: drop/recreate the version table even
+            # if ``init_database`` has not committed it in this connection.
+            self._reset_version_table(cursor)
+            cursor.execute("SELECT version FROM schema_version WHERE id = 1")
             row = cursor.fetchone()
             current = row[0] if row else 0
             for version in sorted(MIGRATIONS.keys()):
@@ -158,7 +166,7 @@ class WorkflowRunStore:
                     for statement in MIGRATIONS[version]:
                         cursor.execute(statement)
                     cursor.execute(
-                        "UPDATE schema_version SET version = ?", (version,)
+                        "UPDATE schema_version SET version = ? WHERE id = 1", (version,)
                     )
                     current = version
 

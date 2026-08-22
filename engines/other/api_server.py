@@ -26,6 +26,15 @@ _SECURITY_DIR = os.path.join(os.path.dirname(_THIS_DIR), "security")
 if _SECURITY_DIR not in sys.path:
     sys.path.insert(0, _SECURITY_DIR)
 
+# The ``knowledge_engine`` package and several flat sibling modules
+# (e.g. ``ace_knowledge_artifacts``) live at the repository root. Add it so
+# ``import knowledge_engine`` (and other root-level flat modules) resolve when
+# the server is launched from ``engines/other`` (otherwise
+# ``ModuleNotFoundError: knowledge_engine`` aborts import at line 442).
+_REPO_ROOT = os.path.dirname(os.path.dirname(_THIS_DIR))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 
 from fastapi import FastAPI, HTTPException, Depends, Header, status, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware

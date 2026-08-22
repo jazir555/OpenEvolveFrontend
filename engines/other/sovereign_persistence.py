@@ -39,7 +39,7 @@ class SovereignDatabase:
                     self.logger.info(f"Applying migration to version {version}")
                     for statement in statements:
                         cursor.execute(statement)
-                    cursor.execute("UPDATE schema_version SET version = ?", (version,))
+                    cursor.execute("UPDATE schema_version SET version = ? WHERE id = 1", (version,))
                     current_version = version
 
     def init_database(self):
@@ -199,18 +199,28 @@ class SovereignDatabase:
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_subproblem ON solution_attempts(sub_problem_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_patterns_type ON patterns(problem_type)")
 
-            # Schema version table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS schema_version (
-                    version INTEGER PRIMARY KEY
-                )
-            """)
-            # Initialize schema version if not present
-            cursor.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (0)")
+            # Schema version table (single-row, id=1; see _reset_version_table)
+            self._reset_version_table(cursor)
     
     # ========================================================================
-    # PROBLEM CRUD OPERATIONS
+    # SCHEMA VERSION HELPER
     # ========================================================================
+    
+    def _reset_version_table(self, cursor) -> None:
+        """Ensure a single-row ``schema_version`` (id=1) tracking the version.
+
+        Dropped and recreated so migration application is idempotent regardless
+        of any prior schema shape. An earlier design used ``version`` as the
+        PRIMARY KEY and an unqualified ``UPDATE schema_version SET version = ?``
+        which collided (UNIQUE) on the second boot when a ``version=0`` row was
+        re-inserted.
+        """
+        cursor.execute("DROP TABLE IF EXISTS schema_version")
+        cursor.execute(
+            "CREATE TABLE schema_version "
+            "(id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)"
+        )
+        cursor.execute("INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, 0)")
     
     def create_problem(self, problem: ProblemDefinition) -> bool:
         """Create a new problem"""
@@ -711,8 +721,12 @@ class SovereignDatabase:
         """Get the current schema version from the database."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("CREATE TABLE IF NOT EXISTS schema_version (version INTEGER PRIMARY KEY)")
-            cursor.execute("SELECT version FROM schema_version")
+            cursor.execute(
+                "CREATE TABLE IF NOT EXISTS schema_version "
+                "(id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)"
+            )
+            cursor.execute("INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, 0)")
+            cursor.execute("SELECT version FROM schema_version WHERE id = 1")
             result = cursor.fetchone()
             return result[0] if result else 0
     
