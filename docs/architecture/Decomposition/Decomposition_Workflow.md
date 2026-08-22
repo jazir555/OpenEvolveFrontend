@@ -4529,9 +4529,12 @@ All decomposition-workflow systems/settings are now configurable end-to-end from
 - **Engine now consumes the settings** (previously stored-only): circular-dependency guard is toggleable
   (was hard-coded ON); `resource_limits` → `ResourceManager` via `create_resource_limits_from_config`;
   `knowledge_engine_path` honored by `OpenEvolveKnowledgeEngine`. 17 engine-core tests pass.
-- **Residual**: `ResourceLimits`/`ResourceManager` does not model `total_steps`, `max_parallel`,
-  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot` — these
-  sub-fields persist but are not enforced.
+- **Residual (RESOLVED 2026-08-21)**: `ResourceLimits`/`ResourceManager` now models AND enforces
+  `total_steps`, `max_parallel`, `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`,
+  `allow_overshoot`. `create_resource_limits_from_config` maps the decomposition-plan schema; the solving
+  loop acquires/releases parallel slots, records per-sub-problem usage, and caps batch size at `max_parallel`;
+  `ResourceLimitExceeded` fails the workflow gracefully. 11 new `test_resource_manager_limits.py` tests pass
+  (28 total with the engine-core suite).
 
 ## 7.0 Integration with CrewAI Framework
 

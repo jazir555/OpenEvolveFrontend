@@ -270,6 +270,9 @@ previously the settings were persisted but not all were acted on. Engine fixes (
   (`total_tokens`→`max_tokens`, `total_time_seconds`→`max_execution_time_seconds`); parallelism driven by
   `max_parallel_sub_problems` in the parallel/distributed processors.
 - `knowledge_engine_path` **honored** by `OpenEvolveKnowledgeEngine.__init__` (sets `self.root`).
-- **Residual**: `ResourceLimits`/`ResourceManager` lacks fields for `total_steps`, `max_parallel`,
-  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot` — these
-  sub-fields are persisted but not yet enforced.
+- **Residual (RESOLVED 2026-08-21)**: `ResourceLimits`/`ResourceManager` now models AND enforces
+  `total_steps`, `max_parallel`, `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`,
+  `allow_overshoot`. `create_resource_limits_from_config` maps the decomposition-plan schema; the solving
+  loop acquires/releases parallel slots, records per-sub-problem usage, and caps batch size at `max_parallel`;
+  `ResourceLimitExceeded` fails the workflow gracefully. 11 new `test_resource_manager_limits.py` tests pass
+  (28 total with the engine-core suite).

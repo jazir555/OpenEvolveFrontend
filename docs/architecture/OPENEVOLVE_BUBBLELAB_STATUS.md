@@ -358,6 +358,9 @@ Every workflow system/setting is now configurable end-to-end (BubbleLab UI → R
     by `max_parallel_sub_problems`.
   - `knowledge_engine_path` is **honored** by `OpenEvolveKnowledgeEngine` (sets `self.root`).
   - 17 engine-core tests pass.
-- **Residual**: `ResourceLimits`/`ResourceManager` does not model `total_steps`, `max_parallel`,
-  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot`, so those
-  sub-fields are persisted but not yet enforced.
+- **Residual (RESOLVED 2026-08-21)**: `ResourceLimits`/`ResourceManager` now models AND enforces
+  `total_steps`, `max_parallel`, `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`,
+  `allow_overshoot`. `create_resource_limits_from_config` maps the decomposition-plan schema; the solving
+  loop acquires/releases parallel slots, records per-sub-problem usage, and caps batch size at `max_parallel`;
+  `ResourceLimitExceeded` fails the workflow gracefully. 11 new `test_resource_manager_limits.py` tests pass
+  (28 total with the engine-core suite).

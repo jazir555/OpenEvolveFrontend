@@ -245,7 +245,7 @@ from openevolve_integration import run_unified_evolution, create_comprehensive_o
 from parallel_processing import ParallelDecompositionProcessor
 from distributed_processing import DistributedProcessor
 from monitoring_system import add_metric, trace_operation, MetricType
-from resource_manager import ResourceManager, create_resource_limits_from_config
+from resource_manager import ResourceManager, create_resource_limits_from_config, ResourceLimitExceeded
 from mdap_engine import MDAPConfig, MDAPTask, MDAPStep, MDAPOrchestrator, RedFlagRules
 from maker_engine import MakerConfig, MakerEngine, MakerStep, FileCheckpointStore
 from utils.entanglement_utils import (
@@ -2149,7 +2149,7 @@ async def run_sovereign_workflow(
                     if sp_id not in workflow_state.rejected_sub_problems
                     and sp_id not in workflow_state.sub_problem_solutions
                     and sp_id not in parallel_generated
-                ][:workflow_state.parallel_evaluations]
+                ][:min(workflow_state.parallel_evaluations, resource_manager.limits.max_parallel or workflow_state.parallel_evaluations)]
 
                 if batch:
                     sub_problem_batch = [sub_problems_by_id[sp_id] for sp_id in batch]
@@ -2172,7 +2172,8 @@ async def run_sovereign_workflow(
                     solutions = distributed_processor.process_sub_problems_distributed(
                         sub_problem_batch,
                         _distributed_solver,
-                        {"current_solution": ""}
+                        {"current_solution": ""},
+                        resource_manager=resource_manager
                     )
                     for sp_id in batch:
                         solution = solutions.get(sp_id)
@@ -2187,7 +2188,7 @@ async def run_sovereign_workflow(
                     if sp_id not in workflow_state.rejected_sub_problems
                     and sp_id not in workflow_state.sub_problem_solutions
                     and sp_id not in parallel_generated
-                ][:workflow_state.parallel_evaluations]
+                ][:min(workflow_state.parallel_evaluations, resource_manager.limits.max_parallel or workflow_state.parallel_evaluations)]
 
                 if batch:
                     tasks = []
@@ -2249,33 +2250,61 @@ async def run_sovereign_workflow(
             else:
                 actual_solver_generation_gauntlet = solver_generation_gauntlet # Fallback to global if not specified for sub-problem
 
-            # If a solution exists and was rejected, use the Patcher Team to fix it.
-            if current_sp_id in workflow_state.rejected_sub_problems:
-                st.info(f"  - Invoking Patcher Team for {current_sp_id} based on previous rejection.")
-                last_report = workflow_state.rejected_sub_problems[current_sp_id]
-                new_attempt = generate_solution_for_sub_problem(
-                    sub_problem=current_sub_problem,
-                    team=patcher_team,
-                    context={"current_solution": generated_content, "feedback_report": last_report},
-                    workflow_state=workflow_state,
-                    solver_generation_gauntlet=actual_solver_generation_gauntlet,
+            # --- Resource enforcement: acquire a parallel slot and time the solve ---
+            try:
+                _solve_start = time.time()
+                with resource_manager.sub_problem_slot():
+                    # If a solution exists and was rejected, use the Patcher Team to fix it.
+                    if current_sp_id in workflow_state.rejected_sub_problems:
+                        st.info(f"  - Invoking Patcher Team for {current_sp_id} based on previous rejection.")
+                        last_report = workflow_state.rejected_sub_problems[current_sp_id]
+                        new_attempt = generate_solution_for_sub_problem(
+                            sub_problem=current_sub_problem,
+                            team=patcher_team,
+                            context={"current_solution": generated_content, "feedback_report": last_report},
+                            workflow_state=workflow_state,
+                            solver_generation_gauntlet=actual_solver_generation_gauntlet,
+                        )
+                        generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
+                        pending_attempt = new_attempt
+                        del workflow_state.rejected_sub_problems[current_sp_id] # Clear rejection status after attempting to patch.
+                    else:
+                        # Otherwise, use the Solver Team to generate a new solution.
+                        actual_solver_team = team_manager.get_team(current_sub_problem.solver_team_name) if current_sub_problem.solver_team_name else solver_team
+                        new_attempt = generate_solution_for_sub_problem(
+                            sub_problem=current_sub_problem,
+                            team=actual_solver_team,
+                            context={"current_solution": generated_content},
+                            workflow_state=workflow_state,
+                            solver_generation_gauntlet=actual_solver_generation_gauntlet,
+                        )
+                        generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
+                        pending_attempt = new_attempt
+
+                # Best-effort token extraction from the generated solution attempt.
+                _sp_tokens = 0
+                if pending_attempt is not None:
+                    if getattr(pending_attempt, "tokens_used", None):
+                        _sp_tokens = int(pending_attempt.tokens_used)
+                    elif getattr(pending_attempt, "token_count", None):
+                        _sp_tokens = int(pending_attempt.token_count)
+                    elif getattr(pending_attempt, "usage", None):
+                        _u = pending_attempt.usage
+                        _pt = getattr(_u, "prompt_tokens", 0) or 0
+                        _ct = getattr(_u, "completion_tokens", 0) or 0
+                        _sp_tokens = int(_pt) + int(_ct)
+                resource_manager.record_sub_problem(
+                    current_sp_id,
+                    tokens=_sp_tokens,
+                    steps=1,
+                    seconds=time.time() - _solve_start,
                 )
-                generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
-                pending_attempt = new_attempt
-                del workflow_state.rejected_sub_problems[current_sp_id] # Clear rejection status after attempting to patch.
-            else:
-                # Otherwise, use the Solver Team to generate a new solution.
-                actual_solver_team = team_manager.get_team(current_sub_problem.solver_team_name) if current_sub_problem.solver_team_name else solver_team
-                new_attempt = generate_solution_for_sub_problem(
-                    sub_problem=current_sub_problem,
-                    team=actual_solver_team,
-                    context={"current_solution": generated_content},
-                    workflow_state=workflow_state,
-                    solver_generation_gauntlet=actual_solver_generation_gauntlet,
-                )
-                generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
-                pending_attempt = new_attempt
-            
+            except ResourceLimitExceeded as _rle:
+                st.error(f"Resource limit exceeded while solving sub-problem {current_sp_id}: {_rle}")
+                workflow_state.status = "failed"
+                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
+                return
+
             if generated_content.startswith("Failed to generate solution:"):
                 st.error(f"Failed to generate solution for sub-problem {current_sp_id}. Workflow failed.")
                 workflow_state.status = "failed"

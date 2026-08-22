@@ -340,7 +340,8 @@ class DistributedProcessor:
         self,
         sub_problems: List[SubProblem],
         solver_function: Callable,
-        context: Dict[str, Any]
+        context: Dict[str, Any],
+        resource_manager: Any = None
     ) -> Dict[str, SolutionAttempt]:
         """
         Process multiple sub-problems in parallel across workers with failure handling.
@@ -349,6 +350,7 @@ class DistributedProcessor:
             sub_problems: List of sub-problems to solve
             solver_function: Function to solve each sub-problem
             context: Context for solving
+            resource_manager: Optional ResourceManager for best-effort per-sub-problem tracking.
             
         Returns:
             Dictionary mapping sub-problem IDs to solutions
@@ -375,6 +377,12 @@ class DistributedProcessor:
                     solutions[sp.id] = solution
                     # Store in sync manager
                     self.coordinator.sync_manager.update_shared_state(f"result_{sp.id}", solution)
+                    # Best-effort resource tracking per sub-problem.
+                    if resource_manager is not None and hasattr(resource_manager, "record_sub_problem"):
+                        try:
+                            resource_manager.record_sub_problem(sp.id, tokens=0, steps=1, seconds=0.0)
+                        except Exception:
+                            pass
                 except concurrent.futures.TimeoutError:
                     logger.error(f"Timeout solving sub-problem {sp.id}")
                     solutions[sp.id] = None

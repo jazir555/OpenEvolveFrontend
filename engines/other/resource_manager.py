@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import time
 import logging
+import threading
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import os
+from contextlib import contextmanager
 
 # **ACTUAL INTEGRATION**: Alerting and knowledge for Resource Manager
 try:
@@ -48,6 +50,9 @@ class ResourceUsage:
     memory_usage_mb: float = 0.0
     timestamp: float = field(default_factory=time.time)
     details: Dict[str, Any] = field(default_factory=dict)
+    steps: int = 0
+    parallel_active: int = 0
+    computed_time_seconds: float = 0.0
 
 
 @dataclass
@@ -58,7 +63,13 @@ class ResourceLimits:
     max_cost: Optional[float] = None
     max_execution_time_seconds: Optional[float] = None
     max_memory_mb: Optional[float] = None
-    
+    max_steps: Optional[int] = None
+    max_parallel: Optional[int] = None
+    tokens_per_sub_problem: Optional[int] = None
+    time_per_sub_problem_seconds: Optional[float] = None
+    steps_per_sub_problem: Optional[int] = None
+    allow_overshoot: bool = False
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -66,7 +77,13 @@ class ResourceLimits:
             'max_tokens': self.max_tokens,
             'max_cost': self.max_cost,
             'max_execution_time_seconds': self.max_execution_time_seconds,
-            'max_memory_mb': self.max_memory_mb
+            'max_memory_mb': self.max_memory_mb,
+            'max_steps': self.max_steps,
+            'max_parallel': self.max_parallel,
+            'tokens_per_sub_problem': self.tokens_per_sub_problem,
+            'time_per_sub_problem_seconds': self.time_per_sub_problem_seconds,
+            'steps_per_sub_problem': self.steps_per_sub_problem,
+            'allow_overshoot': self.allow_overshoot
         }
 
 
@@ -84,6 +101,12 @@ class ResourceManager:
         self.usage = ResourceUsage()
         self.component_usage: Dict[str, ResourceUsage] = {}
         self.start_time = time.time()
+
+        # Per-sub-problem cumulative usage (keys: tokens, steps, time).
+        self._per_sub_problem: Dict[str, Dict[str, float]] = {}
+        # Parallelism slot tracking.
+        self._parallel_lock = threading.Lock()
+        self._parallel_active = 0
         
         # Cost per token for different models (approximate)
         self.cost_per_token = {
@@ -186,6 +209,18 @@ class ResourceManager:
                 f"Memory limit exceeded: {self.usage.memory_usage_mb:.1f}MB/{self.limits.max_memory_mb:.1f}MB"
             )
 
+        # Check total steps
+        if self.limits.max_steps and self.usage.steps >= self.limits.max_steps:
+            violations.append(
+                f"Step limit exceeded: {self.usage.steps}/{self.limits.max_steps}"
+            )
+
+        # Check parallel slots
+        if self.limits.max_parallel and self._parallel_active > self.limits.max_parallel:
+            violations.append(
+                f"Parallel limit exceeded: {self._parallel_active}/{self.limits.max_parallel}"
+            )
+
         # **ACTUAL INTEGRATION**: Trigger alerts if limits are exceeded
         if violations:
             self._trigger_resource_alerts(violations, {"elapsed_time": elapsed_time, "total_cost": self.usage.estimated_cost})
@@ -202,6 +237,13 @@ class ResourceManager:
             'estimated_cost': self.usage.estimated_cost,
             'execution_time_seconds': elapsed_time,
             'memory_usage_mb': self.usage.memory_usage_mb,
+            'steps': self.usage.steps,
+            'parallel_active': self._parallel_active,
+            'computed_time_seconds': self.usage.computed_time_seconds,
+            'allow_overshoot': self.limits.allow_overshoot,
+            'per_sub_problem_usage': {
+                sp_id: dict(usage) for sp_id, usage in self._per_sub_problem.items()
+            },
             'limits': self.limits.to_dict(),
             'component_breakdown': {
                 comp: {
@@ -214,6 +256,111 @@ class ResourceManager:
             }
         }
     
+    # =========================================================================
+    # Per-sub-problem / step / parallelism enforcement
+    # =========================================================================
+
+    def acquire_slot(self) -> None:
+        """Acquire a parallel-execution slot, enforcing ``max_parallel``."""
+        with self._parallel_lock:
+            self._parallel_active += 1
+            if self.limits.max_parallel and self._parallel_active > self.limits.max_parallel:
+                if self.limits.allow_overshoot:
+                    logger.warning(
+                        f"max_parallel {self.limits.max_parallel} exceeded "
+                        f"(active={self._parallel_active}); overshoot allowed"
+                    )
+                else:
+                    self._parallel_active -= 1
+                    raise ResourceLimitExceeded(
+                        f"max_parallel {self.limits.max_parallel} exceeded "
+                        f"(active={self._parallel_active + 1})"
+                    )
+
+    def release_slot(self) -> None:
+        """Release a previously acquired parallel-execution slot."""
+        with self._parallel_lock:
+            self._parallel_active = max(0, self._parallel_active - 1)
+
+    @contextmanager
+    def sub_problem_slot(self):
+        """Context manager that acquires/releases a parallel slot around a solve."""
+        self.acquire_slot()
+        try:
+            yield
+        finally:
+            self.release_slot()
+
+    def record_sub_problem(
+        self,
+        sp_id: str,
+        tokens: int = 0,
+        steps: int = 1,
+        seconds: float = 0.0
+    ) -> None:
+        """
+        Record resource consumption for a solved sub-problem and enforce limits.
+
+        Accumulates totals (tokens_used/steps/computed_time_seconds) and
+        per-sub-problem cumulative usage, then checks per-sub-problem and total
+        caps. Raises ``ResourceLimitExceeded`` on violation unless
+        ``allow_overshoot`` is set (in which case a warning is logged).
+        """
+        if sp_id not in self._per_sub_problem:
+            self._per_sub_problem[sp_id] = {'tokens': 0.0, 'steps': 0.0, 'time': 0.0}
+
+        sp_usage = self._per_sub_problem[sp_id]
+        sp_usage['tokens'] += float(tokens)
+        sp_usage['steps'] += float(steps)
+        sp_usage['time'] += float(seconds)
+
+        # Accumulate global usage.
+        self.usage.tokens_used += tokens
+        self.usage.steps += steps
+        self.usage.computed_time_seconds += seconds
+
+        allow = self.limits.allow_overshoot
+
+        def _enforce(condition: bool, msg: str) -> None:
+            if not condition:
+                return
+            if allow:
+                logger.warning(msg)
+            else:
+                raise ResourceLimitExceeded(msg)
+
+        # Per-sub-problem caps.
+        if self.limits.tokens_per_sub_problem:
+            _enforce(
+                sp_usage['tokens'] > self.limits.tokens_per_sub_problem,
+                f"tokens_per_sub_problem exceeded for {sp_id}: "
+                f"{sp_usage['tokens']}/{self.limits.tokens_per_sub_problem}"
+            )
+        if self.limits.steps_per_sub_problem:
+            _enforce(
+                sp_usage['steps'] > self.limits.steps_per_sub_problem,
+                f"steps_per_sub_problem exceeded for {sp_id}: "
+                f"{sp_usage['steps']}/{self.limits.steps_per_sub_problem}"
+            )
+        if self.limits.time_per_sub_problem_seconds:
+            _enforce(
+                sp_usage['time'] > self.limits.time_per_sub_problem_seconds,
+                f"time_per_sub_problem_seconds exceeded for {sp_id}: "
+                f"{sp_usage['time']}/{self.limits.time_per_sub_problem_seconds}"
+            )
+
+        # Total caps.
+        if self.limits.max_tokens:
+            _enforce(
+                self.usage.tokens_used > self.limits.max_tokens,
+                f"Token limit exceeded: {self.usage.tokens_used}/{self.limits.max_tokens}"
+            )
+        if self.limits.max_steps:
+            _enforce(
+                self.usage.steps > self.limits.max_steps,
+                f"Step limit exceeded: {self.usage.steps}/{self.limits.max_steps}"
+            )
+
     def optimize_resource_allocation(self, sub_problems: List[Any]) -> Dict[str, Any]:
         """
         Suggest optimal resource allocation for sub-problems.
@@ -636,6 +783,12 @@ def create_resource_limits_from_config(config: Dict[str, Any]) -> ResourceLimits
         max_cost=config.get('max_cost'),
         max_execution_time_seconds=config.get('max_execution_time_seconds', config.get('total_time_seconds')),
         max_memory_mb=config.get('max_memory_mb'),
+        max_steps=config.get('max_steps', config.get('total_steps')),
+        max_parallel=config.get('max_parallel'),
+        tokens_per_sub_problem=config.get('tokens_per_sub_problem'),
+        time_per_sub_problem_seconds=config.get('time_per_sub_problem', config.get('time_per_sub_problem_seconds')),
+        steps_per_sub_problem=config.get('steps_per_sub_problem'),
+        allow_overshoot=config.get('allow_overshoot', False),
     )
 
 
