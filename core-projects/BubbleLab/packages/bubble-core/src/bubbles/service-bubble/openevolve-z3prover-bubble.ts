@@ -40,7 +40,8 @@ const Z3ParamsSchema = z.object({
   base_url: z.string().url().default(resolveBaseUrl()),
   timeout: z.number().min(1000).max(600000).default(30000),
   headers: z.record(z.string()).optional(),
-
+  auth_token: z.string().optional(),
+  auth_header: z.string().default('Authorization'),
   smtlib2: z.string().optional(),
   logic: Z3LogicSchema.optional(),
 

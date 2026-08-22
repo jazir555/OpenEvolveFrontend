@@ -548,3 +548,40 @@ with `OPENEVOLVE_API_KEY`) and probed every path the BubbleLab client actually c
 - **Boot note:** `:8000` still requires the `services/openevolve_api` → `openevolve-api`
   junction (or `pip install -e .` of the `openevolve-api` package) to import the app module;
   the junction is intentionally retained so `uvicorn openevolve_api.main:app` works.
+
+### §17.2 — Bubble implementaion pass: chainable bubbles + backend launcher (2026-08-22)
+
+Closed the gaps where bubbles were missing, orphaned, or stubbed.
+
+- **OneKE + GKET now chainable.** Added `openevolve-oneke` and `openevolve-gket`
+  `ServiceBubble` classes (`packages/bubble-core/src/bubbles/service-bubble/`) that perform
+  real HTTP to `:8765` / `:8766`, registered in `bubble-factory.ts`, the `BubbleName`
+  union, `bubble-shared-schemas` credential options, and both `bubbles.json` copies.
+- **Evolution bubbles implemented + registered (no longer orphaned).** Added
+  `openevolve-evolution-trigger`, `-application`, `-validation`, `-metrics-collector`,
+  `-knowledge-retrieval`, `-knowledge-capture` service bubbles plus
+  `openevolve-evolution-pipeline` / `-continuous-evolution` / `-adaptive-evolution`
+  workflow bubbles that chain the children via `BubbleFactory.createBubble(...).action()`.
+  All call the OpenEvolve `:8000` endpoints for real (degrade with a clear error, never
+  a fake success).
+- **Stubs / simulated logic removed.** The local `apps/bubble-studio/src/bubbles/`
+  `EvolutionValidationBubble` simulated LeanAide proof was replaced with a real
+  `openevolve-leanaide` `generate_proof` call; `MetricsCollector` / `KnowledgeRetrieval` /
+  `KnowledgeCapture` steps in `ContinuousEvolution` / `AdaptiveEvolution` are real.
+- **Backend-start control panel.** New `bubblelab-api` module `src/services/backends.ts`
+  exposes `GET /api/backends`, `POST /api/backends/:name/start|stop`,
+  `GET /api/backends/:name/status` (spawns the 5 servers via detached `child_process`,
+  tracks PID, health-checks the port). Frontend `/backends` page has a multi-select +
+  Start/Stop-selected and per-row buttons with live polling. Verified live:
+  `oneke` spawned Python and reported `running:true`, stopped cleanly, unknown name → 404.
+- **Evolution reachable from UI.** New `/openevolve/evolution` page lists the 3
+  compositions + 3 bubbles with a real Run; Bubble Config tabs added to `/oneke` and
+  `/gket`. Both routes registered in `routeTree.gen.ts` and the sidebar.
+- **Verification:** `tsc --noEmit` → 0 errors for `bubble-shared-schemas`, `bubble-core`,
+  `bubble-studio`, `bubblelab-api`; `npm run build` succeeds for both apps. All 11 new
+  bubbles present in both `bubbles.json`.
+
+**Residual:** the `/openevolve/evolution` Run action calls the OpenEvolve `:8000`
+BubbleLabs control-plane endpoints (`createBubblelabsWorkflowDefinition` etc.); those
+require the OpenEvolve API running and the endpoints implemented server-side. The button
+surfaces any backend error rather than faking a result.

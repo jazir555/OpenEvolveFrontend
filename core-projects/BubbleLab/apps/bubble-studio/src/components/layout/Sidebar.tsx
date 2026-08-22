@@ -15,6 +15,8 @@ import {
   Cog6ToothIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ServerIcon,
+  BeakerIcon,
 } from '@heroicons/react/24/outline';
 
 export function Sidebar() {
@@ -57,6 +59,16 @@ export function Sidebar() {
       name: 'Settings',
       href: '/settings',
       icon: Cog6ToothIcon,
+    },
+    {
+      name: 'OpenEvolve Evolution',
+      href: '/openevolve/evolution',
+      icon: BeakerIcon,
+    },
+    {
+      name: 'Backend Servers',
+      href: '/backends',
+      icon: ServerIcon,
     },
   ];
 

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BackendsRouteImport } from './routes/backends'
 import { Route as CredentialsRouteImport } from './routes/credentials'
 import { Route as EvolutionRouteImport } from './routes/evolution'
 import { Route as FlowsRouteImport } from './routes/flows'
@@ -32,6 +33,7 @@ import { Route as OeWorkflowsCreateRouteImport } from './routes/oe-workflows.cre
 import { Route as OnekeIndexRouteImport } from './routes/oneke/index'
 import { Route as OpenevolveAnalyticsRouteImport } from './routes/openevolve/analytics'
 import { Route as OpenevolveDecompositionRouteImport } from './routes/openevolve/decomposition'
+import { Route as OpenevolveEvolutionRouteImport } from './routes/openevolve/evolution'
 import { Route as OpenevolveGauntletsRouteImport } from './routes/openevolve/gauntlets'
 import { Route as OpenevolveKnowledgeRouteImport } from './routes/openevolve/knowledge'
 import { Route as OpenevolveMonitoringRouteImport } from './routes/openevolve/monitoring'
@@ -43,6 +45,11 @@ import { Route as OeWorkflowsWorkflowIdExecuteRouteImport } from './routes/oe-wo
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackendsRoute = BackendsRouteImport.update({
+  id: '/backends',
+  path: '/backends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CredentialsRoute = CredentialsRouteImport.update({
@@ -155,6 +162,11 @@ const OpenevolveDecompositionRoute = OpenevolveDecompositionRouteImport.update({
   path: '/openevolve/decomposition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OpenevolveEvolutionRoute = OpenevolveEvolutionRouteImport.update({
+  id: '/openevolve/evolution',
+  path: '/openevolve/evolution',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpenevolveGauntletsRoute = OpenevolveGauntletsRouteImport.update({
   id: '/openevolve/gauntlets',
   path: '/openevolve/gauntlets',
@@ -194,6 +206,7 @@ const OeWorkflowsWorkflowIdExecuteRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/backends': typeof BackendsRoute
   '/credentials': typeof CredentialsRoute
   '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
@@ -213,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/oe-workflows/create': typeof OeWorkflowsCreateRoute
   '/openevolve/analytics': typeof OpenevolveAnalyticsRoute
   '/openevolve/decomposition': typeof OpenevolveDecompositionRoute
+  '/openevolve/evolution': typeof OpenevolveEvolutionRoute
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
@@ -226,6 +240,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/backends': typeof BackendsRoute
   '/credentials': typeof CredentialsRoute
   '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
@@ -245,6 +260,7 @@ export interface FileRoutesByTo {
   '/oe-workflows/create': typeof OeWorkflowsCreateRoute
   '/openevolve/analytics': typeof OpenevolveAnalyticsRoute
   '/openevolve/decomposition': typeof OpenevolveDecompositionRoute
+  '/openevolve/evolution': typeof OpenevolveEvolutionRoute
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
@@ -259,6 +275,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/backends': typeof BackendsRoute
   '/credentials': typeof CredentialsRoute
   '/evolution': typeof EvolutionRouteWithChildren
   '/flows': typeof FlowsRoute
@@ -278,6 +295,7 @@ export interface FileRoutesById {
   '/oe-workflows/create': typeof OeWorkflowsCreateRoute
   '/openevolve/analytics': typeof OpenevolveAnalyticsRoute
   '/openevolve/decomposition': typeof OpenevolveDecompositionRoute
+  '/openevolve/evolution': typeof OpenevolveEvolutionRoute
   '/openevolve/gauntlets': typeof OpenevolveGauntletsRoute
   '/openevolve/knowledge': typeof OpenevolveKnowledgeRoute
   '/openevolve/monitoring': typeof OpenevolveMonitoringRoute
@@ -293,6 +311,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/backends'
     | '/credentials'
     | '/evolution'
     | '/flows'
@@ -312,6 +331,7 @@ export interface FileRouteTypes {
     | '/oe-workflows/create'
     | '/openevolve/analytics'
     | '/openevolve/decomposition'
+    | '/openevolve/evolution'
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
@@ -325,6 +345,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/backends'
     | '/credentials'
     | '/evolution'
     | '/flows'
@@ -344,6 +365,7 @@ export interface FileRouteTypes {
     | '/oe-workflows/create'
     | '/openevolve/analytics'
     | '/openevolve/decomposition'
+    | '/openevolve/evolution'
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
@@ -357,6 +379,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/backends'
     | '/credentials'
     | '/evolution'
     | '/flows'
@@ -376,6 +399,7 @@ export interface FileRouteTypes {
     | '/oe-workflows/create'
     | '/openevolve/analytics'
     | '/openevolve/decomposition'
+    | '/openevolve/evolution'
     | '/openevolve/gauntlets'
     | '/openevolve/knowledge'
     | '/openevolve/monitoring'
@@ -390,6 +414,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BackendsRoute: typeof BackendsRoute
   CredentialsRoute: typeof CredentialsRoute
   EvolutionRoute: typeof EvolutionRouteWithChildren
   FlowsRoute: typeof FlowsRoute
@@ -404,6 +429,7 @@ export interface RootRouteChildren {
   FlowFlowIdRoute: typeof FlowFlowIdRoute
   OpenevolveAnalyticsRoute: typeof OpenevolveAnalyticsRoute
   OpenevolveDecompositionRoute: typeof OpenevolveDecompositionRoute
+  OpenevolveEvolutionRoute: typeof OpenevolveEvolutionRoute
   OpenevolveGauntletsRoute: typeof OpenevolveGauntletsRoute
   OpenevolveKnowledgeRoute: typeof OpenevolveKnowledgeRoute
   OpenevolveMonitoringRoute: typeof OpenevolveMonitoringRoute
@@ -422,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backends': {
+      id: '/backends'
+      path: '/backends'
+      fullPath: '/backends'
+      preLoaderRoute: typeof BackendsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/credentials': {
@@ -578,6 +611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpenevolveDecompositionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/openevolve/evolution': {
+      id: '/openevolve/evolution'
+      path: '/openevolve/evolution'
+      fullPath: '/openevolve/evolution'
+      preLoaderRoute: typeof OpenevolveEvolutionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/openevolve/gauntlets': {
       id: '/openevolve/gauntlets'
       path: '/openevolve/gauntlets'
@@ -694,6 +734,7 @@ const OeWorkflowsRouteWithChildren = OeWorkflowsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BackendsRoute: BackendsRoute,
   CredentialsRoute: CredentialsRoute,
   EvolutionRoute: EvolutionRouteWithChildren,
   FlowsRoute: FlowsRoute,
@@ -708,6 +749,7 @@ const rootRouteChildren: RootRouteChildren = {
   FlowFlowIdRoute: FlowFlowIdRoute,
   OpenevolveAnalyticsRoute: OpenevolveAnalyticsRoute,
   OpenevolveDecompositionRoute: OpenevolveDecompositionRoute,
+  OpenevolveEvolutionRoute: OpenevolveEvolutionRoute,
   OpenevolveGauntletsRoute: OpenevolveGauntletsRoute,
   OpenevolveKnowledgeRoute: OpenevolveKnowledgeRoute,
   OpenevolveMonitoringRoute: OpenevolveMonitoringRoute,

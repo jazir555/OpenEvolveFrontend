@@ -15,6 +15,7 @@ import type {
   GketLlm,
   GketParser,
 } from '@/services/gketApi';
+import { BubbleConfigPanel } from '@/components/BubbleConfigPanel';
 
 export const Route = createFileRoute('/gket/')({
   component: GketPage,
@@ -492,6 +493,7 @@ function GketPage() {
           <TabButton label="Generate Models" />
           <TabButton label="Extract" />
           <TabButton label="Export" />
+          <TabButton label="Bubble Config" />
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
@@ -505,6 +507,12 @@ function GketPage() {
           </Tab.Panel>
           <Tab.Panel>
             <ExportTab resultId={resultId} />
+          </Tab.Panel>
+          <Tab.Panel>
+            <BubbleConfigPanel
+              bubbleKey="gket"
+              hint="Configure the GKET extraction bubble (parser, LLM, case classifier) before running."
+            />
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

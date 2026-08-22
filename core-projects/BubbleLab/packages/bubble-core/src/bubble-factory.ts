@@ -82,6 +82,22 @@ export class BubbleFactory {
     }
   }
 
+  private static _instance: BubbleFactory | null = null;
+  private static _ready: Promise<void> | null = null;
+
+  /**
+   * Returns a singleton BubbleFactory with all default bubbles registered.
+   * Awaits registration so callers can immediately `createBubble(...).action()`.
+   */
+  static async getInstance(): Promise<BubbleFactory> {
+    if (!BubbleFactory._instance) {
+      BubbleFactory._instance = new BubbleFactory(false);
+      BubbleFactory._ready = BubbleFactory._instance.registerDefaults();
+    }
+    await BubbleFactory._ready;
+    return BubbleFactory._instance;
+  }
+
   /**
    * Register a bubble class with the factory
    */
@@ -253,6 +269,17 @@ export class BubbleFactory {
       'event-handler-workflow',
       'multi-step-approval-workflow',
       'webhook-repeater-workflow',
+      'openevolve-oneke',
+      'openevolve-gket',
+      'openevolve-evolution-trigger',
+      'openevolve-evolution-application',
+      'openevolve-evolution-validation',
+      'openevolve-metrics-collector',
+      'openevolve-knowledge-retrieval',
+      'openevolve-knowledge-capture',
+      'openevolve-evolution-pipeline',
+      'openevolve-continuous-evolution',
+      'openevolve-adaptive-evolution',
     ] as BubbleName[];
   }
 
@@ -577,6 +604,39 @@ export class BubbleFactory {
     )) ?? {};
     const { OpenEvolveZ3ProverBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-z3prover-bubble.js'
+    )) ?? {};
+    const { OpenEvolveOneKEBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-oneke-bubble.js'
+    )) ?? {};
+    const { OpenEvolveGKETBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-gket-bubble.js'
+    )) ?? {};
+    const { OpenEvolveEvolutionTriggerBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-evolution-trigger-bubble.js'
+    )) ?? {};
+    const { OpenEvolveEvolutionApplicationBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-evolution-application-bubble.js'
+    )) ?? {};
+    const { OpenEvolveEvolutionValidationBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-evolution-validation-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMetricsCollectorBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-metrics-collector-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeRetrievalBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-retrieval-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeCaptureBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-capture-bubble.js'
+    )) ?? {};
+    const { OpenEvolveEvolutionPipelineBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-evolution-pipeline-bubble.js'
+    )) ?? {};
+    const { OpenEvolveContinuousEvolutionBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-continuous-evolution-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveEvolutionBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-adaptive-evolution-bubble.js'
     )) ?? {};
     const { OpenEvolveGauntletTestingBubble } = (await this.safeImport(
       './bubbles/service-bubble/openevolve-gauntlet-testing-bubble.js'
@@ -1106,6 +1166,50 @@ export class BubbleFactory {
     this.register(
       'openevolve-gauntlet-testing' as BubbleName,
       OpenEvolveGauntletTestingBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-oneke' as BubbleName,
+      OpenEvolveOneKEBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gket' as BubbleName,
+      OpenEvolveGKETBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-evolution-trigger' as BubbleName,
+      OpenEvolveEvolutionTriggerBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-evolution-application' as BubbleName,
+      OpenEvolveEvolutionApplicationBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-evolution-validation' as BubbleName,
+      OpenEvolveEvolutionValidationBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-metrics-collector' as BubbleName,
+      OpenEvolveMetricsCollectorBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-retrieval' as BubbleName,
+      OpenEvolveKnowledgeRetrievalBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-capture' as BubbleName,
+      OpenEvolveKnowledgeCaptureBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-evolution-pipeline' as BubbleName,
+      OpenEvolveEvolutionPipelineBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-continuous-evolution' as BubbleName,
+      OpenEvolveContinuousEvolutionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-adaptive-evolution' as BubbleName,
+      OpenEvolveAdaptiveEvolutionBubble as BubbleClassWithMetadata
     );
 
     // Register OpenEvolve tool bubbles

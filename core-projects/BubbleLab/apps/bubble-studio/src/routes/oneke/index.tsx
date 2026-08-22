@@ -14,6 +14,7 @@ import type {
   OneKEExtractPayload,
   OneKEResult,
 } from '@/services/onekeApi';
+import { BubbleConfigPanel } from '@/components/BubbleConfigPanel';
 
 export const Route = createFileRoute('/oneke/')({
   component: OneKEPage,
@@ -263,6 +264,7 @@ function OneKEPage() {
         <Tab.List className="mb-4 flex gap-2 rounded-lg bg-gray-100 p-2">
           <TabButton label="Extract" />
           <TabButton label="Retrieve Result" />
+          <TabButton label="Bubble Config" />
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
@@ -270,6 +272,12 @@ function OneKEPage() {
           </Tab.Panel>
           <Tab.Panel>
             <RetrieveTab />
+          </Tab.Panel>
+          <Tab.Panel>
+            <BubbleConfigPanel
+              bubbleKey="oneke"
+              hint="Configure the OneKE knowledge-extraction bubble (task defaults, model, schema constraints) before running."
+            />
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

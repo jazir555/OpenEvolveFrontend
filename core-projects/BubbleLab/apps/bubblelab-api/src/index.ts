@@ -40,6 +40,7 @@ import aiRoutes from './routes/ai.js';
 import templateSubmissionRoutes from './routes/template-submission.js';
 import openEvolveRoutes from './routes/openevolve.js';
 import browserbaseRoutes from './routes/browserbase.js';
+import backendsApp from './services/backends.js';
 import { getBubbleFactory } from './services/bubble-factory-instance.js';
 
 const app = new OpenAPIHono({
@@ -90,6 +91,10 @@ app.route('/join-waitlist', joinWaitlistRoutes);
 app.route('/ai', aiRoutes);
 app.route('/template-submission', templateSubmissionRoutes);
 app.route('/browserbase', browserbaseRoutes);
+// Backend-launch control plane. Registered BEFORE the OpenEvolve catch-all
+// (`app.route('/', openEvolveRoutes)`) so `/api/backends/*` is not proxied
+// upstream to the OpenEvolve backend.
+app.route('/api/backends', backendsApp);
 app.route('/', openEvolveRoutes);
 
 // OpenAPI documentation endpoint

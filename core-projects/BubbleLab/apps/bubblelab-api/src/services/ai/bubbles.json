@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "generatedAt": "2026-02-18T06:16:24.044Z",
-  "totalCount": 98,
+  "totalCount": 109,
   "bubbles": [
     {
       "name": "hello-world",
@@ -1192,6 +1192,127 @@
       "inputSchema": "{\n  webhookUrl: string // Target webhook URL to deliver payload to,\n  method: \"POST\" | \"PUT\" | \"PATCH\" // HTTP method for webhook delivery,\n  payload: unknown // Webhook payload (string or JSON object),\n  headers: Record<string, string> | undefined // Additional HTTP headers to include,\n  retryStrategy: { maxAttempts: number, initialDelay: number, maxDelay: number, backoffMultiplier: number, jitter: boolean } | undefined // Retry strategy configuration,\n  circuitBreaker: { enabled: boolean, failureThreshold: number, successThreshold: number, timeout: number } | undefined // Circuit breaker configuration,\n  timeout: number // Request timeout in milliseconds,\n  webhookId: string | undefined // Unique identifier for this webhook delivery,\n  credentials: Record<string, string> | undefined // Credentials for webhook authentication,\n  authType: \"none\" | \"bearer\" | \"basic\" | \"api-key\" | \"api-key-header\" | \"custom\" // Authentication type,\n  authHeader: string | undefined // Custom header name when authType is \"custom\"\n}",
       "outputSchema": "{\n  success: boolean,\n  error: string,\n  deliveryAttempts: { attemptNumber: number, timestamp: unknown, success: boolean, statusCode: number | undefined, responseTime: number, error: string | undefined }[] // Array of delivery attempts,\n  deliveryStatus: { delivered: boolean, finalStatusCode: number | undefined, totalAttempts: number, totalDuration: number } | undefined,\n  circuitBreakerState: { isOpen: boolean, failureCount: number, lastFailureTime: unknown | undefined } | undefined,\n  webhookId: string | undefined\n}",
       "usageExample": "// Example usage of webhook-repeater-workflow bubble\nconst webhookRepeaterWorkflow = new WebhookRepeaterWorkflow({\n  webhookUrl: \"example string\", // Target webhook URL to deliver payload to,\n  method: \"POST\" // options: \"POST\", \"PUT\", \"PATCH\", // HTTP method for webhook delivery,\n  payload: \"example string\", // Webhook payload (string or JSON object),\n  headers: { \"example_key\": \"example string\" }, // Additional HTTP headers to include,\n  retryStrategy: { maxAttempts: 3 // default, initialDelay: 1000 // default, maxDelay: 30000 // default, backoffMultiplier: 2 // default, jitter: true // default }, // Retry strategy configuration,\n  circuitBreaker: { enabled: true // default, failureThreshold: 5 // default, successThreshold: 2 // default, timeout: 60000 // default }, // Circuit breaker configuration,\n  timeout: 30000 // default, // Request timeout in milliseconds,\n  webhookId: \"example string\", // Unique identifier for this webhook delivery,\n  authType: \"none\" // options: \"none\", \"bearer\", \"basic\", \"api-key\", \"api-key-header\", \"custom\", // Authentication type,\n  authHeader: \"example string\", // Custom header name when authType is \"custom\",\n});\n\nconst result = await webhookRepeaterWorkflow.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   error: string,\n//   deliveryAttempts: { attemptNumber: number, timestamp: unknown, success: boolean, statusCode: number | undefined, responseTime: number, error: string | undefined }[] // Array of delivery attempts,\n//   deliveryStatus: { delivered: boolean, finalStatusCode: number | undefined, totalAttempts: number, totalDuration: number } | undefined,\n//   circuitBreakerState: { isOpen: boolean, failureCount: number, lastFailureTime: unknown | undefined } | undefined,\n//   webhookId: string | undefined\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-oneke",
+      "alias": "openevolve-oneke",
+      "type": "service",
+      "shortDescription": "OpenEvolve OneKE knowledge extraction (schema-based IE)",
+      "useCase": "Chainable stage for OneKE schema-based information extraction (NER, RE, EE, Triple) over text or file references",
+      "inputSchema": "{\n  operation: \"health_check\" | \"extract\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  task: \"NER\" | \"RE\" | \"EE\" | \"Triple\" | \"Base\",\n  mode: \"quick\" | \"agent\" | \"customized\",\n  text: string | undefined,\n  file_ref: string | undefined,\n  instruction: string | undefined,\n  constraint: string | undefined,\n  model_config: Record<string, unknown> | undefined,\n  api_key: string | undefined,\n  model_base_url: string | undefined,\n  model_name: string | undefined,\n  construct: Record<string, unknown> | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-oneke bubble\nconst openevolveOneke = new OpenEvolveOneKEBubble({\n  operation: \"extract\" // options: \"health_check\", \"extract\",\n  text: \"example string\",\n  task: \"NER\" // default, options: \"NER\", \"RE\", \"EE\", \"Triple\", \"Base\",\n  mode: \"quick\" // default, options: \"quick\", \"agent\", \"customized\",\n});\n\nconst result = await openevolveOneke.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-gket",
+      "alias": "openevolve-gket",
+      "type": "service",
+      "shortDescription": "OpenEvolve Generic Knowledge Extraction Tool (GKET)",
+      "useCase": "Chainable stage for generic, model-schema-driven knowledge extraction from unstructured text or files",
+      "inputSchema": "{\n  operation: \"health_check\" | \"extract\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  case: number,\n  llm: string,\n  text_or_file_ref: string,\n  instruction: string | undefined,\n  use_case: string,\n  model_schema: Record<string, unknown> | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-gket bubble\nconst openevolveGket = new OpenEvolveGKETBubble({\n  operation: \"extract\" // options: \"health_check\", \"extract\",\n  text_or_file_ref: \"example string\",\n  llm: \"openai\" // default,\n  model_schema: {},\n});\n\nconst result = await openevolveGket.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-evolution-trigger",
+      "alias": "openevolve-evolution-trigger",
+      "type": "service",
+      "shortDescription": "OpenEvolve evolution trigger (create + run workflow)",
+      "useCase": "Creates and launches an OpenEvolve evolution workflow run from a problem statement",
+      "inputSchema": "{\n  operation: \"create_and_run\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  problem_statement: string,\n  workflow_type: string,\n  description: string | undefined,\n  iterations: number,\n  population_size: number,\n  teams: string[] | undefined,\n  gauntlets: string[] | undefined,\n  config: Record<string, unknown> | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-evolution-trigger bubble\nconst openevolveEvolutionTrigger = new OpenEvolveEvolutionTriggerBubble({\n  operation: \"create_and_run\" // options: \"create_and_run\", \"health_check\",\n  problem_statement: \"example string\",\n  iterations: 100 // default,\n  population_size: 50 // default,\n});\n\nconst result = await openevolveEvolutionTrigger.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-evolution-application",
+      "alias": "openevolve-evolution-application",
+      "type": "service",
+      "shortDescription": "OpenEvolve evolution application (apply evolved code)",
+      "useCase": "Applies or deploys evolved code artifacts to a target system or path after validation",
+      "inputSchema": "{\n  operation: \"apply\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  workflow_id: string | undefined,\n  evolved_code: string,\n  language: string,\n  target_system: string | undefined,\n  target_path: string | undefined,\n  deployment_config: Record<string, unknown> | undefined,\n  auto_deploy: boolean\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-evolution-application bubble\nconst openevolveEvolutionApplication = new OpenEvolveEvolutionApplicationBubble({\n  operation: \"apply\" // options: \"apply\", \"health_check\",\n  evolved_code: \"example string\",\n  target_path: \"example string\",\n  auto_deploy: true // default,\n});\n\nconst result = await openevolveEvolutionApplication.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-evolution-validation",
+      "alias": "openevolve-evolution-validation",
+      "type": "service",
+      "shortDescription": "OpenEvolve evolution validation (Z3 + LeanAide)",
+      "useCase": "Validates evolved candidates by composing Z3 constraint solving and LeanAide proof generation into a single verdict",
+      "inputSchema": "{\n  operation: \"validate\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  code: string,\n  constraints: string[] | undefined,\n  invariants: string[] | undefined,\n  theorem: string | undefined,\n  run_z3: boolean,\n  run_leanaide: boolean,\n  leanaide_model: string\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-evolution-validation bubble\nconst openevolveEvolutionValidation = new OpenEvolveEvolutionValidationBubble({\n  operation: \"validate\" // options: \"validate\", \"health_check\",\n  code: \"example string\",\n  run_z3: true // default,\n  run_leanaide: true // default,\n});\n\nconst result = await openevolveEvolutionValidation.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-metrics-collector",
+      "alias": "openevolve-metrics-collector",
+      "type": "service",
+      "shortDescription": "OpenEvolve metrics collector & aggregator",
+      "useCase": "Collects and aggregates evolution run metrics (sum, avg, min, max, count) for reporting and promotion gating",
+      "inputSchema": "{\n  operation: \"collect\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  metrics: Array<{ name: string, value: number | string | boolean }> | undefined,\n  workflow_id: string | undefined,\n  fetch_analytics: boolean,\n  aggregation: \"sum\" | \"avg\" | \"min\" | \"max\" | \"count\"\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-metrics-collector bubble\nconst openevolveMetricsCollector = new OpenEvolveMetricsCollectorBubble({\n  operation: \"collect\" // options: \"collect\", \"health_check\",\n  metrics: [{ name: \"score\", value: 0.87 }],\n  aggregation: \"avg\" // default, options: \"sum\", \"avg\", \"min\", \"max\", \"count\",\n});\n\nconst result = await openevolveMetricsCollector.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-retrieval",
+      "alias": "openevolve-knowledge-retrieval",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge retrieval",
+      "useCase": "Retrieves prior evolution artifacts and learnings to seed or steer a new evolution run",
+      "inputSchema": "{\n  operation: \"retrieve\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  query: string | undefined,\n  limit: number,\n  artifact_type: string | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-retrieval bubble\nconst openevolveKnowledgeRetrieval = new OpenEvolveKnowledgeRetrievalBubble({\n  operation: \"retrieve\" // options: \"retrieve\", \"health_check\",\n  query: \"example string\",\n  limit: 10 // default,\n});\n\nconst result = await openevolveKnowledgeRetrieval.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-knowledge-capture",
+      "alias": "openevolve-knowledge-capture",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge capture",
+      "useCase": "Captures results and learnings from an evolution run back into the knowledge store for future reuse",
+      "inputSchema": "{\n  operation: \"capture\" | \"health_check\",\n  base_url: string,\n  timeout: number,\n  headers: Record<string, string> | undefined,\n  auth_token: string | undefined,\n  auth_header: string,\n  content: string,\n  artifact_type: string,\n  source_workflow_id: string | undefined,\n  domain: string | undefined,\n  problem_type: string | undefined,\n  effectiveness_score: number,\n  related_artifacts: string[] | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "// Example usage of openevolve-knowledge-capture bubble\nconst openevolveKnowledgeCapture = new OpenEvolveKnowledgeCaptureBubble({\n  operation: \"capture\" // options: \"capture\", \"health_check\",\n  content: \"example string\",\n  artifact_type: \"learning\" // default,\n  effectiveness_score: 0 // default,\n});\n\nconst result = await openevolveKnowledgeCapture.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-evolution-pipeline",
+      "alias": "openevolve-evolution-pipeline",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve evolution pipeline (trigger -> validate -> apply)",
+      "useCase": "End-to-end evolution workflow that triggers a run, validates the candidate, and optionally deploys the evolved code",
+      "inputSchema": "{\n  problem_statement: string,\n  iterations: number,\n  population_size: number,\n  workflow_type: string,\n  evolved_code: string | undefined,\n  target_system: string | undefined,\n  target_path: string | undefined,\n  base_url: string,\n  auth_token: string | undefined,\n  auto_deploy: boolean\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: {\n    total: number\n  }\n}",
+      "usageExample": "// Example usage of openevolve-evolution-pipeline bubble\nconst openevolveEvolutionPipeline = new OpenEvolveEvolutionPipelineBubble({\n  problem_statement: \"example string\",\n  iterations: 100 // default,\n  population_size: 50 // default,\n  auto_deploy: true // default,\n});\n\nconst result = await openevolveEvolutionPipeline.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: {\n//     total: number\n//   }\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-continuous-evolution",
+      "alias": "openevolve-continuous-evolution",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve continuous evolution (trigger -> validate -> metrics)",
+      "useCase": "Continuously evolves a target, validating each round and collecting aggregated metrics for monitoring",
+      "inputSchema": "{\n  problem_statement: string,\n  iterations: number,\n  population_size: number,\n  workflow_type: string,\n  metrics: Array<{ name: string, value: number | string | boolean }> | undefined,\n  base_url: string,\n  auth_token: string | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: {\n    total: number\n  }\n}",
+      "usageExample": "// Example usage of openevolve-continuous-evolution bubble\nconst openevolveContinuousEvolution = new OpenEvolveContinuousEvolutionBubble({\n  problem_statement: \"example string\",\n  iterations: 50 // default,\n  population_size: 30 // default,\n  metrics: [{ name: \"score\", value: 0.87 }],\n});\n\nconst result = await openevolveContinuousEvolution.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: {\n//     total: number\n//   }\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "openevolve-adaptive-evolution",
+      "alias": "openevolve-adaptive-evolution",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve adaptive evolution (retrieve -> trigger -> validate -> capture)",
+      "useCase": "Knowledge-aware evolution workflow that retrieves prior learnings, evolves, validates, and captures new knowledge",
+      "inputSchema": "{\n  problem_statement: string,\n  learn_from_history: boolean,\n  iterations: number,\n  population_size: number,\n  workflow_type: string,\n  base_url: string,\n  auth_token: string | undefined\n}",
+      "outputSchema": "{\n  success: boolean,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: {\n    total: number\n  }\n}",
+      "usageExample": "// Example usage of openevolve-adaptive-evolution bubble\nconst openevolveAdaptiveEvolution = new OpenEvolveAdaptiveEvolutionBubble({\n  problem_statement: \"example string\",\n  learn_from_history: true // default,\n  iterations: 100 // default,\n  population_size: 50 // default,\n});\n\nconst result = await openevolveAdaptiveEvolution.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`${metadata.name} failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: {\n//     total: number\n//   }\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
       "requiredCredentials": []
     }
   ]

@@ -73,6 +73,17 @@ export { OpenEvolveCrewAIBubble } from './bubbles/service-bubble/openevolve-crew
 export { OpenEvolveLeanAideBubble } from './bubbles/service-bubble/openevolve-leanaide-bubble.js';
 export { OpenEvolveZ3ProverBubble } from './bubbles/service-bubble/openevolve-z3prover-bubble.js';
 export { OpenEvolveGauntletTestingBubble } from './bubbles/service-bubble/openevolve-gauntlet-testing-bubble.js';
+export { OpenEvolveOneKEBubble } from './bubbles/service-bubble/openevolve-oneke-bubble.js';
+export { OpenEvolveGKETBubble } from './bubbles/service-bubble/openevolve-gket-bubble.js';
+export { OpenEvolveEvolutionTriggerBubble } from './bubbles/service-bubble/openevolve-evolution-trigger-bubble.js';
+export { OpenEvolveEvolutionApplicationBubble } from './bubbles/service-bubble/openevolve-evolution-application-bubble.js';
+export { OpenEvolveEvolutionValidationBubble } from './bubbles/service-bubble/openevolve-evolution-validation-bubble.js';
+export { OpenEvolveMetricsCollectorBubble } from './bubbles/service-bubble/openevolve-metrics-collector-bubble.js';
+export { OpenEvolveKnowledgeRetrievalBubble } from './bubbles/service-bubble/openevolve-knowledge-retrieval-bubble.js';
+export { OpenEvolveKnowledgeCaptureBubble } from './bubbles/service-bubble/openevolve-knowledge-capture-bubble.js';
+export { OpenEvolveEvolutionPipelineBubble } from './bubbles/workflow-bubble/openevolve-evolution-pipeline-bubble.js';
+export { OpenEvolveContinuousEvolutionBubble } from './bubbles/workflow-bubble/openevolve-continuous-evolution-bubble.js';
+export { OpenEvolveAdaptiveEvolutionBubble } from './bubbles/workflow-bubble/openevolve-adaptive-evolution-bubble.js';
 export { TwitterTool } from './bubbles/tool-bubble/twitter-tool.js';
 export { TikTokTool } from './bubbles/tool-bubble/tiktok-tool.js';
 export { GoogleMapsTool } from './bubbles/tool-bubble/google-maps-tool.js';
