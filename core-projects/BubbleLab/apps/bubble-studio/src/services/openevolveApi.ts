@@ -384,6 +384,119 @@ const normalizeExecutionList = (raw: RawExecutionListResponse) => ({
   total: raw.total ?? 0,
 });
 
+// ==================== Workflow Settings (Sovereign-Grade Decomposition) ====================
+
+export interface WorkflowResourceLimits {
+  total_tokens: number;
+  total_time_seconds: number;
+  total_steps: number;
+  max_parallel: number;
+  tokens_per_sub_problem: number;
+  time_per_sub_problem: number;
+  steps_per_sub_problem: number;
+  allow_overshoot: boolean;
+}
+
+export interface WorkflowRedFlagRules {
+  max_tokens: number;
+  max_characters: number;
+  blocked_patterns: string[];
+  min_confidence: number;
+  require_schema_match: boolean;
+}
+
+export interface WorkflowWeb3 {
+  enabled: boolean;
+  project_path: string;
+  run_fuzzing: boolean;
+  slither_timeout_seconds: number;
+  forge_timeout_seconds: number;
+}
+
+export interface WorkflowFormalVerification {
+  z3_enabled: boolean;
+  leanaide_enabled: boolean;
+  formal_verification_enabled: boolean;
+  formal_verification_mode: string;
+}
+
+export interface WorkflowSettings {
+  mdap_enabled: boolean;
+  mdap_config: Record<string, unknown>;
+  maker_enabled: boolean;
+  maker_config: Record<string, unknown>;
+  max_refinement_loops: number;
+  auto_approval_enabled: boolean;
+  auto_approval_criteria: Record<string, unknown>;
+  parallel_processing_enabled: boolean;
+  max_parallel_sub_problems: number;
+  resource_limits: WorkflowResourceLimits;
+  learning_enabled: boolean;
+  learning_config: Record<string, unknown>;
+  distributed: boolean;
+  distributed_backend: string;
+  entanglement_strict_mode: boolean;
+  knowledge_engine_enabled: boolean;
+  knowledge_engine_path: string;
+  red_flag_rules: WorkflowRedFlagRules;
+  web3: WorkflowWeb3;
+  formal_verification: WorkflowFormalVerification;
+  circular_dependency_guard: boolean;
+}
+
+export type WorkflowSettingsInput = Partial<WorkflowSettings>;
+
+/** Sensible defaults so the form is never partially-undefined after a load. */
+export const defaultWorkflowSettings: WorkflowSettings = {
+  mdap_enabled: false,
+  mdap_config: {},
+  maker_enabled: false,
+  maker_config: {},
+  max_refinement_loops: 5,
+  auto_approval_enabled: false,
+  auto_approval_criteria: {},
+  parallel_processing_enabled: false,
+  max_parallel_sub_problems: 4,
+  resource_limits: {
+    total_tokens: 1_000_000,
+    total_time_seconds: 3600,
+    total_steps: 1000,
+    max_parallel: 4,
+    tokens_per_sub_problem: 100_000,
+    time_per_sub_problem: 600,
+    steps_per_sub_problem: 100,
+    allow_overshoot: false,
+  },
+  learning_enabled: false,
+  learning_config: {},
+  distributed: false,
+  distributed_backend: 'local',
+  entanglement_strict_mode: false,
+  knowledge_engine_enabled: false,
+  knowledge_engine_path: '',
+  red_flag_rules: {
+    max_tokens: 200_000,
+    max_characters: 1_000_000,
+    blocked_patterns: [],
+    min_confidence: 0.5,
+    require_schema_match: false,
+  },
+  web3: {
+    enabled: false,
+    project_path: '',
+    run_fuzzing: false,
+    slither_timeout_seconds: 120,
+    forge_timeout_seconds: 300,
+  },
+  formal_verification: {
+    z3_enabled: false,
+    leanaide_enabled: false,
+    formal_verification_enabled: false,
+    formal_verification_mode: 'off',
+  },
+  circular_dependency_guard: true,
+};
+
 // ==================== API Client ====================
 
 /**
@@ -418,18 +531,28 @@ export const openevolveApi = {
   // ==================== Workflows ====================
 
   /**
-   * Create a new workflow
+   * Create a new workflow.
+   *
+   * The backend `POST /workflows` accepts an optional `settings` block
+   * (the Sovereign-Grade WorkflowSettings). Defaults to `{}`.
    */
-  createWorkflow: async (workflow: WorkflowCreate): Promise<WorkflowResponse> => {
+  createWorkflow: async (
+    workflow: WorkflowCreate,
+    settings: WorkflowSettingsInput = {}
+  ): Promise<WorkflowResponse> => {
     logger.debug({
       msg: 'Creating workflow',
       component: 'openevolveApi',
       workflow_type: workflow.workflow_type,
       name: workflow.name,
+      has_settings: Object.keys(settings).length > 0,
     });
 
     return normalizeWorkflow(
-      await openevolveApiClient.post<RawWorkflowResponse>('/api/workflows', workflow)
+      await openevolveApiClient.post<RawWorkflowResponse>('/api/workflows', {
+        ...workflow,
+        settings,
+      })
     );
   },
 
@@ -1148,6 +1271,65 @@ export const openevolveApi = {
     return openevolveApiClient.put<{ message: string; execution_order: string[] }>(
       `/api/workflows/${encodeURIComponent(workflowId)}/decomposition-plan`,
       payload
+    );
+  },
+
+  // ============ Workflow Settings (Sovereign-Grade Decomposition) ============
+
+  /**
+   * Get the full Sovereign-Grade workflow settings
+   * (`GET /workflows/{workflow_id}/settings`).
+   */
+  getWorkflowSettings: async (workflowId: string): Promise<WorkflowSettings> => {
+    logger.debug({
+      msg: 'Getting workflow settings',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<WorkflowSettings>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/settings`
+    );
+  },
+
+  /**
+   * Update the Sovereign-Grade workflow settings
+   * (`PUT /workflows/{workflow_id}/settings`).
+   */
+  updateWorkflowSettings: async (
+    workflowId: string,
+    settings: WorkflowSettingsInput
+  ): Promise<WorkflowSettings> => {
+    logger.info({
+      msg: 'Updating workflow settings',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.put<WorkflowSettings>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/settings`,
+      settings
+    );
+  },
+
+  /**
+   * Run a workflow with an optional `config` (the settings block)
+   * (`POST /workflows/{workflow_id}/run`). Defaults `config` to `{}`.
+   */
+  runWorkflow: async (
+    workflowId: string,
+    config: WorkflowSettingsInput = {}
+  ): Promise<Record<string, unknown>> => {
+    logger.info({
+      msg: 'Running workflow',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+      has_config: Object.keys(config).length > 0,
+    });
+
+    return openevolveApiClient.post<Record<string, unknown>>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/run`,
+      { config }
     );
   },
 

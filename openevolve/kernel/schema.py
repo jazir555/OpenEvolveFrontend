@@ -921,6 +921,17 @@ class WorkflowState:
     maker_enabled: bool = False
     maker_config: Dict[str, Any] = field(default_factory=dict)
 
+    # Distributed execution
+    distributed: bool = False
+    distributed_backend: str = ""
+
+    # Circular dependency guard (informational only; the engine hard-codes the guard ON)
+    circular_dependency_guard: bool = True
+
+    # Knowledge engine toggle (new): gate enterprise knowledge extraction
+    knowledge_engine_enabled: bool = True
+    knowledge_engine_path: str = ""
+
     # Configs
     openevolve_parameters: Dict[str, Any] = field(default_factory=dict)
 

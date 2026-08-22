@@ -4514,6 +4514,25 @@ All Phase 4 and Phase 5 features above are backed by offline pytest suites (no A
 
 Every claim in §6.2/§6.3 is supported only by the passing tests above. Known limitations: `run_sovereign_workflow` (the top-level orchestrator) is backend logic only and is not yet driven end-to-end in tests because it depends on the live **BubbleLab (TypeScript)** UI runtime for rendering; its stage functions are individually verified. The UI is implemented in **BubbleLab (TypeScript)** — there is no Python UI; the Python modules here (`openevolve_orchestrator.py`, `ui_components.py`, `workflow_engine.py`) are backend orchestration and data/state providers that BubbleLab consumes (they return serializable structures, not rendered widgets). Distributed processing is implemented as an opt-in `SubProblemExecutor` backend, not auto-wired into the orchestrator. External-knowledge integration reuses `knowledge_engine` with a local JSONL fallback when it is unavailable.
 
+## 6.4 Configurable systems & settings + engine fixes (2026-08-21)
+
+All decomposition-workflow systems/settings are now configurable end-to-end from BubbleLab:
+
+- **WorkflowSettings contract** — MDAP, MAKER, max refinement loops, auto-approval (+criteria),
+  parallel processing + `max_parallel_sub_problems`, `resource_limits` (8 fields), learning store,
+  distributed (+backend), entanglement strict, knowledge engine (enabled + path), red-flag rules,
+  web3 ingestion, formal verification (z3/LeanAide), circular-dependency guard.
+- **REST** — `GET/PUT /workflows/{id}/settings` added; `WorkflowCreateRequest` and `POST /workflows/run`
+  accept the settings; `api_server.py` applies them to `WorkflowState`/`DecompositionPlan`.
+- **BubbleLab** — `WorkflowSettingsPanel` ("Sovereign Settings" tab in the Decomposition page) +
+  `openevolveApi`/`use-workflow-settings` hooks. `tsc --noEmit` clean.
+- **Engine now consumes the settings** (previously stored-only): circular-dependency guard is toggleable
+  (was hard-coded ON); `resource_limits` → `ResourceManager` via `create_resource_limits_from_config`;
+  `knowledge_engine_path` honored by `OpenEvolveKnowledgeEngine`. 17 engine-core tests pass.
+- **Residual**: `ResourceLimits`/`ResourceManager` does not model `total_steps`, `max_parallel`,
+  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot` — these
+  sub-fields persist but are not enforced.
+
 ## 7.0 Integration with CrewAI Framework
 
 ### 7.1 Overview of Integration

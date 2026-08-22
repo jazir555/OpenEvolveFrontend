@@ -245,7 +245,7 @@ from openevolve_integration import run_unified_evolution, create_comprehensive_o
 from parallel_processing import ParallelDecompositionProcessor
 from distributed_processing import DistributedProcessor
 from monitoring_system import add_metric, trace_operation, MetricType
-from resource_manager import ResourceManager
+from resource_manager import ResourceManager, create_resource_limits_from_config
 from mdap_engine import MDAPConfig, MDAPTask, MDAPStep, MDAPOrchestrator, RedFlagRules
 from maker_engine import MakerConfig, MakerEngine, MakerStep, FileCheckpointStore
 from utils.entanglement_utils import (
@@ -1855,7 +1855,15 @@ async def run_sovereign_workflow(
     except Exception:
         pass
     workflow_state.status = "running"
-    resource_manager = ResourceManager()
+    # Build resource limits from the decomposition-plan configuration if present.
+    # When resource_limits is empty/None the behavior is unchanged (no limits).
+    _plan = workflow_state.decomposition_plan
+    _limits_cfg = getattr(_plan, "resource_limits", None) if _plan is not None else None
+    resource_limits = (
+        create_resource_limits_from_config(_limits_cfg)
+        if _limits_cfg else None
+    )
+    resource_manager = ResourceManager(limits=resource_limits)
     workflow_started_at = time.time()
 
     # Task 3: resource tracking + analytics for this workflow run.
@@ -1924,6 +1932,16 @@ async def run_sovereign_workflow(
             final_red_team_gauntlet_name=final_red_gauntlet.name,
             final_gold_team_gauntlet_name=final_gold_gauntlet.name
         )
+        # Propagate any decomposition-plan-level settings pushed onto the state
+        # (e.g. via the REST API WorkflowSettings contract) onto the freshly
+        # built plan so the engine consumes them.
+        _pending_plan = (workflow_state.openevolve_parameters or {}).get("pending_plan_settings") or {}
+        for _pk, _pv in _pending_plan.items():
+            if _pv is not None:
+                try:
+                    setattr(workflow_state.decomposition_plan, _pk, _pv)
+                except Exception:
+                    pass
         if isinstance(workflow_state.decomposition_plan.metadata, dict):
             web3_ctx = analyzed_context.get("web3", {})
             if isinstance(web3_ctx, dict):
@@ -2074,10 +2092,25 @@ async def run_sovereign_workflow(
 
         # Check for initial unsolvable state (e.g., circular dependencies or no starting points).
         if not queue and len(workflow_state.solved_sub_problem_ids) < len(workflow_state.decomposition_plan.sub_problems):
-            st.error("Circular dependency detected or no solvable sub-problems initially. Workflow failed.")
-            workflow_state.status = "failed"
-            _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
-            return
+            # The circular-dependency guard is toggleable via the workflow settings
+            # (stored on workflow_state.openevolve_parameters). Default is ON to
+            # preserve today's behavior. When disabled, we log and proceed instead
+            # of failing the workflow.
+            circular_guard_enabled = True
+            if isinstance(workflow_state.openevolve_parameters, dict):
+                circular_guard_enabled = workflow_state.openevolve_parameters.get("circular_dependency_guard", True)
+            if circular_guard_enabled:
+                st.error("Circular dependency detected or no solvable sub-problems initially. Workflow failed.")
+                workflow_state.status = "failed"
+                _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed", analytics=analytics, tracker=tracker)
+                return
+            else:
+                cycles = detect_circular_dependencies(workflow_state.decomposition_plan.sub_problems)
+                logger.warning(
+                    "Circular-dependency guard is DISABLED (circular_dependency_guard=False). "
+                    "Proceeding despite empty resolution queue%s.",
+                    f" with detected cycles: {cycles}" if cycles else "",
+                )
 
         # Process sub-problems in topological order (i.e., only after all their dependencies are met).
         processed_this_iteration = set() # Initialize set to track sub-problems processed in this iteration
@@ -2090,13 +2123,21 @@ async def run_sovereign_workflow(
             workflow_state.distributed
             and os.getenv("OPENEVEOLVE_ENABLE_DISTRIBUTED_GENERATION", "0") == "1"
         )
+        # Honor the configured parallel sub-problem limit when set, otherwise fall
+        # back to the existing parallel_evaluations value.
+        _max_workers = workflow_state.parallel_evaluations
+        _plan = workflow_state.decomposition_plan
+        if getattr(_plan, "parallel_processing_enabled", False):
+            _cfg_max_parallel = getattr(_plan, "max_parallel_sub_problems", None)
+            if _cfg_max_parallel and _cfg_max_parallel > 0:
+                _max_workers = _cfg_max_parallel
         parallel_processor = (
-            ParallelDecompositionProcessor(workflow_state.parallel_evaluations)
+            ParallelDecompositionProcessor(_max_workers)
             if use_parallel_generation
             else None
         )
         distributed_processor = (
-            DistributedProcessor(workflow_state.parallel_evaluations)
+            DistributedProcessor(_max_workers)
             if use_distributed_generation
             else None
         )
@@ -5326,8 +5367,22 @@ def _extract_to_enterprise_knowledge(
     if not KNOWLEDGE_AVAILABLE or not success:
         return False
 
+    # NEW engine toggle: enterprise knowledge extraction is gated by the flag.
+    # When False, knowledge extraction is skipped entirely (stored-only settings
+    # still persist on the WorkflowState). The always-on behaviour is preserved
+    # when the flag is True (the default).
+    if not getattr(workflow_state, "knowledge_engine_enabled", True):
+        return False
+
     try:
-        knowledge_engine = get_knowledge_engine()
+        # ``knowledge_engine_path`` is accepted and stored on the state; the
+        # engine uses its own default root unless its config schema reads a
+        # "root" key, so a non-empty path is passed through defensively.
+        _ke_path = getattr(workflow_state, "knowledge_engine_path", "") or ""
+        _ke_config = {"root": _ke_path} if _ke_path else None
+        knowledge_engine = (
+            get_knowledge_engine(_ke_config) if _ke_config else get_knowledge_engine()
+        )
 
         # Create artifact from workflow execution
         artifact = KnowledgeArtifact(

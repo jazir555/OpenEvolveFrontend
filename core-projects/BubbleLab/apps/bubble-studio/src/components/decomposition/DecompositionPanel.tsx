@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Tab } from '@headlessui/react';
 import { openevolveApi } from '@/services/openevolveApi';
 import type {
   WorkflowDecompositionPlan,
@@ -9,6 +10,7 @@ import type {
 } from '@/types/openevolve';
 import { SubProblemCard } from './SubProblemCard';
 import { DependencyGraph } from './DependencyGraph';
+import { WorkflowSettingsPanel } from './WorkflowSettingsPanel';
 
 /** Plan-level fields that the `PUT /decomposition-plan` body accepts. */
 type PlanMeta = Omit<WorkflowDecompositionPlan, 'sub_problems' | 'problem_statement' | 'analyzed_context'>;
@@ -246,7 +248,18 @@ export function DecompositionPanel() {
       )}
 
       {!planLoading && !planError && plan && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <Tab.Group>
+          <Tab.List className="mb-4 flex gap-2 rounded-lg bg-[#0d0d0d] p-2">
+            <Tab className="rounded-md px-3 py-2 text-sm font-medium text-gray-400 ui-selected:bg-[#1b1b1b] ui-selected:text-white">
+              Sub-Problems
+            </Tab>
+            <Tab className="rounded-md px-3 py-2 text-sm font-medium text-gray-400 ui-selected:bg-[#1b1b1b] ui-selected:text-white">
+              Sovereign Settings
+            </Tab>
+          </Tab.List>
+          <Tab.Panels>
+            <Tab.Panel>
+              <div className="grid gap-6 lg:grid-cols-2">
           {/* Sub-problems editor */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -322,6 +335,12 @@ export function DecompositionPanel() {
             </div>
           </div>
         </div>
+            </Tab.Panel>
+            <Tab.Panel>
+              <WorkflowSettingsPanel workflowId={selectedWorkflowId} />
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       )}
 
       {/* Save bar */}

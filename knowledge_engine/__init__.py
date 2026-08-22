@@ -626,6 +626,25 @@ class OpenEvolveKnowledgeEngine:
         """
         self.config = config or self._get_default_config()
         
+        # Honor a ``root`` key in the config: it designates the engine's base
+        # data/storage directory. When provided, we materialize it so downstream
+        # components and persistence layers can resolve paths relative to it.
+        self.root = self.config.get("root") if isinstance(self.config, dict) else None
+        if self.root:
+            try:
+                os.makedirs(self.root, exist_ok=True)
+                logger.info({
+                    "msg": "Knowledge engine root directory set",
+                    "root": self.root,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                })
+            except Exception as exc:  # pragma: no cover - best-effort
+                logger.warning({
+                    "msg": "Failed to create knowledge engine root directory",
+                    "root": self.root,
+                    "error": str(exc),
+                })
+        
         # Initialize the orchestrator (using integrated orchestrator with all features)
         self.orchestrator = IntegratedOrchestrator(
             config=self.config.get('orchestration'),

@@ -21,6 +21,9 @@ import {
   Activity,
   BarChart3,
   Database,
+  Brain,
+  Network,
+  FileSearch,
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 import { useGitHubStars } from '../hooks/useGitHubStars';
@@ -48,6 +51,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, ref }) => {
 
   const renderOpenEvolveLink = (
     to: OpenEvolveTo,
+    label: string,
+    Icon: React.ComponentType<{ className?: string }>
+  ) => (
+    <div className="mt-2">
+      <div className="relative group">
+        <Link
+          to={to}
+          activeProps={{
+            className:
+              'w-full flex items-center rounded-lg bg-[#21262d] text-gray-200 transition-colors',
+          }}
+          inactiveProps={{
+            className:
+              'w-full flex items-center rounded-lg hover:bg-[#21262d] text-gray-400 hover:text-gray-200 transition-colors',
+          }}
+          aria-label={label}
+        >
+          <span className="w-12 flex-none flex justify-center p-2">
+            <Icon className="w-5 h-5" />
+          </span>
+          <span
+            className={`text-sm overflow-hidden whitespace-nowrap transition-all duration-200 ${
+              isOpen
+                ? 'opacity-100 max-w-[160px] pr-3'
+                : 'opacity-0 max-w-0'
+            }`}
+          >
+            {label}
+          </span>
+        </Link>
+        {!isOpen && (
+          <span className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap rounded bg-[#0f1115] px-2 py-1 text-xs text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity">
+            {label}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
+  type ToolTo = '/leanaide' | '/oneke' | '/gket';
+
+  const renderToolLink = (
+    to: ToolTo,
     label: string,
     Icon: React.ComponentType<{ className?: string }>
   ) => (
@@ -316,6 +362,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, ref }) => {
         {renderOpenEvolveLink('/openevolve/monitoring', 'Monitoring', Activity)}
         {renderOpenEvolveLink('/openevolve/analytics', 'Analytics', BarChart3)}
         {renderOpenEvolveLink('/openevolve/knowledge', 'Knowledge', Database)}
+
+        {/* Tools section */}
+        {isOpen && (
+          <div className="mt-4 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            Tools
+          </div>
+        )}
+        {renderToolLink('/leanaide', 'LeanAide', Brain)}
+        {renderToolLink('/oneke', 'OneKE', Network)}
+        {renderToolLink('/gket', 'Knowledge Extraction', FileSearch)}
 
         {/* Spacer to push bottom content down */}
         <div className="flex-1" />

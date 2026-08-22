@@ -241,3 +241,35 @@ present and importable:
 - `api_server.py` (port 8001 Decomposition-Workflow server) now imports cleanly and wires RBAC; it
   still requires `engines/other` + `engines/security` on sys.path (handled via `sys.path.insert` at the
   top of the module — the prior boot-time `ModuleNotFoundError: workflow_structures` is fixed).
+
+## 9. Streamlit purge, BubbleLab UI reimplementation & workflow settings (2026-08-21)
+
+### 9a. Streamlit removed from product Python
+`engines/other` had **no** Streamlit. Across the repo, Streamlit UIs were deleted/converted:
+LeanAide (`server/streamlit_ui.py` + `tabs/*`, launcher stripped), OneKE (`frontend/`),
+Generic-Knowledge-Extraction-Tool (`ui_app.py`), kg-gen MINE (`_3_visualize.py` → headless CLI);
+support files `tests/conftest.py` (MockStreamlit removed), `scripts/scan_import_errors_batch2.py`,
+`integrations/bubblelabs/ui_shim.py` (rebranded to BubbleLab headless UI). No live `import streamlit`
+remains in product code (`archive/`, `data/`, `dspy`, `pygraphistry`, `ragbits` are separate vendored
+libs and were left intact).
+
+### 9b. New FastAPI backends for the reimplemented BubbleLab UIs
+- `core-projects/OneKE/server.py` — FastAPI on `:8765`, wraps `src/run.py` (`/healthz`, `/schemas`,
+  `/cases`, `/extract`, `/result/{id}`). Compiles.
+- `core-projects/Generic-Knowledge-Extraction-Tool/server.py` — FastAPI on `:8766`
+  (`/healthz`, `/parse`, `/generate-models`, `/extract`, `/export/{id}` csv/json/xlsx). Compiles.
+  (LeanAide backend already existed on `:7654`.)
+
+### 9c. Decomposition Workflow settings now consumed by the engine
+`api_server.py` gained `GET/PUT /workflows/{id}/settings` and accepts a full `WorkflowSettings` object;
+previously the settings were persisted but not all were acted on. Engine fixes (`workflow_engine.py`,
+`resource_manager.py`, `knowledge_engine/__init__.py`), `py_compile` clean, 17 engine-core tests pass:
+- Circular-dependency guard **toggleable** (was hard-coded ON) — gated behind
+  `workflow_state.openevolve_parameters["circular_dependency_guard"]` (default True).
+- `resource_limits` → `ResourceManager` via extended `create_resource_limits_from_config`
+  (`total_tokens`→`max_tokens`, `total_time_seconds`→`max_execution_time_seconds`); parallelism driven by
+  `max_parallel_sub_problems` in the parallel/distributed processors.
+- `knowledge_engine_path` **honored** by `OpenEvolveKnowledgeEngine.__init__` (sets `self.root`).
+- **Residual**: `ResourceLimits`/`ResourceManager` lacks fields for `total_steps`, `max_parallel`,
+  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot` — these
+  sub-fields are persisted but not yet enforced.

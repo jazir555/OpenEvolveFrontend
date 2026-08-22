@@ -301,3 +301,63 @@ compile sweep (`verify_sweep.py` over the `.py`/`.ts`/`.tsx` corpus) reported AL
 - Still WIP by design: real-LLM exercise (needs provider keys), the two-backend divergence
   (server_stdlib vs services/openevolve-api), and `api_server.py`'s boot path requires the
   flat `engines/other` + `engines/security` on sys.path (handled at module import).
+
+## 13. Streamlit removal & BubbleLab UI reimplementation (2026-08-21)
+
+User directive: the **entire product UI is BubbleLab (TypeScript)** at `core-projects/BubbleLab`; all
+Python Streamlit code is removed, and the three Streamlit UIs that were deleted are reimplemented as
+BubbleLab pages backed by REST services.
+
+### 13a. Streamlit purged repo-wide
+- **LeanAide** — deleted `server/streamlit_ui.py` + `server/tabs/*`; stripped Streamlit launch logic
+  from `leanaide_server.py` (backend `:7654` API preserved); README/requirements de-Streamlit'd.
+- **OneKE** — deleted the entire Streamlit `frontend/`; backend remains callable via API.
+- **Generic-Knowledge-Extraction-Tool** — deleted `ui_app.py`; README de-Streamlit'd.
+- **kg-gen MINE** — converted `_3_visualize.py` Streamlit dashboard → headless argparse CLI (both the
+  real and the `projects to analyze/` copy); README de-Streamlit'd.
+- **Support** — `tests/conftest.py` MockStreamlit removed; `scripts/scan_import_errors_batch2.py`
+  streamlit dropped from list; `integrations/bubblelabs/ui_shim.py` rebranded to a BubbleLab headless
+  UI (was never real Streamlit). BubbleLab TS (`configStore.ts`, `openevolveApi.ts`),
+  `engines/other/ui_components.py`, `glue/adapters/adaptive_mdap-adapter/src/bubblelab_ui_advanced.py`,
+  `openevolve-grpc/ACTUAL_STATUS.md`, `Decomposition_Workflow.md`, `test_sovereign_workflow.py`,
+  `AGENTIC_WORKFLOW_FIX_SUMMARY.md` de-Streamlit'd (`MockStreamlit`→`MockUI`).
+- Repo-wide `rg` confirms **no live `import streamlit`** in product code. Left intact (genuinely
+  Streamlit, separate vendored libs): `archive/` backups, `data/` import-error log, `core-projects/dspy`
+  docs, `projects to analyze/pygraphistry/*`, `core-projects/ragbits/pyproject.toml`.
+
+### 13b. UIs reimplemented in BubbleLab (TypeScript)
+- **LeanAide** — `routes/leanaide/index.tsx` (Home / Server Response / Token Response / Structured JSON /
+  Benchmark / Logs tabs) calling the existing `:7654` API.
+- **OneKE** — `routes/oneke/index.tsx` (extract + retrieve-by-id) + **NEW** `core-projects/OneKE/server.py`
+  FastAPI on `:8765` wrapping `src/run.py` (`/healthz`, `/schemas`, `/cases`, `/extract`, `/result/{id}`).
+- **Generic-Knowledge-Extraction-Tool** — `routes/gket/index.tsx` (parse / generate-models / extract /
+  export) + **NEW** `core-projects/Generic-Knowledge-Extraction-Tool/server.py` FastAPI on `:8766`
+  (`/healthz`, `/parse`, `/generate-models`, `/extract`, `/export/{id}` csv/json/xlsx).
+- All registered in `Sidebar.tsx` ("Tools" section: LeanAide/Brain, OneKE/Network,
+  Knowledge Extraction/FileSearch). `routeTree.gen.ts` regenerated; `pnpm --filter bubble-studio exec
+  tsc --noEmit` is **clean (0 errors)**. New backends `py_compile` clean.
+
+## 14. Decomposition Workflow settings fully configurable in BubbleLab (2026-08-21)
+
+Every workflow system/setting is now configurable end-to-end (BubbleLab UI → REST → engine).
+
+- **Contract** — `WorkflowSettings`: MDAP, MAKER, max refinement loops, auto-approval (+criteria),
+  parallel processing + `max_parallel_sub_problems`, `resource_limits` (8 fields), learning store,
+  distributed (+backend), entanglement strict, knowledge engine (enabled + path), red-flag rules,
+  web3 ingestion, formal verification (z3/LeanAide), circular-dependency guard.
+- **REST** — new `GET/PUT /workflows/{id}/settings`; `WorkflowCreateRequest` and `POST /workflows/run`
+  accept the settings; `api_server.py` applies them to `WorkflowState`/`DecompositionPlan`.
+- **BubbleLab** — `WorkflowSettingsPanel.tsx` ("Sovereign Settings" tab in the Decomposition page) +
+  `openevolveApi.getWorkflowSettings/updateWorkflowSettings` + `use-workflow-settings` hooks. `tsc`
+  clean; snake_case field names match the Pydantic model so the JSON round-trips.
+- **Engine now consumes the settings** (was stored-only):
+  - Circular-dependency guard is **toggleable** (was hard-coded ON) — gated behind
+    `workflow_state.openevolve_parameters["circular_dependency_guard"]` (default True).
+  - `resource_limits` → `ResourceManager` via `create_resource_limits_from_config`
+    (`total_tokens`→`max_tokens`, `total_time_seconds`→`max_execution_time_seconds`); parallelism driven
+    by `max_parallel_sub_problems`.
+  - `knowledge_engine_path` is **honored** by `OpenEvolveKnowledgeEngine` (sets `self.root`).
+  - 17 engine-core tests pass.
+- **Residual**: `ResourceLimits`/`ResourceManager` does not model `total_steps`, `max_parallel`,
+  `tokens_per_sub_problem`, `time_per_sub_problem`, `steps_per_sub_problem`, `allow_overshoot`, so those
+  sub-fields are persisted but not yet enforced.

@@ -21,11 +21,31 @@ export const OPENEVOLVE_API_BASE_URL: string = (
   import.meta.env.VITE_OPENEVOLVE_API_URL || 'http://localhost:8000'
 ).replace(/\/$/, '');
 export const EVOLUTION_API_BASE_URL: string = OPENEVOLVE_API_BASE_URL;
+
+// OneKE Knowledge Extraction API Configuration (FastAPI service)
+export const ONEKE_API_BASE_URL: string = (
+  import.meta.env.VITE_ONEKE_API_URL || 'http://localhost:8765'
+).replace(/\/$/, '');
 export const OPENEVOLVE_API_KEY: string | undefined = import.meta.env
   .VITE_OPENEVOLVE_API_KEY;
 
 export const CLERK_PUBLISHABLE_KEY: string | undefined = import.meta.env
   .VITE_CLERK_PUBLISHABLE_KEY;
+
+// LeanAide API Configuration (standalone Python server on port 7654)
+export const LEANAIDE_API_URL: string = (
+  import.meta.env.VITE_LEANAIDE_API_URL || 'http://localhost:7654'
+).replace(/\/$/, '');
+
+// Generic Knowledge Extraction Tool API (standalone FastAPI server on port 8766)
+export const GKET_API_URL: string = (
+  import.meta.env.VITE_GKET_API_URL || 'http://localhost:8766'
+).replace(/\/$/, '');
+
+// BubbleLab API proxy base (Hono proxy that fronts the LeanAide benchmark routes)
+export const BUBBLELAB_API_BASE_URL: string = (
+  import.meta.env.VITE_BUBBLELAB_API_BASE_URL || 'http://localhost:8787'
+).replace(/\/$/, '');
 export const SHOW_LEGACY_PARAMS: boolean =
   import.meta.env.VITE_SHOW_LEGACY_PARAMS === 'true';
 export const DISABLE_AUTH: boolean =

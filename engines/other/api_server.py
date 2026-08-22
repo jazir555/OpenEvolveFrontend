@@ -1423,6 +1423,255 @@ DOMAIN_HINT_ALIASES: Dict[str, str] = {
 
 
 # Pydantic models for API requests/responses
+class ResourceLimits(BaseModel):
+    """Resource limits applied to a workflow run."""
+    total_tokens: int = 0
+    total_time_seconds: int = 0
+    total_steps: int = 0
+    max_parallel: int = 0
+    tokens_per_sub_problem: int = 0
+    time_per_sub_problem: int = 0
+    steps_per_sub_problem: int = 0
+    allow_overshoot: bool = False
+
+
+class RedFlagRules(BaseModel):
+    """Red-flag safety rules written into MDAP/MAKER configs."""
+    max_tokens: int = 0
+    max_characters: int = 0
+    blocked_patterns: List[str] = Field(default_factory=list)
+    min_confidence: float = 0.0
+    require_schema_match: bool = False
+
+
+class Web3Settings(BaseModel):
+    """Web3 / smart-contract analysis settings."""
+    enabled: bool = False
+    project_path: str = ""
+    run_fuzzing: bool = False
+    slither_timeout_seconds: int = 0
+    forge_timeout_seconds: int = 0
+
+
+class FormalVerificationSettings(BaseModel):
+    """Formal verification toggles (engine derives these from web3 config)."""
+    z3_enabled: bool = False
+    leanaide_enabled: bool = False
+    formal_verification_enabled: bool = False
+    formal_verification_mode: str = "hybrid"
+
+
+class WorkflowSettings(BaseModel):
+    """
+    Canonical, fully-configurable settings contract for a decomposition workflow.
+
+    Every field is optional so partial updates (PATCH-style) are supported. Use
+    ``exclude_unset`` semantics (only explicitly-provided keys are applied).
+    """
+    mdap_enabled: Optional[bool] = None
+    mdap_config: Optional[Dict[str, Any]] = None
+    maker_enabled: Optional[bool] = None
+    maker_config: Optional[Dict[str, Any]] = None
+    max_refinement_loops: Optional[int] = None
+    auto_approval_enabled: Optional[bool] = None
+    auto_approval_criteria: Optional[Dict[str, Any]] = None
+    parallel_processing_enabled: Optional[bool] = None
+    max_parallel_sub_problems: Optional[int] = None
+    resource_limits: Optional[ResourceLimits] = None
+    learning_enabled: Optional[bool] = None
+    learning_config: Optional[Dict[str, Any]] = None
+    distributed: Optional[bool] = None
+    distributed_backend: Optional[str] = None
+    entanglement_strict_mode: Optional[bool] = None
+    knowledge_engine_enabled: Optional[bool] = None
+    knowledge_engine_path: Optional[str] = None
+    red_flag_rules: Optional[RedFlagRules] = None
+    web3: Optional[Web3Settings] = None
+    formal_verification: Optional[FormalVerificationSettings] = None
+    circular_dependency_guard: Optional[bool] = None
+
+
+def _build_workflow_settings_from_dict(config: Dict[str, Any]) -> "WorkflowSettings":
+    """Build a WorkflowSettings from a free-form contract dict (run config)."""
+    cfg = dict(config or {})
+    # Nested structures may arrive as plain dicts; coerce to sub-models when present.
+    if isinstance(cfg.get("resource_limits"), dict):
+        cfg["resource_limits"] = ResourceLimits(**cfg["resource_limits"])
+    if isinstance(cfg.get("red_flag_rules"), dict):
+        cfg["red_flag_rules"] = RedFlagRules(**cfg["red_flag_rules"])
+    if isinstance(cfg.get("web3"), dict):
+        cfg["web3"] = Web3Settings(**cfg["web3"])
+    if isinstance(cfg.get("formal_verification"), dict):
+        cfg["formal_verification"] = FormalVerificationSettings(**cfg["formal_verification"])
+    # Only keep keys that belong to the contract.
+    known = set(WorkflowSettings.__fields__.keys())
+    filtered = {k: v for k, v in cfg.items() if k in known}
+    return WorkflowSettings(**filtered)
+
+
+def _apply_workflow_settings(workflow_state: "WorkflowState", settings: "WorkflowSettings") -> None:
+    """
+    Materialize a WorkflowSettings onto a WorkflowState (and its DecompositionPlan
+    if present). Only explicitly-set keys are applied. A faithful snapshot is
+    stored under ``openevolve_parameters["workflow_settings"]`` so the GET
+    endpoint can reconstruct it, and plan-level keys are stashed under
+    ``openevolve_parameters["pending_plan_settings"]`` for propagation at run time.
+    """
+    provided = settings.dict(exclude_unset=True)
+    if not provided:
+        return
+
+    params = workflow_state.openevolve_parameters
+    if not isinstance(params, dict):
+        params = {}
+        workflow_state.openevolve_parameters = params
+
+    # Snapshot for faithful reconstruction.
+    params.setdefault("workflow_settings", {})
+    snapshot = {}
+    for k, v in provided.items():
+        snapshot[k] = v.dict() if isinstance(v, BaseModel) else v
+    params["workflow_settings"].update(snapshot)
+
+    # --- WorkflowState-level fields (engine reads these directly) -----------
+    if "mdap_enabled" in provided:
+        workflow_state.mdap_enabled = bool(provided["mdap_enabled"])
+    if "mdap_config" in provided and provided["mdap_config"] is not None:
+        workflow_state.mdap_config = dict(provided["mdap_config"])
+    if "maker_enabled" in provided:
+        workflow_state.maker_enabled = bool(provided["maker_enabled"])
+    if "maker_config" in provided and provided["maker_config"] is not None:
+        workflow_state.maker_config = dict(provided["maker_config"])
+    if "distributed" in provided:
+        workflow_state.distributed = bool(provided["distributed"])
+    if "distributed_backend" in provided and provided["distributed_backend"] is not None:
+        workflow_state.distributed_backend = str(provided["distributed_backend"])
+    if "entanglement_strict_mode" in provided:
+        workflow_state.entanglement_strict_mode = bool(provided["entanglement_strict_mode"])
+    if "knowledge_engine_enabled" in provided:
+        workflow_state.knowledge_engine_enabled = bool(provided["knowledge_engine_enabled"])
+    if "knowledge_engine_path" in provided and provided["knowledge_engine_path"] is not None:
+        workflow_state.knowledge_engine_path = str(provided["knowledge_engine_path"])
+
+    # --- red_flag_rules -> both MDAP and MAKER configs ---------------------
+    if "red_flag_rules" in provided and provided["red_flag_rules"] is not None:
+        rf = provided["red_flag_rules"].dict() if hasattr(provided["red_flag_rules"], "dict") else provided["red_flag_rules"]
+        if isinstance(workflow_state.mdap_config, dict):
+            workflow_state.mdap_config["red_flag_rules"] = rf
+        if isinstance(workflow_state.maker_config, dict):
+            workflow_state.maker_config["red_flag_rules"] = rf
+
+    # --- web3 + formal_verification -> openevolve_parameters ---------------
+    if "web3" in provided and provided["web3"] is not None:
+        web3_val = provided["web3"].dict() if hasattr(provided["web3"], "dict") else provided["web3"]
+        params["web3"] = web3_val
+    if "formal_verification" in provided and provided["formal_verification"] is not None:
+        fv = provided["formal_verification"]
+        fv_dict = fv.dict() if hasattr(fv, "dict") else fv
+        if isinstance(fv_dict, dict):
+            if fv_dict.get("z3_enabled") is not None:
+                params["z3_enabled"] = bool(fv_dict["z3_enabled"])
+            if fv_dict.get("leanaide_enabled") is not None:
+                params["leanaide_enabled"] = bool(fv_dict["leanaide_enabled"])
+            if fv_dict.get("formal_verification_enabled") is not None:
+                params["formal_verification_enabled"] = bool(fv_dict["formal_verification_enabled"])
+            if fv_dict.get("formal_verification_mode") is not None:
+                params["formal_verification_mode"] = str(fv_dict["formal_verification_mode"])
+
+    # --- learning toggle (plan/state) --------------------------------------
+    if "learning_enabled" in provided:
+        params["learning_enabled"] = bool(provided["learning_enabled"])
+    if "learning_config" in provided and provided["learning_config"] is not None:
+        params["learning_config"] = dict(provided["learning_config"])
+
+    # --- Circular dependency guard (informational only; engine hard-codes ON)
+    if "circular_dependency_guard" in provided:
+        params["circular_dependency_guard"] = bool(provided["circular_dependency_guard"])
+
+    # --- DecompositionPlan-level fields ------------------------------------
+    plan_settings = {}
+    for key in (
+        "max_refinement_loops",
+        "auto_approval_enabled",
+        "auto_approval_criteria",
+        "parallel_processing_enabled",
+        "max_parallel_sub_problems",
+        "resource_limits",
+        "learning_enabled",
+        "learning_config",
+    ):
+        if key in provided and provided[key] is not None:
+            plan_settings[key] = (
+                provided[key].dict() if hasattr(provided[key], "dict") else provided[key]
+            )
+
+    if plan_settings:
+        params.setdefault("pending_plan_settings", {})
+        params["pending_plan_settings"].update(plan_settings)
+        plan = getattr(workflow_state, "decomposition_plan", None)
+        if plan is not None:
+            for pk, pv in plan_settings.items():
+                try:
+                    setattr(plan, pk, pv)
+                except Exception:
+                    pass
+
+
+def _extract_workflow_settings(workflow_state: "WorkflowState") -> Dict[str, Any]:
+    """
+    Reconstruct a WorkflowSettings dict from a stored WorkflowState /
+    DecompositionPlan. Returns only stored values (None where unknown), so the
+    UI can show exactly what is configured.
+    """
+    params = workflow_state.openevolve_parameters or {}
+    plan = getattr(workflow_state, "decomposition_plan", None)
+
+    def _plan_get(attr, default=None):
+        return getattr(plan, attr, default) if plan is not None else default
+
+    # Prefer a stored snapshot for faithful round-tripping, but fall back to
+    # live values where the snapshot is absent.
+    snap = dict(params.get("workflow_settings") or {})
+
+    def _val(key, default=None):
+        if key in snap:
+            return snap[key]
+        return default
+
+    web3_val = params.get("web3")
+    fv_val = {
+        "z3_enabled": params.get("z3_enabled"),
+        "leanaide_enabled": params.get("leanaide_enabled"),
+        "formal_verification_enabled": params.get("formal_verification_enabled"),
+        "formal_verification_mode": params.get("formal_verification_mode"),
+    }
+    rf_val = (workflow_state.mdap_config or {}).get("red_flag_rules")
+
+    return {
+        "mdap_enabled": _val("mdap_enabled", workflow_state.mdap_enabled),
+        "mdap_config": _val("mdap_config", workflow_state.mdap_config),
+        "maker_enabled": _val("maker_enabled", workflow_state.maker_enabled),
+        "maker_config": _val("maker_config", workflow_state.maker_config),
+        "max_refinement_loops": _val("max_refinement_loops", _plan_get("max_refinement_loops")),
+        "auto_approval_enabled": _val("auto_approval_enabled", _plan_get("auto_approval_enabled")),
+        "auto_approval_criteria": _val("auto_approval_criteria", _plan_get("auto_approval_criteria")),
+        "parallel_processing_enabled": _val("parallel_processing_enabled", _plan_get("parallel_processing_enabled")),
+        "max_parallel_sub_problems": _val("max_parallel_sub_problems", _plan_get("max_parallel_sub_problems")),
+        "resource_limits": _val("resource_limits", _plan_get("resource_limits")),
+        "learning_enabled": _val("learning_enabled", _plan_get("learning_enabled", params.get("learning_enabled"))),
+        "learning_config": _val("learning_config", _plan_get("learning_config", params.get("learning_config"))),
+        "distributed": _val("distributed", getattr(workflow_state, "distributed", None)),
+        "distributed_backend": _val("distributed_backend", getattr(workflow_state, "distributed_backend", None)),
+        "entanglement_strict_mode": _val("entanglement_strict_mode", workflow_state.entanglement_strict_mode),
+        "knowledge_engine_enabled": _val("knowledge_engine_enabled", getattr(workflow_state, "knowledge_engine_enabled", None)),
+        "knowledge_engine_path": _val("knowledge_engine_path", getattr(workflow_state, "knowledge_engine_path", None)),
+        "red_flag_rules": _val("red_flag_rules", rf_val),
+        "web3": _val("web3", web3_val),
+        "formal_verification": _val("formal_verification", fv_val if any(v is not None for v in fv_val.values()) else None),
+        "circular_dependency_guard": _val("circular_dependency_guard", params.get("circular_dependency_guard")),
+    }
+
+
 class WorkflowCreateRequest(BaseModel):
     problem_statement: str = Field(..., min_length=10, description="The problem to solve")
     content_analyzer_team: str = Field(..., description="Team for content analysis")
@@ -1452,6 +1701,10 @@ class WorkflowCreateRequest(BaseModel):
     web3: Dict[str, Any] = Field(
         default_factory=dict,
         description="Optional Web3 config: enabled, project_path, run_fuzzing, slither/forge timeouts"
+    )
+    settings: Optional["WorkflowSettings"] = Field(
+        None,
+        description="Full canonical workflow settings contract (all fields optional for partial updates)"
     )
     
     @validator('problem_statement')
@@ -2909,6 +3162,10 @@ def create_workflow(
             openevolve_parameters=openevolve_parameters,
         )
         
+        # Apply any full settings contract supplied with the create request.
+        if getattr(request, "settings", None) is not None:
+            _apply_workflow_settings(workflow_state, request.settings)
+        
         # Store workflow
         workflows[workflow_id] = workflow_state
 
@@ -3002,6 +3259,59 @@ def get_workflow(
         solved_sub_problems=solved_sub_problems,
         total_sub_problems=total_sub_problems
     )
+
+
+@app.get("/workflows/{workflow_id}/settings", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
+def get_workflow_settings(
+    workflow_id: str,
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Return the configurable WorkflowSettings reconstructed from the stored state/plan."""
+    logger.info(f"User {user.name} requested settings for workflow {workflow_id}.")
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    record_audit_event(
+        user=user,
+        operation="GET_WORKFLOW_SETTINGS",
+        resource="workflow",
+        resource_id=workflow_id,
+        success=True,
+        details={"tenant_id": tenant_id}
+    )
+    return _extract_workflow_settings(wf)
+
+
+@app.put("/workflows/{workflow_id}/settings", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:update"))])
+def update_workflow_settings(
+    workflow_id: str,
+    settings: WorkflowSettings,
+    user: AuthUser = Depends(verify_api_key),
+    tenant_id: str = Depends(get_tenant_id)
+):
+    """Persist WorkflowSettings onto the stored WorkflowState / DecompositionPlan."""
+    logger.info(f"User {user.name} updated settings for workflow {workflow_id}.")
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    wf = workflows[workflow_id]
+    if (wf.tenant_id or "default") != tenant_id:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+
+    _apply_workflow_settings(wf, settings)
+
+    record_audit_event(
+        user=user,
+        operation="UPDATE_WORKFLOW_SETTINGS",
+        resource="workflow",
+        resource_id=workflow_id,
+        success=True,
+        details={"tenant_id": tenant_id}
+    )
+    return {"workflow_id": workflow_id, "status": "updated", "settings": _extract_workflow_settings(wf)}
 
 
 @app.get("/workflows/{workflow_id}/decomposition-plan", dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:read"))])
@@ -8605,13 +8915,19 @@ if _EXTERNAL_INTEGRATION_AVAILABLE:
             openevolve_parameters=openevolve_parameters,
         )
 
+        # Apply any ad-hoc settings supplied via request.config (keys matching the
+        # canonical WorkflowSettings contract) onto the WorkflowState / plan before run.
+        if request.config:
+            _apply_workflow_settings(workflow_state, _build_workflow_settings_from_dict(request.config))
+
         # Publish the running state immediately so polling works before the thread starts.
         with _workflow_run_lock:
             workflows[workflow_id] = workflow_state
 
         team_args = _resolve_external_teams(tenant_id, request.team_ids)
         gauntlet_args = _resolve_external_gauntlets(tenant_id, request.gauntlet_ids)
-        max_refinement_loops = int(openevolve_parameters.get("max_refinement_loops", 3))
+        _pending_rl = (workflow_state.openevolve_parameters or {}).get("pending_plan_settings") or {}
+        max_refinement_loops = int(_pending_rl.get("max_refinement_loops", openevolve_parameters.get("max_refinement_loops", 3)))
 
         threading.Thread(
             target=_execute_external_workflow_run,

@@ -617,18 +617,25 @@ def create_resource_limits_from_config(config: Dict[str, Any]) -> ResourceLimits
     """
     Create ResourceLimits from configuration dictionary.
     
+    Accepts both the legacy flat schema (``max_api_calls``, ``max_tokens``,
+    ``max_cost``, ``max_execution_time_seconds``, ``max_memory_mb``) and the
+    decomposition-plan schema (``total_tokens``, ``total_time_seconds``, ...).
+    Missing/unrecognized keys are treated as "no limit" (None).
+        
     Args:
         config: Configuration dictionary
         
     Returns:
         ResourceLimits instance
     """
+    if not config:
+        return ResourceLimits()
     return ResourceLimits(
         max_api_calls=config.get('max_api_calls'),
-        max_tokens=config.get('max_tokens'),
+        max_tokens=config.get('max_tokens', config.get('total_tokens')),
         max_cost=config.get('max_cost'),
-        max_execution_time_seconds=config.get('max_execution_time_seconds'),
-        max_memory_mb=config.get('max_memory_mb')
+        max_execution_time_seconds=config.get('max_execution_time_seconds', config.get('total_time_seconds')),
+        max_memory_mb=config.get('max_memory_mb'),
     )
 
 
