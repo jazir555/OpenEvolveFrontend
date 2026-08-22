@@ -19,7 +19,7 @@ Fixed critical ERROR-level test failures in agentic context engine and workflow 
 - No graceful handling when ACE (Agentic Context Engine) not available
 
 ### 3. **UI Component Mocking Issues**
-- Streamlit UI functions not properly mocked
+- Headless UI functions not properly mocked
 - Tests importing `ui_shim` before mocks were set up
 - `session_state` attribute errors
 
@@ -62,10 +62,10 @@ def set_test_env_vars(vars: Dict[str, str] = None) -> None
 ```python
 @pytest.fixture(autouse=True)
 def mock_ui_shim():
-    """Automatically mock UI components to prevent Streamlit errors."""
+    """Automatically mock UI components to prevent UI errors."""
     mock_st = MagicMock()
     mock_st.session_state = {}
-    # ... mock all streamlit functions
+    # ... mock all UI functions
     yield mock_st
 ```
 
@@ -138,7 +138,7 @@ except ImportError as e:
 ### 5. Fixed `tests/test_sovereign_workflow.py`
 
 **Changes:**
-- Created comprehensive `MockStreamlit` class
+- Created comprehensive `MockUI` class
 - Proper order of mocking (before imports)
 - Import guards for all optional dependencies
 - Mock `VerificationResult` when lean4 not available
@@ -146,14 +146,14 @@ except ImportError as e:
 **Example:**
 ```python
 # Mock UI functions FIRST before importing
-class MockStreamlit:
-    """Mock Streamlit UI object for testing."""
+class MockUI:
+    """Mock UI object for testing."""
     def __init__(self):
         self.session_state = {}
         self.session_state.edited_sub_problems = {}
         # ... all methods mocked
 
-st = MockStreamlit()
+mock_ui = MockUI()
 
 # Import with error handling
 try:

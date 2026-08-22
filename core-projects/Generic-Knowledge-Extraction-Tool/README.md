@@ -4,6 +4,8 @@ An AI-powered knowledge extraction tool that extracts key information from docum
 
 **This is Version 2 of the Generic Knowledge Extraction Tool** - A version with enhanced capabilities, modular architecture, and three distinct extraction cases. 
 
+**User Interface**: The product UI for this tool is **BubbleLab (TypeScript)**, located at `core-projects/BubbleLab`. This subproject provides the Python backend/CLI logic and libraries that BubbleLab consumes via API. The former Python web UI has been removed.
+
 **Read the article on Version 1**: [Building a Generic Knowledge Extraction AI Agent](https://medium.com/data-science-collective/building-a-generic-knowledge-extraction-ai-agent-that-allows-the-creation-of-flexible-586d6a1b1499)
 
 **Version 1**: [Original implementation](https://github.com/umairalipathan1980/A-Generic-Knowledge-Extraction-AI-Agent)
@@ -105,11 +107,8 @@ AZURE_API_KEY=your_azure_openai_key_here  # Optional
 ```
 
 4. **Launch the application**
-```bash
-streamlit run ui_app.py
-```
 
-The application will open in your browser at `http://localhost:8501`
+The user interface for this tool is **BubbleLab (TypeScript)**, located at `core-projects/BubbleLab`. The Python code in this subproject provides the backend/CLI logic and libraries that BubbleLab drives via API; there is no standalone Python UI to launch here.
 
 ## Usage Guide
 
@@ -159,7 +158,7 @@ The AI will automatically:
 ```
 generic-knowledge-extraction-tool/
 ├── UI & Main Application
-│   └── ui_app.py                    # Streamlit web interface (main entry point)
+│   └── (UI is BubbleLab - TypeScript at core-projects/BubbleLab; see README)
 │
 ├── AI Client Layer
 │   └── ai/

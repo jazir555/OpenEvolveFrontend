@@ -160,7 +160,7 @@ python python/client.py                      # lists 3 nodes, streams progress
 ```
 
 Environment note: installing `grpcio-tools` unpinned pulls `protobuf` 7.x, which
-breaks other packages in this shared interpreter (streamlit, opentelemetry, google-*).
+breaks other packages in this shared interpreter (opentelemetry, google-*).
 Versions were pinned back to the pre-existing `grpcio==1.67.1` / `protobuf==5.29.5`;
 only `grpcio-tools` was added.
 

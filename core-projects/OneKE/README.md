@@ -204,27 +204,15 @@ Refer to [here](https://github.com/zjunlp/OneKE/tree/main/examples/results) to g
 
 #### 🖊️Start with Web UI
 
-> Note: Before starting with the web UI, make sure the package `gradio 4.44.0` is already installed in your [Environment](https://github.com/zjunlp/OneKE/tree/main/requirements.txt).
+> Note: The OneKE web UI is now **BubbleLab** (TypeScript), located at `core-projects/BubbleLab`. The previous Python web frontend has been removed.
 
-**Step1: Execute Command**
-
-Execute the following commands in the `OneKE` directory:
+The OneKE backend (agent/extraction logic under `src/`) remains fully functional and is callable via the API. To run extraction directly without the UI, use:
 
 ```bash
-cd frontend/
-chmod u+x start.sh
-bash ./start.sh
+python src/run.py --config your_yaml_file_path
 ```
 
-**Step2: Open your Web Browser**
-
-The front-end is built with Streamlit, and the default port is 8501. Therefore, please enter the following URL in your browser's address bar to open the web interface:
-
-```
- http://0.0.0.0:8501
-```
-
-The web service interface is now complete, so you can visually configure tasks and obtain results through it.
+You can visually configure tasks and obtain results through the BubbleLab (TypeScript) UI.
 
 ## 📟Web UI Navigation
 

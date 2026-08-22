@@ -3530,7 +3530,7 @@ def create_team(
         )
         
         tenant_team_manager = get_tenant_team_manager(tenant_id)
-        tenant_team_manager.save_team(team)
+        tenant_team_manager.create_team(team)
         
         logger.info(f"Team '{team.name}' created by {user.name}")
         record_audit_event(
@@ -3573,7 +3573,7 @@ def update_team(
             members=members
         )
         
-        tenant_team_manager.save_team(updated_team) # Overwrite existing
+        tenant_team_manager.update_team(updated_team) # Overwrite existing
         
         logger.info(f"Team '{team_name}' updated by {user.name}")
         record_audit_event(
@@ -3705,7 +3705,7 @@ def create_gauntlet(
         )
         
         tenant_gauntlet_manager = get_tenant_gauntlet_manager(tenant_id)
-        tenant_gauntlet_manager.save_gauntlet(gauntlet)
+        tenant_gauntlet_manager.create_gauntlet(gauntlet)
         
         logger.info(f"Gauntlet '{gauntlet.name}' created by {user.name}")
         record_audit_event(
@@ -3749,7 +3749,7 @@ def update_gauntlet(
             rounds=rounds
         )
         
-        tenant_gauntlet_manager.save_gauntlet(updated_gauntlet) # Overwrite existing
+        tenant_gauntlet_manager.update_gauntlet(updated_gauntlet) # Overwrite existing
         
         logger.info(f"Gauntlet '{gauntlet_name}' updated by {user.name}")
         record_audit_event(
@@ -8470,6 +8470,169 @@ async def decomposition_sgd_workflow_status(workflow_id: str):
     except Exception as exc:
         logger.error("SGD workflow status failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=f"SGD status failed: {exc}")
+
+
+# ============================================================================
+# EXTERNAL SYSTEM INTEGRATION — REST endpoints (Sovereign-Grade Decomposition
+# Workflow §6.3 "Create REST APIs for external system integration")
+#
+# These are additive, guarded endpoints built on the EXISTING ``app``, CORS, and
+# auth scaffolding. They are registered only when the required dependencies
+# (team/gauntlet managers + workflow engine) are importable, so a missing
+# dependency can never break module import. Team/gauntlet CRUD and the per-id
+# workflow poll already exist elsewhere in this file and are reused rather than
+# re-declared (avoiding route collisions).
+# ============================================================================
+
+# team_manager / gauntlet_manager are unguarded module globals (lines ~566);
+# run_sovereign_workflow has a guarded fallback (lines ~472). We only register
+# the run endpoint when everything needed is genuinely present.
+_EXTERNAL_INTEGRATION_AVAILABLE = all(
+    [
+        "team_manager" in globals(),
+        "gauntlet_manager" in globals(),
+        "run_sovereign_workflow" in globals(),
+        "workflows" in globals(),
+    ]
+)
+
+
+class WorkflowRunRequest(BaseModel):
+    """Payload to kick off a sovereign decomposition workflow from an external system."""
+
+    problem_statement: str
+    team_ids: List[str] = Field(default_factory=list)
+    gauntlet_ids: List[str] = Field(default_factory=list)
+    config: Dict[str, Any] = Field(default_factory=dict)
+    tenant_id: Optional[str] = None
+
+
+if _EXTERNAL_INTEGRATION_AVAILABLE:
+
+    _workflow_run_lock = threading.Lock()
+
+    def _resolve_external_teams(tenant_id: str, team_ids: List[str]) -> List[Any]:
+        """Resolve selected team names to Team objects (5 slots the engine expects)."""
+        mgr = get_tenant_team_manager(tenant_id)
+        resolved = [mgr.get_team(t) if t else None for t in (team_ids or [])]
+        while len(resolved) < 5:
+            resolved.append(None)
+        return resolved[:5]
+
+    def _resolve_external_gauntlets(tenant_id: str, gauntlet_ids: List[str]) -> List[Any]:
+        """Resolve selected gauntlet names to GauntletDefinition objects (5 slots)."""
+        mgr = get_tenant_gauntlet_manager(tenant_id)
+        resolved = [mgr.get_gauntlet(g) if g else None for g in (gauntlet_ids or [])]
+        while len(resolved) < 5:
+            resolved.append(None)
+        return resolved[:5]
+
+    def _execute_external_workflow_run(
+        workflow_id: str,
+        workflow_state: "WorkflowState",
+        team_args: List[Any],
+        gauntlet_args: List[Any],
+        max_refinement_loops: int,
+    ) -> None:
+        """Run the (possibly async) sovereign workflow in a background thread."""
+        try:
+            if asyncio.iscoroutinefunction(run_sovereign_workflow):
+                asyncio.run(
+                    run_sovereign_workflow(
+                        workflow_state,
+                        *team_args,
+                        *gauntlet_args,
+                        max_refinement_loops=max_refinement_loops,
+                    )
+                )
+            else:
+                run_sovereign_workflow(
+                    workflow_state,
+                    *team_args,
+                    *gauntlet_args,
+                    max_refinement_loops=max_refinement_loops,
+                )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("External workflow run %s failed: %s", workflow_id, exc, exc_info=True)
+            try:
+                workflow_state.status = "failed"
+                workflow_state.error = str(exc)
+            except Exception:
+                pass
+        finally:
+            with _workflow_run_lock:
+                workflows[workflow_id] = workflow_state
+
+    @app.post(
+        "/workflows/run",
+        tags=["External Integration"],
+        dependencies=[Depends(verify_api_key), Depends(rbac_enforce("workflow:execute"))],
+        summary="Run a sovereign decomposition workflow (external)",
+        description=(
+            "Accept a problem statement plus selected team/gauntlet ids and kick off "
+            "run_sovereign_workflow in a background thread. Returns a workflow_id and "
+            "initial status immediately; poll GET /workflows/{id} for results."
+        ),
+        responses={
+            400: {"description": "Missing problem_statement"},
+            503: {"description": "Workflow engine unavailable"},
+        },
+    )
+    def run_workflow_external(
+        request: WorkflowRunRequest,
+        user: AuthUser = Depends(verify_api_key),
+        tenant_id: str = Depends(get_tenant_id),
+    ):
+        """Kick off a sovereign decomposition workflow from an external system."""
+        problem = _sanitize_text(request.problem_statement, max_len=20000) if request.problem_statement else ""
+        if not problem:
+            raise HTTPException(status_code=400, detail="problem_statement is required")
+
+        workflow_id = str(uuid.uuid4())
+        openevolve_parameters: Dict[str, Any] = dict(request.config or {})
+
+        workflow_state = WorkflowState(
+            workflow_id=workflow_id,
+            workflow_type=openevolve_parameters.get("workflow_type", "sovereign_decomposition"),
+            problem_statement=problem,
+            current_stage="INITIALIZING",
+            status="running",
+            tenant_id=tenant_id,
+            mdap_enabled=bool(openevolve_parameters.get("mdap_enabled", False)),
+            mdap_config=openevolve_parameters.get("mdap_config"),
+            maker_enabled=bool(openevolve_parameters.get("maker_enabled", False)),
+            maker_config=openevolve_parameters.get("maker_config"),
+            openevolve_parameters=openevolve_parameters,
+        )
+
+        # Publish the running state immediately so polling works before the thread starts.
+        with _workflow_run_lock:
+            workflows[workflow_id] = workflow_state
+
+        team_args = _resolve_external_teams(tenant_id, request.team_ids)
+        gauntlet_args = _resolve_external_gauntlets(tenant_id, request.gauntlet_ids)
+        max_refinement_loops = int(openevolve_parameters.get("max_refinement_loops", 3))
+
+        threading.Thread(
+            target=_execute_external_workflow_run,
+            args=(workflow_id, workflow_state, team_args, gauntlet_args, max_refinement_loops),
+            daemon=True,
+        ).start()
+
+        record_audit_event(
+            user=user,
+            operation="RUN_WORKFLOW_EXTERNAL",
+            resource="workflow",
+            resource_id=workflow_id,
+            success=True,
+            details={"tenant_id": tenant_id},
+        )
+
+        return {
+            "workflow_id": workflow_id,
+            "status": workflow_state.status,
+            "tenant_id": tenant_id,
+        }
 
 
 if __name__ == "__main__":

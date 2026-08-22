@@ -11,7 +11,7 @@ Each use-case follows a standardized pattern:
 
 
 ## Integration
-- **Main Application**: Use-cases are loaded via the Streamlit UI for quick template selection
+- **Main Application**: Use-cases are loaded via the BubbleLab (TypeScript) UI for quick template selection
 - **Model Generator**: Templates provide pre-validated configurations to `model_generator.py`
 - **Document Parser**: Each use-case can specify document type optimizations
 - **AI Clients**: Specialized prompts are fed to Claude/OpenAI clients for extraction
@@ -28,16 +28,16 @@ Each use-case follows a standardized pattern:
 - **Core Systems**: `model_generator.py`, AI clients, `document_parser.py`
 
 ## Entry Points
-1. **UI Selection**: Users choose templates from Streamlit dropdown
-2. **Config Loading**: `ui_app.py` loads `config.json` files
+1. **UI Selection**: Users choose templates from the BubbleLab (TypeScript) UI
+2. **Config Loading**: The backend loads `config.json` files
 3. **Template Application**: Configurations are applied to the extraction pipeline
 
 ## Common Usage Patterns
 
 ### Loading a Use-Case Template
 ```python
-# Via Streamlit UI
-selected_use_case = st.selectbox("Choose template", use_case_options)
+# Via the BubbleLab (TypeScript) UI / backend
+selected_use_case = "AI_Consultancy_Reports"
 config_path = f"Use-cases/{selected_use_case}/config.json"
 ```
 

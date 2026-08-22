@@ -3,7 +3,6 @@ import json
 import os
 
 import pymupdf
-import streamlit as st
 from dotenv import load_dotenv
 from jsonschema import ValidationError, validate
 from openai import OpenAI
@@ -81,7 +80,6 @@ def get_supported_models(provider):
         models = client.models.list()
         return [model.id for model in models.data]
     except Exception as e:
-        st.error(f"Error fetching models: {e}")
         return []
 
 def get_pdf_id(pdf_path: str, provider: str = "openai"):
@@ -242,8 +240,6 @@ def check_reprompt(thm: str, pf: str, output: str, provider = "openai", model: s
     # total_tries is how many times it should re-prompt if JSON does NOT validate
     tries, total_tries = 0, 6
 
-    st.toast(f"Starting validation with {total_tries} max attempts...")
-
     # the while loop breaks once tries exceeds total_tries.
     while(True):
         try:
@@ -255,23 +251,19 @@ def check_reprompt(thm: str, pf: str, output: str, provider = "openai", model: s
             tries += 1
 
             if tries > total_tries:
-                st.toast("Failed to produce correctly validated JSON document!")
                 # the invalid JSON output will be returned
                 break
 
-            st.toast(f"Tries: {tries}")
-            st.toast(f"Validation Error: {e}")
+            # Validation Error: {e}
 
             # re-prompt the model with the error message
             output = reprompt_gen_thmpf_json(thm, pf, output, e, provider, model)
         
         except Exception as e:
-            st.toast(f"Some other error: {e}")
             return {"response" : "No response from model while generating structured proof"}
 
         else:
             # if it validates without any errors, break and return validated output
-            st.toast("Succeeded in producing correctly validated JSON document!")
             break
 
     return output

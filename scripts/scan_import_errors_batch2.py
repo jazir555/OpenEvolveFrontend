@@ -323,7 +323,7 @@ class ImportErrorScanner:
             'yaml', 'toml', ' PIL', 'matplotlib', 'sklearn', 'tensorflow',
             'torch', 'cv2', 'bs4', 'lxml', 'httpx', 'aiohttp', 'tornado',
             'celery', 'redis', 'mongoengine', 'pymongo', 'psycopg2',
-            'boto3', 'botocore', 'google', 'azure', 'z3', 'streamlit',
+            'boto3', 'botocore', 'google', 'azure', 'z3',
             'crewai', 'langchain', 'openai', 'anthropic'
         }
         

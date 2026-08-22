@@ -2,7 +2,7 @@
  * OpenEvolve API Client
  *
  * Connects BubbleLab frontend to the new OpenEvolve FastAPI service
- * Replaces the old Streamlit-based integration
+ * Replaces the old Python integration
  *
  * Architecture: Service-Oriented Architecture
  * - Eliminates parameter sync issues

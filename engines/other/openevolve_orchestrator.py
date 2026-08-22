@@ -855,6 +855,52 @@ class OpenEvolveOrchestrator:
             logging.error(f"Failed to track Orchestrator performance: {e}")
 
 
+def _resolve_sovereign_auto_approval(workflow_state) -> bool:
+    """Return True when Stage-2 manual approval should be skipped.
+
+    Reads ``auto_approval`` (in order) from a direct attribute, the
+    ``evolution_params`` dict, or the ``config`` dict. Defaults to False to keep
+    backward-compatible behaviour (manual review required).
+    """
+    if workflow_state is None:
+        return False
+    val = getattr(workflow_state, "auto_approval", None)
+    if val is None:
+        params = getattr(workflow_state, "evolution_params", None)
+        if isinstance(params, dict):
+            val = params.get("auto_approval", None)
+    if val is None:
+        cfg = getattr(workflow_state, "config", None)
+        if isinstance(cfg, dict):
+            val = cfg.get("auto_approval", None)
+    return bool(val)
+
+
+def _resolve_sovereign_batch_size(workflow_state, default: int = 1) -> int:
+    """Resolve how many sub-problems to solve per tick (batch operations).
+
+    Reads ``batch_size`` (in order) from a direct attribute, the
+    ``evolution_params`` dict, or the ``config`` dict. Defaults to ``default``
+    (1) for backward compatibility.
+    """
+    if workflow_state is None:
+        return int(default)
+    bs = getattr(workflow_state, "batch_size", None)
+    if bs is None:
+        params = getattr(workflow_state, "evolution_params", None)
+        if isinstance(params, dict):
+            bs = params.get("batch_size", None)
+    if bs is None:
+        cfg = getattr(workflow_state, "config", None)
+        if isinstance(cfg, dict):
+            bs = cfg.get("batch_size", None)
+    try:
+        bs = int(bs)
+    except (TypeError, ValueError):
+        return int(default)
+    return bs if bs > 0 else int(default)
+
+
 def render_openevolve_orchestrator_ui():
     """Render the OpenEvolve orchestrator UI"""
     
@@ -953,7 +999,13 @@ def render_openevolve_orchestrator_ui():
         render_configuration_tab(orchestrator)
 
     with tabs[4]:  # Analytics Dashboard
-        render_analytics_dashboard()
+        _analytics_state = None
+        _analytics_metrics = None
+        for _ws in (getattr(orchestrator, "workflows", {}) or {}).values():
+            _analytics_state = _ws
+            _analytics_metrics = getattr(_ws, "metrics", None)
+            break
+        st.markdown(render_analytics_dashboard(_analytics_state, _analytics_metrics))
 
     with tabs[5]:  # Knowledge Base Interface
         try:
@@ -961,7 +1013,7 @@ def render_openevolve_orchestrator_ui():
             _km = KnowledgeManager()
         except Exception:
             _km = None
-        render_knowledge_base_interface(_km)
+        st.markdown(render_knowledge_base_interface(_km))
 
     with tabs[6]:  # Dependency Graph
         _sub_problems = []
@@ -970,7 +1022,7 @@ def render_openevolve_orchestrator_ui():
             if _plan is not None:
                 for _sp in (getattr(_plan, "sub_problems", None) or []):
                     _sub_problems.append(getattr(_sp, "__dict__", _sp))
-        render_dependency_graph(_sub_problems)
+        st.markdown(render_dependency_graph(_sub_problems))
 
 
 def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
@@ -2275,10 +2327,22 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
 
         # Handle UI based on the current state
+        _auto_approval = _resolve_sovereign_auto_approval(workflow_state)
+        _batch_size = _resolve_sovereign_batch_size(workflow_state)
         if workflow_state.status == "awaiting_user_input" and workflow_state.current_stage == "Manual Review & Override":
+            if _auto_approval:
+                # Stage-2 manual approval skipped (auto-approval mode); proceed.
+                workflow_state.current_stage = "Delegate to CREWAI"
+                workflow_state.status = "running"
+                st.success(f"Auto-approved (auto_approval=True). Resuming workflow (batch_size={_batch_size})...")
+                st.rerun()
             st.warning("Please review and approve the decomposition plan below to continue the workflow.")
-            from ui_components import render_manual_review_panel # Import here to avoid potential circular dependencies at startup
-            approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
+            try:
+                from ui_components import render_manual_review_panel # Import here to avoid potential circular dependencies at startup
+                approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
+            except Exception as _review_err:  # headless / test safety
+                st.error(f"Manual review unavailable: {_review_err}")
+                approval_status, approved_plan = "pending", None
             
             if approval_status == "approved":
                 workflow_state.decomposition_plan = approved_plan

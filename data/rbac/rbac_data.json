@@ -1,0 +1,738 @@
+{
+  "users": {},
+  "roles": {
+    "admin": {
+      "name": "admin",
+      "description": "Full system access",
+      "permissions": [
+        "create_user",
+        "read_user",
+        "update_user",
+        "delete_user",
+        "manage_users",
+        "manage_roles",
+        "create_content",
+        "read_content",
+        "update_content",
+        "delete_content",
+        "publish_content",
+        "create_project",
+        "read_project",
+        "update_project",
+        "delete_project",
+        "manage_project_members",
+        "system_admin",
+        "view_logs",
+        "manage_system",
+        "view_analytics",
+        "export_data",
+        "api_access",
+        "api_write"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T03:32:33.676338",
+      "updated_at": "2026-08-22T03:32:33.676338",
+      "metadata": {}
+    },
+    "editor": {
+      "name": "editor",
+      "description": "Can edit and manage content",
+      "permissions": [
+        "read_content",
+        "create_content",
+        "update_content",
+        "read_project"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T03:32:33.676338",
+      "updated_at": "2026-08-22T03:32:33.676338",
+      "metadata": {}
+    },
+    "viewer": {
+      "name": "viewer",
+      "description": "Read-only access",
+      "permissions": [
+        "read_content",
+        "read_project"
+      ],
+      "is_system_role": true,
+      "created_at": "2026-08-22T03:32:33.676338",
+      "updated_at": "2026-08-22T03:32:33.676338",
+      "metadata": {}
+    }
+  },
+  "audit_logs": [
+    {
+      "log_id": "audit_2960a5c1f828b149047a",
+      "user_id": "testkey",
+      "action": "CREATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.560221",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_81dd0b2f0c7ee4a7f052",
+      "user_id": "testkey",
+      "action": "LIST_TEAMS",
+      "resource_type": "team",
+      "resource_id": "*",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.573882",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_63b584ca43ca73fd3b2b",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.587537",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_65b17beae86f87efdd27",
+      "user_id": "testkey",
+      "action": "UPDATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.604652",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_935031778ad8de4292a0",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.614944",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_2e03b256bfd9aa728b39",
+      "user_id": "testkey",
+      "action": "DELETE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:36.638266",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_c1046b2eb4c1598dae81",
+      "user_id": "testkey",
+      "action": "CREATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.297394",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_d58724bf4bc82644e15e",
+      "user_id": "testkey",
+      "action": "GET_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.314067",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_08bff1b1e8b4c53f1a83",
+      "user_id": "testkey",
+      "action": "UPDATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.346268",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_ebbe97f082b214d88307",
+      "user_id": "testkey",
+      "action": "DELETE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.362612",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_a37c7f7f84129bdb88bb",
+      "user_id": "testkey",
+      "action": "RUN_WORKFLOW_EXTERNAL",
+      "resource_type": "workflow",
+      "resource_id": "7556def8-7242-4f6f-babc-ffc9e9317744",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.891375",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_a09824aafe10090bbca7",
+      "user_id": "testkey",
+      "action": "GET_WORKFLOW",
+      "resource_type": "workflow",
+      "resource_id": "7556def8-7242-4f6f-babc-ffc9e9317744",
+      "success": true,
+      "timestamp": "2026-08-22T03:32:37.910200",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_98909390fca134a504f3",
+      "user_id": "testkey",
+      "action": "CREATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.500458",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_8c016d098c5dd3a5e193",
+      "user_id": "testkey",
+      "action": "LIST_TEAMS",
+      "resource_type": "team",
+      "resource_id": "*",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.508547",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_e8aefd593da9ab9ae468",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.516563",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_afcd8475b893e813b86d",
+      "user_id": "testkey",
+      "action": "UPDATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.526701",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_024cbd49212320853a23",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.532991",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_5e6e45cd09bd6b1405fb",
+      "user_id": "testkey",
+      "action": "DELETE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.548862",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_94a8da2795194fc736e7",
+      "user_id": "testkey",
+      "action": "CREATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.906281",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_f68df386fcd6b888611a",
+      "user_id": "testkey",
+      "action": "GET_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.913786",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_03ac4bda4ff99ceec801",
+      "user_id": "testkey",
+      "action": "UPDATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.927553",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_8aef01c066c9e1c3c90a",
+      "user_id": "testkey",
+      "action": "DELETE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:49.935285",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_0257a6867ef9017232a0",
+      "user_id": "testkey",
+      "action": "RUN_WORKFLOW_EXTERNAL",
+      "resource_type": "workflow",
+      "resource_id": "065c8a42-2e03-46ab-a9f0-c578a8e3fbd0",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:50.299921",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_8abf361e47f4f05c0a64",
+      "user_id": "testkey",
+      "action": "GET_WORKFLOW",
+      "resource_type": "workflow",
+      "resource_id": "065c8a42-2e03-46ab-a9f0-c578a8e3fbd0",
+      "success": true,
+      "timestamp": "2026-08-22T04:03:50.308000",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_6068850087f192e91b32",
+      "user_id": "testkey",
+      "action": "CREATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.141100",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_d07acb1d2d3db36d315a",
+      "user_id": "testkey",
+      "action": "LIST_TEAMS",
+      "resource_type": "team",
+      "resource_id": "*",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.160224",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_c8c8b881f37d2b55e92a",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.178454",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_160511df076df9fd6d43",
+      "user_id": "testkey",
+      "action": "UPDATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.200453",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_40fe3f975e9221fafc20",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.212265",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_c2e08933c43ac1063de4",
+      "user_id": "testkey",
+      "action": "DELETE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.243791",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_5be380593dd377798fb8",
+      "user_id": "testkey",
+      "action": "CREATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.826453",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_ab5af8bb18aa76a5409d",
+      "user_id": "testkey",
+      "action": "GET_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.841715",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_37ac2e85901f051f0d14",
+      "user_id": "testkey",
+      "action": "UPDATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.872431",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_8175d79cae9933bfb8af",
+      "user_id": "testkey",
+      "action": "DELETE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:09.889514",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_75d04e0b8a5a45af7552",
+      "user_id": "testkey",
+      "action": "RUN_WORKFLOW_EXTERNAL",
+      "resource_type": "workflow",
+      "resource_id": "16a9497e-9923-4c55-bdb8-cab718ba70bb",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:10.467703",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_e905454f8f30c3c0f836",
+      "user_id": "testkey",
+      "action": "GET_WORKFLOW",
+      "resource_type": "workflow",
+      "resource_id": "16a9497e-9923-4c55-bdb8-cab718ba70bb",
+      "success": true,
+      "timestamp": "2026-08-22T04:06:10.484980",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_c4ed60636924629575ba",
+      "user_id": "testkey",
+      "action": "CREATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.706199",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_3d2ce925cddd0fc41850",
+      "user_id": "testkey",
+      "action": "LIST_TEAMS",
+      "resource_type": "team",
+      "resource_id": "*",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.723465",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_e28884c4b5ef46e3d74f",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.740406",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_cb0f0f801c64e228e69c",
+      "user_id": "testkey",
+      "action": "UPDATE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.759292",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_0d399074b29569af6710",
+      "user_id": "testkey",
+      "action": "GET_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.773464",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_8568433a6c7823bf7cf6",
+      "user_id": "testkey",
+      "action": "DELETE_TEAM",
+      "resource_type": "team",
+      "resource_id": "ext_team_blue",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:16.811170",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_15bc2b6811c335cba531",
+      "user_id": "testkey",
+      "action": "CREATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:17.382806",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_96413f3a315a14d09e96",
+      "user_id": "testkey",
+      "action": "GET_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:17.402912",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_439bd417a75df496f5b3",
+      "user_id": "testkey",
+      "action": "UPDATE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:17.438968",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_42e9ff83672ce1d6e22d",
+      "user_id": "testkey",
+      "action": "DELETE_GAUNTLET",
+      "resource_type": "gauntlet",
+      "resource_id": "ext_gauntlet_red",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:17.459662",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_c5ffccaa3e7cd90fbc96",
+      "user_id": "testkey",
+      "action": "RUN_WORKFLOW_EXTERNAL",
+      "resource_type": "workflow",
+      "resource_id": "158e9993-cb05-4a34-99a8-221975837bea",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:18.016627",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    },
+    {
+      "log_id": "audit_f8a7000cfacce8ce3115",
+      "user_id": "testkey",
+      "action": "GET_WORKFLOW",
+      "resource_type": "workflow",
+      "resource_id": "158e9993-cb05-4a34-99a8-221975837bea",
+      "success": true,
+      "timestamp": "2026-08-22T04:10:18.031708",
+      "ip_address": null,
+      "user_agent": null,
+      "details": {
+        "tenant_id": "default"
+      }
+    }
+  ]
+}

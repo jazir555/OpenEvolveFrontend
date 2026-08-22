@@ -21,9 +21,9 @@ try:
 except ImportError:
     from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 
 logger = logging.getLogger(__name__)
 
@@ -99,12 +99,12 @@ class WorkflowLifecycleController:
             instance_id: Instance the controls act on.
         """
         status = self.integration.get_workflow_instance_status(instance_id)
-        st.subheader(f"Lifecycle: {instance_id}")
-        st.write(status)
-        start, pause, stop = st.columns(3)
+        ui.subheader(f"Lifecycle: {instance_id}")
+        ui.write(status)
+        start, pause, stop = ui.columns(3)
         with start:
-            st.button("Start")
+            ui.button("Start")
         with pause:
-            st.button("Pause")
+            ui.button("Pause")
         with stop:
-            st.button("Stop")
+            ui.button("Stop")

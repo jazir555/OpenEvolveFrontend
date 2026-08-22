@@ -19,7 +19,7 @@ User Description → Parsing Prompts → AI Processing → Structured Fields
 - **Text Description Parser**: `text_description_parser.py` uses these prompts for field parsing
 - **AI Clients**: Prompts are sent to Claude/OpenAI for intelligent field extraction
 - **Model Generator**: Parsed fields are fed into the dynamic model generation pipeline
-- **UI Application**: Enables natural language configuration in the Streamlit interface
+- **UI Application**: Enables natural language configuration in the BubbleLab (TypeScript) interface
 
 ## Patterns
 1. **Template-Based Prompts**: Standardized prompt structures with variable injection

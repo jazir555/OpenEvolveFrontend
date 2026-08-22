@@ -20,9 +20,9 @@ try:
 except ImportError:
     from _stub_support import STUB
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 
 logger = logging.getLogger(__name__)
 
@@ -201,9 +201,9 @@ class ParameterSyncManager:
         valid: Dict[str, Any] = {}
         invalid: List[str] = []
         for name in PARAMETER_SPECS:
-            if name not in st.session_state:
+            if name not in ui.session_state:
                 continue
-            value = st.session_state[name]
+            value = ui.session_state[name]
             if self._validate_parameter(name, value):
                 valid[name] = value
             else:
@@ -268,10 +268,10 @@ class ParameterSyncManager:
             if not self._validate_parameter(name, value):
                 invalid.append(name)
                 continue
-            previous = st.session_state.get(name)
+            previous = ui.session_state.get(name)
             if previous != value:
                 self._record_parameter_change(name, previous, value, "bubblelabs")
-            st.session_state[name] = value
+            ui.session_state[name] = value
             self._from_bubblelabs[name] = value
             synced += 1
 
@@ -293,7 +293,7 @@ class ParameterSyncManager:
         """
         parameter_statuses: Dict[str, Dict[str, Any]] = {}
         for name, spec in PARAMETER_SPECS.items():
-            ui_value = st.session_state.get(name)
+            ui_value = ui.session_state.get(name)
             pushed = self._to_bubblelabs.get(name)
             parameter_statuses[name] = {
                 "name": name,

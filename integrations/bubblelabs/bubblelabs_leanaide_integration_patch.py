@@ -38,13 +38,13 @@ def _render_leanaide_integration(self):
     This method should be added to the BubbleLabsWorkflowUI class.
     """
     if not LEANAIDE_UI_AVAILABLE:
-        st.warning("LeanAide integration not available. Install bubblelabs_leanaide_ui.py")
+        ui.warning("LeanAide integration not available. Install bubblelabs_leanaide_ui.py")
         return
 
-    st.subheader("🧮 LeanAide Integration")
+    ui.subheader("🧮 LeanAide Integration")
 
     # Status indicators
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = ui.columns(3)
 
     try:
         try:
@@ -63,21 +63,21 @@ def _render_leanaide_integration(self):
             )
 
         with col1:
-            st.metric("LeanAide", "[OK]" if LEANAIDE_AVAILABLE else "[FAIL]")
+            ui.metric("LeanAide", "[OK]" if LEANAIDE_AVAILABLE else "[FAIL]")
         with col2:
-            st.metric("MCTS", "[OK]" if MCTS_AVAILABLE else "[FAIL]")
+            ui.metric("MCTS", "[OK]" if MCTS_AVAILABLE else "[FAIL]")
         with col3:
-            st.metric("Lean4", "[OK]" if LEAN4_AVAILABLE else "[FAIL]")
+            ui.metric("Lean4", "[OK]" if LEAN4_AVAILABLE else "[FAIL]")
 
     except ImportError:
         with col1:
-            st.metric("LeanAide", "[FAIL]")
+            ui.metric("LeanAide", "[FAIL]")
         with col2:
-            st.metric("MCTS", "[FAIL]")
+            ui.metric("MCTS", "[FAIL]")
         with col3:
-            st.metric("Lean4", "[FAIL]")
+            ui.metric("Lean4", "[FAIL]")
 
-    st.markdown("---")
+    ui.markdown("---")
 
     # Render LeanAide UI component
     try:
@@ -87,11 +87,11 @@ def _render_leanaide_integration(self):
         self._render_leanaide_quick_actions(leanaide_ui)
 
         # Add expander for full LeanAide interface
-        with st.expander("🔧 Advanced LeanAide Controls", expanded=False):
+        with ui.expander("🔧 Advanced LeanAide Controls", expanded=False):
             leanaide_ui.render_leanaide_control_panel()
 
     except Exception as e:  # TODO: Catch specific exception instead of Exception
-        st.error(f"Error loading LeanAide: {e}")
+        ui.error(f"Error loading LeanAide: {e}")
 
 
 def _render_leanaide_quick_actions(self, leanaide_ui):
@@ -105,50 +105,50 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
     except ImportError:
         from bubblelabs_leanaide_integration import get_leanaide_bridge, LeanAideTaskType
 
-    st.markdown("### Quick Actions")
+    ui.markdown("### Quick Actions")
 
     # Quick theorem translation
-    with st.expander("🔄 Quick Theorem Translation", expanded=False):
-        quick_theorem = st.text_area(
+    with ui.expander("🔄 Quick Theorem Translation", expanded=False):
+        quick_theorem = ui.text_area(
             "Theorem",
             placeholder="Enter theorem to translate...",
             height=80,
             key="quick_theorem"
         )
 
-        if st.button("Translate", key="quick_translate_btn"):
+        if ui.button("Translate", key="quick_translate_btn"):
             if quick_theorem:
                 bridge = get_leanaide_bridge()
-                with st.spinner("Translating..."):
+                with ui.spinner("Translating..."):
                     result = bridge.execute_task(
                         LeanAideTaskType.TRANSLATE_THEOREM,
                         theorem_text=quick_theorem
                     )
 
                 if result.success:
-                    st.success("Translation successful!")
-                    st.code(result.data.get("lean_code", ""), language="lean")
+                    ui.success("Translation successful!")
+                    ui.code(result.data.get("lean_code", ""), language="lean")
 
                     # Option to add to workflow
-                    if st.button("Add to Workflow", key="add_translation_to_workflow"):
+                    if ui.button("Add to Workflow", key="add_translation_to_workflow"):
                         # This would add the translated code to the current workflow
-                        st.info("Added to workflow (feature to be implemented)")
+                        ui.info("Added to workflow (feature to be implemented)")
                 else:
-                    st.error(f"Translation failed: {result.error}")
+                    ui.error(f"Translation failed: {result.error}")
 
     # Quick proof verification
-    with st.expander("[OK] Quick Code Verification", expanded=False):
-        quick_code = st.text_area(
+    with ui.expander("[OK] Quick Code Verification", expanded=False):
+        quick_code = ui.text_area(
             "Lean Code",
             placeholder="Enter Lean code to verify...",
             height=100,
             key="quick_verify_code"
         )
 
-        if st.button("Verify", key="quick_verify_btn"):
+        if ui.button("Verify", key="quick_verify_btn"):
             if quick_code:
                 bridge = get_leanaide_bridge()
-                with st.spinner("Verifying..."):
+                with ui.spinner("Verifying..."):
                     result = bridge.execute_task(
                         LeanAideTaskType.VERIFY_SOLUTION,
                         code=quick_code
@@ -159,57 +159,57 @@ def _render_leanaide_quick_actions(self, leanaide_ui):
                     unproven = result.data.get("unproven_count", 0)
 
                     if is_valid:
-                        st.success(f"[OK] Code is valid! No unproven obligations.")
+                        ui.success(f"[OK] Code is valid! No unproven obligations.")
                     else:
-                        st.warning(f"[WARN] {unproven} unproven obligation(s)")
+                        ui.warning(f"[WARN] {unproven} unproven obligation(s)")
 
                     # Show errors if any
                     if result.data.get("sorries_after_purge"):
-                        st.markdown("**Unsolved Goals:**")
+                        ui.markdown("**Unsolved Goals:**")
                         for sorry in result.data["sorries_after_purge"][:3]:
-                            st.text(str(sorry))
+                            ui.text(str(sorry))
                 else:
-                    st.error(f"Verification failed: {result.error}")
+                    ui.error(f"Verification failed: {result.error}")
 
     # Active LeanAide results
-    with st.expander("📊 Active Results", expanded=False):
+    with ui.expander("📊 Active Results", expanded=False):
         bridge = get_leanaide_bridge()
 
         # Active MCTS trees
         trees = bridge.get_all_trees()
         if trees:
-            st.markdown("**MCTS Trees:**")
+            ui.markdown("**MCTS Trees:**")
             for tree_id in trees[:3]:  # Show first 3
                 tree = bridge.get_tree(tree_id)
                 if tree:
-                    col1, col2, col3 = st.columns(3)
+                    col1, col2, col3 = ui.columns(3)
                     with col1:
-                        st.text(tree.theorem[:50] + "...")
+                        ui.text(tree.theorem[:50] + "...")
                     with col2:
-                        st.metric("Nodes", len(tree.nodes))
+                        ui.metric("Nodes", len(tree.nodes))
                     with col3:
-                        st.metric("Win Rate", f"{tree.statistics.get('win_rate', 0):.2%}")
+                        ui.metric("Win Rate", f"{tree.statistics.get('win_rate', 0):.2%}")
         else:
-            st.info("No active MCTS trees")
+            ui.info("No active MCTS trees")
 
-        st.markdown("---")
+        ui.markdown("---")
 
         # Active proofs
         proofs = bridge.get_all_proofs()
         if proofs:
-            st.markdown("**Proofs:**")
+            ui.markdown("**Proofs:**")
             for proof_id in proofs[:3]:  # Show first 3
                 proof = bridge.get_proof(proof_id)
                 if proof:
-                    col1, col2, col3 = st.columns(3)
+                    col1, col2, col3 = ui.columns(3)
                     with col1:
-                        st.text(proof.theorem_name)
+                        ui.text(proof.theorem_name)
                     with col2:
-                        st.metric("Steps", len(proof.steps))
+                        ui.metric("Steps", len(proof.steps))
                     with col3:
-                        st.metric("Verified", "[OK]" if proof.is_verified else "[FAIL]")
+                        ui.metric("Verified", "[OK]" if proof.is_verified else "[FAIL]")
         else:
-            st.info("No active proofs")
+            ui.info("No active proofs")
 
 
 # =============================================================================
@@ -221,10 +221,10 @@ In the render_workflow_visualizer method of BubbleLabsWorkflowUI,
 add LeanAide to the tabs list:
 
 ORIGINAL CODE (around line 288):
-    tabs = st.tabs(["Workflow Designer", "Active Workflows", "Workflow Control", "Global Parameters"])
+    tabs = ui.tabs(["Workflow Designer", "Active Workflows", "Workflow Control", "Global Parameters"])
 
 MODIFIED CODE:
-    tabs = st.tabs([
+    tabs = ui.tabs([
         "Workflow Designer",
         "Active Workflows",
         "Workflow Control",
@@ -270,21 +270,21 @@ def add_leanaide_to_sidebar():
 
         # Add sidebar status indicator
         try:
-            from .ui_shim import ui as st
+            from .ui_shim import ui
         except ImportError:
-            from ui_shim import ui as st
+            from ui_shim import ui
 
-        with st.sidebar:
-            st.markdown("---")
-            st.markdown("### 🧮 LeanAide")
+        with ui.sidebar:
+            ui.markdown("---")
+            ui.markdown("### 🧮 LeanAide")
 
             if status.get('leanaide_available'):
-                st.success("Connected")
+                ui.success("Connected")
             else:
-                st.warning("Not Available")
+                ui.warning("Not Available")
 
-            if st.button("Open LeanAide Panel", key="sidebar_leanaide_btn"):
-                st.session_state['selected_tab'] = "LeanAide"
+            if ui.button("Open LeanAide Panel", key="sidebar_leanaide_btn"):
+                ui.session_state['selected_tab'] = "LeanAide"
 
     except ImportError:
         import logging
@@ -557,11 +557,11 @@ def example_integrated_workflow():
     This demonstrates how LeanAide nodes can be used in BubbleLabs workflows.
     """
     try:
-        from .ui_shim import ui as st
+        from .ui_shim import ui
     except ImportError:
-        from ui_shim import ui as st
+        from ui_shim import ui
 
-    st.title("BubbleLabs + LeanAide Integrated Workflow")
+    ui.title("BubbleLabs + LeanAide Integrated Workflow")
 
     # Initialize LeanAide bridge
     try:
@@ -581,21 +581,21 @@ def example_integrated_workflow():
     bridge = get_leanaide_bridge()
 
     # Show status
-    st.json(status)
+    ui.json(status)
 
     # Example workflow using LeanAide nodes
-    st.markdown("### Example Workflow: Prove a Theorem")
+    ui.markdown("### Example Workflow: Prove a Theorem")
 
     # Step 1: Input theorem
-    theorem = st.text_area(
+    theorem = ui.text_area(
         "Step 1: Enter Theorem",
         value="There are infinitely many prime numbers",
         height=80
     )
 
     # Step 2: Translate
-    if st.button("Step 2: Translate to Lean"):
-        with st.spinner("Translating..."):
+    if ui.button("Step 2: Translate to Lean"):
+        with ui.spinner("Translating..."):
             result = bridge.execute_task(
                 LeanAideTaskType.TRANSLATE_THEOREM,
                 theorem_text=theorem,
@@ -603,37 +603,37 @@ def example_integrated_workflow():
             )
 
         if result.success:
-            st.success("Translation successful!")
-            st.code(result.data["lean_code"], language="lean")
+            ui.success("Translation successful!")
+            ui.code(result.data["lean_code"], language="lean")
 
             # Store for next step
-            st.session_state["translated_lean"] = result.data["lean_code"]
+            ui.session_state["translated_lean"] = result.data["lean_code"]
         else:
-            st.error(f"Translation failed: {result.error}")
+            ui.error(f"Translation failed: {result.error}")
 
     # Step 3: Generate proof
-    if "translated_lean" in st.session_state:
-        if st.button("Step 3: Generate Proof"):
-            with st.spinner("Generating proof..."):
+    if "translated_lean" in ui.session_state:
+        if ui.button("Step 3: Generate Proof"):
+            with ui.spinner("Generating proof..."):
                 result = bridge.execute_task(
                     LeanAideTaskType.GENERATE_PROOF,
                     theorem_text=theorem
                 )
 
             if result.success:
-                st.success("Proof generated!")
-                st.markdown(result.data.get("proof_document", ""))
+                ui.success("Proof generated!")
+                ui.markdown(result.data.get("proof_document", ""))
 
                 if result.data.get("lean_proof"):
-                    st.code(result.data["lean_proof"], language="lean")
+                    ui.code(result.data["lean_proof"], language="lean")
             else:
-                st.error(f"Proof generation failed: {result.error}")
+                ui.error(f"Proof generation failed: {result.error}")
 
     # Step 4: Verify
-    if "translated_lean" in st.session_state:
-        if st.button("Step 4: Verify Proof"):
-            with st.spinner("Verifying..."):
-                lean_code = st.session_state.get("translated_lean", "")
+    if "translated_lean" in ui.session_state:
+        if ui.button("Step 4: Verify Proof"):
+            with ui.spinner("Verifying..."):
+                lean_code = ui.session_state.get("translated_lean", "")
                 result = bridge.execute_task(
                     LeanAideTaskType.VERIFY_SOLUTION,
                     code=lean_code
@@ -642,11 +642,11 @@ def example_integrated_workflow():
             if result.success:
                 is_valid = result.data.get("is_valid", False)
                 if is_valid:
-                    st.success("[OK] Proof is valid!")
+                    ui.success("[OK] Proof is valid!")
                 else:
-                    st.warning(f"[WARN] Proof has {result.data.get('unproven_count', 0)} unproven obligations")
+                    ui.warning(f"[WARN] Proof has {result.data.get('unproven_count', 0)} unproven obligations")
             else:
-                st.error(f"Verification failed: {result.error}")
+                ui.error(f"Verification failed: {result.error}")
 
 
 # =============================================================================

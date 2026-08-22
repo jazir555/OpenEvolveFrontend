@@ -17,9 +17,9 @@ from __future__ import annotations
 
 
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 from typing import Optional
 
 
@@ -39,14 +39,14 @@ def extend_bubblelabs_ui(ui_instance):
 
     def extended_render():
         """Extended render method with Evolution/Adversarial tabs"""
-        st.header("🧬 OpenEvolve Workflows in BubbleLabs")
-        st.markdown("""
+        ui.header("🧬 OpenEvolve Workflows in BubbleLabs")
+        ui.markdown("""
         Visualize, interact with, and control OpenEvolve sovereign-grade decomposition,
         evolution, and adversarial testing workflows through the BubbleLabs interface.
         """)
 
         # Create tabs with new additions
-        tabs = st.tabs([
+        tabs = ui.tabs([
             "Workflow Designer",
             "Evolution Workflows",
             "Adversarial Testing",
@@ -90,7 +90,7 @@ def _render_evolution_workflows_tab(ui_instance):
     except ImportError:
         from bubblelabs_evolution_controls import EvolutionControlPanel, PopulationVisualizer
 
-    st.subheader("🧬 Evolution Workflows")
+    ui.subheader("🧬 Evolution Workflows")
 
     # Evolution type selection
     workflow_types = {
@@ -100,7 +100,7 @@ def _render_evolution_workflows_tab(ui_instance):
         "hybrid": "Hybrid MAKER+MDAP Evolution",
     }
 
-    selected_type = st.selectbox(
+    selected_type = ui.selectbox(
         "Evolution Type",
         options=list(workflow_types.keys()),
         format_func=lambda x: workflow_types[x],
@@ -108,18 +108,18 @@ def _render_evolution_workflows_tab(ui_instance):
     )
 
     # Problem setup
-    col1, col2 = st.columns(2)
+    col1, col2 = ui.columns(2)
 
     with col1:
-        st.markdown("### 🎯 Problem Setup")
-        initial_content = st.text_area(
+        ui.markdown("### 🎯 Problem Setup")
+        initial_content = ui.text_area(
             "Initial Content/Program",
             placeholder="Enter initial code, prompt, or content to evolve...",
             height=200,
             key="bl_evo_initial_content"
         )
 
-        content_type = st.selectbox(
+        content_type = ui.selectbox(
             "Content Type",
             options=["code", "text", "markdown", "json", "python"],
             key="bl_evo_content_type"
@@ -131,13 +131,13 @@ def _render_evolution_workflows_tab(ui_instance):
         state = control_panel.render(key_prefix="bl_evo")
 
     # Start button
-    if st.button("🚀 Start Evolution", type="primary", key="bl_start_evo"):
+    if ui.button("🚀 Start Evolution", type="primary", key="bl_start_evo"):
         if not initial_content.strip():
-            st.error("Please provide initial content to evolve")
+            ui.error("Please provide initial content to evolve")
             return
 
-        st.success(f"Evolution started with {selected_type} mode!")
-        st.info("Monitor progress in the 'Active Tasks' tab")
+        ui.success(f"Evolution started with {selected_type} mode!")
+        ui.info("Monitor progress in the 'Active Tasks' tab")
 
 
 def _render_adversarial_testing_tab(ui_instance):
@@ -147,7 +147,7 @@ def _render_adversarial_testing_tab(ui_instance):
     except ImportError:
         from bubblelabs_evolution_controls import AdversarialControlPanel
 
-    st.subheader("⚔️ Adversarial Testing")
+    ui.subheader("⚔️ Adversarial Testing")
 
     # Mode selection
     adversarial_modes = {
@@ -158,7 +158,7 @@ def _render_adversarial_testing_tab(ui_instance):
         "maker_full": "Full MAKER+MDAP Adversarial"
     }
 
-    selected_mode = st.selectbox(
+    selected_mode = ui.selectbox(
         "Adversarial Mode",
         options=list(adversarial_modes.keys()),
         format_func=lambda x: adversarial_modes[x],
@@ -166,18 +166,18 @@ def _render_adversarial_testing_tab(ui_instance):
     )
 
     # Configuration
-    col1, col2 = st.columns(2)
+    col1, col2 = ui.columns(2)
 
     with col1:
-        st.markdown("### 🎯 Target Configuration")
-        target_content = st.text_area(
+        ui.markdown("### 🎯 Target Configuration")
+        target_content = ui.text_area(
             "Target Content to Test",
             placeholder="Enter code, prompt, or content for adversarial testing...",
             height=200,
             key="bl_adv_target_content"
         )
 
-        content_type = st.selectbox(
+        content_type = ui.selectbox(
             "Content Type",
             options=["document_general", "code", "prompt", "api_response"],
             key="bl_adv_content_type"
@@ -189,86 +189,86 @@ def _render_adversarial_testing_tab(ui_instance):
         config = control_panel.render(key_prefix="bl_adv")
 
     # Start button
-    if st.button("⚔️ Start Adversarial Testing", type="primary", key="bl_start_adv"):
+    if ui.button("⚔️ Start Adversarial Testing", type="primary", key="bl_start_adv"):
         if not target_content.strip():
-            st.error("Please provide target content for adversarial testing")
+            ui.error("Please provide target content for adversarial testing")
             return
 
-        st.success(f"Adversarial testing started with {selected_mode} mode!")
-        st.info("Monitor progress in the 'Active Tasks' tab")
+        ui.success(f"Adversarial testing started with {selected_mode} mode!")
+        ui.info("Monitor progress in the 'Active Tasks' tab")
 
 
 def _render_active_tasks_tab():
     """Render Active Tasks monitoring tab"""
-    st.subheader("🔄 Active Tasks")
+    ui.subheader("🔄 Active Tasks")
 
     # Check for active tasks in session state
-    if "evolution_tasks" not in st.session_state:
-        st.session_state.evolution_tasks = {}
+    if "evolution_tasks" not in ui.session_state:
+        ui.session_state.evolution_tasks = {}
 
-    active_tasks = st.session_state.evolution_tasks
+    active_tasks = ui.session_state.evolution_tasks
 
     if not active_tasks:
-        st.info("No active tasks. Start an evolution or adversarial test from the other tabs.")
+        ui.info("No active tasks. Start an evolution or adversarial test from the other tabs.")
         return
 
     # Display tasks
     for task_id, task_data in active_tasks.items():
-        with st.expander(f"📊 Task {task_id}", expanded=True):
-            col1, col2, col3 = st.columns(3)
+        with ui.expander(f"📊 Task {task_id}", expanded=True):
+            col1, col2, col3 = ui.columns(3)
 
             with col1:
-                st.metric("Status", task_data.get("status", "unknown"))
+                ui.metric("Status", task_data.get("status", "unknown"))
 
             with col2:
                 if task_data.get("type") == "evolution":
-                    st.metric("Generation", f"{task_data.get('current_gen', 0)}/{task_data.get('max_gen', 0)}")
+                    ui.metric("Generation", f"{task_data.get('current_gen', 0)}/{task_data.get('max_gen', 0)}")
                 else:
-                    st.metric("Round", f"{task_data.get('current_round', 0)}/{task_data.get('max_rounds', 0)}")
+                    ui.metric("Round", f"{task_data.get('current_round', 0)}/{task_data.get('max_rounds', 0)}")
 
             with col3:
-                if st.button("⏹️ Stop", key=f"stop_{task_id}"):
+                if ui.button("⏹️ Stop", key=f"stop_{task_id}"):
                     del active_tasks[task_id]
-                    st.rerun()
+                    ui.rerun()
 
 
 def _render_analytics_tab():
     """Render Analytics dashboard tab"""
-    st.subheader("📊 Analytics & Metrics")
+    ui.subheader("📊 Analytics & Metrics")
 
     # Check for task history
-    if "evolution_history" not in st.session_state:
-        st.session_state.evolution_history = []
+    if "evolution_history" not in ui.session_state:
+        ui.session_state.evolution_history = []
 
-    history = st.session_state.evolution_history
+    history = ui.session_state.evolution_history
 
     if not history:
-        st.info("No completed tasks to analyze yet.")
+        ui.info("No completed tasks to analyze yet.")
         return
 
     # Summary metrics
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = ui.columns(3)
 
     with col1:
         evo_tasks = [t for t in history if t.get("type") == "evolution"]
-        st.metric("Evolution Tasks", len(evo_tasks))
+        ui.metric("Evolution Tasks", len(evo_tasks))
 
     with col2:
         adv_tasks = [t for t in history if t.get("type") == "adversarial"]
-        st.metric("Adversarial Tasks", len(adv_tasks))
+        ui.metric("Adversarial Tasks", len(adv_tasks))
 
     with col3:
         success_rate = len([t for t in history if t.get("status") == "completed"])
-        st.metric("Success Rate", f"{success_rate / len(history) * 100:.1f}%")
+        ui.metric("Success Rate", f"{success_rate / len(history) * 100:.1f}%")
 
     # Detailed results
-    st.markdown("### 📈 Performance History")
+    ui.markdown("### 📈 Performance History")
 
     import pandas as pd
     df = pd.DataFrame(history)
 
     if not df.empty:
-        st.dataframe(df, use_container_width=True)
+        ui.dataframe(df, use_container_width=True)
 
 
 # =============================================================================
@@ -302,13 +302,13 @@ def render_evolution_controls_standalone():
     except ImportError:
         from bubblelabs_evolution_controls import EvolutionControlPanel
 
-    st.header("🧬 Evolution Controls")
+    ui.header("🧬 Evolution Controls")
 
     panel = EvolutionControlPanel()
     state = panel.render()
 
-    if st.button("Apply Configuration"):
-        st.json(state.__dict__)
+    if ui.button("Apply Configuration"):
+        ui.json(state.__dict__)
 
 
 def render_adversarial_controls_standalone():
@@ -322,13 +322,13 @@ def render_adversarial_controls_standalone():
     except ImportError:
         from bubblelabs_evolution_controls import AdversarialControlPanel
 
-    st.header("⚔️ Adversarial Testing Controls")
+    ui.header("⚔️ Adversarial Testing Controls")
 
     panel = AdversarialControlPanel()
     config = panel.render()
 
-    if st.button("Apply Configuration"):
-        st.json(config)
+    if ui.button("Apply Configuration"):
+        ui.json(config)
 
 
 # =============================================================================
@@ -357,17 +357,17 @@ def example_extended_bubblelabs():
 def example_embedded_evolution():
     """Example of embedding evolution controls in custom app"""
 
-    st.title("My Custom App")
+    ui.title("My Custom App")
 
     # Add evolution controls
-    with st.sidebar:
+    with ui.sidebar:
         render_evolution_controls_standalone()
 
     # Main content
-    st.markdown("## My Content")
+    ui.markdown("## My Content")
 
     # Add adversarial controls
-    with st.expander("Security Testing"):
+    with ui.expander("Security Testing"):
         render_adversarial_controls_standalone()
 
 
@@ -377,7 +377,7 @@ def example_embedded_evolution():
 
 def page_extended_bubblelabs():
     """UI page for extended BubbleLabs"""
-    st.set_page_config(
+    ui.set_page_config(
         page_title="Extended BubbleLabs",
         page_icon="🧬",
         layout="wide"
@@ -388,7 +388,7 @@ def page_extended_bubblelabs():
 
 def page_evolution_standalone():
     """UI page for standalone evolution dashboard"""
-    st.set_page_config(
+    ui.set_page_config(
         page_title="Evolution Dashboard",
         page_icon="🧬",
         layout="wide"

@@ -13,9 +13,9 @@ from __future__ import annotations
 
 
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
@@ -106,7 +106,7 @@ class EvolutionControlPanel:
         Returns:
             EvolutionControlState with current parameter values
         """
-        st.markdown("### 🎛️ Evolution Controls")
+        ui.markdown("### 🎛️ Evolution Controls")
 
         # Preset selection
         preset_options = list(self.presets.keys())
@@ -119,7 +119,7 @@ class EvolutionControlPanel:
             "hybrid": "Hybrid (MAKER + MDAP)"
         }
 
-        selected_preset = st.selectbox(
+        selected_preset = ui.selectbox(
             "Configuration Preset",
             options=preset_options,
             format_func=lambda x: preset_labels.get(x, x),
@@ -130,7 +130,7 @@ class EvolutionControlPanel:
         state = EvolutionControlState(**asdict(self.presets[selected_preset]))
 
         # Create tabs for different parameter categories
-        tabs = st.tabs([
+        tabs = ui.tabs([
             "Population",
             "Genetic Operators",
             "Evolution",
@@ -160,12 +160,12 @@ class EvolutionControlPanel:
         key_prefix: str
     ) -> EvolutionControlState:
         """Render population-related controls"""
-        st.markdown("#### 👥 Population Parameters")
+        ui.markdown("#### 👥 Population Parameters")
 
-        col1, col2 = st.columns(2)
+        col1, col2 = ui.columns(2)
 
         with col1:
-            state.population_size = st.number_input(
+            state.population_size = ui.number_input(
                 "Population Size",
                 min_value=2,
                 max_value=500,
@@ -174,7 +174,7 @@ class EvolutionControlPanel:
                 key=f"{key_prefix}_pop_size"
             )
 
-            state.selection_method = st.selectbox(
+            state.selection_method = ui.selectbox(
                 "Selection Method",
                 options=["tournament", "roulette", "rank", "steady_state"],
                 index=0,
@@ -184,7 +184,7 @@ class EvolutionControlPanel:
 
         with col2:
             if state.selection_method == "tournament":
-                state.tournament_size = st.number_input(
+                state.tournament_size = ui.number_input(
                     "Tournament Size",
                     min_value=2,
                     max_value=20,
@@ -193,7 +193,7 @@ class EvolutionControlPanel:
                     key=f"{key_prefix}_tournament"
                 )
 
-            state.elitism_count = st.number_input(
+            state.elitism_count = ui.number_input(
                 "Elitism Count",
                 min_value=0,
                 max_value=20,
@@ -210,12 +210,12 @@ class EvolutionControlPanel:
         key_prefix: str
     ) -> EvolutionControlState:
         """Render genetic operator controls"""
-        st.markdown("#### 🧬 Genetic Operators")
+        ui.markdown("#### 🧬 Genetic Operators")
 
-        col1, col2 = st.columns(2)
+        col1, col2 = ui.columns(2)
 
         with col1:
-            state.mutation_rate = st.slider(
+            state.mutation_rate = ui.slider(
                 "Mutation Rate",
                 min_value=0.0,
                 max_value=1.0,
@@ -225,7 +225,7 @@ class EvolutionControlPanel:
                 key=f"{key_prefix}_mutation_rate"
             )
 
-            state.mutation_strength = st.slider(
+            state.mutation_strength = ui.slider(
                 "Mutation Strength",
                 min_value=0.0,
                 max_value=1.0,
@@ -236,7 +236,7 @@ class EvolutionControlPanel:
             )
 
         with col2:
-            state.crossover_rate = st.slider(
+            state.crossover_rate = ui.slider(
                 "Crossover Rate",
                 min_value=0.0,
                 max_value=1.0,
@@ -247,7 +247,7 @@ class EvolutionControlPanel:
             )
 
             # Mutation type
-            mutation_type = st.selectbox(
+            mutation_type = ui.selectbox(
                 "Mutation Type",
                 options=["point", "gaussian", "uniform", "adaptive"],
                 index=0,
@@ -262,12 +262,12 @@ class EvolutionControlPanel:
         key_prefix: str
     ) -> EvolutionControlState:
         """Render evolution parameter controls"""
-        st.markdown("#### 🔄 Evolution Parameters")
+        ui.markdown("#### 🔄 Evolution Parameters")
 
-        col1, col2 = st.columns(2)
+        col1, col2 = ui.columns(2)
 
         with col1:
-            state.max_generations = st.number_input(
+            state.max_generations = ui.number_input(
                 "Max Generations",
                 min_value=1,
                 max_value=1000,
@@ -276,7 +276,7 @@ class EvolutionControlPanel:
                 key=f"{key_prefix}_max_gen"
             )
 
-            state.convergence_threshold = st.number_input(
+            state.convergence_threshold = ui.number_input(
                 "Convergence Threshold",
                 min_value=0.0,
                 max_value=0.1,
@@ -288,7 +288,7 @@ class EvolutionControlPanel:
             )
 
         with col2:
-            state.diversity_threshold = st.slider(
+            state.diversity_threshold = ui.slider(
                 "Diversity Threshold",
                 min_value=0.0,
                 max_value=1.0,
@@ -299,7 +299,7 @@ class EvolutionControlPanel:
             )
 
             # Stopping conditions
-            stopping_condition = st.selectbox(
+            stopping_condition = ui.selectbox(
                 "Stopping Condition",
                 options=["generations", "convergence", "both"],
                 index=2,
@@ -315,11 +315,11 @@ class EvolutionControlPanel:
         key_prefix: str
     ) -> EvolutionControlState:
         """Render advanced feature controls"""
-        st.markdown("#### 🚀 Advanced Features")
+        ui.markdown("#### 🚀 Advanced Features")
 
         # MAKER Voting
-        st.markdown("**MAKER Voting**")
-        state.enable_maker_voting = st.checkbox(
+        ui.markdown("**MAKER Voting**")
+        state.enable_maker_voting = ui.checkbox(
             "Enable MAKER Voting",
             value=state.enable_maker_voting,
             help="Use first-to-ahead-by-k voting for selection",
@@ -327,9 +327,9 @@ class EvolutionControlPanel:
         )
 
         if state.enable_maker_voting:
-            col1, col2 = st.columns(2)
+            col1, col2 = ui.columns(2)
             with col1:
-                state.voting_threshold = st.number_input(
+                state.voting_threshold = ui.number_input(
                     "Voting Threshold (k)",
                     min_value=1,
                     max_value=10,
@@ -339,7 +339,7 @@ class EvolutionControlPanel:
                 )
 
             with col2:
-                adaptive_voting = st.checkbox(
+                adaptive_voting = ui.checkbox(
                     "Adaptive Voting",
                     value=True,
                     help="Adjust threshold based on diversity",
@@ -347,8 +347,8 @@ class EvolutionControlPanel:
                 )
 
         # MDAP Decomposition
-        st.markdown("**MDAP Decomposition**")
-        state.enable_mdap_decomposition = st.checkbox(
+        ui.markdown("**MDAP Decomposition**")
+        state.enable_mdap_decomposition = ui.checkbox(
             "Enable MDAP Decomposition",
             value=state.enable_mdap_decomposition,
             help="Decompose evolution task into subtasks",
@@ -356,9 +356,9 @@ class EvolutionControlPanel:
         )
 
         if state.enable_mdap_decomposition:
-            col1, col2 = st.columns(2)
+            col1, col2 = ui.columns(2)
             with col1:
-                state.decomposition_depth = st.number_input(
+                state.decomposition_depth = ui.number_input(
                     "Decomposition Depth",
                     min_value=1,
                     max_value=10,
@@ -368,7 +368,7 @@ class EvolutionControlPanel:
                 )
 
             with col2:
-                max_subtasks = st.number_input(
+                max_subtasks = ui.number_input(
                     "Max Subtasks",
                     min_value=1,
                     max_value=50,
@@ -402,7 +402,7 @@ class EvolutionControlPanel:
             warnings.append("[WARN] Voting threshold may be too high for population size")
 
         if warnings:
-            st.warning("\n".join(warnings))
+            ui.warning("\n".join(warnings))
 
 
 class PopulationVisualizer:
@@ -419,19 +419,19 @@ class PopulationVisualizer:
         diversity: float
     ):
         """Render population overview metrics"""
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = ui.columns(4)
 
         with col1:
-            st.metric("Population Size", population_size)
+            ui.metric("Population Size", population_size)
 
         with col2:
-            st.metric("Generation", current_generation)
+            ui.metric("Generation", current_generation)
 
         with col3:
-            st.metric("Best Fitness", f"{best_fitness:.4f}")
+            ui.metric("Best Fitness", f"{best_fitness:.4f}")
 
         with col4:
-            st.metric("Diversity", f"{diversity:.3f}")
+            ui.metric("Diversity", f"{diversity:.3f}")
 
     def render_fitness_distribution(
         self,
@@ -440,7 +440,7 @@ class PopulationVisualizer:
     ):
         """Render histogram of fitness values"""
         if not fitness_values:
-            st.info("No fitness data available")
+            ui.info("No fitness data available")
             return
 
         fig = go.Figure(data=[go.Histogram(
@@ -457,7 +457,7 @@ class PopulationVisualizer:
             height=300
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        ui.plotly_chart(fig, use_container_width=True)
 
     def render_diversity_heatmap(
         self,
@@ -466,7 +466,7 @@ class PopulationVisualizer:
     ):
         """Render heatmap showing pairwise distances between individuals"""
         if len(population_data) < 2:
-            st.info("Need at least 2 individuals for diversity visualization")
+            ui.info("Need at least 2 individuals for diversity visualization")
             return
 
         # Calculate pairwise distances
@@ -499,7 +499,7 @@ class PopulationVisualizer:
             height=400
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        ui.plotly_chart(fig, use_container_width=True)
 
     def render_fitness_landscape_3d(
         self,
@@ -509,7 +509,7 @@ class PopulationVisualizer:
     ):
         """Render 3D surface plot of fitness landscape"""
         if len(generations) < 3:
-            st.info("Need at least 3 generations for landscape visualization")
+            ui.info("Need at least 3 generations for landscape visualization")
             return
 
         # Create meshgrid for 3D plot
@@ -540,7 +540,7 @@ class PopulationVisualizer:
             height=500
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        ui.plotly_chart(fig, use_container_width=True)
 
 
 class AdversarialControlPanel:
@@ -581,10 +581,10 @@ class AdversarialControlPanel:
 
     def render(self, key_prefix: str = "adv_ctrl") -> Dict[str, Any]:
         """Render adversarial control panel"""
-        st.markdown("### ⚔️ Adversarial Testing Controls")
+        ui.markdown("### ⚔️ Adversarial Testing Controls")
 
         # Preset selection
-        preset = st.selectbox(
+        preset = ui.selectbox(
             "Configuration Preset",
             options=list(self.presets.keys()),
             format_func=lambda x: x.replace("_", " ").title(),
@@ -594,11 +594,11 @@ class AdversarialControlPanel:
         config = self.presets[preset].copy()
 
         # Custom configuration
-        with st.expander("Custom Configuration", expanded=False):
-            col1, col2 = st.columns(2)
+        with ui.expander("Custom Configuration", expanded=False):
+            col1, col2 = ui.columns(2)
 
             with col1:
-                config["rounds"] = st.number_input(
+                config["rounds"] = ui.number_input(
                     "Adversarial Rounds",
                     min_value=1,
                     max_value=20,
@@ -606,7 +606,7 @@ class AdversarialControlPanel:
                     key=f"{key_prefix}_rounds"
                 )
 
-                config["red_team_size"] = st.number_input(
+                config["red_team_size"] = ui.number_input(
                     "Red Team Size",
                     min_value=1,
                     max_value=10,
@@ -615,7 +615,7 @@ class AdversarialControlPanel:
                 )
 
             with col2:
-                config["blue_team_size"] = st.number_input(
+                config["blue_team_size"] = ui.number_input(
                     "Blue Team Size",
                     min_value=1,
                     max_value=10,
@@ -623,7 +623,7 @@ class AdversarialControlPanel:
                     key=f"{key_prefix}_blue_size"
                 )
 
-                config["attack_strength"] = st.slider(
+                config["attack_strength"] = ui.slider(
                     "Attack Strength",
                     min_value=0.0,
                     max_value=1.0,
@@ -633,20 +633,20 @@ class AdversarialControlPanel:
                 )
 
             # Advanced options
-            config["coevolution"] = st.checkbox(
+            config["coevolution"] = ui.checkbox(
                 "Enable Coevolution",
                 value=False,
                 help="Attack and defense evolve together",
                 key=f"{key_prefix}_coevolution"
             )
 
-            config["enable_maker_voting"] = st.checkbox(
+            config["enable_maker_voting"] = ui.checkbox(
                 "Enable MAKER Red Team Voting",
                 value=config.get("enable_maker_voting", False),
                 key=f"{key_prefix}_maker_voting"
             )
 
-            config["enable_mdap_defense"] = st.checkbox(
+            config["enable_mdap_defense"] = ui.checkbox(
                 "Enable MDAP Blue Team Decomposition",
                 value=config.get("enable_mdap_defense", False),
                 key=f"{key_prefix}_mdap_defense"
@@ -662,40 +662,40 @@ class AdversarialControlPanel:
     ):
         """Render adversarial testing results"""
         # Metrics
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = ui.columns(4)
 
         with col1:
-            st.metric("Vulnerabilities Found", len(vulnerabilities))
+            ui.metric("Vulnerabilities Found", len(vulnerabilities))
 
         with col2:
-            st.metric("Fixes Applied", len(fixes))
+            ui.metric("Fixes Applied", len(fixes))
 
         with col3:
-            st.metric("Attack Success Rate", f"{metrics.get('attack_success_rate', 0) * 100:.1f}%")
+            ui.metric("Attack Success Rate", f"{metrics.get('attack_success_rate', 0) * 100:.1f}%")
 
         with col4:
-            st.metric("Defense Success Rate", f"{metrics.get('defense_success_rate', 0) * 100:.1f}%")
+            ui.metric("Defense Success Rate", f"{metrics.get('defense_success_rate', 0) * 100:.1f}%")
 
         # Vulnerability details
         if vulnerabilities:
-            st.markdown("### 🔴 Vulnerabilities Found")
+            ui.markdown("### 🔴 Vulnerabilities Found")
 
             for i, vuln in enumerate(vulnerabilities[:10]):  # Show top 10
-                with st.expander(f"{i+1}. {vuln.get('title', 'Untitled')}", expanded=False):
-                    st.markdown(f"**Severity:** {vuln.get('severity', 'N/A')}")
-                    st.markdown(f"**Category:** {vuln.get('category', 'N/A')}")
-                    st.markdown(f"**Description:** {vuln.get('description', 'N/A')}")
+                with ui.expander(f"{i+1}. {vuln.get('title', 'Untitled')}", expanded=False):
+                    ui.markdown(f"**Severity:** {vuln.get('severity', 'N/A')}")
+                    ui.markdown(f"**Category:** {vuln.get('category', 'N/A')}")
+                    ui.markdown(f"**Description:** {vuln.get('description', 'N/A')}")
                     if vuln.get('recommendation'):
-                        st.markdown(f"**Recommendation:** {vuln['recommendation']}")
+                        ui.markdown(f"**Recommendation:** {vuln['recommendation']}")
 
         # Fix details
         if fixes:
-            st.markdown("### 🔵 Fixes Applied")
+            ui.markdown("### 🔵 Fixes Applied")
 
             for i, fix in enumerate(fixes[:10]):  # Show top 10
-                with st.expander(f"{i+1}. {fix.get('title', 'Untitled')}", expanded=False):
-                    st.markdown(f"**Type:** {fix.get('type', 'N/A')}")
-                    st.markdown(f"**Description:** {fix.get('description', 'N/A')}")
+                with ui.expander(f"{i+1}. {fix.get('title', 'Untitled')}", expanded=False):
+                    ui.markdown(f"**Type:** {fix.get('type', 'N/A')}")
+                    ui.markdown(f"**Description:** {fix.get('description', 'N/A')}")
                     if fix.get('code_changes'):
-                        st.code(fix['code_changes'], language="python")
+                        ui.code(fix['code_changes'], language="python")
 

@@ -15,8 +15,5 @@ PyMuPDF
 python-docx
 docling  # Optional: Advanced document parsing with AI models
 
-# Web UI
-streamlit
-
 # Environment & Configuration
 python-dotenv

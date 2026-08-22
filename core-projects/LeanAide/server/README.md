@@ -1,13 +1,14 @@
-# LeanAide Streamlit Server
+# LeanAide Backend Server
 
-This is a Streamlit server for the Project.
+This is the backend server for LeanAide.
 
 ## About
 
-The LeanAide Streamlit server is designed to provide a user-friendly interface for POSTING and GETTING queries for Autoformalization tasks.
-The main backend is powered by the LeanAide tools. The website is buit using Streamlit, allowing users to interact with a simple web interface.
+The LeanAide backend provides a REST API for POSTING and GETTING queries for Autoformalization tasks. The main backend is powered by the LeanAide tools.
 
-The `leanaide_serv.py` runs two processed, which are `streamlit` and a server process. The Streamlit app is used for the frontend website, which you can interact with, while the server process run is used to handle the API requests. This allows you to use `curl` or any other HTTP client to interact with the server from your terminal, our streamlit app or any other program you write.
+The web UI for LeanAide is provided by **BubbleLab (TypeScript)**, located at `core-projects/BubbleLab`. This repository no longer contains a Python frontend.
+
+The backend API server listens on `http://localhost:7654`. The port can be changed via the `LEANAIDE_PORT` environment variable.
 
 ## Installation Instructions
 
@@ -34,7 +35,7 @@ source .venv/bin/activate
 4. Run the Server:
 
 ```bash
-python3 leanaide_server.py --ui
+python3 leanaide_server.py
 ```
 
-This will start the Streamlit server on `http://localhost:8501` and the server on `http://localhost:7654`. These ports can be changed in the `leanaide_server.py` file if needed.
+This will start the backend API server on `http://localhost:7654`.

@@ -1,7 +1,7 @@
 /**
  * Configuration Store
  * Manages LLM configuration and application settings
- * Replaces Streamlit session state for configuration
+ * Replaces legacy session state for configuration
  */
 
 import { create } from 'zustand';

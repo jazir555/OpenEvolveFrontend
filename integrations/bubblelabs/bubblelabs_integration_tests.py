@@ -436,9 +436,9 @@ class TestIntegration(unittest.TestCase):
         """Test that parameter synchronization works with workflow creation."""
         # Simulate parameters in UI session state
         st = _ui
-        st.session_state["temperature"] = 0.8
-        st.session_state["max_iterations"] = 25
-        st.session_state["population_size"] = 25
+        ui.session_state["temperature"] = 0.8
+        ui.session_state["max_iterations"] = 25
+        ui.session_state["population_size"] = 25
 
         # Sync from ui to bubblelabs
         sync_result = self.sync_manager.sync_from_ui_to_bubblelabs()

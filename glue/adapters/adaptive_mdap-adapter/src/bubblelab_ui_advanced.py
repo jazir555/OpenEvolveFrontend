@@ -10,7 +10,7 @@ This module provides advanced UI components for BubbleLab including:
 - Export functionality for reports
 
 All components return data structures compatible with common charting libraries
-(Chart.js, Plotly, ECharts) and can be rendered in Streamlit, React, or vanilla HTML/JS.
+(Chart.js, Plotly, ECharts) and can be rendered in React (BubbleLab) or vanilla HTML/JS.
 """
 
 import logging

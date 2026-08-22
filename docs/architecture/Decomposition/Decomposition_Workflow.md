@@ -4412,21 +4412,23 @@ class PerformanceMetrics:
 ### 6.2 Remaining Tasks (Phase 4)
 
 #### Phase 4: Advanced Features
-- [ ] Implement advanced gauntlet configurations (adaptive, hierarchical, competitive, collaborative)
-- [ ] Develop the knowledge extraction and learning mechanisms
-- [ ] Create the Analytics Dashboard and Knowledge Base Interface
-- [ ] Implement auto-approval mode and batch operations
-- [ ] Develop the dependency visualization feature
-- [ ] Implement resource management and optimization
-- [ ] Create comprehensive testing and validation frameworks
+- [x] Implement advanced gauntlet configurations (adaptive, hierarchical, competitive, collaborative) — `_run_adaptive/hierarchical/competitive/collaborative_gauntlet` (+ `_headless`) in `workflow_engine.py`; all four exercised offline in `test_workflow_engine_core.py`.
+- [x] Develop the knowledge extraction and learning mechanisms — `workflow_knowledge.py` (`extract_workflow_knowledge`, `WorkflowLearningStore`, `aggregate_workflow_metrics`); tested in `test_workflow_knowledge.py`.
+- [x] Create the Analytics Dashboard and Knowledge Base Interface — `render_analytics_dashboard` / `render_knowledge_base_interface` in `ui_components.py`; tested in `test_ui_components.py`.
+- [x] Implement auto-approval mode and batch operations — `_resolve_sovereign_auto_approval` / `_resolve_sovereign_batch_size` in `openevolve_orchestrator.py`; wired into the Stage-2 manual-review branch.
+- [x] Develop the dependency visualization feature — `render_dependency_graph` (+ cycle detection) in `ui_components.py`.
+- [x] Implement resource management and optimization — `workflow_resources.py` (`ResourceManager`, `ResourceBudget`, `recommend_batch_size`); tested in `test_workflow_resources_distributed.py`.
+- [x] Create comprehensive testing and validation frameworks — see §6.2.2 (44 offline tests, no API keys).
+
+Also resolved from the granular §6.2 list below: `generate_solution_for_sub_problem` is now real (single-candidate + multi-candidate peer review, MakerEngine integration); `parse_targeted_feedback` parses structured JSON; Blue Team generation gauntlet implemented; circular-dependency detection added; no-team/no-gauntlet handled gracefully; remaining `st.warning("Placeholder: …")` strings were template-substitution markers, not runtime stubs.
 
 ### 6.3 Phase 5: Scalability and Integration
 
 #### Phase 5: Scalability and Integration (Required for 100% Completion)
-- [ ] Implement distributed processing for large-scale problems
-- [ ] Develop integration with external knowledge sources
-- [ ] Create REST APIs for external system integration
-- [ ] Create advanced visualization and reporting features
+- [x] Implement distributed processing for large-scale problems — `workflow_distributed.py` (`SubProblemExecutor` with `local` + `multiprocessing` backends, dependency-ordered); tested in `test_workflow_resources_distributed.py`. Available as an opt-in backend (not auto-wired into `run_sovereign_workflow`).
+- [x] Develop integration with external knowledge sources — `workflow_knowledge.py` integrates `knowledge_engine` (guarded) with a JSONL fallback store.
+- [x] Create REST APIs for external system integration — team/gauntlet CRUD + `POST /workflows/run` + `GET /workflows/{id}` poll in `engines/other/api_server.py`; tested in `test_api_server_routes.py`. (MAKER workflow REST lives in the BubbleLab `mdap-maker` router.)
+- [x] Create advanced visualization and reporting features — `render_dependency_graph` (Mermaid) + `render_analytics_dashboard` + `aggregate_workflow_metrics`.
 ---
 
 ## 6.0 Implementation Status & Remaining Tasks
@@ -4469,17 +4471,15 @@ The following components and functionalities have been successfully implemented:
 
 ### 6.2 Remaining Tasks (Phase 4)
 
-The following tasks are crucial for completing the full implementation:
+The following tasks are crucial for completing the full implementation (status as of this update):
 
-*   **Implement the "Manual Review" panel's dynamic invocation**: The `run_sovereign_workflow` currently simulates approval for Stage 2. The orchestrator needs to dynamically render `render_manual_review_panel` and pause execution until the user approves the plan. This requires careful BubbleLab UI state management to handle the interactive pause.
-*   **Refine `generate_solution_for_sub_problem`**: The current implementation is a placeholder. This needs to be replaced with actual logic for generating solutions, potentially integrating with existing OpenEvolve evolution loops or other generation mechanisms based on the `SubProblem`'s `ai_suggested_evolution_mode` and `evolution_params`.
-*   **Refine `parse_targeted_feedback`**: The current implementation uses a simple regex. This needs to be enhanced to robustly parse structured feedback (e.g., JSON) from LLM reports to accurately identify problematic sub-problem IDs for the self-healing loop.
-*   **Implement Blue Team Gauntlet for Generation/Peer Review**: The `run_gauntlet` function has a placeholder for Blue Team gauntlets. This needs to be fully implemented to support `single_candidate` and `multi_candidate_peer_review` generation modes.
-*   **Full Review of Docstrings and Comments**: While initial docstrings and comments are present, a final pass is needed to ensure every function, class, and complex logic block is thoroughly documented.
-*   **Comprehensive Integration Testing**: End-to-end testing of the entire workflow, including all gauntlets, self-healing loops, and UI interactions, is essential.
-*   **Error Handling and Edge Cases**: Implement more robust error handling and consider edge cases (e.g., no teams/gauntlets defined, circular dependencies in sub-problems).
-*   **Performance Optimization**: As a "Sovereign-Grade" system, performance will be critical. This includes optimizing LLM calls (parallelization, caching), BubbleLab UI rendering, and data persistence.
-*   **Remove Placeholders**: All `st.warning("Placeholder: ...")` and similar temporary code must be replaced with production-ready implementations.
+*   [x] **Implement the "Manual Review" panel's dynamic invocation**: `openevolve_orchestrator.py` now resolves `auto_approval` and, when `False`, calls `render_manual_review_panel` (guarded) to pause for user approval of the `DecompositionPlan` at Stage 2; `auto_approval=True` proceeds without pausing.
+*   [x] **Refine `generate_solution_for_sub_problem`**: replaced the placeholder with real logic — dispatches by `generation_mode` (`single_candidate`, `multi_candidate_peer_review`) and integrates `MakerEngine`/`MDAPOrchestrator` when enabled (injectable voter). See `test_workflow_engine_core.py`.
+*   [x] **Refine `parse_targeted_feedback`**: now robustly parses structured JSON feedback (at any depth) with a regex fallback. See `test_workflow_engine_core.py`.
+*   [x] **Implement Blue Team Gauntlet for Generation/Peer Review**: `run_gauntlet`/`run_gauntlet_headless` route Blue Team + `single_candidate`/`multi_candidate_peer_review` to `_run_blue_team_generation_gauntlet`. See `test_workflow_engine_core.py`.
+*   [x] **Comprehensive Integration Testing**: 44 offline tests now cover the engine, knowledge, resources/distributed, REST, UI, and an end-to-end composition (see §6.2.2).
+*   [x] **Error Handling and Edge Cases**: `detect_circular_dependencies` added; `run_gauntlet` returns `error: missing_team_or_gauntlet` instead of crashing.
+*   [~] **Full Review of Docstrings and Comments** / **Performance Optimization** / **Remove Placeholders**: ongoing; the remaining `st.warning("Placeholder: …")` strings are template-substitution markers (e.g. `{{problem_statement}}`), not runtime stubs. LLM-call parallelization/caching is available via `MDAPCache` and the distributed executor (opt-in).
 
 #### 6.2.1 MAKER / MDAP — Completed (Generic Error-Prevention Component)
 
@@ -4498,6 +4498,21 @@ The MAKER / MDAP error-prevention machinery described in §1.5 and §1.6 is impl
 *   Generic zero-error demonstration: a single-agent baseline (`k=1`, no red-flag) **fails** within 100 steps; MAKER with first-to-ahead-by-k voting + red-flagging completes **1000 steps with ZERO errors**; systematic (correlated) malformed outputs are red-flagged and filtered (`red_flags > 0`) while the unflagged control run fails — demonstrating that red-flagging decorrelates errors. All claims above are backed only by these passing tests.
 
 ---
+
+### 6.2.2 Phase 4/5 Completion Evidence (Offline Test Suite)
+
+All Phase 4 and Phase 5 features above are backed by offline pytest suites (no API keys, run with `python -m pytest <files> -p no:pytest_ethereum`). As of this update **44 tests pass**:
+
+| Test file | Coverage | Tests |
+|---|---|---|
+| `engines/other/test_workflow_engine_core.py` | Core engine: `generate_solution_for_sub_problem` (both modes), `parse_targeted_feedback` (JSON + regex), all 4 advanced gauntlets + Blue Team generation, cycle detection, no-team/no-gauntlet guard | 17 |
+| `engines/other/test_workflow_knowledge.py` | Knowledge extraction, `WorkflowLearningStore`, metrics aggregation, JSONL fallback | 4 |
+| `engines/other/test_workflow_resources_distributed.py` | `ResourceManager`/`ResourceBudget`, `SubProblemExecutor` local + multiprocessing, dependency-ordered parallel solve | 8 |
+| `engines/other/test_api_server_routes.py` | REST: team/gauntlet CRUD, `POST /workflows/run`, `GET /workflows/{id}` poll (TestClient) | 7 |
+| `engines/other/test_ui_components.py` | Analytics dashboard, knowledge base interface, dependency graph + cycle warning, dynamic manual review, auto-approval/batch resolvers | 5 |
+| `engines/other/test_decomposition_workflow_e2e.py` | Composes solve → gauntlet → knowledge extraction → distributed DAG solve; self-healing feedback parsing; cycle guard | 3 |
+
+Every claim in §6.2/§6.3 is supported only by the passing tests above. Known limitations: `run_sovereign_workflow` (the top-level orchestrator) is backend logic only and is not yet driven end-to-end in tests because it depends on the live **BubbleLab (TypeScript)** UI runtime for rendering; its stage functions are individually verified. The UI is implemented in **BubbleLab (TypeScript)** — there is no Python UI; the Python modules here (`openevolve_orchestrator.py`, `ui_components.py`, `workflow_engine.py`) are backend orchestration and data/state providers that BubbleLab consumes (they return serializable structures, not rendered widgets). Distributed processing is implemented as an opt-in `SubProblemExecutor` backend, not auto-wired into the orchestrator. External-knowledge integration reuses `knowledge_engine` with a local JSONL fallback when it is unavailable.
 
 ## 7.0 Integration with CrewAI Framework
 

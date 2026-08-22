@@ -4913,3 +4913,192 @@ UI_FUNCTIONS_TO_ADD = [
     render_realtime_monitoring,
 ]
 
+
+# ============================================================================
+# Sovereign-Grade Decomposition Workflow: offline, string-returning renderers
+# ----------------------------------------------------------------------------
+# These redefinitions bind the requested renderer names to pure functions that
+# return text/HTML strings summarizing workflow state. They have no dependency
+# on a live UI backend so they can be unit-tested offline. The richer UI
+# renderers (render_analytics_overview, render_artifact_browser, etc.) remain
+# available as helpers for the full BubbleLab (TypeScript) UI.
+# ============================================================================
+
+def render_analytics_dashboard(workflow_state=None, metrics=None) -> str:
+    """Return a text/HTML summary of a Sovereign-Grade workflow run.
+
+    Accepts a WorkflowState object or a plain dict and falls back gracefully
+    when fields are missing, so it renders offline / in tests.
+    """
+    def _as_dict(obj):
+        if obj is None:
+            return {}
+        if isinstance(obj, dict):
+            return obj
+        try:
+            return dict(getattr(obj, "__dict__", {}) or {})
+        except Exception:
+            return {}
+
+    state = _as_dict(workflow_state)
+    m = metrics if isinstance(metrics, dict) else _as_dict(metrics)
+    if not m:
+        m = state.get("metrics", {}) or {}
+
+    lines = ["## Analytics Dashboard"]
+    wid = state.get("workflow_id") or m.get("workflow_id") or "unknown"
+    lines.append(f"**Workflow:** {wid}")
+    lines.append(f"**Status:** {state.get('status', m.get('status', 'unknown'))}")
+    lines.append(f"**Stage:** {state.get('current_stage', m.get('current_stage', 'unknown'))}")
+
+    steps_completed = m.get("steps_completed", state.get("steps_completed", 0)) or 0
+    steps_failed = m.get("steps_failed", state.get("steps_failed", 0)) or 0
+    lines.append(f"**Steps completed:** {steps_completed}  **Steps failed:** {steps_failed}")
+
+    red_flags = m.get("red_flags", state.get("red_flags", []))
+    if not isinstance(red_flags, (list, tuple)):
+        red_flags = [red_flags]
+    lines.append(f"**Red flags:** {len(red_flags)}")
+    for rf in list(red_flags)[:10]:
+        lines.append(f"  - {rf}")
+
+    votes = m.get("votes", state.get("votes", {}))
+    lines.append(f"**Votes:** {votes}")
+
+    start = state.get("start_time") or m.get("start_time")
+    end = state.get("end_time") or m.get("end_time")
+    if start and end:
+        try:
+            dur = float(end) - float(start)
+            lines.append(f"**Duration (s):** {dur:.2f}")
+        except (TypeError, ValueError):
+            lines.append(f"**Timing:** start={start} end={end}")
+    else:
+        lines.append(f"**Timing:** start={start} end={end}")
+
+    teams = m.get("teams_performance", state.get("teams_performance", {}))
+    if isinstance(teams, dict) and teams:
+        lines.append("**Per-team performance:**")
+        for tname, tperf in teams.items():
+            lines.append(f"  - {tname}: {tperf}")
+    elif isinstance(teams, (list, tuple)) and teams:
+        lines.append("**Per-team performance:**")
+        for tperf in teams:
+            lines.append(f"  - {tperf}")
+
+    return "\n".join(lines)
+
+
+def render_knowledge_base_interface(knowledge_manager=None) -> str:
+    """List extracted knowledge / learned strategies.
+
+    GUARDED import of ``workflow_knowledge.WorkflowLearningStore`` (owned by
+    another agent). If unavailable, render an empty-state message. Never raises
+    at import time.
+    """
+    lines = ["## Knowledge Base"]
+    try:
+        from workflow_knowledge import WorkflowLearningStore  # noqa: F401
+        store_available = True
+    except Exception:
+        store_available = False
+
+    if not store_available:
+        lines.append(
+            "_Knowledge store (workflow_knowledge.WorkflowLearningStore) is not "
+            "available. No learned strategies to display yet._"
+        )
+        return "\n".join(lines)
+
+    try:
+        store = knowledge_manager if hasattr(knowledge_manager, "get_learned_strategies") else WorkflowLearningStore()
+        strategies = store.get_learned_strategies() if hasattr(store, "get_learned_strategies") else []
+    except Exception as e:
+        lines.append(f"_Unable to read learned strategies: {e}_")
+        return "\n".join(lines)
+
+    if not strategies:
+        lines.append("_No extracted knowledge or learned strategies yet._")
+    else:
+        lines.append(f"**Extracted knowledge / learned strategies ({len(strategies)}):**")
+        for s in list(strategies)[:50]:
+            lines.append(f"  - {s}")
+
+    return "\n".join(lines)
+
+
+def _mermaid_node_id(name):
+    return "".join(ch if ch.isalnum() else "_" for ch in str(name))
+
+
+def _detect_dependency_cycle(nodes, edges):
+    """Return (has_cycle, cycle_path) for a directed graph using stdlib only."""
+    graph = {n: [] for n in nodes}
+    for src, dst in edges:
+        graph.setdefault(src, []).append(dst)
+
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = {n: WHITE for n in graph}
+    stack = []
+
+    def visit(u):
+        color[u] = GRAY
+        stack.append(u)
+        for v in graph.get(u, []):
+            if v not in color:
+                continue
+            if color[v] == GRAY:
+                idx = stack.index(v)
+                return stack[idx:] + [v]
+            if color[v] == WHITE:
+                res = visit(v)
+                if res:
+                    return res
+        color[u] = BLACK
+        stack.pop()
+        return None
+
+    for n in list(graph.keys()):
+        if color[n] == WHITE:
+            res = visit(n)
+            if res:
+                return True, res
+    return False, []
+
+
+def render_dependency_graph(sub_problems) -> str:
+    """Return a Mermaid/text dependency graph of sub-problems.
+
+    Detects cycles using only the standard library and appends a warning line
+    when a cycle is found.
+    """
+    subs = sub_problems if isinstance(sub_problems, (list, tuple)) else []
+    nodes = []
+    edges = []
+    for sp in subs:
+        if isinstance(sp, dict):
+            sid = sp.get("id") or sp.get("sub_problem_id")
+            deps = sp.get("dependencies", []) or []
+        else:
+            sid = getattr(sp, "id", None) or getattr(sp, "sub_problem_id", None)
+            deps = getattr(sp, "dependencies", None) or []
+        if sid is None:
+            continue
+        nodes.append(sid)
+        for d in deps:
+            if d is not None:
+                edges.append((d, sid))
+
+    lines = ["```mermaid", "graph TD"]
+    for n in nodes:
+        lines.append(f'    {_mermaid_node_id(n)}["{n}"]')
+    for src, dst in edges:
+        lines.append(f'    {_mermaid_node_id(src)} --> {_mermaid_node_id(dst)}')
+    lines.append("```")
+
+    has_cycle, cycle = _detect_dependency_cycle(nodes, edges)
+    if has_cycle:
+        lines.append("**WARNING:** circular dependency detected: " + " -> ".join(str(c) for c in cycle))
+
+    return "\n".join(lines)
+

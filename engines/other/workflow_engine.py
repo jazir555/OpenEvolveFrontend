@@ -885,7 +885,9 @@ def run_gauntlet_headless(
     solution_content: str,
     gauntlet_def: GauntletDefinition,
     team: Team,
-    context: Dict[str, Any] # Additional context for LLM prompts, e.g., sub_problem details
+    context: Dict[str, Any], # Additional context for LLM prompts, e.g., sub_problem details
+    voter: Optional[Callable] = None,
+    chat_fn: Optional[Callable] = None
 ) -> Dict[str, Any]:
     """
     Executes a Gauntlet with a given Team to critique or verify a piece of content.
@@ -914,6 +916,15 @@ def run_gauntlet_headless(
                         The 'targeted_feedback' within these reports is expected to be a JSON array of strings
                         (sub-problem IDs) if applicable.
     """
+    # --- Edge-case guards: never crash on missing configuration. ---
+    if gauntlet_def is None or team is None:
+        return {
+            "is_approved": False,
+            "report_summary": "Gauntlet aborted: no team or gauntlet definition provided.",
+            "error": "missing_team_or_gauntlet",
+            "logs": ["No team or gauntlet definition provided; cannot run gauntlet."],
+        }
+
     with trace_operation(
         "gauntlet.run",
         {
@@ -923,6 +934,22 @@ def run_gauntlet_headless(
             "headless": True
         }
     ):
+        # --- Blue Team generation branch (doc §6.2) ---
+        # When a Blue Team is asked to *generate* (not critique) and the gauntlet
+        # specifies a generation mode, run the Blue Team generation pipeline.
+        if getattr(team, "role", None) == "Blue" and gauntlet_def.generation_mode in (
+            "single_candidate", "multi_candidate_peer_review"
+        ):
+            return _run_blue_team_generation_gauntlet(
+                solution_content=solution_content,
+                gauntlet_def=gauntlet_def,
+                team=team,
+                context=context,
+                headless=True,
+                voter=voter,
+                chat_fn=chat_fn,
+            )
+
         logs = []
         logs.append(f"Running {gauntlet_def.gauntlet_type.upper()} Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
         
@@ -952,7 +979,9 @@ def run_gauntlet(
     solution_content: str,
     gauntlet_def: GauntletDefinition,
     team: Team,
-    context: Dict[str, Any] # Additional context for LLM prompts, e.g., sub_problem details
+    context: Dict[str, Any], # Additional context for LLM prompts, e.g., sub_problem details
+    voter: Optional[Callable] = None,
+    chat_fn: Optional[Callable] = None
 ) -> Dict[str, Any]:
     """
     Executes a Gauntlet with a given Team to critique or verify a piece of content.
@@ -981,6 +1010,15 @@ def run_gauntlet(
                           The 'targeted_feedback' within these reports is expected to be a JSON array of strings
                           (sub-problem IDs) if applicable.
     """
+    # --- Edge-case guards: never crash on missing configuration. ---
+    if gauntlet_def is None or team is None:
+        return {
+            "is_approved": False,
+            "report_summary": "Gauntlet aborted: no team or gauntlet definition provided.",
+            "error": "missing_team_or_gauntlet",
+            "logs": ["No team or gauntlet definition provided; cannot run gauntlet."],
+        }
+
     with trace_operation(
         "gauntlet.run",
         {
@@ -990,6 +1028,20 @@ def run_gauntlet(
             "headless": False
         }
     ):
+        # --- Blue Team generation branch (doc §6.2) ---
+        if getattr(team, "role", None) == "Blue" and gauntlet_def.generation_mode in (
+            "single_candidate", "multi_candidate_peer_review"
+        ):
+            return _run_blue_team_generation_gauntlet(
+                solution_content=solution_content,
+                gauntlet_def=gauntlet_def,
+                team=team,
+                context=context,
+                headless=False,
+                voter=voter,
+                chat_fn=chat_fn,
+            )
+
         st.info(f"Running {gauntlet_def.gauntlet_type.upper()} Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
         
         # Route to appropriate gauntlet type handler
@@ -2067,19 +2119,13 @@ async def run_sovereign_workflow(
                             actual_generation_gauntlet = gauntlet_manager.get_gauntlet(sp.solver_generation_gauntlet_name)
                         else:
                             actual_generation_gauntlet = solver_generation_gauntlet
-                        content = generate_solution_for_sub_problem(
+                        return generate_solution_for_sub_problem(
                             sub_problem=sp,
                             team=actual_solver_team,
                             context=ctx,
                             workflow_state=workflow_state,
                             solver_generation_gauntlet=actual_generation_gauntlet,
                             emit_ui=False
-                        )
-                        return SolutionAttempt(
-                            sub_problem_id=sp.id,
-                            content=content,
-                            generated_by_model=actual_solver_team.members[0].model_id if actual_solver_team.members else "unknown",
-                            timestamp=time.time()
                         )
 
                     solutions = distributed_processor.process_sub_problems_distributed(
@@ -2145,11 +2191,14 @@ async def run_sovereign_workflow(
             st.info(f"[{workflow_state.current_stage}] Solving sub-problem: {current_sp_id} - {current_sub_problem.description[:50]}...")
             
             generated_content = ""
+            pending_attempt = None  # type: Optional[SolutionAttempt]
             # If a solution for this sub-problem already exists (e.g., from a previous refinement loop), use it as a base.
             if current_sp_id in workflow_state.sub_problem_solutions:
-                generated_content = workflow_state.sub_problem_solutions[current_sp_id].content
+                pending_attempt = workflow_state.sub_problem_solutions[current_sp_id]
+                generated_content = pending_attempt.content
             elif current_sp_id in parallel_generated:
-                generated_content = parallel_generated.pop(current_sp_id)
+                pending_attempt = parallel_generated.pop(current_sp_id)
+                generated_content = pending_attempt.content if hasattr(pending_attempt, "content") else pending_attempt
 
             # Determine the actual solver_generation_gauntlet for this sub-problem.
             # It can be specified per sub-problem or fall back to the global one.
@@ -2163,24 +2212,28 @@ async def run_sovereign_workflow(
             if current_sp_id in workflow_state.rejected_sub_problems:
                 st.info(f"  - Invoking Patcher Team for {current_sp_id} based on previous rejection.")
                 last_report = workflow_state.rejected_sub_problems[current_sp_id]
-                generated_content = generate_solution_for_sub_problem(
+                new_attempt = generate_solution_for_sub_problem(
                     sub_problem=current_sub_problem,
                     team=patcher_team,
                     context={"current_solution": generated_content, "feedback_report": last_report},
                     workflow_state=workflow_state,
                     solver_generation_gauntlet=actual_solver_generation_gauntlet,
                 )
+                generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
+                pending_attempt = new_attempt
                 del workflow_state.rejected_sub_problems[current_sp_id] # Clear rejection status after attempting to patch.
             else:
                 # Otherwise, use the Solver Team to generate a new solution.
                 actual_solver_team = team_manager.get_team(current_sub_problem.solver_team_name) if current_sub_problem.solver_team_name else solver_team
-                generated_content = generate_solution_for_sub_problem(
+                new_attempt = generate_solution_for_sub_problem(
                     sub_problem=current_sub_problem,
                     team=actual_solver_team,
                     context={"current_solution": generated_content},
                     workflow_state=workflow_state,
                     solver_generation_gauntlet=actual_solver_generation_gauntlet,
                 )
+                generated_content = new_attempt.content if hasattr(new_attempt, "content") else new_attempt
+                pending_attempt = new_attempt
             
             if generated_content.startswith("Failed to generate solution:"):
                 st.error(f"Failed to generate solution for sub-problem {current_sp_id}. Workflow failed.")
@@ -2192,7 +2245,8 @@ async def run_sovereign_workflow(
                 sub_problem_id=current_sp_id,
                 content=generated_content,
                 generated_by_model=solver_team.members[0].model_id, # Assuming first member of the solver team generated it.
-                timestamp=time.time()
+                timestamp=time.time(),
+                metadata=(pending_attempt.metadata if pending_attempt and hasattr(pending_attempt, "metadata") else {}) or {},
             )
             
             # Sync to crewai if integration is active
@@ -3041,54 +3095,319 @@ async def run_lean_verification(component: dict, workflow_state: WorkflowState, 
         workflow_state.status = "failed"
         return False
 
+# Keys at any depth of a structured feedback object that are known to carry
+# sub-problem identifiers (as a list, dict-keys, or embedded strings).
+_TARGETED_FEEDBACK_KEYS = (
+    "problematic_sub_problems",
+    "affected_sub_problems",
+    "affected_subproblem_ids",
+    "affected_components",
+    "faulty_components",
+    "component_attribution",
+    "sub_problem_ids",
+    "targeted_feedback",
+    "targeted_feedback_ids",
+    "issues",
+    "requirement_gaps",
+)
+
+
+def _sub_problem_id_pattern() -> "re.Pattern[str]":
+    return re.compile(r"sub_\d+\.\d+")
+
+
+def _record_sub_problem_id(candidate: Any, seen: set, out: List[str]) -> None:
+    """Record any sub-problem IDs found inside ``candidate`` (string or list of str)."""
+    if isinstance(candidate, str):
+        for fid in _sub_problem_id_pattern().findall(candidate):
+            if fid not in seen:
+                seen.add(fid)
+                out.append(fid)
+    elif isinstance(candidate, (list, tuple, set)):
+        for item in candidate:
+            if isinstance(item, str):
+                _record_sub_problem_id(item, seen, out)
+
+
+def _walk_for_sub_problem_ids(obj: Any, seen: set, out: List[str]) -> None:
+    """
+    Recursively walk a structured feedback object collecting any sub-problem IDs.
+
+    Handles:
+      * JSON strings (parsed and re-walked)
+      * lists / tuples / sets of strings
+      * dicts (values walked; known-ID keys walked preferentially)
+    """
+    if isinstance(obj, str):
+        _record_sub_problem_id(obj, seen, out)
+        # The string may itself be a serialized JSON payload.
+        try:
+            parsed = json.loads(obj)
+            _walk_for_sub_problem_ids(parsed, seen, out)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            pass
+        return
+
+    if isinstance(obj, (list, tuple, set)):
+        for item in obj:
+            _walk_for_sub_problem_ids(item, seen, out)
+        return
+
+    if isinstance(obj, dict):
+        # Prioritize known keys that directly carry sub-problem identifiers.
+        for key in _TARGETED_FEEDBACK_KEYS:
+            if key in obj:
+                value = obj[key]
+                if isinstance(value, dict):
+                    # e.g. component_attribution: {"sub_1.2": {...}} -> keys are IDs
+                    for k in value.keys():
+                        _record_sub_problem_id(k, seen, out)
+                    _walk_for_sub_problem_ids(list(value.values()), seen, out)
+                else:
+                    _walk_for_sub_problem_ids(value, seen, out)
+        # Then walk every value to catch embedded IDs in justification text etc.
+        for value in obj.values():
+            _walk_for_sub_problem_ids(value, seen, out)
+        return
+
+    # Primitives (numbers, bools, None) carry no IDs.
+
+
 def parse_targeted_feedback(report: Any) -> List[str]:
     """
-    Parses a critique or verification report to identify problematic sub-problem IDs mentioned in the feedback.
-    It expects `targeted_feedback` within the judge reports to be a JSON array of strings (sub-problem IDs).
-    It attempts to parse JSON feedback first, falling back to regular expression matching if JSON parsing fails or is not an array.
+    Parses a critique or verification report to identify problematic sub-problem IDs.
+
+    The function is robust to many shapes of structured (JSON) feedback:
+      * a ``CritiqueReport`` / ``VerificationReport`` dataclass with ``reports_by_judge``
+      * a dict whose ``targeted_feedback`` is a JSON list/dict of IDs
+      * a dict with top-level ``problematic_sub_problems`` / ``affected_components`` etc.
+      * a raw JSON string payload
+    When JSON parsing is not possible (or finds nothing), it falls back to a
+    regular-expression scan for ``sub_X.Y`` identifiers.
 
     Args:
-        report (Any): The critique or verification report object (CritiqueReport or VerificationReport).
+        report (Any): The critique or verification report object (CritiqueReport or VerificationReport),
+                      or a raw dict/list/string.
 
     Returns:
         List[str]: A list of unique sub-problem IDs identified as problematic in the feedback.
     """
-    problematic_ids = []
-    
-    # Convert report to dict if it's a dataclass
-    if dataclasses.is_dataclass(report):
-        report = dataclasses.asdict(report)
+    problematic_ids: List[str] = []
+    seen: set = set()
 
-    for judge_report in report['reports_by_judge']:
-        feedback = judge_report.get('targeted_feedback', '')
-        
-        # If feedback is already a list, use it directly
-        if isinstance(feedback, list):
-            problematic_ids.extend(feedback)
+    # Convert report to dict if it's a dataclass (best-effort).
+    if dataclasses.is_dataclass(report) and not isinstance(report, type):
+        try:
+            report = dataclasses.asdict(report)
+        except Exception:
+            report = {}
+
+    if isinstance(report, dict):
+        # Legacy path: explicitly walk each judge's targeted_feedback first.
+        judge_reports = report.get("reports_by_judge")
+        if isinstance(judge_reports, (list, tuple)):
+            for judge_report in judge_reports:
+                if isinstance(judge_report, dict):
+                    _walk_for_sub_problem_ids(judge_report.get("targeted_feedback", ""), seen, problematic_ids)
+        # Then robustly walk the entire structure for any embedded IDs.
+        _walk_for_sub_problem_ids(report, seen, problematic_ids)
+    elif isinstance(report, (list, tuple)):
+        _walk_for_sub_problem_ids(list(report), seen, problematic_ids)
+    elif isinstance(report, str):
+        _walk_for_sub_problem_ids(report, seen, problematic_ids)
+    else:
+        try:
+            _walk_for_sub_problem_ids(dataclasses.asdict(report), seen, problematic_ids)
+        except Exception:
+            pass
+
+    if not problematic_ids:
+        logger.debug("parse_targeted_feedback extracted no sub-problem IDs.")
+
+    return problematic_ids
+
+
+def detect_circular_dependencies(sub_problems: Any) -> List[str]:
+    """
+    Detect circular dependencies in a sub-problem dependency graph.
+
+    Each sub-problem is expected to expose ``id`` and ``dependencies`` (an
+    iterable of sub-problem IDs it depends on). Accepts either dataclass
+    ``SubProblem`` instances or plain dicts.
+
+    Args:
+        sub_problems (Any): Iterable of sub-problems (list/tuple) or a single
+            sub-problem container exposing ``.sub_problems``.
+
+    Returns:
+        List[str]: The ordered list of sub-problem IDs participating in at least
+                   one dependency cycle (empty list when the graph is acyclic).
+    """
+    # Normalize input to a list of sub-problem-like objects.
+    if sub_problems is None:
+        return []
+    if not isinstance(sub_problems, (list, tuple, set)) and hasattr(sub_problems, "sub_problems"):
+        sub_problems = getattr(sub_problems, "sub_problems", [])
+    if not isinstance(sub_problems, (list, tuple, set)):
+        sub_problems = [sub_problems]
+
+    nodes: Dict[str, List[str]] = {}
+    for sp in sub_problems:
+        sp_id = getattr(sp, "id", None)
+        if sp_id is None and isinstance(sp, dict):
+            sp_id = sp.get("id")
+        if sp_id is None:
             continue
-        
-        # Attempt to parse as JSON first if it's a string
-        if isinstance(feedback, str):
-            try:
-                json_feedback = json.loads(feedback)
-                # If the feedback is directly a list of strings (sub-problem IDs)
-                if isinstance(json_feedback, list) and all(isinstance(item, str) for item in json_feedback):
-                    problematic_ids.extend(json_feedback)
-                # If it's a dictionary that might contain a list of problematic_sub_problems
-                elif isinstance(json_feedback, dict) and "problematic_sub_problems" in json_feedback and isinstance(json_feedback["problematic_sub_problems"], list):
-                    problematic_ids.extend(json_feedback["problematic_sub_problems"])
-                else:
-                    st.warning(f"Targeted feedback JSON from LLM was not in expected format (list of strings or dict with 'problematic_sub_problems' list): {feedback[:200]}...")
-            except json.JSONDecodeError:
-                # Fallback to regex if not JSON or if JSON parsing fails
-                found_ids = re.findall(r'(sub_\d+\.\d+)', feedback)
-                if found_ids:
-                    st.info(f"Extracted sub-problem IDs via regex: {found_ids}")
-                    problematic_ids.extend(found_ids)
-                else:
-                    st.warning(f"Could not parse targeted feedback as JSON or extract sub-problem IDs via regex: {feedback[:200]}...")
-            
-    return list(set(problematic_ids)) # Return unique IDs
+        deps = getattr(sp, "dependencies", None)
+        if deps is None and isinstance(sp, dict):
+            deps = sp.get("dependencies", [])
+        if deps is None:
+            deps = []
+        nodes[str(sp_id)] = [str(d) for d in deps]
+
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color: Dict[str, int] = {n: WHITE for n in nodes}
+    cycle_members: set = set()
+    # Keep track of the path to attribute failures to the cycle.
+    path: List[str] = []
+
+    def visit(node: str) -> bool:
+        color[node] = GRAY
+        path.append(node)
+        for dep in nodes.get(node, []):
+            if dep not in nodes:
+                # Dangling dependency: ignore (not part of this graph).
+                continue
+            if color.get(dep, WHITE) == GRAY:
+                # Found a cycle: record everyone from dep..node on the path.
+                if dep in path:
+                    idx = path.index(dep)
+                    for n in path[idx:]:
+                        cycle_members.add(n)
+                return True
+            if color.get(dep, WHITE) == WHITE:
+                if visit(dep):
+                    # Propagate cycle membership up the stack for this path segment.
+                    if node in cycle_members or dep in cycle_members:
+                        cycle_members.add(node)
+                    return True
+        path.pop()
+        color[node] = BLACK
+        return False
+
+    for n in list(nodes.keys()):
+        if color[n] == WHITE:
+            visit(n)
+
+    return list(cycle_members)
+
+
+def _run_blue_team_generation_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any],
+    headless: bool = False,
+    voter: Optional[Callable] = None,
+    chat_fn: Optional[Callable] = None,
+) -> Dict[str, Any]:
+    """
+    Blue Team *generation* gauntlet.
+
+    Rather than critiquing an existing solution, this branch uses the Blue Team
+    (Solver/Patcher) to *produce* a solution for the target sub-problem, supporting
+    the ``single_candidate`` and ``multi_candidate_peer_review`` generation modes
+    described in the decomposition workflow.
+
+    Returns a report dict (same shape as the other gauntlet runners) carrying the
+    generated ``solution_attempt`` and a ``report_object`` with metadata.
+    """
+    logs: List[str] = []
+    logs.append(f"Blue Team Generation Gauntlet '{gauntlet_def.name}' (mode={gauntlet_def.generation_mode}) with Team '{team.name}'...")
+
+    workflow_state = context.get("workflow_state")
+    if workflow_state is None:
+        logs.append("No workflow_state provided in context; Blue Team generation cannot run.")
+        return {
+            "is_approved": False,
+            "report_summary": "Blue Team generation aborted: missing workflow_state in context.",
+            "error": "missing_workflow_state",
+            "logs": logs,
+        }
+
+    # Resolve the sub-problem to solve. Prefer one supplied in context.
+    sub_problem = context.get("sub_problem")
+    if sub_problem is None:
+        from types import SimpleNamespace
+        sub_problem = SimpleNamespace(
+            id=context.get("sub_problem_id", "blue_gen_sub"),
+            description=solution_content or context.get("description", ""),
+            metadata={},
+            evolution_params={},
+            ai_suggested_evolution_mode="standard",
+            ai_suggested_complexity_score=0.0,
+            content_type=context.get("content_type", "text"),
+            dependencies=[],
+            solver_team_name=None,
+            solver_generation_gauntlet_name=None,
+        )
+
+    attempt = generate_solution_for_sub_problem(
+        sub_problem=sub_problem,
+        team=team,
+        context=context,
+        workflow_state=workflow_state,
+        solver_generation_gauntlet=gauntlet_def,
+        emit_ui=headless is False,
+        voter=voter,
+        chat_fn=chat_fn,
+    )
+
+    content = attempt.content if hasattr(attempt, "content") else str(attempt)
+    failed = isinstance(content, str) and content.startswith("Failed to generate solution:")
+    is_approved = (not failed) and bool(content.strip())
+
+    report_obj = {
+        "solution_attempt_id": context.get("solution_id", sub_problem.id if hasattr(sub_problem, "id") else "unknown"),
+        "gauntlet_name": gauntlet_def.name,
+        "is_approved": is_approved,
+        "generated_solution": content,
+        "generation_mode": gauntlet_def.generation_mode,
+        "metadata": attempt.metadata if hasattr(attempt, "metadata") else {},
+        "summary": f"Blue Team generated a candidate solution via {gauntlet_def.generation_mode}.",
+    }
+
+    logs.append(f"Blue Team generation {'succeeded' if is_approved else 'failed'}.")
+
+    if headless:
+        return {
+            "is_approved": is_approved,
+            "report_summary": f"Blue Team Generation Gauntlet '{gauntlet_def.name}' {'APPROVED' if is_approved else 'REJECTED'}",
+            "report_object": report_obj,
+            "solution_attempt": attempt,
+            "logs": logs,
+        }
+
+    from workflow_structures import VerificationReport
+    verification_report = VerificationReport(
+        solution_attempt_id=report_obj["solution_attempt_id"],
+        gauntlet_name=gauntlet_def.name,
+        is_approved=is_approved,
+        reports_by_judge=[report_obj],
+        average_score=1.0 if is_approved else 0.0,
+        summary=report_obj["summary"],
+        verification_timestamp=time.time(),
+        criteria_met=["Generated candidate solution"] if is_approved else [],
+        criteria_not_met=["Generation failed"] if not is_approved else [],
+    )
+    return {
+        "is_approved": is_approved,
+        "report_summary": f"Blue Team Generation Gauntlet '{gauntlet_def.name}' {'APPROVED' if is_approved else 'REJECTED'}",
+        "verification_report": verification_report,
+        "solution_attempt": attempt,
+        "logs": logs,
+    }
+
 
 from openevolve_integration import run_unified_evolution, create_comprehensive_openevolve_config
 
@@ -3351,8 +3670,9 @@ def generate_solution_for_sub_problem(
     workflow_state: WorkflowState,
     solver_generation_gauntlet: Optional[GauntletDefinition] = None,
     emit_ui: bool = True,
-    voter: Optional[Callable] = None
-) -> str:
+    voter: Optional[Callable] = None,
+    chat_fn: Optional[Callable] = None
+) -> SolutionAttempt:
     """    Generates a solution for a given sub-problem using the assigned solver team and OpenEvolve.
     This function supports different generation modes based on the `solver_generation_gauntlet`:
     - `single_candidate`: A single model directly generates the solution.
@@ -3374,6 +3694,35 @@ def generate_solution_for_sub_problem(
     emit_warning = st.warning if emit_ui else logger.warning
     emit_error = st.error if emit_ui else logger.error
     emit_success = st.success if emit_ui else logger.info
+
+    # Offline-runnable: an injectable chat function defaults to the module-level
+    # OpenAI-compatible chat. Tests monkeypatch ``_request_openai_compatible_chat``
+    # at module level, which this resolves at call time.
+    chat = chat_fn if chat_fn is not None else _request_openai_compatible_chat
+
+    # Structured metadata collected across the generation path so callers (and the
+    # self-healing loop) can see which mode / engine produced the solution, the
+    # confidence and any vote counts from peer review / voting.
+    result_metadata: Dict[str, Any] = {
+        "sub_problem_id": sub_problem.id,
+        "engine": "llm_standard",
+        "generation_mode": None,
+        "confidence": 0.0,
+        "vote_counts": {},
+        "fallback_used": False,
+    }
+
+    def _fail(message: str) -> SolutionAttempt:
+        result_metadata["error"] = message
+        emit_error(message)
+        return SolutionAttempt(
+            sub_problem_id=sub_problem.id,
+            content=message,
+            generated_by_model=team.members[0].model_id if team.members else "unknown",
+            timestamp=time.time(),
+            status="rejected",
+            metadata=dict(result_metadata),
+        )
 
     emit_info(f"Generating solution for {sub_problem.id} using {team.name} via OpenEvolve...")
     
@@ -3399,8 +3748,7 @@ def generate_solution_for_sub_problem(
         emit_warning(f"  - Could not retrieve external knowledge: {e}")
 
     if not team.members:
-        emit_error(f"Solver Team '{team.name}' has no members. Please configure the team in the Team Manager.")
-        return "Failed to generate solution: No team members."
+        return _fail(f"Solver Team '{team.name}' has no members. Please configure the team in the Team Manager.")
 
     model_config = team.members[0] # Use the first model in the team for generation
 
@@ -3475,6 +3823,7 @@ def generate_solution_for_sub_problem(
 
     if maker_enabled:
         emit_info(f"  - Using MAKER v2 engine for {sub_problem.id}...")
+        result_metadata["engine"] = "maker"
         maker_result = _generate_solution_with_maker(
             sub_problem=sub_problem,
             team=team,
@@ -3488,11 +3837,19 @@ def generate_solution_for_sub_problem(
         )
         if maker_result:
             emit_success(f"Solution generated for {sub_problem.id} using MAKER v2.")
-            return maker_result
+            return SolutionAttempt(
+                sub_problem_id=sub_problem.id,
+                content=maker_result,
+                generated_by_model=team.members[0].model_id if team.members else "maker",
+                timestamp=time.time(),
+                status="generated",
+                metadata=dict(result_metadata),
+            )
         emit_warning(f"  - MAKER v2 did not converge for {sub_problem.id}, falling back to standard generation.")
 
     if mdap_enabled:
         emit_info(f"  - Using MDAP engine for {sub_problem.id}...")
+        result_metadata["engine"] = "mdap"
         mdap_result = _generate_solution_with_mdap(
             sub_problem=sub_problem,
             team=team,
@@ -3503,7 +3860,15 @@ def generate_solution_for_sub_problem(
         )
         if mdap_result:
             emit_success(f"Solution generated for {sub_problem.id} using MDAP.")
-            return mdap_result
+            return SolutionAttempt(
+                sub_problem_id=sub_problem.id,
+                content=mdap_result,
+                generated_by_model=team.members[0].model_id if team.members else "mdap",
+                timestamp=time.time(),
+                status="generated",
+                confidence_score=float(result_metadata.get("confidence", 0.0)),
+                metadata=dict(result_metadata),
+            )
         emit_warning(f"  - MDAP did not converge for {sub_problem.id}, falling back to standard generation.")
 
     if solver_generation_gauntlet and solver_generation_gauntlet.generation_mode == "single_candidate":
@@ -3611,14 +3976,14 @@ def generate_solution_for_sub_problem(
                     emit_success(f"Solution generated for {sub_problem.id} using OpenEvolve ({sub_problem.ai_suggested_evolution_mode}).")
                 else:
                     emit_error(f"OpenEvolve failed to generate solution for {sub_problem.id}. Result: {result}")
-                    return "Failed to generate solution: OpenEvolve failed."
+                    return _fail("Failed to generate solution: OpenEvolve failed.")
             except Exception as e:
                 emit_error(f"Error running OpenEvolve for sub-problem {sub_problem.id}: {e}")
-                return "Failed to generate solution: OpenEvolve error."
+                return _fail("Failed to generate solution: OpenEvolve error.")
         else:
             # Fallback to direct LLM call for "standard" evolution mode or if no specific mode is suggested.
             emit_info(f"  - Using direct LLM call for {sub_problem.id} (standard generation)...")
-            response = _request_openai_compatible_chat(
+            response = chat(
                 api_key=model_config.api_key,
                 base_url=model_config.api_base,
                 model=model_config.model_id,
@@ -3675,14 +4040,18 @@ def generate_solution_for_sub_problem(
             
             if response:
                 generated_solution_content = response
+                result_metadata["generation_mode"] = "single_candidate"
+                result_metadata["engine"] = "llm"
                 emit_success(f"Solution generated for {sub_problem.id} by {model_config.model_id}.")
             else:
                 emit_error(f"Failed to generate solution for {sub_problem.id} in single_candidate mode.")
-                return "Failed to generate solution: LLM call failed."
+                return _fail("Failed to generate solution: LLM call failed.")
 
     # Multi-Candidate Peer Review Generation: Multiple models generate candidates, then one synthesizes/reviews.
     elif solver_generation_gauntlet.generation_mode == "multi_candidate_peer_review":
         emit_info(f"  - Using multi_candidate_peer_review generation mode for {sub_problem.id}...")
+        result_metadata["generation_mode"] = "multi_candidate_peer_review"
+        result_metadata["engine"] = "llm_peer_review"
         candidates = []
         
         # Step 1: Generate multiple candidate solutions from team members.
@@ -3722,7 +4091,7 @@ def generate_solution_for_sub_problem(
                 existing_solution_text = f"Existing solution to refine:\n---\n{context['current_solution']}\n---"
             formatted_candidate_user_prompt = formatted_candidate_user_prompt.replace("{{existing_solution_to_refine}}", existing_solution_text)
 
-            candidate_response = _request_openai_compatible_chat(
+            candidate_response = chat(
                             api_key=member.api_key,
                             base_url=member.api_base,
                             model=member.model_id,
@@ -3785,7 +4154,12 @@ def generate_solution_for_sub_problem(
 
         if not candidates:
             emit_error(f"No candidates generated for sub-problem {sub_problem.id} in multi_candidate_peer_review mode.")
-            return "Failed to generate solution: No candidates produced."
+            return _fail("Failed to generate solution: No candidates produced.")
+
+        result_metadata["vote_counts"] = {
+            "candidates_generated": len(candidates),
+            "candidates_synthesized": 1,
+        }
 
         # Step 2: Peer review and synthesize the best candidate from the generated options.
         review_system_message = team.solver_system_prompt if team.solver_system_prompt else f"You are an expert AI peer reviewer and synthesizer. Your task is to review multiple candidate solutions for sub-problem {sub_problem.id} and synthesize the best possible solution, incorporating the strengths of each and addressing any weaknesses. If a single candidate is clearly superior, you may select it. Otherwise, combine and refine."
@@ -3821,7 +4195,7 @@ def generate_solution_for_sub_problem(
             existing_solution_text = f"Existing solution to refine:\n---\n{context['current_solution']}\n---"
         formatted_review_user_prompt = formatted_review_user_prompt.replace("{{existing_solution_to_refine}}", existing_solution_text)
 
-        synthesized_response = _request_openai_compatible_chat(
+        synthesized_response = chat(
             api_key=model_config.api_key, # Use the primary model for synthesis.
             base_url=model_config.api_base,
             model=model_config.model_id,
@@ -3881,12 +4255,20 @@ def generate_solution_for_sub_problem(
             emit_success(f"Solution synthesized for {sub_problem.id} by {model_config.model_id}.")
         else:
             emit_error(f"Failed to synthesize solution for {sub_problem.id} in multi_candidate_peer_review mode.")
-            return "Failed to generate solution: Synthesis failed."
+            return _fail("Failed to generate solution: Synthesis failed.")
     else:
         emit_error(f"No valid generation method specified for sub-problem {sub_problem.id}. Neither evolution_params nor solver_generation_gauntlet provided.")
-        return "Failed to generate solution: No generation method specified."
+        return _fail("Failed to generate solution: No generation method specified.")
 
-    return generated_solution_content
+    return SolutionAttempt(
+        sub_problem_id=sub_problem.id,
+        content=generated_solution_content,
+        generated_by_model=model_config.model_id if model_config else (team.members[0].model_id if team.members else "unknown"),
+        timestamp=time.time(),
+        status="generated",
+        confidence_score=float(result_metadata.get("confidence", 0.0)),
+        metadata=dict(result_metadata),
+    )
 
 
 

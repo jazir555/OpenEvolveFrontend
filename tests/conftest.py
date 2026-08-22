@@ -25,7 +25,7 @@ import shutil
 from pathlib import Path
 from typing import AsyncGenerator, Generator, Dict, Any
 from datetime import datetime, timezone
-from unittest.mock import Mock, AsyncMock, MagicMock
+from unittest.mock import Mock, AsyncMock
 import logging
 import json
 
@@ -649,54 +649,4 @@ def validate_test_environment():
     # Add any cleanup checks here
 
 
-# ============================================================================
-# UI MOCKING FIXTURE - Prevent Streamlit errors
-# ============================================================================
 
-@pytest.fixture(autouse=True)
-def mock_ui_shim():
-    """
-    Automatically mock UI components to prevent Streamlit/StreamUI errors.
-
-    This is crucial for tests that would otherwise fail when trying to import
-    modules that use UI components at import time.
-    """
-    # Create mock st (streamlit) module
-    mock_st = MagicMock()
-    mock_st.session_state = {}
-    mock_st.info = Mock()
-    mock_st.warning = Mock()
-    mock_st.error = Mock()
-    mock_st.success = Mock()
-    mock_st.subheader = Mock()
-    mock_st.write = Mock()
-    mock_st.markdown = Mock()
-    mock_st.caption = Mock()
-    mock_st.rerun = Mock()
-    mock_st.text_area = Mock(return_value="")
-    mock_st.text_input = Mock(return_value="")
-    mock_st.number_input = Mock(return_value=1)
-    mock_st.selectbox = Mock(return_value="Option 1")
-    mock_st.checkbox = Mock(return_value=False)
-    mock_st.button = Mock(return_value=False)
-    mock_st.columns = Mock(return_value=[MagicMock(), MagicMock()])
-    mock_st.tabs = Mock(return_value=[MagicMock(), MagicMock()])
-    mock_st.expander = Mock(return_value=MagicMock())
-    mock_st.container = Mock(return_value=MagicMock())
-    mock_st.progress = Mock(return_value=MagicMock())
-
-    # Create spinner context manager mock
-    mock_spinner = MagicMock()
-    mock_spinner.__enter__ = Mock(return_value=None)
-    mock_spinner.__exit__ = Mock(return_value=None)
-    mock_st.spinner = Mock(return_value=mock_spinner)
-
-    # Patch ui_shim if it exists
-    try:
-        import sys
-        if 'ui_shim' in sys.modules:
-            sys.modules['ui_shim'].ui = mock_st
-    except Exception:
-        pass
-
-    yield mock_st

@@ -24,9 +24,9 @@ try:
 except ImportError:
     from openevolve_bubblelabs_api import OpenEvolveBubbleLabsIntegration
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class AnalyticsMonitoringDashboard:
 
     def render_dashboard(self) -> None:
         """Render the dashboard through the headless UI."""
-        st.subheader("BubbleLabs analytics")
-        st.metric("Samples", len(self.metrics_history))
-        st.metric("Monitoring", "on" if self.is_monitoring else "off")
-        st.write(self.analytics_manager.summarize())
+        ui.subheader("BubbleLabs analytics")
+        ui.metric("Samples", len(self.metrics_history))
+        ui.metric("Monitoring", "on" if self.is_monitoring else "off")
+        ui.write(self.analytics_manager.summarize())

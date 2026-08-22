@@ -1,5 +1,4 @@
 from __future__ import annotations
-import streamlit as st
 import os
 from pydantic import BaseModel, Field, ConfigDict
 from openai import OpenAI
@@ -661,8 +660,5 @@ try:
     response_content = completion.choices[0].message.content
     parsed = json.loads(response_content)
     print(parsed)
-    st.json(parsed)
-    from st_copy import copy_button
-    copy_button(parsed)
 except Exception as e:
     print(f"Error parsing response: {e}")

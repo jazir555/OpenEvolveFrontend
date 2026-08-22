@@ -1,10 +1,10 @@
 """
 Headless UI shim (stub) for ``integrations.bubblelabs``.
 
-``stub: implement`` - in the full product this module bridges to Streamlit or to
-the ``bubble-studio`` front-end. This stub provides a *headless*,
-side-effect-free stand-in so that the many modules doing
-``from .ui_shim import ui as st`` remain importable and exercisable in tests, in
+``stub: implement`` - in the full product this module bridges to the BubbleLab
+headless UI or to the ``bubble-studio`` front-end. This stub provides a
+*headless*, side-effect-free stand-in so that the many modules doing
+``from .ui_shim import ui`` remain importable and exercisable in tests, in
 CI, and from the CLI without any UI runtime installed.
 
 Nothing is rendered. Widget calls are recorded on :attr:`HeadlessUI.calls` for
@@ -12,12 +12,12 @@ assertions, and ``session_state`` is a real dict so parameter-synchronisation
 code round-trips correctly.
 
 Example:
-    >>> from integrations.bubblelabs.ui_shim import ui as st
-    >>> st.session_state["temperature"] = 0.8
-    >>> left, right = st.columns(2)
+    >>> from integrations.bubblelabs.ui_shim import ui
+    >>> ui.session_state["temperature"] = 0.8
+    >>> left, right = ui.columns(2)
     >>> with left:
-    ...     st.metric("Temperature", 0.8)          # inert, recorded
-    >>> st.session_state["temperature"]
+    ...     ui.metric("Temperature", 0.8)          # inert, recorded
+    >>> ui.session_state["temperature"]
     0.8
 """
 
@@ -38,14 +38,14 @@ __all__ = ["STUB", "SessionState", "HeadlessUI", "ui"]
 
 class SessionState(Dict[str, Any]):
     """
-    Dict that also supports attribute access, mirroring Streamlit's
-    ``st.session_state`` so both ``state["k"]`` and ``state.k`` work.
+    Dict that also supports attribute access, mirroring a headless UI
+    ``session_state`` so both ``state["k"]`` and ``state.k`` work.
     """
 
     def __getattr__(self, name: str) -> Any:
         try:
             return self[name]
-        except KeyError as exc:  # pragma: no cover - mirrors Streamlit semantics
+        except KeyError as exc:  # pragma: no cover - mirrors headless UI semantics
             raise AttributeError(name) from exc
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -54,7 +54,7 @@ class SessionState(Dict[str, Any]):
     def __delattr__(self, name: str) -> None:
         try:
             del self[name]
-        except KeyError as exc:  # pragma: no cover - mirrors Streamlit semantics
+        except KeyError as exc:  # pragma: no cover - mirrors headless UI semantics
             raise AttributeError(name) from exc
 
 
@@ -63,10 +63,10 @@ class _Widget:
     Inert stand-in for any UI element.
 
     It is callable, iterable, and usable as a context manager so the common
-    Streamlit idioms all work without a UI runtime::
+    headless UI idioms all work without a UI runtime::
 
-        with st.expander("Details"):
-            st.write("hello")
+        with ui.expander("Details"):
+            ui.write("hello")
 
     Args:
         name: Dotted name of the widget, used for ``repr`` and call recording.
@@ -107,8 +107,8 @@ class _Widget:
 
 class HeadlessUI:
     """
-    Minimal headless implementation of the subset of the Streamlit API that the
-    BubbleLab modules in this package use.
+    Minimal headless implementation of the subset of the BubbleLab headless UI
+    API that the BubbleLab modules in this package use.
 
     Attributes:
         session_state: Mutable key/value store shared across modules.
@@ -127,10 +127,10 @@ class HeadlessUI:
 
         Args:
             spec: Column count, or a sequence of relative widths.
-            **kwargs: Ignored; accepted for Streamlit signature compatibility.
+            **kwargs: Ignored; accepted for headless UI signature compatibility.
 
         Returns:
-            A list of inert column widgets, so ``a, b = st.columns(2)`` works.
+            A list of inert column widgets, so ``a, b = ui.columns(2)`` works.
         """
         count = spec if isinstance(spec, int) else len(spec)
         self.calls.append(("columns", (spec,), kwargs))
@@ -142,7 +142,7 @@ class HeadlessUI:
 
         Args:
             labels: Tab labels.
-            **kwargs: Ignored; accepted for Streamlit signature compatibility.
+            **kwargs: Ignored; accepted for headless UI signature compatibility.
 
         Returns:
             A list of inert tab widgets, one per label.
@@ -153,7 +153,7 @@ class HeadlessUI:
     # -- everything else is inert --------------------------------------------
 
     def __getattr__(self, name: str) -> _Widget:
-        """Return an inert, recording widget for any other Streamlit call."""
+        """Return an inert, recording widget for any other headless UI call."""
         if name.startswith("__"):
             raise AttributeError(name)
         return _Widget(name, self.calls)
@@ -164,5 +164,5 @@ class HeadlessUI:
         self.session_state.clear()
 
 
-#: Process-wide headless UI singleton, mirroring ``import streamlit as st``.
+#: Process-wide headless UI singleton, mirroring a headless UI session import.
 ui: HeadlessUI = HeadlessUI()

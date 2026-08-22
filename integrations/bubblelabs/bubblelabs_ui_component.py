@@ -17,9 +17,9 @@ try:
 except ImportError:
     from _stub_support import STUB
 try:
-    from .ui_shim import ui as st
+    from .ui_shim import ui
 except ImportError:
-    from ui_shim import ui as st
+    from ui_shim import ui
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class BubbleLabsWorkflowUI:
 
     def render(self) -> None:
         """Render the workflow panel through the headless UI."""
-        st.header(self.title)
-        st.write(f"{len(self.nodes)} nodes / {len(self.edges)} edges")
+        ui.header(self.title)
+        ui.write(f"{len(self.nodes)} nodes / {len(self.edges)} edges")
         for name in self.extensions:
-            st.write(f"extension: {name}")
+            ui.write(f"extension: {name}")

@@ -16,8 +16,8 @@ os.environ.setdefault("TESTING", "true")
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Mock UI functions FIRST before importing anything that might use them
-class MockStreamlit:
-    """Mock Streamlit UI object for testing."""
+class MockUI:
+    """Mock UI object for testing."""
     def __init__(self):
         self.session_state = {'edited_sub_problems': {}}
         self.info = MagicMock()
@@ -43,12 +43,12 @@ class MockStreamlit:
         self.cache_data = MagicMock(return_value=lambda fn: fn)  # Mock decorator
 
 # Create and inject mock
-st = MockStreamlit()
+mock_ui = MockUI()
 
 # Patch ui_shim before importing modules that use it
 try:
     import ui_shim
-    ui_shim.ui = st
+    ui_shim.ui = mock_ui
 except (ImportError, AttributeError):
     pass
 

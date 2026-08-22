@@ -31,16 +31,24 @@ This creates:
 - `results/summary.txt` - Detailed statistics and rankings
 - `results/comparisons/` - Pairwise comparison plots
 
-### 3. Interactive Visualization Dashboard
+### 3. Result Reports
 
-Launch the Streamlit dashboard to explore results interactively:
+`_3_visualize.py` is a headless CLI report generator (no web server):
 ```bash
-streamlit run _3_visualize.py
+python _3_visualize.py                      # all models, all essays
+python _3_visualize.py --essays 0 1 --export-kg
 ```
 
-The dashboard provides:
-- 📄 **Essay Browser** - View essay topics and content
-- 🔍 **Query Analysis** - See retrieved contexts and evaluations for each query
+It writes to `results/reports/`:
+- `essay_{i}_results.csv` - Per-query retrieved context and evaluation for each model
+- `accuracy_by_essay.png` - Grouped bar chart of accuracy per model per essay
+
+With `--export-kg` it also writes `results/{model}/kg_{i}_visualization.html` for each
+knowledge graph. Use `--list-models` to see available result directories and `--show`
+to display the chart interactively instead of only saving it.
+
+> Interactive UI: the product interface is **BubbleLab (TypeScript)**, located at
+> `core-projects/BubbleLab`. There is no Python web dashboard in this repo.
 
 ## Data Loading
 
