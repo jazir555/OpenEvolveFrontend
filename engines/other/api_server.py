@@ -7594,6 +7594,64 @@ def maker_status():
     }
 
 
+@app.post("/maker/generate-solution", dependencies=[Depends(verify_api_key)])
+def maker_generate_solution(
+    initial_state: Optional[Dict[str, Any]] = None,
+    num_steps: int = 100,
+    step_prompt_template: str = "Current state: {state}. History length: {history}. Provide the next action as JSON with 'action'.",
+    config: Optional[Dict[str, Any]] = None,
+    target_reliability: float = 0.95,
+    estimated_p: float = 0.9,
+):
+    """Run the generic (backend-agnostic) MAKER generate_solution workflow.
+
+    This invokes the paper-faithful Maximal Agentic Decomposition + first-to-ahead-
+    by-k voting + red-flagging engine with an OFFLINE deterministic mock voter, so
+    it runs without any API key. The engine is the same generic component used by
+    the BubbleLab ``/mdap-maker/maker-solve`` route; it is intentionally not
+    Hanoi-specific. Returns the action sequence, final state, run metrics, and
+    scaling-law predictions.
+
+    Path documentation: this endpoint demonstrates that MAKER can be driven from the
+    decomposition API server via ``engines/other/maker_engine.run_generic_maker``.
+    """
+    try:
+        from maker_engine import run_generic_maker, MakerConfig
+    except Exception as exc:  # pragma: no cover - optional path
+        raise HTTPException(status_code=503, detail=f"maker_engine not importable: {exc}")
+
+    if initial_state is None:
+        initial_state = {}
+
+    allowed = {
+        "k_min", "k_max", "max_votes_per_step", "max_steps",
+        "timeout_seconds", "checkpoint_interval", "use_enhanced_redflag",
+    }
+    cfg = MakerConfig(**{k: v for k, v in (config or {}).items() if k in allowed})
+    cfg.max_steps = max(cfg.max_steps, num_steps)
+
+    try:
+        result = run_generic_maker(
+            initial_state=initial_state,
+            num_steps=num_steps,
+            step_prompt_template=step_prompt_template,
+            config=cfg,
+            voter=None,  # offline deterministic mock
+            target_reliability=target_reliability,
+            estimated_p=estimated_p,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"MAKER workflow failed: {exc}")
+
+    return {
+        "success": True,
+        "actions": result["actions"],
+        "final_state": result["final_state"],
+        "metrics": result["metrics"],
+        "scaling_laws": result["scaling_laws"],
+    }
+
+
 @app.get("/maker/tools", dependencies=[Depends(verify_api_key)])
 def maker_list_tools(
     status: Optional[str] = None,

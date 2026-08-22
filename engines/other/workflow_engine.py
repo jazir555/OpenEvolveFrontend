@@ -3184,10 +3184,11 @@ def _generate_solution_with_mdap(
     team: Team,
     formatted_user_prompt: str,
     system_message: str,
-    workflow_state: WorkflowState
+    workflow_state: WorkflowState,
+    voter: Optional[Callable] = None
 ) -> Optional[str]:
     mdap_config = _build_mdap_config(workflow_state, sub_problem)
-    orchestrator = MDAPOrchestrator(team, mdap_config)
+    orchestrator = MDAPOrchestrator(team, mdap_config, voter=voter)
 
     schema = {
         "type": "object",
@@ -3238,7 +3239,8 @@ def _generate_solution_with_maker(
     workflow_state: WorkflowState,
     emit_info: Optional[callable] = None,
     emit_success: Optional[callable] = None,
-    emit_warning: Optional[callable] = None
+    emit_warning: Optional[callable] = None,
+    voter: Optional[Callable] = None
 ) -> Optional[str]:
     """
     Generate solution for sub-problem using MAKER framework.
@@ -3273,7 +3275,7 @@ def _generate_solution_with_maker(
     emit_info and emit_info(f"  - Falling back to legacy MAKER for {sub_problem.id}...")
 
     maker_config = _build_maker_config(workflow_state, sub_problem)
-    engine = MakerEngine(team, maker_config)
+    engine = MakerEngine(team, maker_config, voter=voter)
 
     initial_state = {
         "solution": "",
@@ -3348,7 +3350,8 @@ def generate_solution_for_sub_problem(
     context: Dict[str, Any],
     workflow_state: WorkflowState,
     solver_generation_gauntlet: Optional[GauntletDefinition] = None,
-    emit_ui: bool = True
+    emit_ui: bool = True,
+    voter: Optional[Callable] = None
 ) -> str:
     """    Generates a solution for a given sub-problem using the assigned solver team and OpenEvolve.
     This function supports different generation modes based on the `solver_generation_gauntlet`:
@@ -3480,7 +3483,8 @@ def generate_solution_for_sub_problem(
             workflow_state=workflow_state,
             emit_info=emit_info,
             emit_success=emit_success,
-            emit_warning=emit_warning
+            emit_warning=emit_warning,
+            voter=voter
         )
         if maker_result:
             emit_success(f"Solution generated for {sub_problem.id} using MAKER v2.")
@@ -3494,7 +3498,8 @@ def generate_solution_for_sub_problem(
             team=team,
             formatted_user_prompt=formatted_user_prompt,
             system_message=system_message,
-            workflow_state=workflow_state
+            workflow_state=workflow_state,
+            voter=voter
         )
         if mdap_result:
             emit_success(f"Solution generated for {sub_problem.id} using MDAP.")

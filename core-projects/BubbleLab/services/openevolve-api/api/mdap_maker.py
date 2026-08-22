@@ -66,6 +66,40 @@ except Exception as exc:
     _compose_messages = None
     _request_openai_compatible_chat = None
 
+# Generic MAKER generate_solution workflow (backend-agnostic, paper-faithful).
+# Guarded so the associative/ROMA routes keep working even if engines/other is
+# not importable in a given deployment.
+try:
+    _ENGINES_OTHER = _REPO_ROOT / "engines" / "other"
+    if str(_ENGINES_OTHER) not in sys.path:
+        sys.path.append(str(_ENGINES_OTHER))
+    from maker_engine import (
+        MakerEngine,
+        MakerConfig,
+        MakerStep,
+        run_generic_maker,
+    )
+    from maker_scaling import (
+        step_success_probability,
+        full_task_success_probability,
+        required_k_for_reliability,
+        expected_cost,
+        parallelization_factor,
+    )
+    MAKER_ENGINE_AVAILABLE = True
+except Exception as exc:  # pragma: no cover - optional dependency
+    logger.warning("maker_engine_unavailable", error=str(exc))
+    MakerEngine = None
+    MakerConfig = None
+    MakerStep = None
+    run_generic_maker = None
+    step_success_probability = None
+    full_task_success_probability = None
+    required_k_for_reliability = None
+    expected_cost = None
+    parallelization_factor = None
+    MAKER_ENGINE_AVAILABLE = False
+
 _LLM_CONFIG_KEY = "llm_config"
 _MDAP_MAKER_DEFAULTS_KEY = "mdap_maker_defaults"
 _ROMA_MDAP_MAKER_DEFAULTS_KEY = "roma_mdap_maker_defaults"
@@ -300,4 +334,97 @@ async def roma_mdap_maker_solve(request: ROMAMDAPMakerSolveRequest) -> Dict[str,
     return {
         "success": True,
         "result": result,
+    }
+
+
+class MakerSolveRequest(BaseModel):
+    """Generic MAKER generate_solution request (not Hanoi-specific).
+
+    Runs the maximal-agentic-decomposition + first-to-ahead-by-k voting +
+    red-flagging workflow over ``num_steps`` dependent steps. By default an
+    offline deterministic mock voter is used (``mock_voter=True``), so no API
+    key or LLM backend is required.
+    """
+
+    initial_state: Dict[str, Any] = Field(default_factory=dict)
+    num_steps: int = Field(..., gt=0, le=200000)
+    step_prompt_template: str = Field(
+        "Current state: {state}. History length: {history}. Provide the next action as JSON with 'action'."
+    )
+    expected_schema: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="MakerConfig overrides: k_min, k_max, max_votes_per_step, "
+        "max_steps, checkpoint_interval, use_enhanced_redflag, and red_flag_rules.",
+    )
+    target_reliability: float = Field(0.95, ge=0.0, le=1.0)
+    estimated_p: float = Field(0.9, ge=0.0, le=1.0)
+    mock_voter: bool = True
+
+
+@router.get("/mdap-maker/maker-status")
+async def mdap_maker_maker_status() -> Dict[str, Any]:
+    return {
+        "maker_engine_available": MAKER_ENGINE_AVAILABLE,
+        "scaling_available": step_success_probability is not None,
+    }
+
+
+@router.post("/mdap-maker/maker-solve")
+async def mdap_maker_maker_solve(request: MakerSolveRequest) -> Dict[str, Any]:
+    """Run the generic MAKER generate_solution workflow and return results + scaling laws.
+
+    Returns:
+        {
+          "actions": [...],
+          "final_state": ...,
+          "metrics": {...},
+          "scaling_laws": {
+             "estimated_p", "target_reliability", "num_steps", "k_used",
+             "step_success_probability", "full_task_success_probability",
+             "required_k_for_reliability", "expected_cost", "parallelization_factor"
+          }
+        }
+    """
+    if not MAKER_ENGINE_AVAILABLE or run_generic_maker is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Generic MAKER engine is not available in this deployment",
+        )
+
+    # Build MakerConfig from the (filtered) overrides, guarding against unknown keys.
+    config_dict = dict(request.config or {})
+    allowed = {
+        "k_min", "k_max", "max_votes_per_step", "max_steps",
+        "timeout_seconds", "checkpoint_interval", "use_enhanced_redflag",
+    }
+    filtered = {k: v for k, v in config_dict.items() if k in allowed}
+    maker_config = MakerConfig(**filtered)
+    maker_config.max_steps = max(maker_config.max_steps, request.num_steps)
+
+    try:
+        result = run_generic_maker(
+            initial_state=request.initial_state,
+            num_steps=request.num_steps,
+            step_prompt_template=request.step_prompt_template,
+            expected_schema=request.expected_schema,
+            config=maker_config,
+            # voter=None -> offline deterministic mock (backend-agnostic design).
+            voter=None,
+            target_reliability=request.target_reliability,
+            estimated_p=request.estimated_p,
+        )
+    except Exception as exc:
+        logger.error("mdap_maker_maker_solve_failed", error=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Generic MAKER workflow failed: {exc}",
+        )
+
+    return {
+        "success": True,
+        "actions": result["actions"],
+        "final_state": result["final_state"],
+        "metrics": result["metrics"],
+        "scaling_laws": result["scaling_laws"],
     }

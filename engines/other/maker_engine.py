@@ -15,6 +15,36 @@ from mdap_engine import (
     canonicalize_candidate
 )
 
+# Scaling-law analytics (pure, offline). Import guarded so the engine is usable
+# even if maker_scaling is not on sys.path (it lives in the same flat package).
+try:
+    from maker_scaling import (
+        step_success_probability,
+        full_task_success_probability,
+        required_k_for_reliability,
+        expected_votes_per_step,
+        expected_cost,
+        parallelization_factor,
+    )
+    SCALING_AVAILABLE = True
+except ImportError:  # pragma: no cover - only when module missing
+    SCALING_AVAILABLE = False
+
+# Optional richer correlated-error detection via the project's red-flagging system.
+# Guarded so maker_engine never hard-depends on reliability/*.
+try:
+    from reliability.enhanced_redflagger import EnhancedRedflagger as _EnhancedRedflagger
+    ENHANCED_REDFLAG_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    _EnhancedRedflagger = None
+    ENHANCED_REDFLAG_AVAILABLE = False
+
+# A voter is a backend-agnostic callable that, given a rendered prompt and a
+# system prompt, returns (raw_text, candidate). The default voter calls the LLM
+# (OpenAI-compatible). Injecting a voter makes the engine generic and lets tests
+# run fully offline with a deterministic/mock voter.
+Voter = Callable[[str, Optional[str], Optional[Dict[str, Any]], "MakerStep"], Tuple[str, Any]]
+
 # **ACTUAL INTEGRATION**: Alerting and knowledge for Maker operations
 try:
     from alerting_system import get_alert_manager, AlertSeverity
@@ -63,6 +93,7 @@ class MakerConfig:
     timeout_seconds: int = 90
     checkpoint_interval: int = 25
     red_flag_rules: RedFlagRules = field(default_factory=RedFlagRules)
+    use_enhanced_redflag: bool = False
 
 
 @dataclass
@@ -118,7 +149,7 @@ class FileCheckpointStore(CheckpointStore):
 
 
 class MakerEngine:
-    def __init__(self, team: Team, config: MakerConfig):
+    def __init__(self, team: Team, config: MakerConfig, voter: Optional[Voter] = None):
         self.team = team
         self.config = config
         self.red_flagger = RedFlagger(config.red_flag_rules)
@@ -129,6 +160,19 @@ class MakerEngine:
             "escalations": 0,
             "errors": 0
         }
+        # Backend-agnostic voter (paper: "relatively small non-reasoning models
+        # suffice"). Default = OpenAI-compatible LLM call. Injected voters let the
+        # engine run offline (mock/deterministic) and remain fully generic.
+        self.voter: Voter = voter if voter is not None else self._default_voter
+
+        # Optional richer correlated-error detection (exceeds paper: integrates the
+        # project's EnhancedRedflagger in addition to the core RedFlagger).
+        self._enhanced_redflagger = None
+        if config.use_enhanced_redflag and ENHANCED_REDFLAG_AVAILABLE:
+            try:
+                self._enhanced_redflagger = _EnhancedRedflagger()
+            except Exception:
+                self._enhanced_redflagger = None
 
     def solve(
         self,
@@ -177,7 +221,7 @@ class MakerEngine:
 
             # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful solve
             if success or "steps" in result.metrics and result.metrics["steps"] > 0:
-                self._extract_maker_knowledge("solve", state, result)
+                self._extract_maker_knowledge("solve", result)
                 self._track_maker_performance("solve", True, duration, result.metrics["steps"])
             else:
                 self._track_maker_performance("solve", False, duration, 0)
@@ -218,6 +262,14 @@ class MakerEngine:
                 self.metrics["red_flags"] += 1
                 continue
 
+            # (EXCEED) Optional richer correlated-error detection via the project's
+            # EnhancedRedflagger. Paper core signal: malformed/structurally
+            # inconsistent outputs correlate with deeper reasoning errors and must
+            # be discarded BEFORE voting to decorrelate errors.
+            if self._enhanced_flag(raw_text):
+                self.metrics["red_flags"] += 1
+                continue
+
             key = canonicalize_candidate(candidate)
             votes[key] = votes.get(key, 0) + 1
 
@@ -233,10 +285,24 @@ class MakerEngine:
 
     def _collect_vote(self, step: MakerStep, current_state: Any,
                       history: List[Dict[str, Any]]) -> Tuple[str, Any]:
-        agent = self._select_agent(step)
+        """Obtain one candidate via the (injectable) voter.
+
+        The voter callable returns ``(raw_text, candidate)``. The default voter
+        performs the OpenAI-compatible LLM call and parses the response. Injected
+        voters (mock/deterministic) bypass the LLM entirely, making MAKER generic
+        and testable offline.
+        """
         system_prompt = step.system_prompt or "You are a specialized AI agent. Follow the instructions precisely."
         prompt = step.render_prompt(current_state, history)
-        messages = _compose_messages(system_prompt, prompt)
+        raw_text, candidate = self.voter(prompt, system_prompt, step.expected_schema, step)
+        return raw_text, candidate
+
+    def _default_voter(self, prompt: str, system_prompt: str | None,
+                       expected_schema: Optional[Dict[str, Any]], step: MakerStep) -> Tuple[str, Any]:
+        """Default voter: OpenAI-compatible LLM call + response parsing."""
+        agent = self._select_agent(step)
+        sys_prompt = system_prompt or step.system_prompt or "You are a specialized AI agent. Follow the instructions precisely."
+        messages = _compose_messages(sys_prompt, prompt)
 
         response = _request_openai_compatible_chat(
             api_key=agent.api_key,
@@ -292,7 +358,7 @@ class MakerEngine:
         )
 
         raw_text = response or ""
-        candidate = self._parse_candidate(raw_text, step.expected_schema)
+        candidate = self._parse_candidate(raw_text, expected_schema)
         return raw_text, candidate
 
     def _parse_candidate(self, raw_text: str, schema: Optional[Dict[str, Any]]) -> Any:
@@ -316,6 +382,20 @@ class MakerEngine:
         if isinstance(candidate, dict):
             return "action" in candidate
         return isinstance(candidate, str)
+
+    def _enhanced_flag(self, raw_text: str) -> bool:
+        """Return True if the EnhancedRedflagger flags this response.
+
+        Used only when ``config.use_enhanced_redflag`` is set and the module is
+        importable. Always returns False otherwise (guarded, never raises).
+        """
+        if self._enhanced_redflagger is None or not raw_text:
+            return False
+        try:
+            flags = self._enhanced_redflagger.scan(raw_text)
+            return bool(flags)
+        except Exception:
+            return False
 
     def _select_agent(self, step: MakerStep) -> ModelConfig:
         if not self.team.members:
@@ -451,4 +531,144 @@ class MakerEngine:
 
         except Exception as e:
             logger.error(f"Failed to track Maker performance: {e}")
+
+
+# -----------------------------------------------------------------------------
+# Generic, backend-agnostic runner (exceeds the paper: any voter backend works)
+# -----------------------------------------------------------------------------
+
+def _deterministic_mock_voter(
+    prompt: str,
+    system_prompt: Optional[str],
+    expected_schema: Optional[Dict[str, Any]],
+    step: "MakerStep",
+) -> Tuple[str, Any]:
+    """Built-in offline voter used when no voter/LLM is supplied.
+
+    Returns a consistent, valid action for each step (keyed by step_id) so the
+    workflow can be exercised without any LLM. Deterministic -> zero errors, which
+    is the point of the demonstration that the machinery converges.
+    """
+    import re
+    idx = 0
+    match = re.search(r"(\d+)", step.step_id or "")
+    if match:
+        idx = int(match.group(1))
+    candidate = {
+        "action": {"kind": "noop", "step": idx},
+        "next_state": {"step": idx},
+    }
+    return json.dumps(candidate), candidate
+
+
+class _StubTeam:
+    """Minimal Team stand-in so the engine can run without a real model config.
+
+    The default (LLM) voter is the only code path that touches team members; when
+    an injectable voter is supplied the team is never dereferenced.
+    """
+
+    name = "generic"
+    members: List[Any] = []
+
+
+def run_generic_maker(
+    initial_state: Any,
+    num_steps: int,
+    step_prompt_template: str,
+    expected_schema: Optional[Dict[str, Any]] = None,
+    config: Optional[MakerConfig] = None,
+    voter: Optional[Voter] = None,
+    apply_action: Optional[Callable[[Any, Any], Any]] = None,
+    target_reliability: float = 0.95,
+    estimated_p: float = 0.9,
+    checkpoint_store: Optional[CheckpointStore] = None,
+) -> Dict[str, Any]:
+    """Run the generic MAKER generate_solution workflow end-to-end.
+
+    This is the central wiring used by API routes: it drives ``MakerEngine`` with
+    an injectable voter (offline mock by default) and returns the action sequence,
+    final state, run metrics, and scaling-law predictions.
+
+    Args:
+        initial_state: starting task state.
+        num_steps: number of dependent steps to execute (s in the paper).
+        step_prompt_template: prompt template rendered per step; may use the
+            ``{state}`` and ``{history}`` placeholders.
+        expected_schema: optional JSON schema used for red-flagging/validation.
+        config: optional ``MakerConfig``; sensible defaults applied otherwise.
+        voter: injectable voter callable; if None a deterministic offline mock is
+            used so the workflow runs without any API key.
+        apply_action: maps (state, action) -> next_state; defaults to using the
+            action's ``next_state`` when present.
+        target_reliability: target full-task zero-error probability used for the
+            scaling-law predictions (and auto-tuned k).
+        estimated_p: estimated per-sample correctness used for the projections.
+        checkpoint_store: optional checkpoint store.
+
+    Returns:
+        dict with keys: ``actions``, ``final_state``, ``metrics``, ``scaling_laws``.
+    """
+    config = config or MakerConfig(max_steps=num_steps)
+    config.max_steps = max(config.max_steps, num_steps)
+    if voter is None:
+        voter = _deterministic_mock_voter
+
+    engine = MakerEngine(_StubTeam(), config, voter=voter)
+
+    def step_builder(state: Any, history: List[Dict[str, Any]]) -> MakerStep:
+        return MakerStep(
+            step_id=f"step_{len(history) + 1}",
+            prompt_template=step_prompt_template,
+            expected_schema=expected_schema,
+            task_type="solve",
+            priority=0,
+            system_prompt="You are a specialized micro-agent executing one step.",
+        )
+
+    def default_apply_action(current_state: Any, action: Any) -> Any:
+        if isinstance(action, dict) and "next_state" in action:
+            return action["next_state"]
+        return current_state
+
+    used_apply = apply_action or default_apply_action
+
+    result = engine.solve(
+        initial_state=initial_state,
+        step_builder=step_builder,
+        apply_action=used_apply,
+        checkpoint_store=checkpoint_store,
+    )
+
+    actions = [entry.get("action") for entry in result.state.history]
+
+    scaling_laws: Dict[str, Any] = {}
+    if SCALING_AVAILABLE:
+        k_used = config.k_min
+        scaling_laws = {
+            "estimated_p": estimated_p,
+            "target_reliability": target_reliability,
+            "num_steps": num_steps,
+            "k_used": k_used,
+            "step_success_probability": step_success_probability(estimated_p, k_used),
+            "full_task_success_probability": full_task_success_probability(
+                estimated_p, k_used, num_steps
+            ),
+            "required_k_for_reliability": required_k_for_reliability(
+                estimated_p, num_steps, target_reliability
+            ),
+            "expected_cost": expected_cost(
+                estimated_p, num_steps, k=k_used, target=target_reliability
+            ),
+            "parallelization_factor": parallelization_factor(
+                num_steps, target=target_reliability, p=estimated_p
+            ),
+        }
+
+    return {
+        "actions": actions,
+        "final_state": result.state.current_state,
+        "metrics": result.metrics,
+        "scaling_laws": scaling_laws,
+    }
 

@@ -212,3 +212,32 @@ to their correct `engines/<sub>` dirs; removed dead `sentence_transformers` impo
   security, adaptive, e2e_invention) are now import-clean and feature-complete enough to run
   offline with graceful fallbacks. The `openevolve.kernel` import (87 formerly-broken files)
   now resolves via the source package on sys.path.
+
+## 8. Mine-the-docs task waves (2026-08-21)
+
+The stale report corpus was quarantined (`.docs_trash/2026-08-21_conservative_subset/`) and
+`docs/architecture/` mined into 43 tasks. Parallel agent waves implemented them; the full-tree
+compile sweep reported ALL CLEAN (0 failures, exit 0). Relevant `engines/` deliverables verified
+present and importable:
+
+- **Sovereign Decomposition RBAC.** `engines/other/api_server.py` wires `engines/security/rbac_enhanced.py`
+  (`RBAC_ENHANCED_AVAILABLE` guard) and persists an audit trail; enforcement is OFF unless
+  `SOVEREIGN_RBAC_ENFORCE=1/true`. `engines/security/` also provides `auth_system.py`,
+  `secure_api.py`, `rate_limiting.py`, `security_layer.py`.
+- **BubbleLab UI ↔ TS wiring.** `engines/other/bubblelab_components_bridge.py` and
+  `engines/other/bubblelabs_ui_component.py` bridge BubbleLab components to the engine; the TS
+  side lives under `glue/adapters/bubblelab/`, launched by `scripts/start_bubblelabs_integration.py`.
+- **MAKER / LeanAIDE / shared symbols.** `engines/other/leanaide_client.py` (`LeanAideClient`),
+  `proof_state.py`, `z3_constraint.py`, `math_domain.py`, `sop_parameter.py` (from §7a) underpin the
+  teams/gauntlets Red→Blue→Gold flow and the hybrid MAKER strategies in `core-projects/openevolve`.
+
+### 8a. Verdict (2026-08-21)
+- `engines/` compiles clean; the 48/50 isolated-import result from §7f holds (only the two heavy
+  application servers `api_server` / `adversarial_maker_integration` exclude themselves in a single
+  isolated load, by design).
+- A `from __future__ import annotations` header is present in 519 engine modules; the flat-package
+  name-collision caveat from §7e remains (measure importability in isolation, not with all subdirs on
+  one sys.path).
+- `api_server.py` (port 8001 Decomposition-Workflow server) now imports cleanly and wires RBAC; it
+  still requires `engines/other` + `engines/security` on sys.path (handled via `sys.path.insert` at the
+  top of the module — the prior boot-time `ModuleNotFoundError: workflow_structures` is fixed).

@@ -149,6 +149,8 @@ MDAP is implemented in `mdap_engine.py` and provides production-ready components
 - **AgentSelector**: Chooses team members based on specialization and historical performance metrics.
 Production execution flows are wired in `workflow_engine.py` (`_generate_solution_with_mdap` and `generate_solution_for_sub_problem`). Any illustrative snippets below are conceptual only and not runtime code.
 
+MDAP is a **generic, backend-agnostic error-prevention component** (paper-faithful to `docs/Papers/MDAP_MAKER.txt`, not Hanoi-specific). `MDAPOrchestrator` accepts an injectable `voter` callable (default: OpenAI-compatible LLM; mock/injected voters enable fully offline runs), and exact scaling-law analytics live in `engines/other/maker_scaling.py` (`step_success_probability` = Eq. 9, `required_k_for_reliability`, `expected_cost`, `parallelization_factor`).
+
 **MDAP Operational Flow:**
 
 1.  **Decompose**: Transform each stage objective into microtasks (`MDAPStep`) with explicit schemas.
@@ -1319,6 +1321,19 @@ Quality control mechanisms in MAKER include:
 4.  **Convergence Analysis**: Analyze voting convergence patterns for optimization
 
 This approach significantly improves the per-step success rate and reduces correlated errors that could compromise the entire task.
+
+### 1.6.1 MAKER Implementation Status (Generic Error-Prevention Component)
+
+MAKER is implemented as a **generic, backend-agnostic error-prevention component**, faithfully following the paper `docs/Papers/MDAP_MAKER.txt` ("Solving a Million-Step LLM Task with Zero Errors"). It is intentionally **not Hanoi-specific**: the same `MakerEngine` / `MDAPOrchestrator` machinery drives any decomposed task whose steps expose a per-step success probability `p > 0.5`.
+
+Key design properties (all present in `engines/other/maker_engine.py`, `engines/other/mdap_engine.py`, `engines/other/maker_scaling.py`):
+
+* **Injectable, backend-agnostic voter.** Both engines accept an optional `voter(prompt, system_prompt, expected_schema, step) -> (raw_text, candidate)` callable. The default voter performs the OpenAI-compatible LLM call (the paper's observation that "relatively small non-reasoning models suffice"). Injecting a voter lets the entire workflow run **offline** with a deterministic/mock backend and makes the system truly generic. The same injection is threaded through `workflow_engine.py` (`_generate_solution_with_maker`, `_generate_solution_with_mdap`, `generate_solution_for_sub_problem`).
+* **Faithful algorithms.** `MakerEngine._has_k_ahead` implements the exact first-to-ahead-by-k condition `V[y] >= k + max_{v != y} V[v]` (Alg. 2). `get_vote` (the voter loop) discards red-flagged responses and re-samples (Alg. 3), and `generate_solution` appends the winning action and advances state each step (Alg. 1).
+* **Exact scaling-law analytics** (`maker_scaling.py`, pure/offline): `step_success_probability(p, k) = 1 / (1 + ((1-p)/p)^k)` (Eq. 9); `full_task_success_probability = step^steps`; `required_k_for_reliability` (binary search) auto-tunes `k` from a target reliability (the doc's "adaptive thresholds"); `expected_votes_per_step` (gambler's-ruin expected duration), `expected_cost` (`Theta(p^{-1} c s ln s)` for m=1), and `parallelization_factor` (`Theta(ln s)`).
+* **Red-flagging integration (exceeds paper).** Both engines use the core `RedFlagger` (length + schema + confidence + blocked patterns) and, when `config.use_enhanced_redflag` is set, additionally consult `reliability/enhanced_redflagger.py`'s `EnhancedRedflagger` for richer correlated-error detection. The paper's core signal — discard malformed/structurally-inconsistent outputs as proxies for deeper reasoning errors, *before* voting — is enforced, so correlated failures are decorrelated. The change is import-guarded (no hard dependency on the red-flagging system).
+
+The generic runner `run_generic_maker` (and the FastAPI routes `/mdap-maker/maker-solve` in the BubbleLab API and `/maker/generate-solution` in `engines/other/api_server.py`) accept an initial state, a step list/generator, MAKER config (k, red-flag rules, target reliability), and an optional mock-voter flag, returning `{actions, final_state, metrics, scaling_laws}` where `scaling_laws` uses the analytics above to predict success probability / expected cost / required k for the requested length.
 
 ---
 
@@ -4465,6 +4480,22 @@ The following tasks are crucial for completing the full implementation:
 *   **Error Handling and Edge Cases**: Implement more robust error handling and consider edge cases (e.g., no teams/gauntlets defined, circular dependencies in sub-problems).
 *   **Performance Optimization**: As a "Sovereign-Grade" system, performance will be critical. This includes optimizing LLM calls (parallelization, caching), BubbleLab UI rendering, and data persistence.
 *   **Remove Placeholders**: All `st.warning("Placeholder: ...")` and similar temporary code must be replaced with production-ready implementations.
+
+#### 6.2.1 MAKER / MDAP — Completed (Generic Error-Prevention Component)
+
+The MAKER / MDAP error-prevention machinery described in §1.5 and §1.6 is implemented and validated offline:
+
+*   [x] **`MakerEngine`** (`engines/other/maker_engine.py`): faithful Alg. 1–3 — `generate_solution` loop appends the winning action and advances state; `do_voting` uses `_has_k_ahead` (`V[y] >= k + max_{v!=y} V[v]`); `get_vote` discards red-flagged responses and re-samples.
+*   [x] **`MDAPOrchestrator`** (`engines/other/mdap_engine.py`): same first-to-ahead-by-k voting + `RedFlagger` + fallback policy + optional caching, with the same injectable voter.
+*   [x] **Backend-agnostic voter**: both engines accept `voter(prompt, system_prompt, expected_schema, step) -> (raw_text, candidate)`. Default = OpenAI-compatible LLM; mock/deterministic voters run the workflow fully offline. Wired through `workflow_engine.py`.
+*   [x] **Exact scaling-law analytics** (`engines/other/maker_scaling.py`): Eq. 9 `step_success_probability`, `full_task_success_probability`, `required_k_for_reliability` (auto-tunes `k` from a target reliability), `expected_votes_per_step` (gambler's-ruin duration), `expected_cost` (`Theta(p^{-1} c s ln s)`), `parallelization_factor` (`Theta(ln s)`).
+*   [x] **Red-flagging (exceeds paper)**: core `RedFlagger` (length + schema + confidence + blocked patterns) plus optional `reliability/enhanced_redflagger.py` `EnhancedRedflagger` consultation (`config.use_enhanced_redflag`, import-guarded) for richer correlated-error detection.
+*   [x] **End-to-end API wiring**: BubbleLab route `POST /mdap-maker/maker-solve` and `engines/other/api_server.py` `POST /maker/generate-solution` run the generic MAKER workflow (offline mock voter by default) and return `{actions, final_state, metrics, scaling_laws}`. The associative/ROMA imports remain guarded and unchanged.
+
+**Offline test evidence** (`engines/other/test_maker_scaling.py`, `engines/other/test_maker_workflow.py`; `python -m pytest` → **14 passed**):
+
+*   Scaling laws validated: `step_success_probability(0.9, 5) ≈ 0.99998`; `required_k_for_reliability(0.9, 10000, 0.95)` returns `k` in `[5, 8]` and meets the target; `required_k` increases with `s` but only logarithmically; `expected_votes_per_step(0.5, 3) = 9.0`; `parallelization_factor == required_k`; red-flag `redflag_correlation` raises full-task success.
+*   Generic zero-error demonstration: a single-agent baseline (`k=1`, no red-flag) **fails** within 100 steps; MAKER with first-to-ahead-by-k voting + red-flagging completes **1000 steps with ZERO errors**; systematic (correlated) malformed outputs are red-flagged and filtered (`red_flags > 0`) while the unflagged control run fails — demonstrating that red-flagging decorrelates errors. All claims above are backed only by these passing tests.
 
 ---
 

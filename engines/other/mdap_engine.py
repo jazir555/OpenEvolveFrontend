@@ -9,10 +9,37 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from llm_utils import _compose_messages, _request_openai_compatible_chat
 from workflow_structures import ModelConfig, Team
+
+# Scaling-law analytics (pure, offline). Import guarded so the engine is usable
+# even if maker_scaling is not on sys.path (it lives in the same flat package).
+try:
+    from maker_scaling import (
+        step_success_probability,
+        full_task_success_probability,
+        required_k_for_reliability,
+        expected_votes_per_step,
+        expected_cost,
+        parallelization_factor,
+    )
+    SCALING_AVAILABLE = True
+except ImportError:  # pragma: no cover - only when module missing
+    SCALING_AVAILABLE = False
+
+# Optional richer correlated-error detection via the project's red-flagging system.
+# Guarded so mdap_engine never hard-depends on reliability/*.
+try:
+    from reliability.enhanced_redflagger import EnhancedRedflagger as _EnhancedRedflagger
+    ENHANCED_REDFLAG_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    _EnhancedRedflagger = None
+    ENHANCED_REDFLAG_AVAILABLE = False
+
+# A voter is a backend-agnostic callable returning (raw_text, candidate).
+Voter = Callable[[str, Optional[str], Optional[Dict[str, Any]], "MDAPStep"], Tuple[str, Any]]
 
 # **ACTUAL INTEGRATION**: Alerting and knowledge for MDAP operations
 try:
@@ -258,6 +285,7 @@ class MDAPConfig:
     fallback_policy: str = "escalate_then_best_effort"
     cache_ttl_seconds: Optional[int] = None
     cache_max_size: int = 5000
+    use_enhanced_redflag: bool = False
 
 
 @dataclass
@@ -361,7 +389,7 @@ class AgentSelector:
 
 
 class MDAPOrchestrator:
-    def __init__(self, team: Team, config: MDAPConfig):
+    def __init__(self, team: Team, config: MDAPConfig, voter: Optional[Voter] = None):
         self.team = team
         self.config = config
         self.selector = AgentSelector(team)
@@ -375,6 +403,19 @@ class MDAPOrchestrator:
             "red_flags": 0,
             "votes_cast": 0
         }
+        # Backend-agnostic voter (paper: "relatively small non-reasoning models
+        # suffice"). Default = OpenAI-compatible LLM call. Injected voters let the
+        # orchestrator run offline (mock/deterministic) and remain fully generic.
+        self.voter: Voter = voter if voter is not None else self._default_voter
+
+        # Optional richer correlated-error detection (exceeds paper: integrates the
+        # project's EnhancedRedflagger in addition to the core RedFlagger).
+        self._enhanced_redflagger = None
+        if config.use_enhanced_redflag and ENHANCED_REDFLAG_AVAILABLE:
+            try:
+                self._enhanced_redflagger = _EnhancedRedflagger()
+            except Exception:
+                self._enhanced_redflagger = None
 
     def execute_task(self, task: MDAPTask) -> MDAPRunResult:
         step_results: Dict[str, MDAPStepResult] = {}
@@ -434,6 +475,16 @@ class MDAPOrchestrator:
                 red_flags += 1
                 self.metrics["red_flags"] += 1
                 flagged_reasons.extend(reasons)
+                continue
+
+            # (EXCEED) Optional richer correlated-error detection via the project's
+            # EnhancedRedflagger. Paper core signal: malformed/structurally
+            # inconsistent outputs correlate with deeper reasoning errors and must
+            # be discarded BEFORE voting to decorrelate errors.
+            if self._enhanced_flag(raw_text):
+                red_flags += 1
+                self.metrics["red_flags"] += 1
+                flagged_reasons.append("enhanced_redflag")
                 continue
 
             candidate_key = canonicalize_candidate(candidate)
@@ -508,10 +559,24 @@ class MDAPOrchestrator:
         )
 
     def _sample_candidate(self, step: MDAPStep) -> Tuple[str, Any]:
-        agent = self.selector.select(step)
+        """Obtain one candidate via the (injectable) voter.
+
+        The voter callable returns ``(raw_text, candidate)``. The default voter
+        performs the OpenAI-compatible LLM call and parses the response. Injected
+        voters (mock/deterministic) bypass the LLM entirely, making MDAP generic
+        and testable offline.
+        """
         system_prompt = self._system_prompt_for_step(step)
         user_prompt = self._user_prompt_for_step(step)
-        messages = _compose_messages(system_prompt, user_prompt)
+        raw_text, candidate = self.voter(user_prompt, system_prompt, step.expected_schema, step)
+        return raw_text, candidate
+
+    def _default_voter(self, prompt: str, system_prompt: str | None,
+                       expected_schema: Optional[Dict[str, Any]], step: MDAPStep) -> Tuple[str, Any]:
+        """Default voter: OpenAI-compatible LLM call + response parsing."""
+        agent = self.selector.select(step)
+        sys_prompt = system_prompt or self._system_prompt_for_step(step)
+        messages = _compose_messages(sys_prompt, prompt)
 
         response = _request_openai_compatible_chat(
             api_key=agent.api_key,
@@ -567,8 +632,22 @@ class MDAPOrchestrator:
         )
 
         raw_text = response or ""
-        candidate = self._parse_candidate(raw_text, step.expected_schema)
+        candidate = self._parse_candidate(raw_text, expected_schema)
         return raw_text, candidate
+
+    def _enhanced_flag(self, raw_text: str) -> bool:
+        """Return True if the EnhancedRedflagger flags this response.
+
+        Used only when ``config.use_enhanced_redflag`` is set and the module is
+        importable. Always returns False otherwise (guarded, never raises).
+        """
+        if self._enhanced_redflagger is None or not raw_text:
+            return False
+        try:
+            flags = self._enhanced_redflagger.scan(raw_text)
+            return bool(flags)
+        except Exception:
+            return False
 
     def _parse_candidate(self, raw_text: str, schema: Optional[Dict[str, Any]]) -> Any:
         stripped = raw_text.strip()

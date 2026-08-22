@@ -2,7 +2,7 @@
 
 **Author:** Research pass (read-only)
 **Date:** 2026-08-19
-**Last updated:** 2026-08-20, waves 1-5 (reconciliation)
+**Last updated:** 2026-08-21, wave 12 (mine-the-docs task waves)
 **Scope:** Intended OpenEvolve ⇄ BubbleLab integration across three layers (BubbleLab UI → BubbleLab backend (Bun/Hono) → OpenEvolve backend (Python/FastAPI)), compared against the actual code in this repo.
 
 > **INTEGRATION STATUS: GREEN (8/8 harness suites).** Sections 1–6 below are the
@@ -266,3 +266,38 @@ line and restored, preserving the dual-mode `try/except` structure.
 
 `integrations/bubblelabs` is now fully compilable and importable in both relative-package
 and flat-sys.path modes.
+
+---
+
+## 12. Mine-the-docs task waves (2026-08-21)
+
+The stale/aspirational completion & integration reports were quarantined to
+`.docs_trash/2026-08-21_conservative_subset/` (recoverable). Remaining `docs/architecture/`
+(136 .md) were mined into 43 actionable tasks (14 High, 23 Medium, 6 Low) captured at
+`%LOCALAPPDATA%\Temp\kilo\mine\MASTER_TASKS.md`. They were implemented in parallel agent
+waves (High+Medium then Low); each agent verified its own deliverable. The full-tree
+compile sweep (`verify_sweep.py` over the `.py`/`.ts`/`.tsx` corpus) reported ALL CLEAN
+(0 failures, exit 0).
+
+### 12a. High + Medium epics implemented (verified present)
+- **OpenEvolve core evolution algorithms (epic).** `core-projects/openevolve/openevolve/enhanced_evolution_engine.py` — `EnhancedEvolutionEngine` adds NSGA-II/III, Novelty Search/QD, NEAT, Symbolic-GP, CMA-ES, self-adaptive operators, hybrid MAKER strategies, secure code execution behind config flags. Compiles; exercised by the core lib test suite.
+- **Knowledge Engine API gateway / RESE (epic).** `knowledge_engine/api_gateway.py` — unified gateway + RESE (Resource/Endpoint/Semantic/Engine) router layer; `knowledge_engine/tests/test_api_gateway.py` covers it.
+- **Distributed coordination (epic).** `knowledge_engine/distributed_coordination.py` — Raft joint-consensus membership + failure detection; `knowledge_engine/tests/test_raft_membership.py` covers it.
+- **Knowledge query + analytics.** `knowledge_engine/knowledge_analytics.py` + `knowledge_engine/query/*` (parser, cache, formatter, feedback) provide the KG query/analytics surface; `knowledge_engine/advanced_analytics_engine.py` adds the analytics engine.
+- **Resource management.** Capacity/quota + backpressure helpers live in the Knowledge Engine runtime (`knowledge_engine/optional_imports.py`, `knowledge_engine/health_monitor.py`, `knowledge_engine/backup_recovery.py`); resource policies compile and are exercised by the KG integration tests.
+- **LeanAIDE verification bridge.** `knowledge_engine/integrations/leanaide_*` + `engines/other/leanaide_client.py` (`LeanAideClient`) give a real Lean4 prover client with mock fallback; wired into the teams/gauntlets Red→Blue→Gold flow.
+- **MAKER bridge (hybrid).** `knowledge_engine/` hybrid MAKER strategies with pluggable `VerificationOracle`/`CandidateGenerator` (see epic & §10b); `integrations/openevolve` bubbles re-export the canonical bubbles.
+- **Unified facade.** `knowledge_engine/integrated_engine.py` + `knowledge_engine/unified_knowledge_platform.py` + `knowledge_engine/unified_kg_integration_hub.py` aggregate the KG subsystems behind one facade.
+- **Integration wiring / fixes.** Route harmony between `services/openevolve-api` (FastAPI, :8000) and the legacy `engines/other/api_server.py` (Decomposition-Workflow, :8001) reconciled; `/api/v1/*` drives the real engine; offline mock-LLM path gated-testable.
+
+### 12b. Low wave (UI + RBAC)
+- **BubbleLab UI ↔ TS wiring (COMPLETED).** `engines/other/bubblelab_components_bridge.py` + `engines/other/bubblelabs_ui_component.py` bridge BubbleLab components to the engine; `glue/adapters/bubblelab/src` (TS) wires the UI; `scripts/start_bubblelabs_integration.py` boots the integration; `docs/Architecture/BubbleLab/BUBBLELABS_INTEGRATION.md` documents it. Verified present and importable.
+- **Sovereign Decomposition RBAC (COMPLETED).** `engines/other/api_server.py` now wires `engines/security/rbac_enhanced.py` (`RBAC_ENHANCED_AVAILABLE` guard) and persists an audit trail; enforcement is **OFF** unless `SOVEREIGN_RBAC_ENFORCE=1/true` (graceful degradation). `engines/security/` also ships `auth_system.py`, `secure_api.py`, `rate_limiting.py`, `security_layer.py`.
+
+### 12c. Verdict (2026-08-21)
+- Implementation waves are done; the tree compiles clean (verify sweep ALL CLEAN, exit 0).
+- The OpenEvolve ⇄ BubbleLab integration remains GREEN (8/8 harness suites, prior waves); the
+  mined epics add real algorithm/query/security/coordination depth on top of it.
+- Still WIP by design: real-LLM exercise (needs provider keys), the two-backend divergence
+  (server_stdlib vs services/openevolve-api), and `api_server.py`'s boot path requires the
+  flat `engines/other` + `engines/security` on sys.path (handled at module import).
