@@ -55,6 +55,7 @@ import type {
   WorkflowCreateRequest,
   WorkflowCreateResponse,
   WorkflowResults,
+  WorkflowEngineResults,
   WorkflowPlanResponse,
   WorkflowPlanUpdateRequest,
   EvaluatorListResponse,
@@ -121,6 +122,7 @@ export type {
   WorkflowCreateRequest,
   WorkflowCreateResponse,
   WorkflowResults,
+  WorkflowEngineResults,
   WorkflowSubProblem,
   WorkflowDecompositionPlan,
   WorkflowDependencyGraph,
@@ -1253,6 +1255,63 @@ export const openevolveApi = {
 
     return openevolveApiClient.get<WorkflowResults>(
       `/api/workflows/${encodeURIComponent(workflowId)}/results`
+    );
+  },
+
+  // ============ Workflow Engine Results ============
+
+  /**
+   * Get engine-backed decomposition-workflow run results
+   * (`GET /api/workflows/{workflow_id}/engine/results`).
+   *
+   * After `runWorkflow` returns, the backend persists
+   * `last_engine_workflow_id` on the `:8000` workflow, so calling this route
+   * with the original `:8000` workflow id returns the engine results — no extra
+   * client state required.
+   */
+  getWorkflowEngineResults: async (
+    workflowId: string
+  ): Promise<WorkflowEngineResults> => {
+    logger.debug({
+      msg: 'Getting workflow engine results',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<WorkflowEngineResults>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/engine/results`
+    );
+  },
+
+  /**
+   * Get engine telemetry for a decomposition workflow
+   * (`GET /api/workflows/{workflow_id}/engine/telemetry`).
+   */
+  getWorkflowTelemetry: async (workflowId: string): Promise<unknown> => {
+    logger.debug({
+      msg: 'Getting workflow engine telemetry',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<unknown>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/engine/telemetry`
+    );
+  },
+
+  /**
+   * Get engine resource usage for a decomposition workflow
+   * (`GET /api/workflows/{workflow_id}/engine/resource-usage`).
+   */
+  getWorkflowResourceUsage: async (workflowId: string): Promise<unknown> => {
+    logger.debug({
+      msg: 'Getting workflow engine resource usage',
+      component: 'openevolveApi',
+      workflow_id: workflowId,
+    });
+
+    return openevolveApiClient.get<unknown>(
+      `/api/workflows/${encodeURIComponent(workflowId)}/engine/resource-usage`
     );
   },
 

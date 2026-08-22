@@ -444,3 +444,60 @@ had no `/security` routes, so keys were previously unmanageable from the UI.
 Residual (ops, not code): key management requires the `:8001` engine to boot in RBAC mode
 (`engines/security/rbac_enhanced.py` importable); otherwise list returns empty and create
 returns 503. Live `:8001` round-trip unexercised (no running engine in env).
+
+---
+
+## §17 — Decomposition-workflow DB persistence + run-result integration (2026-08-22)
+
+The `:8001` Decomposition-Workflow engine kept **all** workflow state in memory
+(`workflows` dict + in-memory `AUDIT_LOGS`), so runs were lost on restart and the UI could
+not see any run outcome (the `:8000` run proxy was write-only). Both gaps are now closed.
+
+**A. Engine persistence (`engines/other`) — P0**
+- `engines/other/workflow_persistence.py` (NEW): `WorkflowRunStore` (raw `sqlite3` + WAL,
+  DB `engines/other/data/workflow_runs.db`) with `workflow_runs(workflow_id PK, tenant_id,
+  status, current_stage, problem_statement, workflow_type, start/end_time, progress,
+  state_blob BLOB, created/updated_at)` + `workflow_audit_logs(...)`. The full `WorkflowState`
+  is stored as a **pickled blob** (pickle chosen over JSON because `WorkflowState` is a deeply
+  nested dataclass graph with `Set`/`Enum`/`datetime`/nested dataclasses — pickle round-trips
+  reliably). Ad-hoc `.error` attribute is re-attached before pickling.
+- `engines/other/migrations.py`: added `MIGRATIONS[1]` (the two `CREATE TABLE` statements),
+  applied via `WorkflowRunStore.apply_migrations()` (mirrors `sovereign_persistence.py`).
+- `engines/other/api_server.py`: instantiate + best-effort `init_database()`; persist (upsert)
+  at 12 mutation sites (create, external-run publish + success/fail, PUT settings, PUT
+  decomposition-plan, pause, resume, delete, audit) under `_workflow_run_lock`; **lazy-load on
+  miss** in GET `/workflows`, `/{id}`, `/settings`, `/decomposition-plan`, `/telemetry`,
+  `/resource-usage`, `/results`, `/truth-package` (hydrate from DB if absent in memory);
+  `GET /workflows` unions persisted runs per tenant. All store calls are try/except-guarded so
+  DB failure never breaks a request. `record_audit_event` also appends to the DB audit table.
+- `engines/other/test_workflow_persistence.py` (NEW): 4 tests — real `WorkflowState` with
+  `Set`/`Enum`/nested dataclasses/`error` pickle round-trip, upsert→get→list→delete, audit
+  append/get. **All pass.**
+
+**B. `:8000` run link + reverse-proxy routes — P0**
+- `services/openevolve-api/api/workflows.py` `run_workflow`: after `run_workflow_on_engine`
+  returns, stores `_workflow_executions[wf]=engine_wf_id` + `_save_execution_mapping`, sets
+  `workflow.status = RUNNING`, and `_save_workflow_to_db` (keeps `last_engine_workflow_id`).
+- NEW reverse-proxy routes (reuse `ENGINE_API_BASE_URL`): `GET /api/workflows/{id}/engine/results`,
+  `.../engine/telemetry`, `.../engine/resource-usage`, `POST .../engine/truth-package` → forward
+  to `:8001/workflows/{last_engine_workflow_id}/...` with `X-API-Key`; 404 if unlinked/missing,
+  502 if `:8001` unreachable.
+- `tests/test_workflow_run_link.py` (NEW): 7 tests (link recording + 4 forward routes + 404/502).
+  Plus `test_workflow_run_and_settings.py` + `test_route_contract.py` — **13 passed, no regressions**.
+
+**C. UI wiring (`apps/bubble-studio`)**
+- `src/types/openevolve.ts`: added `WorkflowEngineResults` (permissive).
+- `src/services/openevolveApi.ts`: added `getWorkflowEngineResults`, `getWorkflowTelemetry`,
+  `getWorkflowResourceUsage` (`/api/workflows/{id}/engine/...`).
+- `src/components/decomposition/DecompositionPanel.tsx`: new **"Engine Results"** tab rendering
+  final_solution / sub_problems / statistics / error / telemetry / resource-usage with loading +
+  empty ("Run this workflow to see results") states; reload button. Legacy `getWorkflowResults`
+  left untouched.
+- `npm run build` (tsc -b && vite build) → **exit 0**.
+
+**Residual limitations (ops, not code):** the live `:8001` engine cannot boot in this env
+(pre-existing unrelated `knowledge_engine` import failure at `api_server.py:442`), so end-to-end
+was verified via monkeypatched `httpx` / isolated persistence tests, not a running engine. The
+`:8001` status is never written back to `:8000` (no completion callback) — the UI reads live
+state via the proxy routes instead. Pickle blobs are process/schema-bound (a `WorkflowState`
+schema change would need a migration guard).

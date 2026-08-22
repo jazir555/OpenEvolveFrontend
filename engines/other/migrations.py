@@ -9,4 +9,36 @@ as the schema evolves.
 
 from typing import Dict, List
 
-MIGRATIONS: Dict[int, List[str]] = {}
+MIGRATIONS: Dict[int, List[str]] = {
+    1: [
+        """
+        CREATE TABLE IF NOT EXISTS workflow_runs (
+            workflow_id TEXT PRIMARY KEY,
+            tenant_id TEXT,
+            status TEXT,
+            current_stage TEXT,
+            problem_statement TEXT,
+            workflow_type TEXT,
+            start_time REAL,
+            end_time REAL,
+            progress REAL,
+            state_blob BLOB,
+            created_at TEXT,
+            updated_at TEXT
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS workflow_audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            user TEXT,
+            role TEXT,
+            operation TEXT,
+            resource TEXT,
+            resource_id TEXT,
+            success INTEGER,
+            details_json TEXT
+        )
+        """,
+    ],
+}

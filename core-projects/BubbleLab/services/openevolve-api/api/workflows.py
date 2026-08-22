@@ -14,7 +14,8 @@ import httpx
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, status, Query, Body, Header
+from fastapi import APIRouter, HTTPException, status, Query, Body, Header, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from ..models import (
@@ -1306,6 +1307,14 @@ async def run_workflow(
                 **parameters,
                 "last_engine_workflow_id": engine_workflow_id,
             }
+            # Durably link this :8000 RUN to the engine's in-memory id so the UI
+            # can later fetch results/telemetry/resource-usage/truth-package via
+            # the /engine/* reverse-proxy routes below.
+            _workflow_executions[workflow_id] = engine_workflow_id
+            _save_execution_mapping(workflow_id, engine_workflow_id)
+            # Reflect the run in the :8000 workflow lifecycle status so the UI
+            # sees an actively running workflow rather than a stale "created".
+            workflow.status = WorkflowStatus.RUNNING
             workflow.updated_at = datetime.now(timezone.utc)
             _save_workflow_to_db(workflow)
 
@@ -1636,3 +1645,127 @@ async def stop_workflow_template_execution(execution_id: str) -> dict:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to stop execution"
         )
+
+
+# ============================================================================
+# Engine reverse-proxy routes (:8000 -> :8001)
+#
+# The :8001 Decomposition-Workflow engine owns the live run: it mints its own
+# in-memory workflow id (stored on the :8000 workflow as
+# ``parameters.last_engine_workflow_id``). These routes let the UI — which only
+# talks to :8000 — fetch the engine's run results / telemetry / resource-usage /
+# truth-package by the durable :8000 workflow id, transparently forwarding to
+# :8001 while preserving the inbound X-API-Key header.
+# ============================================================================
+
+from .engine_proxy import ENGINE_API_BASE_URL as _ENGINE_API_BASE_URL
+
+# Hard timeout so a downed engine fails fast instead of hanging the proxy.
+_ENGINE_PROXY_TIMEOUT = float(os.getenv("ENGINE_HTTP_TIMEOUT", "60"))
+
+
+def httpx_client():
+    """Construct the ``httpx.AsyncClient`` used for forwarding to :8001.
+
+    Split out so tests can monkeypatch ``workflows.httpx_client`` without
+    touching the network.
+    """
+    return httpx.AsyncClient(timeout=_ENGINE_PROXY_TIMEOUT)
+
+
+async def _proxy_to_engine(workflow_id: str, upstream_path: str, request: Request) -> Response:
+    """
+    Forward a request to ``:8001`` for the engine workflow linked to ``workflow_id``.
+
+    Args:
+        workflow_id: The durable :8000 workflow id (the only id the UI knows).
+        upstream_path: Path suffix on the engine workflow, e.g. ``/results``.
+        request: The inbound FastAPI request (method + headers + body forwarded).
+
+    Returns:
+        The upstream ``httpx.Response`` wrapped in a FastAPI ``Response``.
+
+    Raises:
+        HTTPException: 404 if the workflow or its engine link is missing, or 502
+            if ``:8001`` is unreachable.
+    """
+    workflow = _workflows.get(workflow_id)
+    if workflow is None:
+        logger.warning("engine_proxy_workflow_not_found", workflow_id=workflow_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Workflow '{workflow_id}' not found",
+        )
+
+    engine_id = (workflow.parameters or {}).get("last_engine_workflow_id")
+    if not engine_id:
+        logger.warning("engine_proxy_no_link", workflow_id=workflow_id)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                f"Workflow '{workflow_id}' has no linked engine run. "
+                "Run the workflow first (POST /api/workflows/{id}/run)."
+            ),
+        )
+
+    url = f"{_ENGINE_API_BASE_URL}/workflows/{engine_id}{upstream_path}"
+
+    headers = {}
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        headers["X-API-Key"] = api_key
+
+    body = None
+    if request.method in ("POST", "PUT", "PATCH"):
+        body = await request.body()
+
+    try:
+        async with httpx_client() as client:
+            response = await client.request(
+                request.method,
+                url,
+                headers=headers,
+                content=body,
+            )
+    except (httpx.ConnectError, httpx.HTTPError):
+        logger.error(
+            "engine_proxy_unreachable",
+            workflow_id=workflow_id,
+            engine_id=engine_id,
+            upstream_path=upstream_path,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="OpenEvolve engine unreachable",
+        ) from None
+
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+    )
+
+
+@router.get("/{workflow_id}/engine/results")
+async def get_workflow_engine_results(workflow_id: str, request: Request) -> Response:
+    """Fetch the :8001 engine run results for this workflow."""
+    return await _proxy_to_engine(workflow_id, "/results", request)
+
+
+@router.get("/{workflow_id}/engine/telemetry")
+async def get_workflow_engine_telemetry(workflow_id: str, request: Request) -> Response:
+    """Fetch the :8001 engine run telemetry for this workflow."""
+    return await _proxy_to_engine(workflow_id, "/telemetry", request)
+
+
+@router.get("/{workflow_id}/engine/resource-usage")
+async def get_workflow_engine_resource_usage(workflow_id: str, request: Request) -> Response:
+    """Fetch the :8001 engine run resource-usage for this workflow."""
+    return await _proxy_to_engine(workflow_id, "/resource-usage", request)
+
+
+@router.post("/{workflow_id}/engine/truth-package")
+async def get_workflow_engine_truth_package(workflow_id: str, request: Request) -> Response:
+    """Fetch the :8001 engine run truth-package for this workflow."""
+    return await _proxy_to_engine(workflow_id, "/truth-package", request)
+

@@ -444,6 +444,7 @@ from template_manager import TemplateManager
 from parameter_manager import ParameterManager
 from sovereign_persistence import SovereignDatabase
 from sovereign_reliability import HealthMonitor
+from workflow_persistence import WorkflowRunStore
 try:
     from monitoring import (
         monitoring_dashboard as system_monitoring_dashboard,
@@ -570,6 +571,66 @@ template_manager = TemplateManager()
 parameter_manager = ParameterManager()
 sovereign_db = SovereignDatabase()
 sovereign_health_monitor = HealthMonitor()
+
+# Durable run store: keeps workflow state + audit logs across restarts.
+# Best-effort — a DB failure must never crash the engine.
+run_store: Optional[WorkflowRunStore] = None
+try:
+    run_store = WorkflowRunStore()
+    run_store.init_database()
+    run_store.apply_migrations()
+    logger.info("Workflow run persistence initialized at %s", run_store.db_path)
+except Exception as _run_store_exc:
+    logger.error("Workflow run persistence unavailable: %s", _run_store_exc)
+    run_store = None
+
+# Best-effort persistence helpers — never raise into request handling.
+def _persist_run(state: "WorkflowState", scalars: Optional[Dict[str, Any]] = None) -> None:
+    if run_store is None:
+        return
+    try:
+        run_store.upsert_run(state, scalars)
+    except Exception as _persist_exc:
+        logger.warning("persist run %s failed: %s", getattr(state, "workflow_id", "?"), _persist_exc)
+
+
+def _persist_delete(workflow_id: str) -> None:
+    if run_store is None:
+        return
+    try:
+        run_store.delete_run(workflow_id)
+    except Exception as _persist_exc:
+        logger.warning("delete run %s failed: %s", workflow_id, _persist_exc)
+
+
+def _persist_audit(event: Dict[str, Any]) -> None:
+    if run_store is None:
+        return
+    try:
+        run_store.append_audit(event)
+    except Exception as _persist_exc:
+        logger.warning("persist audit %s failed: %s", event.get("operation"), _persist_exc)
+
+
+# Lazy-load guard: hydrate a persisted run into the in-memory dict on a miss.
+_workflow_lazy_lock = threading.Lock()
+
+
+def _load_workflow_from_store(workflow_id: str) -> Optional["WorkflowState"]:
+    """Best-effort hydrate a run from durable storage into ``workflows``."""
+    if run_store is None:
+        return None
+    try:
+        state = run_store.get_run(workflow_id)
+    except Exception as _load_exc:
+        logger.warning("load run %s failed: %s", workflow_id, _load_exc)
+        return None
+    if state is None:
+        return None
+    with _workflow_lazy_lock:
+        workflows[workflow_id] = state
+    return state
+
 
 # Optional integration managers
 _maker_manager: Optional[MakerWorkflowManager] = None
@@ -811,6 +872,20 @@ def record_audit_event(
         "success": success,
         "details": details or {}
     })
+    # Persist the same event into the durable workflow audit log.
+    try:
+        _persist_audit({
+            "timestamp": datetime.now().isoformat(),
+            "user": user.name,
+            "role": user.role,
+            "operation": operation,
+            "resource": resource,
+            "resource_id": resource_id,
+            "success": success,
+            "details": details or {},
+        })
+    except Exception as _audit_persist_exc:
+        logger.warning("audit persistence failed: %s", _audit_persist_exc)
     # Persist the same event into the rbac_enhanced audit trail when available.
     if RBAC_ENHANCED_AVAILABLE:
         try:
@@ -3175,6 +3250,7 @@ def create_workflow(
         
         # Store workflow
         workflows[workflow_id] = workflow_state
+        _persist_run(workflow_state, {"created_at": datetime.now().isoformat(), "updated_at": datetime.now().isoformat()})
 
         record_audit_event(
             user=user,
@@ -3212,6 +3288,16 @@ def list_workflows(
         success=True,
         details={"tenant_id": tenant_id}
     )
+    # Union in-memory workflows with persisted runs not already loaded (best-effort).
+    if run_store is not None:
+        try:
+            for wf in run_store.list_runs(tenant_id):
+                wid = getattr(wf, "workflow_id", None)
+                if wid and wid not in workflows:
+                    with _workflow_lazy_lock:
+                        workflows.setdefault(wid, wf)
+        except Exception as _list_exc:
+            logger.warning("workflow list union from store failed: %s", _list_exc)
     return {
         "workflows": [
             {
@@ -3235,6 +3321,8 @@ def get_workflow(
 ):
     """Get workflow details."""
     logger.info(f"User {user.name} requested details for workflow {workflow_id}.")
+    if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
     if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
@@ -3277,6 +3365,8 @@ def get_workflow_settings(
     """Return the configurable WorkflowSettings reconstructed from the stored state/plan."""
     logger.info(f"User {user.name} requested settings for workflow {workflow_id}.")
     if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
+    if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
     wf = workflows[workflow_id]
     if (wf.tenant_id or "default") != tenant_id:
@@ -3309,6 +3399,7 @@ def update_workflow_settings(
         raise HTTPException(status_code=404, detail="Workflow not found")
 
     _apply_workflow_settings(wf, settings)
+    _persist_run(wf)
 
     record_audit_event(
         user=user,
@@ -3328,6 +3419,8 @@ def get_workflow_decomposition_plan(
     tenant_id: str = Depends(get_tenant_id)
 ):
     """Get decomposition plan for a workflow."""
+    if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
     if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
@@ -3491,6 +3584,8 @@ def update_workflow_decomposition_plan(
     except Exception as exc:
         logger.warning("Failed to update entanglement matrix: %s", exc)
 
+    _persist_run(wf)
+
     record_audit_event(
         user=user,
         operation="UPDATE_DECOMPOSITION_PLAN",
@@ -3510,6 +3605,8 @@ def get_workflow_telemetry(
     tenant_id: str = Depends(get_tenant_id)
 ):
     """Get telemetry and resource usage for a workflow."""
+    if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
     if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
@@ -3565,6 +3662,8 @@ def get_workflow_resource_usage(
 ):
     """Get resource usage summary for a workflow."""
     if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
+    if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
 
     wf = workflows[workflow_id]
@@ -3618,6 +3717,7 @@ def pause_workflow(
         raise HTTPException(status_code=400, detail=f"Cannot pause workflow in status: {wf.status}")
     
     wf.status = "paused"
+    _persist_run(wf)
 
     record_audit_event(
         user=user,
@@ -3652,6 +3752,7 @@ def resume_workflow(
         raise HTTPException(status_code=400, detail=f"Cannot resume workflow in status: {wf.status}")
     
     wf.status = "running"
+    _persist_run(wf)
 
     record_audit_event(
         user=user,
@@ -3676,6 +3777,8 @@ def get_workflow_results(
     tenant_id: str = Depends(get_tenant_id)
 ):
     """Get workflow results."""
+    if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
     if workflow_id not in workflows:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
@@ -3748,6 +3851,7 @@ def delete_workflow(
         wf.status = "cancelled"
     
     del workflows[workflow_id]
+    _persist_delete(workflow_id)
 
     record_audit_event(
         user=user,
@@ -5138,6 +5242,10 @@ async def get_bubblelabs_integration_health(name: str):
 @app.post("/workflows/{workflow_id}/truth-package", dependencies=[Depends(require_role(UserRole.USER)), Depends(rbac_enforce("workflow:read"))])
 def generate_workflow_truth_package(workflow_id: str, user: AuthUser = Depends(require_role(UserRole.USER))):
     """Generate a Truth Package binary trust artifact for a completed workflow."""
+    if workflow_id not in workflows:
+        _load_workflow_from_store(workflow_id)
+    if workflow_id not in workflows:
+        raise HTTPException(status_code=404, detail="Workflow not found")
     integration = _get_bubblelabs_workflow_integration()
     if not BUBBLELABS_WORKFLOW_AVAILABLE or integration is None:
         raise HTTPException(status_code=503, detail="BubbleLabs workflow integration not available")
@@ -8879,6 +8987,7 @@ if _EXTERNAL_INTEGRATION_AVAILABLE:
         finally:
             with _workflow_run_lock:
                 workflows[workflow_id] = workflow_state
+                _persist_run(workflow_state)
 
     @app.post(
         "/workflows/run",
@@ -8930,6 +9039,7 @@ if _EXTERNAL_INTEGRATION_AVAILABLE:
         # Publish the running state immediately so polling works before the thread starts.
         with _workflow_run_lock:
             workflows[workflow_id] = workflow_state
+            _persist_run(workflow_state)
 
         team_args = _resolve_external_teams(tenant_id, request.team_ids)
         gauntlet_args = _resolve_external_gauntlets(tenant_id, request.gauntlet_ids)

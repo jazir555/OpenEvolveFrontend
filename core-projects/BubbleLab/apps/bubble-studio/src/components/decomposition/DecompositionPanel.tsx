@@ -7,6 +7,7 @@ import type {
   WorkflowPlanUpdateRequest,
   WorkflowSubProblem,
   WorkflowSummary,
+  WorkflowEngineResults,
 } from '@/types/openevolve';
 import { SubProblemCard } from './SubProblemCard';
 import { DependencyGraph } from './DependencyGraph';
@@ -154,6 +155,44 @@ export function DecompositionPanel() {
     setSubProblems((current) => [...current, emptySubProblem(current.length)]);
   }, []);
 
+  // ---- Engine run results / telemetry / resource usage ----
+  const [engineResults, setEngineResults] = useState<WorkflowEngineResults | null>(null);
+  const [engineResultsNotRun, setEngineResultsNotRun] = useState(false);
+  const [engineLoading, setEngineLoading] = useState(false);
+  const [telemetry, setTelemetry] = useState<unknown>(null);
+  const [resourceUsage, setResourceUsage] = useState<unknown>(null);
+
+  const loadEngineData = useCallback(async (workflowId: string) => {
+    if (!workflowId) return;
+    setEngineLoading(true);
+    try {
+      const results = await openevolveApi.getWorkflowEngineResults(workflowId);
+      setEngineResults(results ?? null);
+      setEngineResultsNotRun(false);
+    } catch {
+      // Not-yet-run (or otherwise unavailable) engines: surface a friendly
+      // prompt rather than an error toast.
+      setEngineResults(null);
+      setEngineResultsNotRun(true);
+    }
+    try {
+      setTelemetry(await openevolveApi.getWorkflowTelemetry(workflowId));
+    } catch {
+      setTelemetry(null);
+    }
+    try {
+      setResourceUsage(await openevolveApi.getWorkflowResourceUsage(workflowId));
+    } catch {
+      setResourceUsage(null);
+    }
+    setEngineLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedWorkflowId) return;
+    void loadEngineData(selectedWorkflowId);
+  }, [selectedWorkflowId, loadEngineData]);
+
   // Live dependency graph derived from the editable sub-problems.
   const liveGraph = useMemo(() => {
     const edges: Record<string, string[]> = {};
@@ -256,6 +295,9 @@ export function DecompositionPanel() {
             <Tab className="rounded-md px-3 py-2 text-sm font-medium text-gray-400 ui-selected:bg-[#1b1b1b] ui-selected:text-white">
               Sovereign Settings
             </Tab>
+            <Tab className="rounded-md px-3 py-2 text-sm font-medium text-gray-400 ui-selected:bg-[#1b1b1b] ui-selected:text-white">
+              Engine Results
+            </Tab>
           </Tab.List>
           <Tab.Panels>
             <Tab.Panel>
@@ -339,6 +381,17 @@ export function DecompositionPanel() {
             <Tab.Panel>
               <WorkflowSettingsPanel workflowId={selectedWorkflowId} />
             </Tab.Panel>
+            <Tab.Panel>
+              <EngineResultsView
+                workflowId={selectedWorkflowId}
+                results={engineResults}
+                notRun={engineResultsNotRun}
+                loading={engineLoading}
+                telemetry={telemetry}
+                resourceUsage={resourceUsage}
+                onReload={() => void loadEngineData(selectedWorkflowId)}
+              />
+            </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>
       )}
@@ -366,5 +419,199 @@ export function DecompositionPanel() {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Renders the engine-backed decomposition-workflow run results, telemetry, and
+ * resource usage fetched from the `:8000` proxy routes. Tolerant of the varying
+ * shapes the engine returns and of the not-yet-run case.
+ */
+function EngineResultsView({
+  workflowId,
+  results,
+  notRun,
+  loading,
+  telemetry,
+  resourceUsage,
+  onReload,
+}: {
+  workflowId: string;
+  results: WorkflowEngineResults | null;
+  notRun: boolean;
+  loading: boolean;
+  telemetry: unknown;
+  resourceUsage: unknown;
+  onReload: () => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-white">Engine Run Results</h2>
+        <button
+          type="button"
+          onClick={onReload}
+          disabled={!workflowId || loading}
+          className="rounded-md border border-[#3a3a3a] px-3 py-2 text-sm text-gray-200 hover:bg-[#1b1b1b] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? 'Loading…' : 'Reload Engine Data'}
+        </button>
+      </div>
+
+      {loading && (
+        <div className="rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-6 text-sm text-gray-500">
+          Loading engine results…
+        </div>
+      )}
+
+      {!loading && notRun && (
+        <div className="rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-6 text-sm text-gray-500">
+          Run this workflow to see results.
+        </div>
+      )}
+
+      {!loading && !notRun && results && (
+        <div className="space-y-4">
+          {results.error && (
+            <div className="rounded-md border border-red-900/60 bg-red-950/30 px-3 py-2 text-sm text-red-300">
+              {results.error}
+            </div>
+          )}
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-200">Final Solution</h3>
+            {results.final_solution == null ? (
+              <p className="text-sm text-gray-500">No final solution available yet.</p>
+            ) : (
+              <SolutionView value={results.final_solution} />
+            )}
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-200">Sub-Problems</h3>
+            <SubProblemsView value={results.sub_problems} />
+          </section>
+
+          {results.statistics != null && (
+            <section className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-200">Statistics</h3>
+              <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-xs text-gray-300">
+                {JSON.stringify(results.statistics, null, 2)}
+              </pre>
+            </section>
+          )}
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-200">Telemetry</h3>
+            {telemetry == null ? (
+              <p className="text-sm text-gray-500">No telemetry available.</p>
+            ) : (
+              <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-xs text-gray-300">
+                {JSON.stringify(telemetry, null, 2)}
+              </pre>
+            )}
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-200">Resource Usage</h3>
+            {resourceUsage == null ? (
+              <p className="text-sm text-gray-500">No resource usage available.</p>
+            ) : (
+              <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-xs text-gray-300">
+                {JSON.stringify(resourceUsage, null, 2)}
+              </pre>
+            )}
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Renders a final_solution value that may be a string or a content-bearing object. */
+function SolutionView({ value }: { value: unknown }) {
+  if (typeof value === 'string') {
+    return (
+      <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-sm text-gray-300">
+        {value}
+      </pre>
+    );
+  }
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const content = typeof obj.content === 'string' ? obj.content : JSON.stringify(value, null, 2);
+    const by = typeof obj.generated_by === 'string' ? obj.generated_by : undefined;
+    return (
+      <div className="rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4">
+        {by && <p className="mb-2 text-xs text-gray-500">{by}</p>}
+        <pre className="whitespace-pre-wrap text-sm text-gray-300">{content}</pre>
+      </div>
+    );
+  }
+  return (
+    <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-sm text-gray-300">
+      {String(value)}
+    </pre>
+  );
+}
+
+/** Renders sub_problems that may be an array of objects or a record keyed by id. */
+function SubProblemsView({ value }: { value: unknown }) {
+  if (value == null) {
+    return <p className="text-sm text-gray-500">No sub-problem solutions available.</p>;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return <p className="text-sm text-gray-500">No sub-problem solutions available.</p>;
+    }
+    return (
+      <div className="space-y-3">
+        {value.map((item, index) => (
+          <SolutionCard key={index} label={`#${index + 1}`} item={item} />
+        ))}
+      </div>
+    );
+  }
+  if (typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) {
+      return <p className="text-sm text-gray-500">No sub-problem solutions available.</p>;
+    }
+    return (
+      <div className="space-y-3">
+        {entries.map(([key, item]) => (
+          <SolutionCard key={key} label={key} item={item} />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <pre className="whitespace-pre-wrap rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4 text-sm text-gray-300">
+      {String(value)}
+    </pre>
+  );
+}
+
+function SolutionCard({ label, item }: { label: string; item: unknown }) {
+  let title = label;
+  let body: unknown = item;
+  if (item && typeof item === 'object') {
+    const obj = item as Record<string, unknown>;
+    if (typeof obj.id === 'string') title = obj.id;
+    else if (typeof obj.description === 'string') title = `${label}: ${obj.description}`;
+    if (obj.content != null) body = obj.content;
+    else if (obj.solution != null) body = obj.solution;
+  }
+  return (
+    <div className="rounded-lg border border-[#2b2b2b] bg-[#0d0d0d] p-4">
+      <p className="mb-2 text-xs font-medium text-gray-400">{title}</p>
+      {typeof body === 'string' ? (
+        <pre className="whitespace-pre-wrap text-sm text-gray-300">{body}</pre>
+      ) : (
+        <pre className="whitespace-pre-wrap text-sm text-gray-300">
+          {JSON.stringify(body, null, 2)}
+        </pre>
+      )}
+    </div>
   );
 }

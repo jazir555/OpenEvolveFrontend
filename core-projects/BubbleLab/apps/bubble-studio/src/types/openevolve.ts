@@ -573,6 +573,22 @@ export interface WorkflowCreateResponse {
 }
 
 /**
+ * Response returned by `GET /api/workflows/{id}/engine/results` (engine-backed
+ * decomposition-workflow run results). The shape is intentionally permissive:
+ * different engine versions expose `final_solution`, `sub_problems`,
+ * `statistics`, and `error` with varying nested structures.
+ */
+export interface WorkflowEngineResults {
+  workflow_id?: string;
+  status?: string;
+  final_solution?: unknown;
+  sub_problems?: unknown;
+  statistics?: unknown;
+  error?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Response returned by `GET /workflows/{id}/results`.
  */
 export interface WorkflowResults {
