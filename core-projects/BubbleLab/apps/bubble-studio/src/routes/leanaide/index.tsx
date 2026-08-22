@@ -5,10 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { useConfigStore } from '@/stores/configStore';
 import type { LLMProvider } from '@/types/api';
 import {
-  useLeanAideGenerate,
-  useLeanAideVerify,
   useLeanAideRawResponse,
-  useLeanAideSimSearch,
   useLeanAideBenchmarkStart,
   useLeanAideBenchmark,
 } from '@/hooks/use-leanaide-api';

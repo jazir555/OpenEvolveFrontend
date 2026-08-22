@@ -179,7 +179,6 @@ function WorkflowSettingsPanelInner({ workflowId }: { workflowId: string }) {
     setJsonText(next);
     setJsonErrors({});
     setStatus(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   const update = (patch: Partial<WorkflowSettings>) =>

@@ -586,8 +586,12 @@ Examples:
   process.exit(success ? 0 : 1);
 }
 
-// Only run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only run if this file is executed directly (works under node and tsx)
+const invokedPath = process.argv[1] ? process.argv[1].replace(/\\/g, '/') : '';
+const isMain =
+  import.meta.url === `file://${process.argv[1]}` ||
+  (invokedPath !== '' && import.meta.url.endsWith(invokedPath));
+if (isMain) {
   main().catch(console.error);
 }
 

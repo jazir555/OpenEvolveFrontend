@@ -93,6 +93,10 @@ export const env = {
   WISPR_API_KEY: process.env.WISPR_API_KEY,
   HACKATHON_COUPON_CODES: process.env.HACKATHON_COUPON_CODES || '',
   OPENEVOLVE_API_URL: process.env.OPENEVOLVE_API_URL || 'http://localhost:8000',
+  LEANAIDE_API_URL: process.env.LEANAIDE_API_URL || 'http://localhost:7654',
+  LEANAIDE_TIMEOUT: process.env.LEANAIDE_TIMEOUT
+    ? parseInt(process.env.LEANAIDE_TIMEOUT, 10)
+    : 300000,
   // BrowserBase credentials (system-level)
   BROWSERBASE_API_KEY: process.env.BROWSERBASE_API_KEY,
   BROWSERBASE_PROJECT_ID: process.env.BROWSERBASE_PROJECT_ID,
