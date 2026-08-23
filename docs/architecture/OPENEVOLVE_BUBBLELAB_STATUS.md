@@ -2,7 +2,7 @@
 
 **Author:** Research pass (read-only)
 **Date:** 2026-08-19
-**Last updated:** 2026-08-21, wave 12 (mine-the-docs task waves)
+**Last updated:** 2026-08-22, §17.4 hardening (Studio palette manifest + ad-hoc chaining robustness)
 **Scope:** Intended OpenEvolve ⇄ BubbleLab integration across three layers (BubbleLab UI → BubbleLab backend (Bun/Hono) → OpenEvolve backend (Python/FastAPI)), compared against the actual code in this repo.
 
 > **INTEGRATION STATUS: GREEN (8/8 harness suites).** Sections 1–6 below are the
@@ -622,3 +622,42 @@ z3/roma/knowledge/analytics/leanaide-prove, control catalog/discover/execute), `
 `maker`, knowledge-explorer, `suggestions`, `ragbits`, `dspy`/`pygraphistry`, and the
 unmounted ICR analytics / Adaptive-MDAP / Sovereign routers. These require implementing
 the corresponding `api/*.py` routers before their bubbles are wired.
+
+### §17.4 — Studio palette manifest completeness + ad-hoc chaining hardening (2026-08-22)
+
+Two hardening items closed gaps in the Flow IDE palette and in arbitrary bubble chaining.
+
+**Studio `bubbles.json` manifest completeness.**
+The Flow IDE palette manifest (`apps/bubble-studio/public/bubbles.json`, generated from
+`packages/bubble-core/dist/bubbles.json`) now contains **282 bubbles (was 239)**. The prior
+gap (43 missing bubbles) had a concrete root cause that is now fixed:
+- **Wrong `bubbleName` prefix.** 52 bubble classes declared their static `bubbleName` with a
+  spurious `openevolve-` prefix (e.g. `'openevolve-bubblelabs-status'`) while the registry and
+  the `BubbleName` union use the canonical non-prefixed names (`'bubblelabs-status'`).
+  `GetBubbleDetailsTool` looked bubbles up by the prefixed class name and therefore failed for
+  those 52 classes. The static `bubbleName` values were corrected to the canonical
+  non-prefixed form so class, registry, union, and lookup agree.
+- **Manifest build harness.** The build scripts (`bubble-bundler` / `bubble-metadata-bundler`)
+  were switched from `tsx` to `bun`, so the manifest now resolves **all** loadable modules
+  (the `tsx` path had been silently dropping resolvable modules).
+- **Static-metadata fallback.** The bundler now emits a static-metadata fallback entry whenever
+  `GetBubbleDetailsTool` fails, so **every registered bubble** appears in the palette even if
+  its live detail lookup errors.
+
+**Ad-hoc / arbitrary chaining robustness.**
+- **`BaseBubble` no longer throws `BubbleValidationError` on missing inputs.** The constructor
+  captures the failure and `action()` returns a controlled `{success:false, error}` result. A
+  bubble chained in arbitrary order that did not receive its inputs now degrades gracefully
+  instead of crashing the flow.
+- **`BaseBubble.safeAction()` added.** A resilient wrapper that catches ANY thrown error from
+  `action()`/performAction and returns a controlled error result. The flow generator now uses
+  it (generation prompt item 13 instructs `.safeAction()`), giving **per-node error isolation**
+  so a single failing bubble does not abort the entire chain.
+- **End-to-end verified.** An arbitrary chain
+  (`bubblelabs-status` → `sovereign-status` → a forced-failing bubble → `hello-world`) ran to
+  completion: the failing node returned a controlled error and the subsequent node still
+  executed successfully. No unhandled exceptions were observed.
+- **Known minor gap (environmental).** ~11 bubbles are not in the manifest because the external
+  `ragbits-bubblelab-integration` package does not resolve in this environment. This is an
+  environmental resolution issue, **not** a logic bug, and does not affect the 282-bubble
+  palette or the chaining hardening above.

@@ -127,8 +127,18 @@ export class InsForgeDbBubble extends ServiceBubble<
   ) {
     super(params, context);
 
-    // Validate SQL operation
-    this.validateSqlOperation(this.params.query, this.params.allowedOperations);
+    // Validate SQL operation only when the base class successfully parsed the
+    // params. If schema validation failed, `this.params` holds the raw
+    // (unusable) input — `query`/`allowedOperations` may be undefined — and
+    // validating here would throw from the constructor, crashing ad-hoc bubble
+    // chains. The captured validation error is returned by action()/safeAction()
+    // as a controlled { success: false, error } result instead.
+    if (!this.validationError) {
+      this.validateSqlOperation(
+        this.params.query,
+        this.params.allowedOperations
+      );
+    }
   }
 
   public async testCredential(): Promise<boolean> {

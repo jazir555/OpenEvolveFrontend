@@ -227,9 +227,20 @@ export class PostgreSQLBubble extends ServiceBubble<
   ) {
     super(params, context);
 
-    // Perform additional validation after Zod schema validation
-    this.validateSqlOperation(this.params.query, this.params.allowedOperations);
-    this.validateParameterUsage(this.params.query, this.params.parameters);
+    // Perform additional validation after Zod schema validation.
+    // Only run it when the base class successfully parsed the params. If schema
+    // validation failed, `this.params` holds the raw (unusable) input — e.g.
+    // `query`/`allowedOperations` may be undefined — and re-validating here
+    // would throw from the constructor, crashing ad-hoc bubble chains. In that
+    // case the captured validation error is reported by action()/safeAction()
+    // as a controlled { success: false, error } result instead.
+    if (!this.validationError) {
+      this.validateSqlOperation(
+        this.params.query,
+        this.params.allowedOperations
+      );
+      this.validateParameterUsage(this.params.query, this.params.parameters);
+    }
   }
 
   protected async performAction(

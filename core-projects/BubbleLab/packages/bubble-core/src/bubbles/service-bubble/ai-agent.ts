@@ -555,13 +555,19 @@ export class AIAgentBubble extends ServiceBubble<
     instanceId?: string
   ) {
     super(params, context, instanceId);
-    this.beforeToolCallHook = params.beforeToolCall;
-    this.afterToolCallHook = params.afterToolCall;
-    this.afterLLMCallHook = params.afterLLMCall;
+    // Read the optional function hooks defensively: when the bubble is created
+    // ad hoc, `params` can be null (the default only applies to `undefined`) or
+    // otherwise malformed. Dereferencing it directly would throw from the
+    // constructor and crash the flow; invalid input is instead reported as a
+    // controlled error by action()/safeAction().
+    const hookParams = (params ?? {}) as Partial<AIAgentParams>;
+    this.beforeToolCallHook = hookParams.beforeToolCall;
+    this.afterToolCallHook = hookParams.afterToolCall;
+    this.afterLLMCallHook = hookParams.afterLLMCall;
     // Use explicit param if provided (Salad /ai route), otherwise check
     // execution metadata (Pearl flow execution injects it there).
     this.streamingCallback =
-      params.streamingCallback ??
+      hookParams.streamingCallback ??
       (context?.executionMeta?._agentStreamCallback as
         | StreamingCallback
         | undefined);

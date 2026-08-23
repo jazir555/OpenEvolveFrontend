@@ -63,20 +63,24 @@ describe('PostgreSQLBubble', () => {
   });
 
   describe('SQL Injection Protection', () => {
-    test('should block dangerous SQL injection patterns', () => {
+    test('should block dangerous SQL injection patterns', async () => {
       const maliciousQueries = [
         'SELECT * FROM users WHERE id = 1; DROP TABLE users; --',
         'SELECT * FROM users; DELETE FROM logs',
       ];
 
-      maliciousQueries.forEach((query) => {
-        expect(() => {
-          new PostgreSQLBubble({
-            credentials: createTestCredentials(),
-            query,
-          });
-        }).toThrow();
-      });
+      for (const query of maliciousQueries) {
+        // Schema validation rejects the query. Construction is non-throwing by
+        // design (so bubbles stay chainable in any order); the rejection is
+        // surfaced as a controlled error and the query is never executed.
+        const bubble = new PostgreSQLBubble({
+          credentials: createTestCredentials(),
+          query,
+        });
+        const result = await bubble.safeAction();
+        expect(result.success).toBe(false);
+        expect(result.error).toMatch(/Input Schema validation failed/);
+      }
     });
 
     test('should allow safe queries', () => {
