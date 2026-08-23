@@ -42,6 +42,10 @@ export abstract class BaseBubble<
   protected context?: BubbleContext;
   public previousResult: BubbleResult<BubbleOperationResult> | undefined;
   protected readonly instanceId?: string;
+  // Captured input-validation failure. When set, action() returns a controlled
+  // error instead of letting the constructor throw (so bubbles can be chained in
+  // arbitrary order without crashing the flow). Valid inputs leave this undefined.
+  protected validationError?: string;
 
   constructor(params: unknown, context?: BubbleContext, instanceId?: string) {
     // Use static properties from the class - typed as required static metadata
@@ -83,11 +87,12 @@ export abstract class BaseBubble<
           ? `Input Schema validation failed: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
           : `Input Schema validation failed: ${error instanceof Error ? error.message : 'Unknown validation error'}`;
 
-      throw new BubbleValidationError(errorMessage, {
-        variableId: context?.variableId,
-        bubbleName: ctor.bubbleName,
-        cause: error instanceof Error ? error : undefined,
-      });
+      // Do NOT throw: capture the validation failure so the bubble can be chained
+      // in arbitrary/ad-hoc order (where a predecessor may not have produced its
+      // inputs) and report it as a controlled error from action() instead of
+      // crashing the whole flow. Callers supplying valid params are unaffected.
+      this.params = (params ?? {}) as TParams;
+      this.validationError = errorMessage;
     }
   }
 
@@ -214,6 +219,27 @@ export abstract class BaseBubble<
    */
   async action(): Promise<BubbleResult<TResult>> {
     const logger = this.context?.logger;
+
+    // If input validation failed at construction, return a controlled error
+    // instead of throwing. This keeps ad-hoc bubble chains resilient when a
+    // predecessor did not produce the expected inputs.
+    if (this.validationError) {
+      const errorMessage = this.validationError;
+      const controlledResult = {
+        success: false,
+        error: errorMessage,
+        executionId: randomUUID(),
+        timestamp: new Date(),
+      };
+      logger?.logBubbleExecutionComplete(
+        this.context?.variableId ?? -999,
+        this.name,
+        this.name,
+        controlledResult
+      );
+      logger?.error(`[${this.name}] Input validation failed: ${errorMessage}`);
+      return controlledResult as BubbleResult<TResult>;
+    }
 
     // Run pre-action hook (e.g., AI agent injects memory/conversation)
     await this.beforeAction();
@@ -362,6 +388,28 @@ export abstract class BaseBubble<
     );
 
     return finalResult;
+  }
+
+  /**
+   * Resilient variant of action() for ad-hoc chaining. Always returns a
+   * BubbleResult: if action() throws (network error, unexpected runtime
+   * failure, etc.), the error is caught and returned as a controlled
+   * { success: false, error } result instead of propagating the exception.
+   * This lets a single failing bubble degrade gracefully within an arbitrary
+   * chain instead of aborting the whole flow.
+   */
+  async safeAction(): Promise<BubbleResult<TResult>> {
+    try {
+      return await this.action();
+    } catch (error) {
+      console.error('[BaseBubble] safeAction caught error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionId: randomUUID(),
+        timestamp: new Date(),
+      } as BubbleResult<TResult>;
+    }
   }
 
   /**
