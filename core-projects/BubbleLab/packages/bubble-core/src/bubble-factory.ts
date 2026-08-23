@@ -1460,43 +1460,43 @@ export class BubbleFactory {
     );
 
     this.register(
-      'openevolve-slack' as BubbleName,
+      'slack' as BubbleName,
       OpenEvolveSlackBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-gmail' as BubbleName,
+      'gmail' as BubbleName,
       OpenEvolveGmailBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-http' as BubbleName,
+      'http' as BubbleName,
       OpenEvolveHttpBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-github' as BubbleName,
+      'github' as BubbleName,
       OpenEvolveGithubBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-apify' as BubbleName,
+      'apify' as BubbleName,
       OpenEvolveApifyBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-google-drive' as BubbleName,
+      'google-drive' as BubbleName,
       OpenEvolveGoogleDriveBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-google-sheets' as BubbleName,
+      'google-sheets' as BubbleName,
       OpenEvolveGoogleSheetsBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-airtable' as BubbleName,
+      'airtable' as BubbleName,
       OpenEvolveAirtableBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-notion' as BubbleName,
+      'notion' as BubbleName,
       OpenEvolveNotionBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-postgresql' as BubbleName,
+      'postgresql' as BubbleName,
       OpenEvolvePostgreSQLBubble as BubbleClassWithMetadata
     );
 
@@ -1810,11 +1810,11 @@ export class BubbleFactory {
       OpenEvolveKnowledgeEngineBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-workflow-orchestrator' as BubbleName,
+      'workflow-orchestrator' as BubbleName,
       OpenEvolveWorkflowOrchestratorBubble as BubbleClassWithMetadata
     );
     this.register(
-      'openevolve-ace-tools' as BubbleName,
+      'ace-tools' as BubbleName,
       OpenEvolveAceToolsBubble as BubbleClassWithMetadata
     );
     this.register(

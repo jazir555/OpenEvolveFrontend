@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsLeanaideProveBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-leanaide-prove' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-leanaide-prove' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsLeanaideProveParamsSchema;
   static readonly resultSchema = BubblelabsLeanaideProveResultSchema;

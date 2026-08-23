@@ -49,7 +49,7 @@ export class OpenEvolveRagbitsStatsBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-ragbits-stats' as BubbleName;
+    'ragbits-stats' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = RagbitsStatsParamsSchema;
   static readonly resultSchema = RagbitsStatsResultSchema;

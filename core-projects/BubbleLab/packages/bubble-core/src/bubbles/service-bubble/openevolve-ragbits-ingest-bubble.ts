@@ -55,7 +55,7 @@ export class OpenEvolveRagbitsIngestBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-ragbits-ingest' as BubbleName;
+    'ragbits-ingest' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = RagbitsIngestParamsSchema;
   static readonly resultSchema = RagbitsIngestResultSchema;

@@ -52,6 +52,10 @@ class BubbleMetadataBundler {
     console.error(`❌ ${message}`);
   }
 
+  private warn(message: string) {
+    console.warn(`⚠️  ${message}`);
+  }
+
   private success(message: string) {
     console.log(`✅ ${message}`);
   }
@@ -173,14 +177,16 @@ class BubbleMetadataBundler {
               requiredCredentials: requiredCredentials,
             });
           } else {
-            this.error(
-              `Failed to get details for ${bubble.name}: ${detailsResult.error}`
+            this.warn(
+              `Falling back to static metadata for ${bubble.name}: ${detailsResult.error}`
             );
-            // Continue with other bubbles even if one fails
+            // Even if the details tool fails (e.g. it executes a live call),
+            // still emit an entry so the bubble is visible in the palette.
+            bubbleMetadata.push(this.buildFallbackEntry(bubble));
           }
         } catch (err) {
-          this.error(`Error processing ${bubble.name}: ${err}`);
-          // Continue with other bubbles
+          this.warn(`Falling back to static metadata for ${bubble.name}: ${err}`);
+          bubbleMetadata.push(this.buildFallbackEntry(bubble));
         }
       }
 
@@ -216,6 +222,53 @@ class BubbleMetadataBundler {
       this.error(`Bubble manifest generation failed: ${error}`);
       return false;
     }
+  }
+
+  /**
+   * Build a manifest entry from static factory metadata alone, used as a
+   * fallback when GetBubbleDetailsTool fails (e.g. it executes a live call).
+   * Guarantees the bubble still appears in the palette.
+   */
+  private buildFallbackEntry(bubble: {
+    name: string;
+    alias?: string;
+    type: string;
+    shortDescription?: string;
+    useCase?: string;
+  }): BubbleMetadata {
+    const metadata = this.factory.getMetadata(bubble.name as BubbleName);
+    let inputJsonSchema: JsonSchema7Type | undefined;
+    let outputJsonSchema: JsonSchema7Type | undefined;
+
+    if (metadata) {
+      inputJsonSchema = this.convertToJsonSchema(
+        metadata.schema,
+        `${bubble.name}Input`
+      );
+      outputJsonSchema = this.convertToJsonSchema(
+        metadata.resultSchema,
+        `${bubble.name}Output`
+      );
+    }
+
+    const requiredCredentials =
+      BUBBLE_CREDENTIAL_OPTIONS[
+        bubble.name as keyof typeof BUBBLE_CREDENTIAL_OPTIONS
+      ] || [];
+
+    return {
+      name: bubble.name,
+      alias: bubble.alias,
+      type: bubble.type,
+      shortDescription: bubble.shortDescription,
+      useCase: bubble.useCase,
+      inputSchema: '',
+      outputSchema: '',
+      inputJsonSchema,
+      outputJsonSchema,
+      usageExample: '',
+      requiredCredentials,
+    };
   }
 }
 

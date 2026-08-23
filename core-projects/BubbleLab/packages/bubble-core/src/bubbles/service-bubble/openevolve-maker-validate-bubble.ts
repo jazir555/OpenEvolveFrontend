@@ -46,7 +46,7 @@ export class OpenEvolveMakerValidateBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-maker-validate' as BubbleName;
+  static readonly bubbleName: BubbleName = 'maker-validate' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = MakerValidateParamsSchema;
   static readonly resultSchema = MakerValidateResultSchema;

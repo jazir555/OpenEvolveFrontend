@@ -77,7 +77,7 @@ export class OpenEvolveAceToolsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-ace-tools' as BubbleName;
+  static readonly bubbleName: BubbleName = 'ace-tools' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = ACEToolsParamsSchema;
   static readonly resultSchema = ACEToolsResultSchema;

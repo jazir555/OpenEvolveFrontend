@@ -54,7 +54,7 @@ export class OpenEvolveDspyFixBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-dspy-fix' as BubbleName;
+  static readonly bubbleName: BubbleName = 'dspy-fix' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = DspyFixParamsSchema;
   static readonly resultSchema = DspyFixResultSchema;

@@ -43,7 +43,7 @@ export class OpenEvolveMakerStatusBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-maker-status' as BubbleName;
+  static readonly bubbleName: BubbleName = 'maker-status' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = MakerStatusParamsSchema;
   static readonly resultSchema = MakerStatusResultSchema;

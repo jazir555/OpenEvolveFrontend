@@ -54,7 +54,7 @@ export class OpenEvolveAdaptiveMdapDashboardBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-adaptive-mdap-dashboard' as BubbleName;
+    'adaptive-mdap-dashboard' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = AdaptiveMdapDashboardParamsSchema;
   static readonly resultSchema = AdaptiveMdapDashboardResultSchema;

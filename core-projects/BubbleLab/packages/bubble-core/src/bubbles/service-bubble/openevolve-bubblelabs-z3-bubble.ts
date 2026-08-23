@@ -47,7 +47,7 @@ export class OpenEvolveBubblelabsZ3Bubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-z3' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-z3' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsZ3ParamsSchema;
   static readonly resultSchema = BubblelabsZ3ResultSchema;

@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsKnowledgeStoreBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-knowledge-store' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-knowledge-store' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsKnowledgeStoreParamsSchema;
   static readonly resultSchema = BubblelabsKnowledgeStoreResultSchema;

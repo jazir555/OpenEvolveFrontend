@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsAcePatternsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-ace-patterns' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-ace-patterns' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsAcePatternsParamsSchema;
   static readonly resultSchema = BubblelabsAcePatternsResultSchema;

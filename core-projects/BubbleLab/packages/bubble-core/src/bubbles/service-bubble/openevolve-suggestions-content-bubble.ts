@@ -51,7 +51,7 @@ export class OpenEvolveSuggestionsContentBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-suggestions-content' as BubbleName;
+    'suggestions-content' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = SuggestionsContentParamsSchema;
   static readonly resultSchema = SuggestionsContentResultSchema;

@@ -51,7 +51,7 @@ export class OpenEvolveKnowledgeExplorerHistoryBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-knowledge-explorer-history' as BubbleName;
+    'knowledge-explorer-history' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = KnowledgeExplorerHistoryParamsSchema;
   static readonly resultSchema = KnowledgeExplorerHistoryResultSchema;

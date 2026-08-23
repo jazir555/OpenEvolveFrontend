@@ -46,7 +46,7 @@ export class OpenEvolveIcrComponentsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-icr-components' as BubbleName;
+  static readonly bubbleName: BubbleName = 'icr-components' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = IcrComponentsParamsSchema;
   static readonly resultSchema = IcrComponentsResultSchema;

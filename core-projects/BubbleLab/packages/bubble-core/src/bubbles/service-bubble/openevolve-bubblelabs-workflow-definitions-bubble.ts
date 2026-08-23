@@ -49,7 +49,7 @@ export class OpenEvolveBubblelabsWorkflowDefinitionsBubble extends ServiceBubble
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-workflow-definitions' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-workflow-definitions' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsWorkflowDefinitionsParamsSchema;
   static readonly resultSchema = BubblelabsWorkflowDefinitionsResultSchema;

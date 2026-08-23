@@ -47,7 +47,7 @@ export class OpenEvolveIcrVlmBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-icr-vlm' as BubbleName;
+  static readonly bubbleName: BubbleName = 'icr-vlm' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = IcrVlmParamsSchema;
   static readonly resultSchema = IcrVlmResultSchema;

@@ -57,7 +57,7 @@ export class OpenEvolvePygraphistryBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-pygraphistry' as BubbleName;
+    'pygraphistry' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = PygraphistryParamsSchema;
   static readonly resultSchema = PygraphistryResultSchema;

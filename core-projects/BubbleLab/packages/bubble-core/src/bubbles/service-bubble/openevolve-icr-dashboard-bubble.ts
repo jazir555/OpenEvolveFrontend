@@ -46,7 +46,7 @@ export class OpenEvolveIcrDashboardBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-icr-dashboard' as BubbleName;
+  static readonly bubbleName: BubbleName = 'icr-dashboard' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = IcrDashboardParamsSchema;
   static readonly resultSchema = IcrDashboardResultSchema;

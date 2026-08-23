@@ -46,7 +46,7 @@ export class OpenEvolveIcrConfigBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-icr-config' as BubbleName;
+  static readonly bubbleName: BubbleName = 'icr-config' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = IcrConfigParamsSchema;
   static readonly resultSchema = IcrConfigResultSchema;

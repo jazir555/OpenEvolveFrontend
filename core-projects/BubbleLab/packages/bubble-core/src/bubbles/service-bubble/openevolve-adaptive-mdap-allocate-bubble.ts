@@ -58,7 +58,7 @@ export class OpenEvolveAdaptiveMdapAllocateBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-adaptive-mdap-allocate' as BubbleName;
+    'adaptive-mdap-allocate' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = AdaptiveMdapAllocateParamsSchema;
   static readonly resultSchema = AdaptiveMdapAllocateResultSchema;

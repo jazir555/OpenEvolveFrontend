@@ -54,7 +54,7 @@ export class OpenEvolveAdaptiveMdapCostBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-adaptive-mdap-cost' as BubbleName;
+    'adaptive-mdap-cost' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = AdaptiveMdapCostParamsSchema;
   static readonly resultSchema = AdaptiveMdapCostResultSchema;

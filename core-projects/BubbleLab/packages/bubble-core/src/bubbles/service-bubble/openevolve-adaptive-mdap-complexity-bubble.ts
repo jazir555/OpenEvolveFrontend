@@ -56,7 +56,7 @@ export class OpenEvolveAdaptiveMdapComplexityBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-adaptive-mdap-complexity' as BubbleName;
+    'adaptive-mdap-complexity' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = AdaptiveMdapComplexityParamsSchema;
   static readonly resultSchema = AdaptiveMdapComplexityResultSchema;

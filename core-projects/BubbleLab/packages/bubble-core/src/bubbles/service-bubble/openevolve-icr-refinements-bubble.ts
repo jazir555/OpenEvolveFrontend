@@ -46,7 +46,7 @@ export class OpenEvolveIcrRefinementsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-icr-refinements' as BubbleName;
+  static readonly bubbleName: BubbleName = 'icr-refinements' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = IcrRefinementsParamsSchema;
   static readonly resultSchema = IcrRefinementsResultSchema;

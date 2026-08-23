@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsControlExecuteBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-control-execute' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-control-execute' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsControlExecuteParamsSchema;
   static readonly resultSchema = BubblelabsControlExecuteResultSchema;

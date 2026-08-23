@@ -46,7 +46,7 @@ export class OpenEvolveMakerToolsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-maker-tools' as BubbleName;
+  static readonly bubbleName: BubbleName = 'maker-tools' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = MakerToolsParamsSchema;
   static readonly resultSchema = MakerToolsResultSchema;

@@ -144,7 +144,7 @@ export class OpenEvolveWorkflowOrchestratorBubble extends ServiceBubble<
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
   static readonly bubbleName: BubbleName =
-    'openevolve-workflow-orchestrator' as BubbleName;
+    'workflow-orchestrator' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = WorkflowParamsSchema;
   static readonly resultSchema = WorkflowResultSchema;

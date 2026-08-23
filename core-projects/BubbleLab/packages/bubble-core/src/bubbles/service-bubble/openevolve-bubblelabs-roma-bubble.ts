@@ -47,7 +47,7 @@ export class OpenEvolveBubblelabsRomaBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-roma' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-roma' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsRomaParamsSchema;
   static readonly resultSchema = BubblelabsRomaResultSchema;

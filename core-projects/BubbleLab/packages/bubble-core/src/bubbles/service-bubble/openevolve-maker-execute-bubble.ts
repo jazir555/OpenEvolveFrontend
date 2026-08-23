@@ -46,7 +46,7 @@ export class OpenEvolveMakerExecuteBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-maker-execute' as BubbleName;
+  static readonly bubbleName: BubbleName = 'maker-execute' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = MakerExecuteParamsSchema;
   static readonly resultSchema = MakerExecuteResultSchema;

@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsControlDiscoverBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-control-discover' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-control-discover' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsControlDiscoverParamsSchema;
   static readonly resultSchema = BubblelabsControlDiscoverResultSchema;

@@ -46,7 +46,7 @@ export class OpenEvolveBubblelabsAceSkillbookBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-bubblelabs-ace-skillbook' as BubbleName;
+  static readonly bubbleName: BubbleName = 'bubblelabs-ace-skillbook' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = BubblelabsAceSkillbookParamsSchema;
   static readonly resultSchema = BubblelabsAceSkillbookResultSchema;

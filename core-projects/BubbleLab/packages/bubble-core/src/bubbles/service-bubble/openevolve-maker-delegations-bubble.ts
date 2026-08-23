@@ -43,7 +43,7 @@ export class OpenEvolveMakerDelegationsBubble extends ServiceBubble<
 > {
   static readonly service = 'openevolve';
   static readonly authType = 'apikey' as const;
-  static readonly bubbleName: BubbleName = 'openevolve-maker-delegations' as BubbleName;
+  static readonly bubbleName: BubbleName = 'maker-delegations' as BubbleName;
   static readonly type = 'service' as const;
   static readonly schema = MakerDelegationsParamsSchema;
   static readonly resultSchema = MakerDelegationsResultSchema;
