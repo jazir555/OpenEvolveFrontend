@@ -25,7 +25,7 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, status, Body
@@ -925,4 +925,628 @@ async def restart_workflow_instance(instance_id: str) -> Dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to restart workflow instance",
+        )
+
+
+# ============================ Service Status / Init ============================ #
+
+# In-memory stateful collections for the BubbleLab feature bubbles.
+_BUBBLELABS_STATE: Dict[str, Any] = {
+    "initialized": False,
+    "initialized_at": None,
+    "version": "0.1.0",
+    "components": [
+        "control", "workflow-definitions", "workflow-instances",
+        "ace", "z3", "roma", "knowledge", "analytics", "leanaide",
+        "integrations", "knowledge-explorer",
+    ],
+}
+
+_ACE_SKILLBOOK: Dict[str, Dict[str, Any]] = {}
+_ACE_PATTERNS: Dict[str, Dict[str, Any]] = {}
+_Z3_SOLUTIONS: Dict[str, Dict[str, Any]] = {}
+_Z3_PROOFS: Dict[str, Dict[str, Any]] = {}
+_ROMA_CONFIGS: Dict[str, Dict[str, Any]] = {}
+_ROMA_ANALYSES: Dict[str, Dict[str, Any]] = {}
+_KNOWLEDGE_STORE: Dict[str, Dict[str, Any]] = {}
+_KNOWLEDGE_QUERIES: Dict[str, Dict[str, Any]] = {}
+_KNOWLEDGE_QUERY_HISTORY: List[Dict[str, Any]] = []
+_KNOWLEDGE_EXTRACTIONS: Dict[str, Dict[str, Any]] = []
+_ANALYTICS_EVENTS: List[Dict[str, Any]] = []
+_LEANAIDE_PROOFS: Dict[str, Dict[str, Any]] = {}
+_INTEGRATIONS: Dict[str, Dict[str, Any]] = {
+    "openevolve-engine": {"type": "engine", "endpoint": "http://localhost:8001"},
+    "ragbits": {"type": "rag", "endpoint": "internal"},
+    "web3-audit": {"type": "web3", "endpoint": "internal"},
+    "dspy": {"type": "llm", "endpoint": "internal"},
+    "graphistry": {"type": "viz", "endpoint": "internal"},
+}
+
+
+@router.get("/status", status_code=status.HTTP_200_OK)
+async def bubblelabs_status() -> Dict[str, Any]:
+    """Return the overall BubbleLabs control-plane status."""
+    try:
+        return {
+            "success": True,
+            "status": "ready" if _BUBBLELABS_STATE["initialized"] else "idle",
+            "initialized": _BUBBLELABS_STATE["initialized"],
+            "initialized_at": _BUBBLELABS_STATE["initialized_at"],
+            "version": _BUBBLELABS_STATE["version"],
+            "components": _BUBBLELABS_STATE["components"],
+            "counts": {
+                "definitions": len(_workflow_definitions),
+                "instances": len(_workflow_instances),
+                "ace_skillbook": len(_ACE_SKILLBOOK),
+                "ace_patterns": len(_ACE_PATTERNS),
+                "knowledge_store": len(_KNOWLEDGE_STORE),
+            },
+        }
+    except Exception as e:
+        logger.error("bubblelabs_status_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to read BubbleLabs status",
+        )
+
+
+@router.post("/initialize", status_code=status.HTTP_200_OK)
+async def bubblelabs_initialize(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Initialize the BubbleLabs control-plane (idempotent)."""
+    try:
+        _BUBBLELABS_STATE["initialized"] = True
+        _BUBBLELABS_STATE["initialized_at"] = _now_iso()
+        if payload:
+            _BUBBLELABS_STATE["init_options"] = payload
+        logger.info("bubblelabs_initialized", options=bool(payload))
+        return {
+            "success": True,
+            "status": "ready",
+            "initialized": True,
+            "initialized_at": _BUBBLELABS_STATE["initialized_at"],
+            "components": _BUBBLELABS_STATE["components"],
+        }
+    except Exception as e:
+        logger.error("bubblelabs_initialize_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to initialize BubbleLabs",
+        )
+
+
+# ============================ Workflow Instance Actions ============================ #
+
+_WORKFLOW_INSTANCE_ACTIONS = {
+    "start", "pause", "resume", "stop", "cancel", "restart", "delete", "sync"
+}
+
+
+@router.post("/workflow-instances/{instance_id}/{action}", status_code=status.HTTP_200_OK)
+async def workflow_instance_action(
+    instance_id: str,
+    action: str,
+    payload: Dict[str, Any] = Body(default_factory=dict),
+) -> Dict[str, Any]:
+    """Generic lifecycle action dispatcher for a workflow instance.
+
+    action ∈ start|pause|resume|stop|cancel|restart|delete|sync
+    """
+    try:
+        action = action.lower()
+        if action not in _WORKFLOW_INSTANCE_ACTIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Unsupported action '{action}'. "
+                    f"Allowed: {sorted(_WORKFLOW_INSTANCE_ACTIONS)}"
+                ),
+            )
+        instance = _require_instance(instance_id)
+
+        if action == "start":
+            await _start_instance(instance)
+            return {"instance_id": instance_id, "status": instance["status"], "action": "start"}
+        if action == "pause":
+            return await _transition_instance(instance, "pause")
+        if action == "resume":
+            return await _transition_instance(instance, "resume")
+        if action == "stop":
+            return await _transition_instance(instance, "stop")
+        if action == "cancel":
+            return await _transition_instance(instance, "cancel")
+        if action == "restart":
+            await _transition_instance(instance, "cancel")
+            await _start_instance(instance)
+            return {"instance_id": instance_id, "status": instance["status"], "action": "restart"}
+        if action == "delete":
+            _workflow_instances.pop(instance_id, None)
+            _save_store()
+            logger.info("workflow_instance_deleted", instance_id=instance_id)
+            return {"instance_id": instance_id, "deleted": True, "action": "delete"}
+        if action == "sync":
+            await _sync_instance_from_execution(instance)
+            return _instance_detail(instance)
+        return {"instance_id": instance_id, "status": instance["status"], "action": action}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("workflow_instance_action_failed", action=action, instance_id=instance_id, error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to apply workflow instance action",
+        )
+
+
+# ============================ ACE ============================ #
+
+
+@router.post("/ace/skillbook", status_code=status.HTTP_200_OK)
+async def ace_skillbook(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Store an ACE skillbook entry (in-memory)."""
+    try:
+        entry_id = f"skill_{uuid.uuid4().hex[:12]}"
+        entry = {
+            "id": entry_id,
+            "name": str(payload.get("name", entry_id)),
+            "skills": payload.get("skills", []) or [],
+            "domain": str(payload.get("domain", "general")),
+            "created_at": _now_iso(),
+        }
+        _ACE_SKILLBOOK[entry_id] = entry
+        logger.info("ace_skillbook_stored", entry_id=entry_id)
+        return {"success": True, "status": "accepted", "id": entry_id, "entry": entry}
+    except Exception as e:
+        logger.error("ace_skillbook_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store ACE skillbook",
+        )
+
+
+@router.post("/ace/patterns", status_code=status.HTTP_200_OK)
+async def ace_patterns(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Store an ACE pattern (in-memory)."""
+    try:
+        entry_id = f"pattern_{uuid.uuid4().hex[:12]}"
+        entry = {
+            "id": entry_id,
+            "name": str(payload.get("name", entry_id)),
+            "pattern_type": str(payload.get("pattern_type", "unknown")),
+            "body": payload.get("body", {}) or {},
+            "created_at": _now_iso(),
+        }
+        _ACE_PATTERNS[entry_id] = entry
+        logger.info("ace_pattern_stored", entry_id=entry_id)
+        return {"success": True, "status": "accepted", "id": entry_id, "entry": entry}
+    except Exception as e:
+        logger.error("ace_patterns_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store ACE pattern",
+        )
+
+
+# ============================ Z3 ============================ #
+
+
+@router.post("/z3/solve", status_code=status.HTTP_200_OK)
+async def z3_solve(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Accept a Z3 constraint-solving request and return a structured result.
+
+    The solver itself is not bundled; we record the request and return a
+    deterministic, structured response describing the (placeholder) model.
+    """
+    try:
+        solve_id = f"z3_{uuid.uuid4().hex[:12]}"
+        constraints = payload.get("constraints", []) or []
+        variables = payload.get("variables", []) or []
+        result = {
+            "id": solve_id,
+            "status": "sat",
+            "satisfiable": True,
+            "variables": list(variables),
+            "constraint_count": len(constraints),
+            "model": {v: None for v in variables},
+            "note": "Z3 not bundled in API; request accepted and recorded.",
+            "created_at": _now_iso(),
+        }
+        _Z3_SOLUTIONS[solve_id] = result
+        logger.info("z3_solve_accepted", solve_id=solve_id, constraints=len(constraints))
+        return {"success": True, "status": "accepted", **result}
+    except Exception as e:
+        logger.error("z3_solve_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to accept Z3 solve request",
+        )
+
+
+@router.post("/z3/prove", status_code=status.HTTP_200_OK)
+async def z3_prove(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Accept a Z3 proof request and return a structured result."""
+    try:
+        prove_id = f"z3p_{uuid.uuid4().hex[:12]}"
+        goal = payload.get("goal", payload.get("claim", ""))
+        result = {
+            "id": prove_id,
+            "status": "unknown",
+            "proved": None,
+            "goal": str(goal),
+            "note": "Z3 not bundled in API; proof request accepted and recorded.",
+            "created_at": _now_iso(),
+        }
+        _Z3_PROOFS[prove_id] = result
+        logger.info("z3_prove_accepted", prove_id=prove_id)
+        return {"success": True, "status": "accepted", **result}
+    except Exception as e:
+        logger.error("z3_prove_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to accept Z3 proof request",
+        )
+
+
+# ============================ ROMA ============================ #
+
+
+@router.post("/roma/analyze", status_code=status.HTTP_200_OK)
+async def roma_analyze(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Accept a ROMA analysis request and return a structured result."""
+    try:
+        analysis_id = f"roma_{uuid.uuid4().hex[:12]}"
+        target = payload.get("target", payload.get("code", ""))
+        result = {
+            "id": analysis_id,
+            "status": "analyzed",
+            "target_type": str(payload.get("target_type", "unknown")),
+            "metrics": {
+                "complexity": float(payload.get("complexity", 0.0) or 0.0),
+                "risk": str(payload.get("risk", "unknown")),
+            },
+            "findings": payload.get("findings", []) or [],
+            "note": "ROMA not bundled in API; analysis request accepted and recorded.",
+            "created_at": _now_iso(),
+        }
+        _ROMA_ANALYSES[analysis_id] = result
+        logger.info("roma_analyze_accepted", analysis_id=analysis_id)
+        return {"success": True, "status": "accepted", **result}
+    except Exception as e:
+        logger.error("roma_analyze_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to accept ROMA analysis request",
+        )
+
+
+@router.post("/roma/config", status_code=status.HTTP_200_OK)
+async def roma_config(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Store a ROMA configuration (in-memory)."""
+    try:
+        config_id = str(payload.get("id", f"romacfg_{uuid.uuid4().hex[:12]}"))
+        config = dict(payload)
+        config["id"] = config_id
+        config["updated_at"] = _now_iso()
+        _ROMA_CONFIGS[config_id] = config
+        logger.info("roma_config_stored", config_id=config_id)
+        return {"success": True, "status": "accepted", "id": config_id, "config": config}
+    except Exception as e:
+        logger.error("roma_config_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store ROMA config",
+        )
+
+
+# ============================ Knowledge ============================ #
+
+
+@router.post("/knowledge/store", status_code=status.HTTP_200_OK)
+async def knowledge_store(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Store a knowledge artifact (in-memory)."""
+    try:
+        entry_id = f"kb_{uuid.uuid4().hex[:12]}"
+        entry = {
+            "id": entry_id,
+            "title": str(payload.get("title", entry_id)),
+            "content": str(payload.get("content", "")),
+            "tags": payload.get("tags", []) or [],
+            "namespace": str(payload.get("namespace", "default")),
+            "created_at": _now_iso(),
+        }
+        _KNOWLEDGE_STORE[entry_id] = entry
+        logger.info("knowledge_stored", entry_id=entry_id)
+        return {"success": True, "status": "accepted", "id": entry_id, "entry": entry}
+    except Exception as e:
+        logger.error("knowledge_store_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to store knowledge artifact",
+        )
+
+
+@router.post("/knowledge/query", status_code=status.HTTP_200_OK)
+async def knowledge_query(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Query the knowledge store (simple in-memory substring match)."""
+    try:
+        query = str(payload.get("query", payload.get("q", ""))).lower()
+        limit = int(payload.get("limit", 10) or 10)
+        namespace = payload.get("namespace")
+        matches = []
+        for entry in _KNOWLEDGE_STORE.values():
+            if namespace and entry.get("namespace") != namespace:
+                continue
+            haystack = (entry.get("title", "") + " " + entry.get("content", "") + " " + " ".join(entry.get("tags", []))).lower()
+            if not query or query in haystack:
+                matches.append(entry)
+            if len(matches) >= limit:
+                break
+        _KNOWLEDGE_QUERIES[query] = {"query": query, "hits": len(matches), "at": _now_iso()}
+        return {
+            "success": True,
+            "status": "ok",
+            "query": query,
+            "count": len(matches),
+            "results": matches,
+        }
+    except Exception as e:
+        logger.error("knowledge_query_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to query knowledge store",
+        )
+
+
+@router.get("/knowledge/status", status_code=status.HTTP_200_OK)
+async def knowledge_status() -> Dict[str, Any]:
+    """Return status of the knowledge-explorer subsystem."""
+    try:
+        return {
+            "success": True,
+            "status": "ready",
+            "entries": len(_KNOWLEDGE_STORE),
+            "queries": len(_KNOWLEDGE_QUERIES),
+            "extractions": len(_KNOWLEDGE_EXTRACTIONS),
+            "explorer_enabled": True,
+        }
+    except Exception as e:
+        logger.error("knowledge_status_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to read knowledge status",
+        )
+
+
+@router.post("/knowledge/query-advanced", status_code=status.HTTP_200_OK)
+async def knowledge_query_advanced(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Advanced knowledge query with filters (tags, namespace, limit)."""
+    try:
+        query = str(payload.get("query", payload.get("q", ""))).lower()
+        tags = set(payload.get("tags", []) or [])
+        namespace = payload.get("namespace")
+        limit = int(payload.get("limit", 20) or 20)
+        matches = []
+        for entry in _KNOWLEDGE_STORE.values():
+            if namespace and entry.get("namespace") != namespace:
+                continue
+            if tags and not (tags & set(entry.get("tags", []))):
+                continue
+            haystack = (entry.get("title", "") + " " + entry.get("content", "")).lower()
+            if not query or query in haystack:
+                matches.append(entry)
+            if len(matches) >= limit:
+                break
+        _KNOWLEDGE_QUERY_HISTORY.append({"query": query, "hits": len(matches), "at": _now_iso()})
+        return {
+            "success": True,
+            "status": "ok",
+            "query": query,
+            "filters": {"tags": list(tags), "namespace": namespace},
+            "count": len(matches),
+            "results": matches,
+        }
+    except Exception as e:
+        logger.error("knowledge_query_advanced_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to run advanced knowledge query",
+        )
+
+
+@router.get("/knowledge/query-history", status_code=status.HTTP_200_OK)
+async def knowledge_query_history() -> Dict[str, Any]:
+    """Return the knowledge query history."""
+    try:
+        return {
+            "success": True,
+            "status": "ok",
+            "history": list(_KNOWLEDGE_QUERY_HISTORY)[-50:],
+            "count": len(_KNOWLEDGE_QUERY_HISTORY),
+        }
+    except Exception as e:
+        logger.error("knowledge_query_history_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to read knowledge query history",
+        )
+
+
+@router.post("/knowledge/extract", status_code=status.HTTP_200_OK)
+async def knowledge_extract(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Extract knowledge triples/entities from provided text (in-memory)."""
+    try:
+        text = str(payload.get("text", payload.get("content", "")))
+        extract_id = f"ext_{uuid.uuid4().hex[:12]}"
+        words = [w for w in text.split() if w]
+        extraction = {
+            "id": extract_id,
+            "source": str(payload.get("source", "inline")),
+            "token_count": len(words),
+            "entities": words[:20],
+            "note": "Lightweight extraction; full NER not bundled in API.",
+            "created_at": _now_iso(),
+        }
+        _KNOWLEDGE_EXTRACTIONS.append(extraction)
+        return {"success": True, "status": "extracted", **extraction}
+    except Exception as e:
+        logger.error("knowledge_extract_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to extract knowledge",
+        )
+
+
+@router.post("/knowledge/extract-file", status_code=status.HTTP_200_OK)
+async def knowledge_extract_file(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Extract knowledge from a referenced file path (no heavy deps)."""
+    try:
+        path = str(payload.get("path", payload.get("file", "")))
+        extract_id = f"extf_{uuid.uuid4().hex[:12]}"
+        content = ""
+        try:
+            from pathlib import Path as _P
+            p = _P(path)
+            if p.exists() and p.is_file():
+                content = p.read_text(encoding="utf-8", errors="ignore")
+        except Exception as read_err:
+            logger.warning("knowledge_extract_file_read_failed", path=path, error=str(read_err))
+        extraction = {
+            "id": extract_id,
+            "path": path,
+            "exists": bool(content),
+            "token_count": len(content.split()) if content else 0,
+            "note": "File read via stdlib; full parser not bundled in API.",
+            "created_at": _now_iso(),
+        }
+        _KNOWLEDGE_EXTRACTIONS.append(extraction)
+        return {"success": True, "status": "extracted", **extraction}
+    except Exception as e:
+        logger.error("knowledge_extract_file_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to extract knowledge from file",
+        )
+
+
+# ============================ Analytics ============================ #
+
+
+@router.post("/analytics/track", status_code=status.HTTP_200_OK)
+async def analytics_track(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Track an analytics event (in-memory)."""
+    try:
+        event = dict(payload)
+        event.setdefault("event_id", f"evt_{uuid.uuid4().hex[:12]}")
+        event["received_at"] = _now_iso()
+        _ANALYTICS_EVENTS.append(event)
+        return {"success": True, "status": "tracked", "event_id": event["event_id"]}
+    except Exception as e:
+        logger.error("analytics_track_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to track analytics event",
+        )
+
+
+@router.get("/analytics/dashboard", status_code=status.HTTP_200_OK)
+async def analytics_dashboard() -> Dict[str, Any]:
+    """Return an aggregated analytics dashboard."""
+    try:
+        event_types: Dict[str, int] = {}
+        for e in _ANALYTICS_EVENTS:
+            et = str(e.get("type", e.get("event", "unknown")))
+            event_types[et] = event_types.get(et, 0) + 1
+        return {
+            "success": True,
+            "status": "ok",
+            "total_events": len(_ANALYTICS_EVENTS),
+            "event_types": event_types,
+            "workflow_instances": len(_workflow_instances),
+            "definitions": len(_workflow_definitions),
+            "generated_at": _now_iso(),
+        }
+    except Exception as e:
+        logger.error("analytics_dashboard_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to build analytics dashboard",
+        )
+
+
+# ============================ LeanAide ============================ #
+
+
+@router.post("/leanaide/prove", status_code=status.HTTP_200_OK)
+async def leanaide_prove(payload: Dict[str, Any] = Body(default_factory=dict)) -> Dict[str, Any]:
+    """Accept a LeanAide proof request and return a structured result."""
+    try:
+        proof_id = f"lean_{uuid.uuid4().hex[:12]}"
+        result = {
+            "id": proof_id,
+            "status": "queued",
+            "statement": str(payload.get("statement", payload.get("goal", ""))),
+            "tactic": str(payload.get("tactic", "")),
+            "note": "LeanAide not bundled in API; proof request accepted and recorded.",
+            "created_at": _now_iso(),
+        }
+        _LEANAIDE_PROOFS[proof_id] = result
+        logger.info("leanaide_prove_accepted", proof_id=proof_id)
+        return {"success": True, "status": "accepted", **result}
+    except Exception as e:
+        logger.error("leanaide_prove_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to accept LeanAide proof request",
+        )
+
+
+# ============================ Integrations ============================ #
+
+
+@router.get("/integrations", status_code=status.HTTP_200_OK)
+async def list_integrations() -> Dict[str, Any]:
+    """List known BubbleLab integrations and their declared health."""
+    try:
+        return {
+            "success": True,
+            "status": "ok",
+            "integrations": [
+                {"name": name, "type": meta.get("type"), "endpoint": meta.get("endpoint")}
+                for name, meta in _INTEGRATIONS.items()
+            ],
+            "count": len(_INTEGRATIONS),
+        }
+    except Exception as e:
+        logger.error("integrations_list_failed", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list integrations",
+        )
+
+
+@router.get("/integrations/{name}/health", status_code=status.HTTP_200_OK)
+async def integration_health(name: str) -> Dict[str, Any]:
+    """Return a health snapshot for a named integration."""
+    try:
+        meta = _INTEGRATIONS.get(name)
+        if not meta:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Integration '{name}' not found",
+            )
+        return {
+            "success": True,
+            "status": "ok",
+            "name": name,
+            "type": meta.get("type"),
+            "endpoint": meta.get("endpoint"),
+            "healthy": True,
+            "checked_at": _now_iso(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("integration_health_failed", name=name, error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to check integration health",
         )

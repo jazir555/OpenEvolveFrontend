@@ -182,3 +182,142 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
         "snapshot_id": payload["snapshot_id"],
         "analysis": analysis,
     }
+
+
+# --- Analytics / Dashboard Endpoints ---
+
+
+@router.get("/analytics/overview")
+async def icr_analytics_overview() -> Dict[str, Any]:
+    """High-level ICR analytics overview (counts + config flags)."""
+    config = _get_icr_config()
+    return {
+        "success": True,
+        "status": "ok",
+        "refinement_events": len(ICR_REFINEMENT_EVENTS),
+        "reward_calibration_queued": len(ICR_REWARD_CALIBRATION_QUEUE),
+        "reward_calibration_responses": len(ICR_REWARD_CALIBRATION_RESPONSES),
+        "heatmap_snapshots": len(ICR_HEATMAP_SNAPSHOTS),
+        "config": config.model_dump(),
+        "generated_at": datetime.utcnow().isoformat(),
+    }
+
+
+@router.get("/analytics/components")
+async def icr_analytics_components() -> Dict[str, Any]:
+    """List the ICR analytics components and their event counts."""
+    components = {
+        "refinement_events": len(ICR_REFINEMENT_EVENTS),
+        "reward_calibration": {
+            "queued": len(ICR_REWARD_CALIBRATION_QUEUE),
+            "responses": len(ICR_REWARD_CALIBRATION_RESPONSES),
+        },
+        "heatmap": {
+            "snapshots": len(ICR_HEATMAP_SNAPSHOTS),
+        },
+    }
+    return {
+        "success": True,
+        "status": "ok",
+        "components": components,
+        "count": len(components),
+    }
+
+
+@router.get("/analytics/refinements")
+async def icr_analytics_refinements(limit: int = 50) -> Dict[str, Any]:
+    """Return a non-destructive snapshot of recent refinement events."""
+    items = list(ICR_REFINEMENT_EVENTS)[-limit:]
+    return {
+        "success": True,
+        "status": "ok",
+        "refinements": items,
+        "count": len(items),
+    }
+
+
+@router.get("/analytics/heatmap")
+async def icr_analytics_heatmap(limit: int = 50) -> Dict[str, Any]:
+    """Return a snapshot of recent heatmap snapshots."""
+    items = list(ICR_HEATMAP_SNAPSHOTS)[-limit:]
+    return {
+        "success": True,
+        "status": "ok",
+        "heatmap": items,
+        "count": len(items),
+    }
+
+
+@router.get("/analytics/patterns")
+async def icr_analytics_patterns() -> Dict[str, Any]:
+    """Return aggregated friction/weakness patterns across refinement events."""
+    weakness_counter: Dict[str, int] = {}
+    friction_counter: Dict[str, int] = {}
+    for evt in ICR_REFINEMENT_EVENTS:
+        for w in evt.get("weaknesses") or []:
+            weakness_counter[w] = weakness_counter.get(w, 0) + 1
+        for f in evt.get("friction_points") or []:
+            friction_counter[f] = friction_counter.get(f, 0) + 1
+    return {
+        "success": True,
+        "status": "ok",
+        "weakness_patterns": weakness_counter,
+        "friction_patterns": friction_counter,
+    }
+
+
+@router.get("/vlm/config")
+async def icr_vlm_config() -> Dict[str, Any]:
+    """Return the VLM configuration for multimodal analysis."""
+    config = _get_icr_config()
+    return {
+        "success": True,
+        "status": "ok",
+        "vlm_provider": config.vlm_provider,
+        "vlm_model": config.vlm_model,
+        "heatmap_analysis_enabled": config.heatmap_analysis_enabled,
+        "heatmap_snapshot_interval": config.heatmap_snapshot_interval,
+    }
+
+
+@router.get("/analytics/vlm")
+async def icr_analytics_vlm() -> Dict[str, Any]:
+    """Return VLM analytics (provider/model + recent heatmap snapshot count)."""
+    config = _get_icr_config()
+    recent = list(ICR_HEATMAP_SNAPSHOTS)[-10:]
+    return {
+        "success": True,
+        "status": "ok",
+        "vlm_provider": config.vlm_provider,
+        "vlm_model": config.vlm_model,
+        "heatmap_analysis_enabled": config.heatmap_analysis_enabled,
+        "recent_snapshots": len(recent),
+        "snapshots": recent,
+    }
+
+
+@router.get("/config")
+async def icr_config_endpoint() -> Dict[str, Any]:
+    """Return the current ICR config."""
+    config = _get_icr_config()
+    return {
+        "success": True,
+        "status": "ok",
+        "config": config.model_dump(),
+    }
+
+
+@router.get("/dashboard")
+async def icr_dashboard() -> Dict[str, Any]:
+    """Return a consolidated ICR dashboard view."""
+    config = _get_icr_config()
+    return {
+        "success": True,
+        "status": "ok",
+        "service": "icr",
+        "refinement_events": len(ICR_REFINEMENT_EVENTS),
+        "reward_calibration_queued": len(ICR_REWARD_CALIBRATION_QUEUE),
+        "heatmap_snapshots": len(ICR_HEATMAP_SNAPSHOTS),
+        "config": config.model_dump(),
+        "generated_at": datetime.utcnow().isoformat(),
+    }

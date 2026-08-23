@@ -1006,6 +1006,202 @@ export class BubbleFactory {
       './bubbles/workflow-bubble/openevolve-verified-deployment-bubble.js'
     )) ?? {};
 
+    const { OpenEvolveBubblelabsStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsInitBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-init-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsWorkflowDefinitionsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-workflow-definitions-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsWorkflowInstancesBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-workflow-instances-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsAceSkillbookBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-ace-skillbook-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsAcePatternsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-ace-patterns-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsZ3Bubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-z3-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsRomaBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-roma-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsKnowledgeStoreBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-knowledge-store-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsKnowledgeQueryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-knowledge-query-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsAnalyticsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-analytics-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsLeanaideProveBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-leanaide-prove-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsIntegrationsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-integrations-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsControlCatalogBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-control-catalog-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsControlDiscoverBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-control-discover-bubble.js'
+    )) ?? {};
+    const { OpenEvolveBubblelabsControlExecuteBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-bubblelabs-control-execute-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrOverviewBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-overview-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrComponentsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-components-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrRefinementsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-refinements-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrVlmBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-vlm-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrAnalyticsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-analytics-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrConfigBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-config-bubble.js'
+    )) ?? {};
+    const { OpenEvolveIcrDashboardBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-icr-dashboard-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveMdapDashboardBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adaptive-mdap-dashboard-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveMdapProfilesBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adaptive-mdap-profiles-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveMdapCostBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adaptive-mdap-cost-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveMdapComplexityBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adaptive-mdap-complexity-bubble.js'
+    )) ?? {};
+    const { OpenEvolveAdaptiveMdapAllocateBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-adaptive-mdap-allocate-bubble.js'
+    )) ?? {};
+    const { OpenEvolveRagbitsSearchBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-ragbits-search-bubble.js'
+    )) ?? {};
+    const { OpenEvolveRagbitsIngestBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-ragbits-ingest-bubble.js'
+    )) ?? {};
+    const { OpenEvolveRagbitsStatsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-ragbits-stats-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDspyAssessBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-dspy-assess-bubble.js'
+    )) ?? {};
+    const { OpenEvolveDspyFixBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-dspy-fix-bubble.js'
+    )) ?? {};
+    const { OpenEvolvePygraphistryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-pygraphistry-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3StatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3IngestBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-ingest-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3SlitherBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-slither-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3FoundryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-foundry-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3InvariantsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-invariants-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3ExploitWitnessBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-exploit-witness-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3AuditExploitBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-audit-exploit-bubble.js'
+    )) ?? {};
+    const { OpenEvolveWeb3McpInventoryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-web3-mcp-inventory-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignProblemsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-problems-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignPlansBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-plans-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignStatsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-stats-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignRunBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-run-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignRunsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-sovereign-runs-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSovereignPipelineBubble } = (await this.safeImport(
+      './bubbles/workflow-bubble/openevolve-sovereign-pipeline-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerToolsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-tools-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerTestBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-test-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerValidateBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-validate-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerExecuteBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-execute-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerDelegationsBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-delegations-bubble.js'
+    )) ?? {};
+    const { OpenEvolveMakerDelegationsSyncBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-maker-delegations-sync-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExplorerStatusBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-explorer-status-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExplorerQueryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-explorer-query-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExplorerHistoryBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-explorer-history-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExplorerExtractBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-explorer-extract-bubble.js'
+    )) ?? {};
+    const { OpenEvolveKnowledgeExplorerExtractFileBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-knowledge-explorer-extract-file-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSuggestionsContentBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-suggestions-content-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSuggestionsClassificationBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-suggestions-classification-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSuggestionsSecurityBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-suggestions-security-bubble.js'
+    )) ?? {};
+    const { OpenEvolveSuggestionsImprovementBubble } = (await this.safeImport(
+      './bubbles/service-bubble/openevolve-suggestions-improvement-bubble.js'
+    )) ?? {};
+
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
     this.register('ai-agent', AIAgentBubble as BubbleClassWithMetadata);
@@ -1776,6 +1972,267 @@ export class BubbleFactory {
     this.register(
       'webhook-repeater-workflow' as BubbleName,
       WebhookRepeaterWorkflow as BubbleClassWithMetadata
+    );
+
+    this.register(
+      'bubblelabs-status' as BubbleName,
+      OpenEvolveBubblelabsStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-init' as BubbleName,
+      OpenEvolveBubblelabsInitBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-workflow-definitions' as BubbleName,
+      OpenEvolveBubblelabsWorkflowDefinitionsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-workflow-instances' as BubbleName,
+      OpenEvolveBubblelabsWorkflowInstancesBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-ace-skillbook' as BubbleName,
+      OpenEvolveBubblelabsAceSkillbookBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-ace-patterns' as BubbleName,
+      OpenEvolveBubblelabsAcePatternsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-z3' as BubbleName,
+      OpenEvolveBubblelabsZ3Bubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-roma' as BubbleName,
+      OpenEvolveBubblelabsRomaBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-knowledge-store' as BubbleName,
+      OpenEvolveBubblelabsKnowledgeStoreBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-knowledge-query' as BubbleName,
+      OpenEvolveBubblelabsKnowledgeQueryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-analytics' as BubbleName,
+      OpenEvolveBubblelabsAnalyticsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-leanaide-prove' as BubbleName,
+      OpenEvolveBubblelabsLeanaideProveBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-integrations' as BubbleName,
+      OpenEvolveBubblelabsIntegrationsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-control-catalog' as BubbleName,
+      OpenEvolveBubblelabsControlCatalogBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-control-discover' as BubbleName,
+      OpenEvolveBubblelabsControlDiscoverBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'bubblelabs-control-execute' as BubbleName,
+      OpenEvolveBubblelabsControlExecuteBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-overview' as BubbleName,
+      OpenEvolveIcrOverviewBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-components' as BubbleName,
+      OpenEvolveIcrComponentsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-refinements' as BubbleName,
+      OpenEvolveIcrRefinementsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-vlm' as BubbleName,
+      OpenEvolveIcrVlmBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-analytics' as BubbleName,
+      OpenEvolveIcrAnalyticsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-config' as BubbleName,
+      OpenEvolveIcrConfigBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'icr-dashboard' as BubbleName,
+      OpenEvolveIcrDashboardBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'adaptive-mdap-dashboard' as BubbleName,
+      OpenEvolveAdaptiveMdapDashboardBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'adaptive-mdap-profiles' as BubbleName,
+      OpenEvolveAdaptiveMdapProfilesBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'adaptive-mdap-cost' as BubbleName,
+      OpenEvolveAdaptiveMdapCostBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'adaptive-mdap-complexity' as BubbleName,
+      OpenEvolveAdaptiveMdapComplexityBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'adaptive-mdap-allocate' as BubbleName,
+      OpenEvolveAdaptiveMdapAllocateBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'ragbits-search' as BubbleName,
+      OpenEvolveRagbitsSearchBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'ragbits-ingest' as BubbleName,
+      OpenEvolveRagbitsIngestBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'ragbits-stats' as BubbleName,
+      OpenEvolveRagbitsStatsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'dspy-assess' as BubbleName,
+      OpenEvolveDspyAssessBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'dspy-fix' as BubbleName,
+      OpenEvolveDspyFixBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'pygraphistry' as BubbleName,
+      OpenEvolvePygraphistryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-status' as BubbleName,
+      OpenEvolveWeb3StatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-ingest' as BubbleName,
+      OpenEvolveWeb3IngestBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-slither' as BubbleName,
+      OpenEvolveWeb3SlitherBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-foundry' as BubbleName,
+      OpenEvolveWeb3FoundryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-invariants' as BubbleName,
+      OpenEvolveWeb3InvariantsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-exploit-witness' as BubbleName,
+      OpenEvolveWeb3ExploitWitnessBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-audit-exploit' as BubbleName,
+      OpenEvolveWeb3AuditExploitBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'web3-mcp-inventory' as BubbleName,
+      OpenEvolveWeb3McpInventoryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-status' as BubbleName,
+      OpenEvolveSovereignStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-problems' as BubbleName,
+      OpenEvolveSovereignProblemsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-plans' as BubbleName,
+      OpenEvolveSovereignPlansBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-stats' as BubbleName,
+      OpenEvolveSovereignStatsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-run' as BubbleName,
+      OpenEvolveSovereignRunBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-runs' as BubbleName,
+      OpenEvolveSovereignRunsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'sovereign-pipeline' as BubbleName,
+      OpenEvolveSovereignPipelineBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-status' as BubbleName,
+      OpenEvolveMakerStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-tools' as BubbleName,
+      OpenEvolveMakerToolsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-test' as BubbleName,
+      OpenEvolveMakerTestBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-validate' as BubbleName,
+      OpenEvolveMakerValidateBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-execute' as BubbleName,
+      OpenEvolveMakerExecuteBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-delegations' as BubbleName,
+      OpenEvolveMakerDelegationsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'maker-delegations-sync' as BubbleName,
+      OpenEvolveMakerDelegationsSyncBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'knowledge-explorer-status' as BubbleName,
+      OpenEvolveKnowledgeExplorerStatusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'knowledge-explorer-query' as BubbleName,
+      OpenEvolveKnowledgeExplorerQueryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'knowledge-explorer-history' as BubbleName,
+      OpenEvolveKnowledgeExplorerHistoryBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'knowledge-explorer-extract' as BubbleName,
+      OpenEvolveKnowledgeExplorerExtractBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'knowledge-explorer-extract-file' as BubbleName,
+      OpenEvolveKnowledgeExplorerExtractFileBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'suggestions-content' as BubbleName,
+      OpenEvolveSuggestionsContentBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'suggestions-classification' as BubbleName,
+      OpenEvolveSuggestionsClassificationBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'suggestions-security' as BubbleName,
+      OpenEvolveSuggestionsSecurityBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'suggestions-improvement' as BubbleName,
+      OpenEvolveSuggestionsImprovementBubble as BubbleClassWithMetadata
     );
 
     // After all default bubbles are registered, auto-populate bubbleDependencies

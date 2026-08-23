@@ -228,9 +228,17 @@ class SovereignDatabase:
             cursor = conn.cursor()
             data = problem.to_dict()
             cursor.execute("""
-                INSERT INTO problems VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO problems (
+                    id, parent_id, title, description, problem_type,
+                    domain_context, complexity_score, constraints, success_criteria,
+                    stakeholders, resources_available, deadline, created_at,
+                    updated_at, metadata
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
             """, (
-                data['id'], data['title'], data['description'], data['problem_type'],
+                data['id'], data.get('parent_id'), data['title'], data['description'],
+                data['problem_type'].value if hasattr(data['problem_type'], 'value') else data['problem_type'],
                 json.dumps(data['domain_context']), json.dumps(data['complexity_score']),
                 json.dumps(data['constraints']), json.dumps(data['success_criteria']),
                 json.dumps(data['stakeholders']), json.dumps(data['resources_available']),

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "generatedAt": "2026-02-18T06:16:24.044Z",
-  "totalCount": 176,
+  "totalCount": 241,
   "bubbles": [
     {
       "name": "hello-world",
@@ -1983,6 +1983,656 @@
       "useCase": "General purpose bubble for various workflow needs",
       "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
       "usageExample": "// Example usage of openevolve-orchestration-ensemble bubble\nconst openEvolveOrchestrationEnsembleBubble = new OpenEvolveOrchestrationEnsembleBubble({\n  base_url: \"http://localhost:8000\" // default,\n  timeout: 60000 // default,\n  headers: { \"example_key\": \"example string\" },\n  auth_token: \"example string\",\n  auth_header: \"Authorization\" // default,\n});\n\nconst result = await openEvolveOrchestrationEnsembleBubble.action();\n\n// Always check success status before using data\nif (!result.success) {\n  throw new Error(`openevolve-orchestration-ensemble failed: ${result.error}`);\n}\n\n// outputSchema for result.data:\n// {\n//   success: boolean,\n//   status: number | undefined,\n//   operation: string,\n//   data: unknown | undefined,\n//   error: string | undefined,\n//   timing: number\n// }\n\n// Access the actual data\nconst actualData = result.data;\nconsole.log(actualData);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-status",
+      "alias": "bubblelabs-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-status service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsStatusBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsStatusBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-init",
+      "alias": "bubblelabs-init",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-init service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsInitBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsInitBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-workflow-definitions",
+      "alias": "bubblelabs-workflow-definitions",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-workflow-definitions service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsWorkflowDefinitionsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsWorkflowDefinitionsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-workflow-instances",
+      "alias": "bubblelabs-workflow-instances",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-workflow-instances service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsWorkflowInstancesBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsWorkflowInstancesBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-ace-skillbook",
+      "alias": "bubblelabs-ace-skillbook",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-ace-skillbook service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsAceSkillbookBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsAceSkillbookBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-ace-patterns",
+      "alias": "bubblelabs-ace-patterns",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-ace-patterns service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsAcePatternsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsAcePatternsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-z3",
+      "alias": "bubblelabs-z3",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-z3 service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsZ3Bubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsZ3Bubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-roma",
+      "alias": "bubblelabs-roma",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-roma service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsRomaBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsRomaBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-knowledge-store",
+      "alias": "bubblelabs-knowledge-store",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-knowledge-store service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsKnowledgeStoreBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsKnowledgeStoreBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-knowledge-query",
+      "alias": "bubblelabs-knowledge-query",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-knowledge-query service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsKnowledgeQueryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsKnowledgeQueryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-analytics",
+      "alias": "bubblelabs-analytics",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-analytics service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsAnalyticsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsAnalyticsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-leanaide-prove",
+      "alias": "bubblelabs-leanaide-prove",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-leanaide-prove service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsLeanaideProveBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsLeanaideProveBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-integrations",
+      "alias": "bubblelabs-integrations",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-integrations service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsIntegrationsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsIntegrationsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-control-catalog",
+      "alias": "bubblelabs-control-catalog",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-control-catalog service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsControlCatalogBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsControlCatalogBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-control-discover",
+      "alias": "bubblelabs-control-discover",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-control-discover service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsControlDiscoverBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsControlDiscoverBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "bubblelabs-control-execute",
+      "alias": "bubblelabs-control-execute",
+      "type": "service",
+      "shortDescription": "OpenEvolve bubblelabs-control-execute service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveBubblelabsControlExecuteBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveBubblelabsControlExecuteBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-overview",
+      "alias": "icr-overview",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-overview service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrOverviewBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrOverviewBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-components",
+      "alias": "icr-components",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-components service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrComponentsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrComponentsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-refinements",
+      "alias": "icr-refinements",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-refinements service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrRefinementsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrRefinementsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-vlm",
+      "alias": "icr-vlm",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-vlm service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrVlmBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrVlmBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-analytics",
+      "alias": "icr-analytics",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-analytics service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrAnalyticsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrAnalyticsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-config",
+      "alias": "icr-config",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-config service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrConfigBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrConfigBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "icr-dashboard",
+      "alias": "icr-dashboard",
+      "type": "service",
+      "shortDescription": "OpenEvolve icr-dashboard service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveIcrDashboardBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveIcrDashboardBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "adaptive-mdap-dashboard",
+      "alias": "adaptive-mdap-dashboard",
+      "type": "service",
+      "shortDescription": "OpenEvolve adaptive-mdap-dashboard service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveAdaptiveMdapDashboardBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveAdaptiveMdapDashboardBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "adaptive-mdap-profiles",
+      "alias": "adaptive-mdap-profiles",
+      "type": "service",
+      "shortDescription": "OpenEvolve adaptive-mdap-profiles service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveAdaptiveMdapProfilesBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveAdaptiveMdapProfilesBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "adaptive-mdap-cost",
+      "alias": "adaptive-mdap-cost",
+      "type": "service",
+      "shortDescription": "OpenEvolve adaptive-mdap-cost service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveAdaptiveMdapCostBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveAdaptiveMdapCostBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "adaptive-mdap-complexity",
+      "alias": "adaptive-mdap-complexity",
+      "type": "service",
+      "shortDescription": "OpenEvolve adaptive-mdap-complexity service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveAdaptiveMdapComplexityBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveAdaptiveMdapComplexityBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "adaptive-mdap-allocate",
+      "alias": "adaptive-mdap-allocate",
+      "type": "service",
+      "shortDescription": "OpenEvolve adaptive-mdap-allocate service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveAdaptiveMdapAllocateBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveAdaptiveMdapAllocateBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "ragbits-search",
+      "alias": "ragbits-search",
+      "type": "service",
+      "shortDescription": "OpenEvolve ragbits-search service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveRagbitsSearchBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveRagbitsSearchBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "ragbits-ingest",
+      "alias": "ragbits-ingest",
+      "type": "service",
+      "shortDescription": "OpenEvolve ragbits-ingest service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveRagbitsIngestBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveRagbitsIngestBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "ragbits-stats",
+      "alias": "ragbits-stats",
+      "type": "service",
+      "shortDescription": "OpenEvolve ragbits-stats service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveRagbitsStatsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveRagbitsStatsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "dspy-assess",
+      "alias": "dspy-assess",
+      "type": "service",
+      "shortDescription": "OpenEvolve dspy-assess service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveDspyAssessBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveDspyAssessBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "dspy-fix",
+      "alias": "dspy-fix",
+      "type": "service",
+      "shortDescription": "OpenEvolve dspy-fix service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveDspyFixBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveDspyFixBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "pygraphistry",
+      "alias": "pygraphistry",
+      "type": "service",
+      "shortDescription": "OpenEvolve pygraphistry service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolvePygraphistryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolvePygraphistryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-status",
+      "alias": "web3-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-status service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3StatusBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3StatusBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-ingest",
+      "alias": "web3-ingest",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-ingest service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3IngestBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3IngestBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-slither",
+      "alias": "web3-slither",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-slither service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3SlitherBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3SlitherBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-foundry",
+      "alias": "web3-foundry",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-foundry service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3FoundryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3FoundryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-invariants",
+      "alias": "web3-invariants",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-invariants service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3InvariantsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3InvariantsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-exploit-witness",
+      "alias": "web3-exploit-witness",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-exploit-witness service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3ExploitWitnessBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3ExploitWitnessBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-audit-exploit",
+      "alias": "web3-audit-exploit",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-audit-exploit service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3AuditExploitBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3AuditExploitBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "web3-mcp-inventory",
+      "alias": "web3-mcp-inventory",
+      "type": "service",
+      "shortDescription": "OpenEvolve web3-mcp-inventory service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveWeb3McpInventoryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveWeb3McpInventoryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-status",
+      "alias": "maker-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-status service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerStatusBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerStatusBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-tools",
+      "alias": "maker-tools",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-tools service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerToolsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerToolsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-test",
+      "alias": "maker-test",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-test service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerTestBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerTestBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-validate",
+      "alias": "maker-validate",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-validate service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerValidateBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerValidateBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-execute",
+      "alias": "maker-execute",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-execute service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerExecuteBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerExecuteBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-delegations",
+      "alias": "maker-delegations",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-delegations service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerDelegationsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerDelegationsBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "maker-delegations-sync",
+      "alias": "maker-delegations-sync",
+      "type": "service",
+      "shortDescription": "OpenEvolve maker-delegations-sync service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveMakerDelegationsSyncBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveMakerDelegationsSyncBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "knowledge-explorer-status",
+      "alias": "knowledge-explorer-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge-explorer-status service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveKnowledgeExplorerStatusBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveKnowledgeExplorerStatusBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "knowledge-explorer-query",
+      "alias": "knowledge-explorer-query",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge-explorer-query service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveKnowledgeExplorerQueryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveKnowledgeExplorerQueryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "knowledge-explorer-history",
+      "alias": "knowledge-explorer-history",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge-explorer-history service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveKnowledgeExplorerHistoryBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveKnowledgeExplorerHistoryBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "knowledge-explorer-extract",
+      "alias": "knowledge-explorer-extract",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge-explorer-extract service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveKnowledgeExplorerExtractBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveKnowledgeExplorerExtractBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "knowledge-explorer-extract-file",
+      "alias": "knowledge-explorer-extract-file",
+      "type": "service",
+      "shortDescription": "OpenEvolve knowledge-explorer-extract-file service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveKnowledgeExplorerExtractFileBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveKnowledgeExplorerExtractFileBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "suggestions-content",
+      "alias": "suggestions-content",
+      "type": "service",
+      "shortDescription": "OpenEvolve suggestions-content service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveSuggestionsContentBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveSuggestionsContentBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "suggestions-classification",
+      "alias": "suggestions-classification",
+      "type": "service",
+      "shortDescription": "OpenEvolve suggestions-classification service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveSuggestionsClassificationBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveSuggestionsClassificationBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "suggestions-security",
+      "alias": "suggestions-security",
+      "type": "service",
+      "shortDescription": "OpenEvolve suggestions-security service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveSuggestionsSecurityBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveSuggestionsSecurityBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "suggestions-improvement",
+      "alias": "suggestions-improvement",
+      "type": "service",
+      "shortDescription": "OpenEvolve suggestions-improvement service bubble",
+      "useCase": "General purpose bubble for various workflow needs",
+      "outputSchema": "{\n  success: boolean,\n  status: number | undefined,\n  operation: string,\n  data: unknown | undefined,\n  error: string | undefined,\n  timing: number\n}",
+      "usageExample": "const bubble = new OpenEvolveSuggestionsImprovementBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`${OpenEvolveSuggestionsImprovementBubble} failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-status",
+      "alias": "sovereign-status",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-status service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignStatusBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignStatusBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-problems",
+      "alias": "sovereign-problems",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-problems service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignProblemsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignProblemsBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-plans",
+      "alias": "sovereign-plans",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-plans service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignPlansBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignPlansBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-stats",
+      "alias": "sovereign-stats",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-stats service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignStatsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignStatsBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-run",
+      "alias": "sovereign-run",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-run service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignRunBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignRunBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-runs",
+      "alias": "sovereign-runs",
+      "type": "service",
+      "shortDescription": "OpenEvolve sovereign-runs service bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignRunsBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignRunsBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
+      "requiredCredentials": []
+    },
+    {
+      "name": "sovereign-pipeline",
+      "alias": "sovereign-pipeline",
+      "type": "workflow",
+      "shortDescription": "OpenEvolve sovereign-pipeline workflow bubble",
+      "useCase": "- undefined",
+      "outputSchema": "{ success: boolean, operation: string, data: unknown, error?: string, timing: number }",
+      "usageExample": "const bubble = new OpenEvolveSovereignPipelineBubble({\n  base_url: \"http://localhost:8000\",\n  auth_token: \"example string\"\n});\nconst result = await bubble.action();\nif (!result.success) {\n  throw new Error(`OpenEvolveSovereignPipelineBubble failed: ${result.error}`);\n}\nconsole.log(result.data);",
       "requiredCredentials": []
     }
   ]

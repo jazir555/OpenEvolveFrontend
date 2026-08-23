@@ -41,6 +41,13 @@ try:
     from .api.gateway import gateway_router
     from .api.bubblelabs_control import router as bubblelabs_control_router
     from .api.security_proxy import router as security_proxy_router
+    from .api.adaptive_mdap import router as adaptive_mdap_router
+    from .api.ragbits import router as ragbits_router
+    from .api.dspy import router as dspy_router
+    from .api.web3 import router as web3_router
+    from .api.maker import router as maker_router
+    from .api.suggestions import router as suggestions_router
+    from .api.sovereign import router as sovereign_router
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
@@ -73,6 +80,13 @@ except ImportError:
     from api.gateway import gateway_router
     from api.bubblelabs_control import router as bubblelabs_control_router
     from api.security_proxy import router as security_proxy_router
+    from api.adaptive_mdap import router as adaptive_mdap_router
+    from api.ragbits import router as ragbits_router
+    from api.dspy import router as dspy_router
+    from api.web3 import router as web3_router
+    from api.maker import router as maker_router
+    from api.suggestions import router as suggestions_router
+    from api.sovereign import router as sovereign_router
     from services.execution_service import execution_manager
 
 # Background status-sync: poll the :8001 engine and advance :8000 workflow
@@ -189,6 +203,19 @@ if gateway_router is not None:
 # Security proxy: transparently forward /security/* to the :8001 engine so the
 # BubbleLab UI can manage OpenEvolve API keys / roles / audit logs through :8000.
 app.include_router(security_proxy_router, prefix="/api/security", tags=["security"])
+
+# New BubbleLab integration routers (real, dependency-free endpoints).
+app.include_router(adaptive_mdap_router, prefix="/adaptive-mdap", tags=["adaptive-mdap"])
+app.include_router(ragbits_router, prefix="/openevolve/ragbits", tags=["ragbits"])
+app.include_router(dspy_router, prefix="/api/openevolve", tags=["dspy"])
+app.include_router(web3_router, prefix="/web3", tags=["web3"])
+app.include_router(maker_router, prefix="/maker", tags=["maker"])
+app.include_router(suggestions_router, prefix="/suggestions", tags=["suggestions"])
+
+# Sovereign decomposition subsystem (read endpoints backed by SovereignDatabase
+# + a real problem-analysis /run endpoint). Surfaces engines/other sovereign
+# modules that were previously only reachable via the standalone api_server.py.
+app.include_router(sovereign_router, prefix="/sovereign", tags=["sovereign"])
 
 # PES Enhanced router. The module lives at the repo root
 # (openevolve_pes_enhanced/) and is NOT part of this service package, so it is
