@@ -2,7 +2,7 @@
 
 **Author:** Research pass (read-only)
 **Date:** 2026-08-19
-**Last updated:** 2026-08-22, §17.4 hardening (Studio palette manifest + ad-hoc chaining robustness)
+**Last updated:** 2026-08-22, §17.4 hardening (Studio palette manifest + ad-hoc chaining robustness) — corrected: API manifest synced to 282, "282 vs 293" ragbits gap was a phantom
 **Scope:** Intended OpenEvolve ⇄ BubbleLab integration across three layers (BubbleLab UI → BubbleLab backend (Bun/Hono) → OpenEvolve backend (Python/FastAPI)), compared against the actual code in this repo.
 
 > **INTEGRATION STATUS: GREEN (8/8 harness suites).** Sections 1–6 below are the
@@ -657,7 +657,19 @@ gap (43 missing bubbles) had a concrete root cause that is now fixed:
   (`bubblelabs-status` → `sovereign-status` → a forced-failing bubble → `hello-world`) ran to
   completion: the failing node returned a controlled error and the subsequent node still
   executed successfully. No unhandled exceptions were observed.
-- **Known minor gap (environmental).** ~11 bubbles are not in the manifest because the external
-  `ragbits-bubblelab-integration` package does not resolve in this environment. This is an
-  environmental resolution issue, **not** a logic bug, and does not affect the 282-bubble
-  palette or the chaining hardening above.
+ - **API manifest parity (closed).** The hand-maintained API manifest
+   (`apps/bubblelab-api/src/services/ai/bubbles.json`) was stale at 241 entries. It has been
+   synced to **282** to match the studio palette exactly (name-set equality verified: the two
+   files now describe the identical 282 canonical bubble names). 52 bubbles were added from the
+   studio manifest; 11 stale `openevolve-*` entries that were never in the runtime factory
+   registry were removed (canonical equivalents such as `slack`, `gmail`, `workflow-orchestrator`,
+   `ace-tools` remain present).
+
+ - **The "282 vs 293" delta was a phantom (clarification).** The `ragbits-bubblelab-integration`
+   package resolves fine under `bun`; all ragbits/crewai bubbles (7 classes) are present in the
+   282-bubble manifest. The higher number once cited was a miscount of the `BubbleName` union,
+   which also enumerates alias registration keys (e.g. `openevolve-ace-tools`,
+   `openevolve-workflow-orchestrator` — live factory aliases, not duplicates) plus two dangling
+   union entries with no backing class (`bubbleflow-code-generator`, `bubbleflow-generator`).
+   **282 canonical bubbles is the complete, authoritative, working set**, and it is now consistent
+   across the studio palette, the runtime factory registry, and the API manifest.
