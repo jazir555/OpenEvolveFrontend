@@ -40,6 +40,7 @@ import aiRoutes from './routes/ai.js';
 import templateSubmissionRoutes from './routes/template-submission.js';
 import openEvolveRoutes from './routes/openevolve.js';
 import browserbaseRoutes from './routes/browserbase.js';
+import nvidiaNimRoutes from './routes/nvidia-nim.js';
 import backendsApp from './services/backends.js';
 import { getBubbleFactory } from './services/bubble-factory-instance.js';
 
@@ -95,6 +96,10 @@ app.route('/browserbase', browserbaseRoutes);
 // (`app.route('/', openEvolveRoutes)`) so `/api/backends/*` is not proxied
 // upstream to the OpenEvolve backend.
 app.route('/api/backends', backendsApp);
+
+// NVIDIA NIM model catalog (public, no auth) — registered BEFORE the OpenEvolve
+// catch-all so `/api/nvidia-nim/*` is not proxied upstream.
+app.route('/api/nvidia-nim', nvidiaNimRoutes);
 
 // OpenAPI documentation endpoint — registered BEFORE the OpenEvolve catch-all
 // (`app.route('/', openEvolveRoutes)`) so `/doc` is not shadowed by it (404).

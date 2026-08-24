@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { NVIDIA_NIM_MODELS } from './nvidia-nim-models.js';
 
-// Define available models with provider/name combinations
-export const AvailableModels = z.enum([
+// Static models (non-NIM providers)
+const STATIC_MODELS = [
   // OpenAI models
   'openai/gpt-4',
   'openai/gpt-4o',
@@ -42,12 +43,15 @@ export const AvailableModels = z.enum([
   'fireworks/accounts/fireworks/models/kimi-k2p6',
   // DeepSeek models
   'deepseek/deepseek-chat',
-  // NVIDIA NIM models (OpenAI-compatible hosted inference)
-  'nvidia/meta/llama-3.1-8b-instruct',
-  'nvidia/meta/llama-3.3-70b-instruct',
-  'nvidia/llama-3.1-nemotron-70b-instruct',
-  'nvidia/mistralai/mistral-nemo-12b-instruct',
-]);
+] as const;
+
+// Define available models: static providers + NVIDIA NIM (auto-generated).
+// NVIDIA_NIM_MODELS is a committed `as const` tuple produced by the
+// `generate:nim-models` script against NVIDIA's public model catalog.
+export const AvailableModels = z.enum([
+  ...STATIC_MODELS,
+  ...NVIDIA_NIM_MODELS,
+] as const);
 
 export type AvailableModel = z.infer<typeof AvailableModels>;
 
