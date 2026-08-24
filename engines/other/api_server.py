@@ -562,7 +562,17 @@ templates = Jinja2Templates(directory="templates")
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    """Handle all unhandled exceptions."""
+    """Handle all unhandled exceptions.
+
+    Starlette/FastAPI HTTPException instances carry their own status code and
+    detail (e.g. 429 rate-limit, 401/403 auth, 422 validation). Preserve those
+    instead of collapsing every error into a 500.
+    """
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

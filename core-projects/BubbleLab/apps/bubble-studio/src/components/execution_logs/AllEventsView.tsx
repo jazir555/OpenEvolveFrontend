@@ -457,20 +457,27 @@ export default function AllEventsView({
 
                               {/* Expand/collapse button for bubbles with sub-bubbles */}
                               {hasSubBubbles && (
-                                <button
-                                  type="button"
+                                <div
+                                  role="button"
+                                  tabIndex={0}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleBubbleExpansion(bubbleId);
                                   }}
-                                  className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.stopPropagation();
+                                      toggleBubbleExpansion(bubbleId);
+                                    }
+                                  }}
+                                  className="flex-shrink-0 w-4 h-4 flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
                                 >
                                   {isExpanded ? (
                                     <ChevronDown className="w-3 h-3" />
                                   ) : (
                                     <ChevronRight className="w-3 h-3" />
                                   )}
-                                </button>
+                                </div>
                               )}
 
                               {/* Bubble icon */}

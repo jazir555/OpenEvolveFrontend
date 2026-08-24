@@ -95,9 +95,9 @@ app.route('/browserbase', browserbaseRoutes);
 // (`app.route('/', openEvolveRoutes)`) so `/api/backends/*` is not proxied
 // upstream to the OpenEvolve backend.
 app.route('/api/backends', backendsApp);
-app.route('/', openEvolveRoutes);
 
-// OpenAPI documentation endpoint
+// OpenAPI documentation endpoint — registered BEFORE the OpenEvolve catch-all
+// (`app.route('/', openEvolveRoutes)`) so `/doc` is not shadowed by it (404).
 app.doc('/doc', {
   openapi: '3.0.0',
   info: {
@@ -113,8 +113,11 @@ app.doc('/doc', {
   ],
 });
 
-// Swagger UI endpoint
+// Swagger UI endpoint — registered BEFORE the OpenEvolve catch-all for the
+// same reason as `/doc` above.
 app.get('/ui', swaggerUI({ url: '/doc' }));
+
+app.route('/', openEvolveRoutes);
 
 const port = process.env.PORT || 3001;
 

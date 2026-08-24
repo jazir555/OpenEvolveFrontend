@@ -105,6 +105,25 @@ export const getSecretKeyForApp = (appType: AppType): string | null => {
 };
 
 /**
+ * Determine whether real authentication is configured.
+ * Returns true if any Clerk application has a secret key (JWT secret) set.
+ * Used to decide whether the auth middleware must enforce strictly or can
+ * fall back to an open/dev mode when auth is simply not configured.
+ */
+export const isAuthConfigured = (): boolean => {
+  return Object.values(CLERK_APP_CONFIGS).some((config) => {
+    if (process.env[config.secretKeyEnvVar]) return true;
+    if (
+      config.fallbackSecretKeyEnvVar &&
+      process.env[config.fallbackSecretKeyEnvVar]
+    ) {
+      return true;
+    }
+    return false;
+  });
+};
+
+/**
  * Detect app type from JWT token issuer
  * Uses centralized issuer ID configuration
  */

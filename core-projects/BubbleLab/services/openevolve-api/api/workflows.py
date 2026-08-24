@@ -25,6 +25,7 @@ from ..models import (
     WorkflowListResponse,
     WorkflowStatus,
     WorkflowInputs,
+    WorkflowMetadata,
     ExecutionResult,
     ExecutionStatistics,
     normalize_workflow_type,

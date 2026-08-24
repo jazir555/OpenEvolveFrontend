@@ -16,6 +16,7 @@ import {
   AppType,
   getSecretKeyForApp,
   detectAppTypeFromIssuer,
+  isAuthConfigured,
 } from '../config/clerk-apps.js';
 import { env } from '../config/env.js';
 import { DEV_USER_ID } from '../db/seed-dev-user.js';
@@ -93,9 +94,15 @@ export async function authMiddleware(c: Context, next: Next) {
     }
   }
 
-  // If no auth header, we reject unless in dev mode
+  // If no auth header, we reject unless in dev mode or auth is not configured.
+  // When auth is not actually configured (no JWT secret / no auth provider
+  // credentials), fall back to an open/dev mode instead of hard-failing.
+  const authConfigured = isAuthConfigured();
   if (!authHeader) {
-    if (env.isDev) {
+    if (env.isDev || !authConfigured) {
+      if (!authConfigured) {
+        console.warn('Auth not configured — running in open/dev mode');
+      }
       const testUserId = c.req.header('X-User-ID');
       const userId = testUserId || devUserId;
       c.set('userId', userId);
@@ -132,8 +139,12 @@ export async function authMiddleware(c: Context, next: Next) {
     const secretKey = getSecretKeyForApp(appType);
 
     if (!secretKey) {
-      if (env.isDev) {
-        // Skip verification in dev if secret key missing, but still check for X-User-ID
+      if (env.isDev || !authConfigured) {
+        // Skip verification when in dev or when auth is not configured
+        // (open/dev mode), but still check for X-User-ID
+        if (!authConfigured) {
+          console.warn('Auth not configured — running in open/dev mode');
+        }
         const testUserId = c.req.header('X-User-ID');
         const userId = testUserId || devUserId;
         c.set('userId', userId);
