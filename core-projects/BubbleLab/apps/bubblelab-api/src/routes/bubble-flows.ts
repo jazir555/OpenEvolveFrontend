@@ -1343,6 +1343,7 @@ app.openapi(generateBubbleFlowCodeRoute, async (c) => {
       // Credentials for both Coffee and Boba
       const credentials = {
         [CredentialType.OPENROUTER_CRED]: process.env.OPENROUTER_API_KEY || '',
+        [CredentialType.NVIDIA_NIM_CRED]: process.env.NVIDIA_API_KEY || '',
         [CredentialType.OPENAI_CRED]: process.env.OPENAI_API_KEY || '',
         [CredentialType.ANTHROPIC_CRED]: process.env.ANTHROPIC_API_KEY || '',
         [CredentialType.FIRECRAWL_API_KEY]:

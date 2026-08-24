@@ -30,6 +30,7 @@ import type { BubbleName, BubbleResult } from '@bubblelab/shared-schemas';
 import type { CapabilityInput } from '@bubblelab/shared-schemas';
 import type { StreamingEvent } from '@bubblelab/shared-schemas';
 import { ConversationMessageSchema } from '@bubblelab/shared-schemas';
+import { LLM_PROVIDER_BASE_URLS, LLM_PROVIDER_CREDENTIALS } from './llm-providers.js';
 import {
   extractThinking,
   extractThinkingFromContent,
@@ -1018,26 +1019,12 @@ export class AIAgentBubble extends ServiceBubble<
       throw new Error(`No ${provider.toUpperCase()} credentials provided`);
     }
 
-    let apiKey: string | undefined;
-    switch (provider) {
-      case 'openai':
-        apiKey = credentials[CredentialType.OPENAI_CRED];
-        break;
-      case 'google':
-        apiKey = credentials[CredentialType.GOOGLE_GEMINI_CRED];
-        break;
-      case 'anthropic':
-        apiKey = credentials[CredentialType.ANTHROPIC_CRED];
-        break;
-      case 'openrouter':
-        apiKey = credentials[CredentialType.OPENROUTER_CRED];
-        break;
-      case 'fireworks':
-        apiKey = credentials[CredentialType.FIREWORKS_CRED];
-        break;
-      default:
-        throw new Error(`Unsupported model provider: ${provider}`);
+    const credentialType = LLM_PROVIDER_CREDENTIALS[provider];
+    if (!credentialType) {
+      throw new Error(`Unsupported model provider: ${provider}`);
     }
+
+    const apiKey = credentials[credentialType];
 
     if (!apiKey) {
       throw new Error(`No credential found for provider: ${provider}`);
@@ -1164,7 +1151,7 @@ export class AIAgentBubble extends ServiceBubble<
           streaming: enableStreaming,
           maxRetries: retries,
           configuration: {
-            baseURL: 'https://openrouter.ai/api/v1',
+            baseURL: LLM_PROVIDER_BASE_URLS.openrouter,
           },
           modelKwargs: {
             provider: {
@@ -1186,11 +1173,24 @@ export class AIAgentBubble extends ServiceBubble<
           streaming: enableStreaming,
           maxRetries: retries,
           configuration: {
-            baseURL: 'https://api.fireworks.ai/inference/v1',
+            baseURL: LLM_PROVIDER_BASE_URLS.fireworks,
           },
           ...(reasoningEffort
             ? { modelKwargs: { reasoning_effort: reasoningEffort } }
             : {}),
+        });
+      case 'nvidia':
+        return new ChatOpenAI({
+          model: modelName,
+          __includeRawResponse: true,
+          temperature,
+          maxTokens,
+          apiKey,
+          streaming: enableStreaming,
+          maxRetries: retries,
+          configuration: {
+            baseURL: LLM_PROVIDER_BASE_URLS.nvidia,
+          },
         });
       default:
         throw new Error(`Unsupported model provider: ${provider}`);

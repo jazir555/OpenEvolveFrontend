@@ -35,6 +35,7 @@ export const CREDENTIAL_CONFIGURATION_MAP: Record<
   [CredentialType.OPENROUTER_CRED]: {},
   [CredentialType.DEEPSEEK_CRED]: {},
   [CredentialType.FIREWORKS_CRED]: {},
+  [CredentialType.NVIDIA_NIM_CRED]: {},
   [CredentialType.CLOUDFLARE_R2_ACCESS_KEY]: {},
   [CredentialType.CLOUDFLARE_R2_SECRET_KEY]: {},
   [CredentialType.CLOUDFLARE_R2_ACCOUNT_ID]: {},

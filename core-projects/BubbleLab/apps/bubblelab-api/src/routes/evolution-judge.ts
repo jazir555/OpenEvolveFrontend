@@ -21,6 +21,7 @@ const buildCredentials = () => {
     [CredentialType.ANTHROPIC_CRED]: env.ANTHROPIC_API_KEY,
     [CredentialType.GOOGLE_GEMINI_CRED]: env.GOOGLE_API_KEY,
     [CredentialType.OPENROUTER_CRED]: env.OPENROUTER_API_KEY,
+    [CredentialType.NVIDIA_NIM_CRED]: env.NVIDIA_API_KEY,
   } as Record<CredentialType, string | undefined>;
 
   const required = [

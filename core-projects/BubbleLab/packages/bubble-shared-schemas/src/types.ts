@@ -14,6 +14,7 @@ export enum CredentialType {
   OPENROUTER_CRED = 'OPENROUTER_CRED',
   DEEPSEEK_CRED = 'DEEPSEEK_CRED',
   FIREWORKS_CRED = 'FIREWORKS_CRED',
+  NVIDIA_NIM_CRED = 'NVIDIA_NIM_CRED',
   // Search Credentials
   FIRECRAWL_API_KEY = 'FIRECRAWL_API_KEY',
   // Database Credentials

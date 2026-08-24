@@ -42,6 +42,11 @@ export const AvailableModels = z.enum([
   'fireworks/accounts/fireworks/models/kimi-k2p6',
   // DeepSeek models
   'deepseek/deepseek-chat',
+  // NVIDIA NIM models (OpenAI-compatible hosted inference)
+  'nvidia/meta/llama-3.1-8b-instruct',
+  'nvidia/meta/llama-3.3-70b-instruct',
+  'nvidia/llama-3.1-nemotron-70b-instruct',
+  'nvidia/mistralai/mistral-nemo-12b-instruct',
 ]);
 
 export type AvailableModel = z.infer<typeof AvailableModels>;

@@ -7,12 +7,13 @@ import { CredentialType, AvailableModel } from '@bubblelab/shared-schemas';
  * Mapping from credential types to their model identifiers
  * for generation providers (LLMs used for workflow generation)
  */
-const CREDENTIAL_TO_MODEL: Record<string, AvailableModel> = {
+export const CREDENTIAL_TO_MODEL: Record<string, AvailableModel> = {
   [CredentialType.GOOGLE_GEMINI_CRED]: 'google/gemini-3-flash-preview',
   [CredentialType.DEEPSEEK_CRED]: 'deepseek/deepseek-chat',
   [CredentialType.OPENAI_CRED]: 'openai/gpt-4o',
   [CredentialType.ANTHROPIC_CRED]: 'anthropic/claude-sonnet-4-5',
   [CredentialType.OPENROUTER_CRED]: 'openrouter/anthropic/claude-sonnet-4.5',
+  [CredentialType.NVIDIA_NIM_CRED]: 'nvidia/meta/llama-3.1-8b-instruct',
 };
 
 /**
@@ -33,6 +34,7 @@ export async function getDefaultGenerationModel(
       CredentialType.OPENAI_CRED,
       CredentialType.ANTHROPIC_CRED,
       CredentialType.OPENROUTER_CRED,
+      CredentialType.NVIDIA_NIM_CRED,
     ];
 
     // Check each credential type to see if user has a default one
@@ -88,6 +90,7 @@ export async function getDefaultGenerationCredentialType(
       CredentialType.OPENAI_CRED,
       CredentialType.ANTHROPIC_CRED,
       CredentialType.OPENROUTER_CRED,
+      CredentialType.NVIDIA_NIM_CRED,
     ];
 
     for (const credentialType of generationCredentialTypes) {
