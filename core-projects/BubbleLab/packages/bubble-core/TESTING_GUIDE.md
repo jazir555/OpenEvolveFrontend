@@ -44,6 +44,13 @@ Tests for multi-bubble workflows:
 - Data flow validation
 - End-to-end operation tests
 
+**LLM / model-backed integration tests.** Tests that exercise a real LLM should use a model
+from the NVIDIA NIM catalog (any `nvidia/*` model), since a configured key (`NVIDIA_API_KEY` in
+`apps/bubblelab-api/.env`) is now provided. Fetch the available models from
+`GET /api/nvidia-nim/models` (or rebuild the list with `bun run generate:nim-models` in
+`bubble-shared-schemas`) and use e.g. `nvidia/meta/llama-3.1-8b-instruct` as the AI-agent
+bubble `model`. This avoids the previous dependency on Google/OpenAI/Anthropic keys.
+
 ### 3. Security Tests
 Comprehensive security testing:
 - SQL injection prevention

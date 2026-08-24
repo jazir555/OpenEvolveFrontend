@@ -2,7 +2,7 @@
 
 **Author:** Research pass (read-only)
 **Date:** 2026-08-19
-**Last updated:** 2026-08-22, §17.4 hardening (Studio palette manifest + ad-hoc chaining robustness) — corrected: API manifest synced to 282, "282 vs 293" ragbits gap was a phantom
+**Last updated:** 2026-08-24, §17.5 NVIDIA NIM model provider (configured testing LLM)
 **Scope:** Intended OpenEvolve ⇄ BubbleLab integration across three layers (BubbleLab UI → BubbleLab backend (Bun/Hono) → OpenEvolve backend (Python/FastAPI)), compared against the actual code in this repo.
 
 > **INTEGRATION STATUS: GREEN (8/8 harness suites).** Sections 1–6 below are the
@@ -673,3 +673,34 @@ gap (43 missing bubbles) had a concrete root cause that is now fixed:
    union entries with no backing class (`bubbleflow-code-generator`, `bubbleflow-generator`).
    **282 canonical bubbles is the complete, authoritative, working set**, and it is now consistent
    across the studio palette, the runtime factory registry, and the API manifest.
+
+### §17.5 — NVIDIA NIM model provider (2026-08-24)
+
+**Context.** The product now has a configured NVIDIA NIM API key (`NVIDIA_API_KEY` in
+`apps/bubblelab-api/.env`, git-ignored). NVIDIA NIM exposes an OpenAI-compatible API at
+`https://integrate.api.nvidia.com/v1`; its model catalog (`GET /v1/models`) is public (no auth).
+
+**What changed.**
+- **Auto-populated model list.** `packages/bubble-shared-schemas/scripts/generate-nim-models.ts`
+  fetches NVIDIA's public catalog and generates `src/nvidia-nim-models.ts` (currently **46**
+  chat/instruct models). `AvailableModels` in `src/ai-models.ts` is now
+  `z.enum([...STATIC_MODELS, ...NVIDIA_NIM_MODELS] as const)`, so every NIM model is a valid,
+  type-safe `AvailableModel` (e.g. `nvidia/meta/llama-3.1-8b-instruct`). Regenerate with
+  `bun run generate:nim-models` from `packages/bubble-shared-schemas`.
+- **Provider wiring.** The `nvidia/` model prefix resolves to `https://integrate.api.nvidia.com/v1`
+  (base URL) and credential `NVIDIA_NIM_CRED`, via `LLM_PROVIDER_BASE_URLS` /
+  `LLM_PROVIDER_CREDENTIALS` in `packages/bubble-core/.../service-bubble/llm-providers.ts`,
+  consumed by `ai-agent.ts`.
+- **API endpoint.** `GET /api/nvidia-nim/models` returns the live catalog (IDs prefixed
+  `nvidia/`) with a 60-second in-memory cache.
+
+**Testing now uses an NVIDIA NIM model.**
+With a configured `NVIDIA_API_KEY`, end-to-end and flow-execution tests that exercise a real LLM
+should use a model from the NVIDIA NIM catalog instead of the earlier default that required
+Google/OpenAI/Anthropic keys. For manual / Playwright E2E and flow-execution tests, pick any
+model returned by `/api/nvidia-nim/models` (e.g. `nvidia/meta/llama-3.1-8b-instruct`), set it as
+the AI-agent bubble's `model`, and the provider uses the configured key. This unblocks the
+LLM-backed bubbles (e.g. the default AIAgent template) that previously failed with
+`No GOOGLE credentials provided`.
+
+> The key lives only in `apps/bubblelab-api/.env` (git-ignored); it is never committed.
