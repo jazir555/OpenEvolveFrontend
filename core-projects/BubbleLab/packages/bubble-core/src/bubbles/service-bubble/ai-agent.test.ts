@@ -1,7 +1,7 @@
 import { AIAgentBubble } from './ai-agent.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
 import { BubbleFactory } from '../../bubble-factory.js';
-import { AvailableModels } from '@bubblelab/shared-schemas';
+import { STATIC_MODEL_OPTIONS } from '@bubblelab/shared-schemas';
 import { z } from 'zod';
 import { RECOMMENDED_MODELS } from '@bubblelab/shared-schemas';
 
@@ -182,8 +182,14 @@ describe('AIAgentBubble', () => {
     });
 
     test('should accept all supported model variants', () => {
-      // import all ai models
-      const supportedModels = AvailableModels.options;
+      // Static built-in models plus representative NVIDIA NIM catalog ids
+      // (NIM models are fetched dynamically and accepted as plain strings).
+      const supportedModels = [
+        ...STATIC_MODEL_OPTIONS,
+        'deepseek-ai/deepseek-v4-flash-0731',
+        'meta/llama-3.1-8b-instruct',
+        'nvidia/llama-3.1-nemotron-51b-instruct',
+      ];
 
       supportedModels.forEach((model) => {
         expect(() => {

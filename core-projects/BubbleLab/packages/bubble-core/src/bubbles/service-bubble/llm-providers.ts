@@ -11,6 +11,7 @@ import { CredentialType } from '@bubblelab/shared-schemas';
 export const LLM_PROVIDER_BASE_URLS: Record<string, string> = {
   openrouter: 'https://openrouter.ai/api/v1',
   fireworks: 'https://api.fireworks.ai/inference/v1',
+  deepseek: 'https://api.deepseek.com/v1',
   nvidia: 'https://integrate.api.nvidia.com/v1',
 };
 
@@ -23,5 +24,6 @@ export const LLM_PROVIDER_CREDENTIALS: Partial<Record<string, CredentialType>> =
   anthropic: CredentialType.ANTHROPIC_CRED,
   openrouter: CredentialType.OPENROUTER_CRED,
   fireworks: CredentialType.FIREWORKS_CRED,
+  deepseek: CredentialType.DEEPSEEK_CRED,
   nvidia: CredentialType.NVIDIA_NIM_CRED,
 };

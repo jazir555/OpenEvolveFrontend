@@ -681,17 +681,22 @@ gap (43 missing bubbles) had a concrete root cause that is now fixed:
 `https://integrate.api.nvidia.com/v1`; its model catalog (`GET /v1/models`) is public (no auth).
 
 **What changed.**
-- **Auto-populated model list.** `packages/bubble-shared-schemas/scripts/generate-nim-models.ts`
-  fetches NVIDIA's public catalog and generates `src/nvidia-nim-models.ts` (currently **46**
-  chat/instruct models). `AvailableModels` in `src/ai-models.ts` is now
-   `z.enum([...STATIC_MODELS, ...NVIDIA_NIM_MODELS] as const)`, so every NIM model is a valid,
-   type-safe `AvailableModel` (e.g. `meta/llama-3.1-8b-instruct`). Regenerate with
-   `bun run generate:nim-models` from `packages/bubble-shared-schemas`.
-- **Provider wiring.** A model selected with the `NVIDIA_NIM_CRED` credential resolves to
-   `https://integrate.api.nvidia.com/v1` (base URL) via `LLM_PROVIDER_BASE_URLS` /
-   `LLM_PROVIDER_CREDENTIALS` in `packages/bubble-core/.../service-bubble/llm-providers.ts`,
-   consumed by `ai-agent.ts`. The model id itself is the raw NVIDIA catalog id (NVIDIA-branded
-   models keep their literal `nvidia/...` prefix, e.g. `nvidia/llama-3.1-nemotron-51b-instruct`).
+- **Dynamically populated model list (no per-model file).** NVIDIA NIM models are NOT enumerated
+   in code. The `AvailableModels` schema in `src/ai-models.ts` is a union of the static
+   providers (`StaticAvailableModels` enum) and any NIM catalog id accepted as a plain string
+   (`z.union([StaticAvailableModels, z.string().min(1)])`), so adding/removing a NIM model needs
+   zero code changes. The Studio model selector (`BubbleDetailsOverlay`, `BubbleNode`) fetches
+   `GET /api/nvidia-nim/models` via `useNvidiaNimModels()` and merges those live options with the
+   static list — the user just picks a model from the dropdown. The `generate:nim-models` script
+   and its generated `nvidia-nim-models.ts` file have been removed.
+- **Provider wiring.** A NIM catalog id (e.g. `deepseek-ai/deepseek-v4-flash-0731`,
+   `meta/llama-3.1-8b-instruct`, `nvidia/llama-3.1-nemotron-51b-instruct`) is detected at runtime
+   by `isNvidiaNimModel()` in `packages/bubble-core/.../service-bubble/nim-models.ts` (heuristic:
+   `nvidia/` prefix or any non-known provider prefix → NVIDIA NIM) and routes to
+   `https://integrate.api.nvidia.com/v1` with the `NVIDIA_NIM_CRED` credential, via
+   `LLM_PROVIDER_BASE_URLS` / `LLM_PROVIDER_CREDENTIALS` in `llm-providers.ts`, consumed by
+   `ai-agent.ts`. The model id is passed through verbatim (raw catalog id); NVIDIA-branded models
+   keep their literal `nvidia/...` prefix. Default NIM model: `deepseek-ai/deepseek-v4-flash-0731`.
 - **API endpoint.** `GET /api/nvidia-nim/models` returns the live catalog (exact catalog ids,
    no extra prefix added) with a 60-second in-memory cache.
 
@@ -699,8 +704,9 @@ gap (43 missing bubbles) had a concrete root cause that is now fixed:
 With a configured `NVIDIA_API_KEY`, end-to-end and flow-execution tests that exercise a real LLM
 should use a model from the NVIDIA NIM catalog instead of the earlier default that required
 Google/OpenAI/Anthropic keys. For manual / Playwright E2E and flow-execution tests, pick any
-model returned by `/api/nvidia-nim/models` (e.g. `meta/llama-3.1-8b-instruct`), set it as
-the AI-agent bubble's `model`, and the provider uses the configured key. This unblocks the
+model returned by `/api/nvidia-nim/models` (e.g. `deepseek-ai/deepseek-v4-flash-0731`, the
+default NIM model), set it as the AI-agent bubble's `model`, and the provider uses the configured
+key. This unblocks the
 LLM-backed bubbles (e.g. the default AIAgent template) that previously failed with
 `No GOOGLE credentials provided`.
 

@@ -5,7 +5,7 @@ import { CREDENTIAL_TO_MODEL } from './generation-provider.js';
 describe('generation-provider (NVIDIA NIM support)', () => {
   it('maps NVIDIA_NIM_CRED to a NVIDIA NIM model id (unprefixed catalog id)', () => {
     expect(CREDENTIAL_TO_MODEL[CredentialType.NVIDIA_NIM_CRED]).toBe(
-      'meta/llama-3.1-8b-instruct'
+      'deepseek-ai/deepseek-v4-flash-0731'
     );
   });
 

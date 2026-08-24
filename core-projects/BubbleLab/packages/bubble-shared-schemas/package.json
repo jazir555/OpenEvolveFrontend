@@ -27,8 +27,7 @@
     "lint": "eslint src/**/*.ts",
     "clean": "rm -rf dist",
     "test": "vitest run",
-    "prepublishOnly": "pnpm run build",
-    "generate:nim-models": "bun run scripts/generate-nim-models.ts"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "zod": "=3.25.76",

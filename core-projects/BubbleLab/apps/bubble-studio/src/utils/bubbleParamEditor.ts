@@ -1,8 +1,6 @@
-import { AvailableModels } from '@bubblelab/shared-schemas';
 import type {
   BubbleParameter,
   ParsedBubbleWithInfo,
-  AvailableModel,
 } from '@bubblelab/shared-schemas';
 import { BubbleParameterType } from '@bubblelab/shared-schemas';
 import { isModelParam } from '@/config/bubbleInlineParams';
@@ -156,18 +154,19 @@ export function extractParamValue(
     return undefined;
   }
 
-  // Check if this param is configured as a model selector
+  // Check if this param is configured as a model selector.
+  // NVIDIA NIM models are fetched dynamically (raw catalog ids like
+  // `deepseek-ai/deepseek-v4-flash-0731`) and are not part of a compile-time
+  // enum, so any concrete model string is treated as user-selectable. Only an
+  // empty/missing value is rendered read-only (e.g. set dynamically in code).
   const modelConfig = isModelParam(bubbleName, param.name);
   if (modelConfig) {
     const modelResult = getNestedParamValue(param, modelConfig.paramPath);
     const modelValue = modelResult?.value;
-    if (
-      !modelValue ||
-      !AvailableModels.options.includes(modelValue as AvailableModel)
-    ) {
-      return { value: modelValue, shouldBeEditable: false, type: param.type };
+    if (typeof modelValue === 'string' && modelValue.trim().length > 0) {
+      return { value: modelValue, shouldBeEditable: true, type: param.type };
     }
-    return { value: modelValue, shouldBeEditable: true, type: param.type };
+    return { value: modelValue, shouldBeEditable: false, type: param.type };
   }
 
   // Standard param extraction

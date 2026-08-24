@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { NVIDIA_NIM_MODELS } from './nvidia-nim-models.js';
 
 // Static models (non-NIM providers)
 const STATIC_MODELS = [
@@ -45,13 +44,20 @@ const STATIC_MODELS = [
   'deepseek/deepseek-chat',
 ] as const;
 
-// Define available models: static providers + NVIDIA NIM (auto-generated).
-// NVIDIA_NIM_MODELS is a committed `as const` tuple produced by the
-// `generate:nim-models` script against NVIDIA's public model catalog.
-export const AvailableModels = z.enum([
-  ...STATIC_MODELS,
-  ...NVIDIA_NIM_MODELS,
-] as const);
+// Static, well-known providers (compile-time enum for autocomplete/validation
+// of the non-NVIDIA models). NVIDIA NIM models are NOT enumerated here: they are
+// fetched at runtime from the live NVIDIA catalog (`GET /api/nvidia-nim/models`)
+// and accepted as arbitrary strings, so adding/removing a NIM model requires no
+// code change or generated file.
+export const StaticAvailableModels = z.enum([...STATIC_MODELS] as const);
+export const STATIC_MODEL_OPTIONS = StaticAvailableModels.options;
+
+// All selectable models = static providers (union) + any NVIDIA NIM catalog id
+// (accepted as a plain string so the UI selector can populate them dynamically).
+export const AvailableModels = z.union([
+  StaticAvailableModels,
+  z.string().min(1),
+]);
 
 export type AvailableModel = z.infer<typeof AvailableModels>;
 

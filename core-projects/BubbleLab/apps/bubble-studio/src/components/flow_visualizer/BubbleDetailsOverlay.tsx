@@ -10,13 +10,14 @@ import type {
 import {
   SYSTEM_CREDENTIALS,
   OPTIONAL_CREDENTIALS,
-  AvailableModels,
+  STATIC_MODEL_OPTIONS,
 } from '@bubblelab/shared-schemas';
 import { CreateCredentialModal } from '@/pages/CredentialsPage';
 import { useCreateCredential } from '@/hooks/useCredentials';
 import { useOverlay } from '@/hooks/useOverlay';
 import { useEditor } from '@/hooks/useEditor';
 import { extractParamValue } from '@/utils/bubbleParamEditor';
+import { useNvidiaNimModels } from '@/hooks/use-nvidia-nim-models';
 import { SchemaParamsSection } from '@/components/flow_visualizer/param-editors/SchemaParamsSection';
 import {
   getModelParamConfig,
@@ -80,6 +81,14 @@ export function BubbleDetailsOverlay({
       : undefined;
   const currentModel = modelExtracted?.value as string | undefined;
   const isModelEditable = modelExtracted?.shouldBeEditable ?? false;
+
+  // NVIDIA NIM models are fetched live and merged with the static built-in list
+  // so the selector is always up to date without a generated file.
+  const { data: nimModels } = useNvidiaNimModels();
+  const nimModelIds = (nimModels ?? []).map((m) => m.id);
+  const allModelOptions = Array.from(
+    new Set([...STATIC_MODEL_OPTIONS, ...nimModelIds])
+  );
 
   // Get param names to exclude from Parameters section (model params shown in Model section)
   const excludedParamNames = getExcludedParamNames(bubble.bubbleName);
@@ -276,24 +285,24 @@ export function BubbleDetailsOverlay({
                       )}
                     </div>
                     {isModelEditable ? (
-                      <select
-                        title="Select AI Model"
-                        className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 focus:border-purple-500 focus:outline-none"
-                        value={currentModel}
-                        onChange={(e) =>
-                          updateBubbleParam(
-                            bubble.variableId,
-                            modelConfig.paramPath,
-                            e.target.value
-                          )
-                        }
-                      >
-                        {AvailableModels.options.map((model) => (
-                          <option key={model} value={model}>
-                            {model}
-                          </option>
-                        ))}
-                      </select>
+                        <select
+                          title="Select AI Model"
+                          className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 focus:border-purple-500 focus:outline-none"
+                          value={currentModel}
+                          onChange={(e) =>
+                            updateBubbleParam(
+                              bubble.variableId,
+                              modelConfig.paramPath,
+                              e.target.value
+                            )
+                          }
+                        >
+                          {allModelOptions.map((model) => (
+                            <option key={model} value={model}>
+                              {model}
+                            </option>
+                          ))}
+                        </select>
                     ) : (
                       <pre className="w-full rounded-lg border border-neutral-700 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-400 font-mono">
                         {currentModel || 'Variable'}

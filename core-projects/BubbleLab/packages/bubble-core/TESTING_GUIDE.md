@@ -47,10 +47,13 @@ Tests for multi-bubble workflows:
 **LLM / model-backed integration tests.** Tests that exercise a real LLM should use a model
 from the NVIDIA NIM catalog, since a configured key (`NVIDIA_API_KEY` in
 `apps/bubblelab-api/.env`) is now provided. Use the exact catalog model id returned by
-`GET /api/nvidia-nim/models` (or rebuild the list with `bun run generate:nim-models` in
-`bubble-shared-schemas`) — e.g. `meta/llama-3.1-8b-instruct` (note: the id is the raw catalog
-id; NVIDIA-branded models keep their literal `nvidia/...` prefix). Set that id as the AI-agent
-bubble `model`. This avoids the previous dependency on Google/OpenAI/Anthropic keys.
+`GET /api/nvidia-nim/models` — the model list is fetched live from the NVIDIA catalog, so it
+always reflects the latest available models with no generated file or manual regeneration. Pick
+e.g. `deepseek-ai/deepseek-v4-flash-0731` (the default NVIDIA NIM model) or any other catalog id
+(note: the id is the raw catalog id; NVIDIA-branded models keep their literal `nvidia/...`
+prefix). Set that id as the AI-agent bubble `model`. The Studio model selector populates these
+options automatically from the same endpoint. This avoids the previous dependency on
+Google/OpenAI/Anthropic keys.
 
 ### 3. Security Tests
 Comprehensive security testing:

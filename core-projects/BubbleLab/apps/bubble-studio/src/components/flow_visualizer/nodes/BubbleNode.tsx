@@ -4,7 +4,7 @@ import { CogIcon } from '@heroicons/react/24/outline';
 import { BookOpen, Code } from 'lucide-react';
 import {
   CredentialType,
-  AvailableModels,
+  STATIC_MODEL_OPTIONS,
   BubbleParameterType,
 } from '@bubblelab/shared-schemas';
 import type { BubbleParameter } from '@bubblelab/shared-schemas';
@@ -15,6 +15,7 @@ import {
   SYSTEM_CREDENTIALS,
   OPTIONAL_CREDENTIALS,
 } from '@bubblelab/shared-schemas';
+import { useNvidiaNimModels } from '@/hooks/use-nvidia-nim-models';
 import type { ParsedBubbleWithInfo } from '@bubblelab/shared-schemas';
 import BubbleExecutionBadge from '@/components/flow_visualizer/BubbleExecutionBadge';
 import BubbleDetailsOverlay from '@/components/flow_visualizer/BubbleDetailsOverlay';
@@ -181,6 +182,13 @@ function BubbleInlineParams({
   // Get configs including wildcards that match the bubble's params
   const configs = getAllInlineParamConfigs(bubbleName, paramNames);
 
+  // NVIDIA NIM models are fetched live and merged with the static built-in list.
+  const { data: nimModels } = useNvidiaNimModels();
+  const nimModelIds = (nimModels ?? []).map((m) => m.id);
+  const allModelOptions = Array.from(
+    new Set([...STATIC_MODEL_OPTIONS, ...nimModelIds])
+  );
+
   if (configs.length === 0) {
     return null;
   }
@@ -220,7 +228,7 @@ function BubbleInlineParams({
                 }
                 className="w-full px-2 py-1 text-xs bg-neutral-700 border border-neutral-500 rounded text-neutral-100 focus:border-purple-500 focus:outline-none"
               >
-                {AvailableModels.options.map((model) => (
+                {allModelOptions.map((model) => (
                   <option key={model} value={model}>
                     {model}
                   </option>

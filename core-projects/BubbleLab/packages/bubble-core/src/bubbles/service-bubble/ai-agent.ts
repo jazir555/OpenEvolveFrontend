@@ -31,6 +31,7 @@ import type { CapabilityInput } from '@bubblelab/shared-schemas';
 import type { StreamingEvent } from '@bubblelab/shared-schemas';
 import { ConversationMessageSchema } from '@bubblelab/shared-schemas';
 import { LLM_PROVIDER_BASE_URLS, LLM_PROVIDER_CREDENTIALS } from './llm-providers.js';
+import { isNvidiaNimModel } from './nim-models.js';
 import {
   extractThinking,
   extractThinkingFromContent,
@@ -786,6 +787,7 @@ export class AIAgentBubble extends ServiceBubble<
    * Get credential type for a specific model string
    */
   private getCredentialTypeForModel(model: string): CredentialType {
+    if (isNvidiaNimModel(model)) return CredentialType.NVIDIA_NIM_CRED;
     const [provider] = model.split('/');
     switch (provider) {
       case 'openai':
@@ -798,6 +800,8 @@ export class AIAgentBubble extends ServiceBubble<
         return CredentialType.OPENROUTER_CRED;
       case 'fireworks':
         return CredentialType.FIREWORKS_CRED;
+      case 'deepseek':
+        return CredentialType.DEEPSEEK_CRED;
       default:
         throw new Error(`Unsupported model provider: ${provider}`);
     }
@@ -815,6 +819,12 @@ export class AIAgentBubble extends ServiceBubble<
       throw new Error(`No ${provider.toUpperCase()} credentials provided`);
     }
 
+    // NVIDIA NIM models use the NVIDIA_NIM_CRED credential regardless of the
+    // catalog id's owner prefix (e.g. deepseek-ai/, meta/).
+    if (isNvidiaNimModel(model.model)) {
+      return credentials[CredentialType.NVIDIA_NIM_CRED];
+    }
+
     // Choose credential based on the model provider
     switch (provider) {
       case 'openai':
@@ -827,6 +837,8 @@ export class AIAgentBubble extends ServiceBubble<
         return credentials[CredentialType.OPENROUTER_CRED];
       case 'fireworks':
         return credentials[CredentialType.FIREWORKS_CRED];
+      case 'deepseek':
+        return credentials[CredentialType.DEEPSEEK_CRED];
       default:
         throw new Error(`Unsupported model provider: ${provider}`);
     }
@@ -1005,9 +1017,18 @@ export class AIAgentBubble extends ServiceBubble<
 
   private initializeModel(modelConfig: ExecutionModelConfig) {
     const { model, temperature, maxTokens, maxRetries } = modelConfig;
-    const slashIndex = model.indexOf('/');
-    const provider = model.substring(0, slashIndex);
-    const modelName = model.substring(slashIndex + 1);
+    let provider: string;
+    let modelName: string;
+    if (isNvidiaNimModel(model)) {
+      // NVIDIA NIM catalog ids are unprefixed raw ids (e.g.
+      // `deepseek-ai/deepseek-v4-flash-0731`); pass the full id to the API.
+      provider = 'nvidia';
+      modelName = model;
+    } else {
+      const slashIndex = model.indexOf('/');
+      provider = model.substring(0, slashIndex);
+      modelName = model.substring(slashIndex + 1);
+    }
     const reasoningEffort = modelConfig.reasoningEffort;
 
     // Get credential based on the modelConfig's provider (not this.params.model)
@@ -1178,6 +1199,19 @@ export class AIAgentBubble extends ServiceBubble<
           ...(reasoningEffort
             ? { modelKwargs: { reasoning_effort: reasoningEffort } }
             : {}),
+        });
+      case 'deepseek':
+        return new ChatOpenAI({
+          model: modelName,
+          __includeRawResponse: true,
+          temperature,
+          maxTokens,
+          apiKey,
+          streaming: enableStreaming,
+          maxRetries: retries,
+          configuration: {
+            baseURL: LLM_PROVIDER_BASE_URLS.deepseek,
+          },
         });
       case 'nvidia':
         return new ChatOpenAI({

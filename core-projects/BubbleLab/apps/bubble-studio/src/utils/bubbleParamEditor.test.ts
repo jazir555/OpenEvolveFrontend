@@ -132,19 +132,32 @@ describe('extractParamValue', () => {
     expect(result?.value).toBe('google/gemini-2.5-pro');
   });
 
-  it('should return shouldBeEditable=false when model is not in AvailableModels', () => {
+  it('should return shouldBeEditable=true for a NVIDIA NIM model id (no static enum)', () => {
     const result = extractParamValue(
       {
         name: 'model',
-        value: '{ model: "random string" }',
+        value: '{ model: "deepseek-ai/deepseek-v4-flash-0731" }',
         type: BubbleParameterType.STRING,
       },
       'model.model',
       'ai-agent' // bubbleName needed for config-based model detection
     );
-    expect(result?.value).toBe('random string');
-    expect(result?.shouldBeEditable).toBe(false);
+    expect(result?.value).toBe('deepseek-ai/deepseek-v4-flash-0731');
+    expect(result?.shouldBeEditable).toBe(true);
     expect(result?.type).toBe(BubbleParameterType.STRING);
+  });
+
+  it('should return shouldBeEditable=false when the model value is empty', () => {
+    const result = extractParamValue(
+      {
+        name: 'model',
+        value: '{ model: "" }',
+        type: BubbleParameterType.STRING,
+      },
+      'model.model',
+      'ai-agent'
+    );
+    expect(result?.shouldBeEditable).toBe(false);
   });
 
   it('should return undefined when model.model param is a variable', () => {

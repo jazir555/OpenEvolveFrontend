@@ -13,7 +13,7 @@ const app = new Hono();
 
 const NIM_MODELS_URL = 'https://integrate.api.nvidia.com/v1/models';
 const CACHE_TTL_MS = 60_000; // 60s
-const NIM_CHAT_PATTERN = /instruct|chat|nemotron|reasoning/i;
+const NIM_CHAT_PATTERN = /instruct|chat|nemotron|reasoning|flash/i;
 const NIM_SKIP_PATTERN = /embed|rerank|vision|vlm|image|tts|asr|stt|audio/i;
 
 interface NimModelEntry {
