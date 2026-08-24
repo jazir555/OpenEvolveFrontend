@@ -684,21 +684,22 @@ gap (43 missing bubbles) had a concrete root cause that is now fixed:
 - **Auto-populated model list.** `packages/bubble-shared-schemas/scripts/generate-nim-models.ts`
   fetches NVIDIA's public catalog and generates `src/nvidia-nim-models.ts` (currently **46**
   chat/instruct models). `AvailableModels` in `src/ai-models.ts` is now
-  `z.enum([...STATIC_MODELS, ...NVIDIA_NIM_MODELS] as const)`, so every NIM model is a valid,
-  type-safe `AvailableModel` (e.g. `nvidia/meta/llama-3.1-8b-instruct`). Regenerate with
-  `bun run generate:nim-models` from `packages/bubble-shared-schemas`.
-- **Provider wiring.** The `nvidia/` model prefix resolves to `https://integrate.api.nvidia.com/v1`
-  (base URL) and credential `NVIDIA_NIM_CRED`, via `LLM_PROVIDER_BASE_URLS` /
-  `LLM_PROVIDER_CREDENTIALS` in `packages/bubble-core/.../service-bubble/llm-providers.ts`,
-  consumed by `ai-agent.ts`.
-- **API endpoint.** `GET /api/nvidia-nim/models` returns the live catalog (IDs prefixed
-  `nvidia/`) with a 60-second in-memory cache.
+   `z.enum([...STATIC_MODELS, ...NVIDIA_NIM_MODELS] as const)`, so every NIM model is a valid,
+   type-safe `AvailableModel` (e.g. `meta/llama-3.1-8b-instruct`). Regenerate with
+   `bun run generate:nim-models` from `packages/bubble-shared-schemas`.
+- **Provider wiring.** A model selected with the `NVIDIA_NIM_CRED` credential resolves to
+   `https://integrate.api.nvidia.com/v1` (base URL) via `LLM_PROVIDER_BASE_URLS` /
+   `LLM_PROVIDER_CREDENTIALS` in `packages/bubble-core/.../service-bubble/llm-providers.ts`,
+   consumed by `ai-agent.ts`. The model id itself is the raw NVIDIA catalog id (NVIDIA-branded
+   models keep their literal `nvidia/...` prefix, e.g. `nvidia/llama-3.1-nemotron-51b-instruct`).
+- **API endpoint.** `GET /api/nvidia-nim/models` returns the live catalog (exact catalog ids,
+   no extra prefix added) with a 60-second in-memory cache.
 
 **Testing now uses an NVIDIA NIM model.**
 With a configured `NVIDIA_API_KEY`, end-to-end and flow-execution tests that exercise a real LLM
 should use a model from the NVIDIA NIM catalog instead of the earlier default that required
 Google/OpenAI/Anthropic keys. For manual / Playwright E2E and flow-execution tests, pick any
-model returned by `/api/nvidia-nim/models` (e.g. `nvidia/meta/llama-3.1-8b-instruct`), set it as
+model returned by `/api/nvidia-nim/models` (e.g. `meta/llama-3.1-8b-instruct`), set it as
 the AI-agent bubble's `model`, and the provider uses the configured key. This unblocks the
 LLM-backed bubbles (e.g. the default AIAgent template) that previously failed with
 `No GOOGLE credentials provided`.

@@ -66,7 +66,7 @@ async function fetchModels(): Promise<NimModelEntry[]> {
     .sort((a, b) => a.localeCompare(b));
 
   const models: NimModelEntry[] = ids.map((id) => ({
-    id: `nvidia/${id}`,
+    id,
     name: `${toDisplayName(id)} (NVIDIA NIM)`,
     owned_by: id.split('/')[0] ?? '',
   }));

@@ -13,7 +13,7 @@ export const CREDENTIAL_TO_MODEL: Record<string, AvailableModel> = {
   [CredentialType.OPENAI_CRED]: 'openai/gpt-4o',
   [CredentialType.ANTHROPIC_CRED]: 'anthropic/claude-sonnet-4-5',
   [CredentialType.OPENROUTER_CRED]: 'openrouter/anthropic/claude-sonnet-4.5',
-  [CredentialType.NVIDIA_NIM_CRED]: 'nvidia/meta/llama-3.1-8b-instruct',
+  [CredentialType.NVIDIA_NIM_CRED]: 'meta/llama-3.1-8b-instruct',
 };
 
 /**

@@ -3,9 +3,9 @@ import { CredentialType } from '@bubblelab/shared-schemas';
 import { CREDENTIAL_TO_MODEL } from './generation-provider.js';
 
 describe('generation-provider (NVIDIA NIM support)', () => {
-  it('maps NVIDIA_NIM_CRED to a nvidia/* model id', () => {
+  it('maps NVIDIA_NIM_CRED to a NVIDIA NIM model id (unprefixed catalog id)', () => {
     expect(CREDENTIAL_TO_MODEL[CredentialType.NVIDIA_NIM_CRED]).toBe(
-      'nvidia/meta/llama-3.1-8b-instruct'
+      'meta/llama-3.1-8b-instruct'
     );
   });
 

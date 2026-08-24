@@ -50,7 +50,7 @@ async function fetchModelIds(): Promise<string[]> {
 
 function buildFile(models: string[]): string {
   const body = models
-    .map((id) => `  'nvidia/${id}',`)
+    .map((id) => `  '${id}',`)
     .join('\n');
   return `${HEADER}export const NVIDIA_NIM_MODELS = [
 ${body}
