@@ -11,11 +11,33 @@ const watchdog = setTimeout(() => { console.error('WATCHDOG_TIMEOUT'); process.e
 const consoleMsgs = [], pageErrors = [], failedReqs = [];
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox','--disable-setuid-sandbox','--disable-gpu','--disable-dev-shm-usage'] });
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+// Skip the first-run onboarding modal so the test can actually reach the app UI.
+await ctx.addInitScript(() => {
+  try { localStorage.setItem('onboardingCompleted', 'true'); } catch (e) {}
+});
 const page = await ctx.newPage();
 page.on('console', m => consoleMsgs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', e => pageErrors.push(String(e)));
 page.on('requestfailed', r => failedReqs.push(`${r.url()} :: ${r.failure()?.errorText}`));
 const log = (...a) => console.log('[E2E]', ...a);
+
+// Dismiss any blocking onboarding/paywall modal (mirrors flow-exec.e2e.mjs).
+async function dismissModal() {
+  for (let i = 0; i < 4; i++) {
+    const overlay = page.locator('div.fixed.inset-0').first();
+    if ((await overlay.count()) === 0) return;
+    for (const label of ['Software Engineer', 'Next', 'Skip', 'Maybe later', 'Close', 'Not now', 'Get started', 'Continue', 'Dismiss']) {
+      const b = overlay.getByText(label, { exact: false }).first();
+      if ((await b.count()) > 0) {
+        try { await b.click({ timeout: 3000 }); await page.waitForTimeout(800); break; } catch {}
+      }
+    }
+    const stillOpen = (await overlay.count()) > 0;
+    if (!stillOpen) return;
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(500);
+  }
+}
 
 try {
   log('goto', BASE);
@@ -42,6 +64,7 @@ try {
   console.log('LINKS_START'); console.log(labels.join(' | ')); console.log('LINKS_END');
 
   // try to open a Flow IDE / create flow (best effort)
+  await dismissModal();
   for (const sel of ['text=New Flow','text=Create Flow','text=New Bubble Flow','text=Bubble Flows','[class*="new-flow"]','[data-testid*="new"]']) {
     try { const el = page.locator(sel).first(); if (await el.count() > 0) { await el.click({ timeout: 5000 }); log('clicked', sel); break; } } catch {}
   }

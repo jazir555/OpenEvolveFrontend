@@ -13,11 +13,21 @@ const withTimeout = (p, ms, label) =>
     new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT ' + label)), ms)),
   ]);
 
+// WATCHDOG: never hang forever (mirrors studio.e2e.mjs / flow-exec.e2e.mjs)
+const watchdog = setTimeout(() => { log('WATCHDOG_TIMEOUT'); process.exit(2); }, 120000);
+
 (async () => {
   log('start');
   try {
     log('launching (timeout 25s)...');
-    const b = await withTimeout(chromium.launch({ headless: true }), 25000, 'launch');
+    const b = await withTimeout(
+      chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+      }),
+      25000,
+      'launch'
+    );
     log('launched OK');
     const p = await b.newPage();
     await withTimeout(p.goto('http://localhost:3000', { waitUntil: 'domcontentloaded' }), 20000, 'goto');
@@ -27,5 +37,6 @@ const withTimeout = (p, ms, label) =>
   } catch (e) {
     log('ERROR: ' + (e && e.stack ? e.stack : e));
   }
+  clearTimeout(watchdog);
   process.exit(0);
 })();
