@@ -130,6 +130,7 @@ const getServiceNameForCredentialType = (
     [CredentialType.REDIS_CRED]: 'Redis',
     [CredentialType.SENDGRID_CRED]: 'SendGrid',
     [CredentialType.TWILIO_CRED]: 'Twilio',
+    [CredentialType.NVIDIA_NIM_CRED]: 'NVIDIA',
   };
 
   return typeToServiceMap[credentialType] || credentialType;

@@ -39,17 +39,18 @@ describe('AIAgentBubble', () => {
   });
 
   describe('parameter validation', () => {
-    test('should validate required message parameter', () => {
-      expect(() => {
-        // @ts-expect-error testing invalid input
-        new AIAgentBubble({});
-      }).toThrow('Input Schema validation failed');
+    test('should report a validation error for a missing message at execution', async () => {
+      const bubble = new AIAgentBubble({});
+      const result = await bubble.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
     });
 
-    test('should validate empty message', () => {
-      expect(() => {
-        new AIAgentBubble({ message: '' });
-      }).toThrow('Message is required');
+    test('should report a validation error for an empty message at execution', async () => {
+      const bubble = new AIAgentBubble({ message: '' });
+      const result = await bubble.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Message is required');
     });
 
     test('should accept custom model configuration', () => {
@@ -85,41 +86,38 @@ describe('AIAgentBubble', () => {
   });
 
   describe('error handling', () => {
-    test('should accept any tool names without validation errors', () => {
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          tools: [
-            // @ts-expect-error testing invalid input
-            { name: 'invalid-tool-that-does-not-exist' },
-            // @ts-expect-error testing invalid input
-            { name: 'another-non-existent-tool' },
-          ],
-        });
-      }).toThrow('Input Schema validation failed');
+    test('should accept arbitrary tool names without validation errors', () => {
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        tools: [
+          { name: 'invalid-tool-that-does-not-exist' },
+          { name: 'another-non-existent-tool' },
+        ],
+      });
+      expect(bubble.currentParams.tools).toHaveLength(2);
+      expect(bubble.currentParams.tools?.[0]?.name).toBe(
+        'invalid-tool-that-does-not-exist'
+      );
     });
 
-    test('should handle invalid model provider', () => {
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          model: {
-            // @ts-expect-error testing invalid input
-            model: 'invalid/provider',
-          },
-        });
-      }).toThrow('Input Schema validation failed');
+    test('should route unknown provider prefixes to the NVIDIA NIM credential', () => {
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        model: { model: 'invalid/provider' },
+      });
+      expect(bubble['getCredentialTypeForModel']('invalid/provider')).toBe(
+        CredentialType.NVIDIA_NIM_CRED
+      );
     });
 
-    test('should handle invalid temperature range', () => {
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          model: {
-            temperature: 3.0, // Invalid: should be 0-2
-          },
-        });
-      }).toThrow('Input Schema validation failed');
+    test('should report a validation error for an out-of-range temperature at execution', async () => {
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        model: { model: 'google/gemini-2.5-flash', temperature: 3.0 },
+      });
+      const result = await bubble.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
     });
   });
 
@@ -202,16 +200,14 @@ describe('AIAgentBubble', () => {
       });
     });
 
-    test('should reject unsupported model format', () => {
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          model: {
-            // @ts-expect-error testing invalid input
-            model: 'unsupported/model-name',
-          },
-        });
-      }).toThrow('Input Schema validation failed');
+    test('should route unsupported model formats to the NVIDIA NIM credential', () => {
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        model: { model: 'unsupported/model-name' },
+      });
+      expect(
+        bubble['getCredentialTypeForModel']('unsupported/model-name')
+      ).toBe(CredentialType.NVIDIA_NIM_CRED);
     });
   });
 });
@@ -274,25 +270,27 @@ describe('AIAgentBubble - Credential System', () => {
       }).toThrow('No GOOGLE credentials provided');
     });
 
-    test('should throw validation error when credentials is null', () => {
+    test('should accept arbitrary model catalog ids at construction without validation errors', () => {
       expect(() => {
         new AIAgentBubble({
           message: 'Test message',
-          // @ts-expect-error testing invalid input
+          // Unrecognized catalog id is accepted as a dynamic NIM-style string;
+          // provider/credential resolution happens at runtime, not construction.
           model: { model: 'google/geminis-2.5-flash' },
         });
-      }).toThrow('Input Schema validation failed');
+      }).not.toThrow();
     });
 
-    test('should throw validation error when credentials is not an object', () => {
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          model: { model: 'google/gemini-2.5-flash' },
-          // @ts-expect-error testing invalid input
-          credentials: 'invalid-credentials',
-        });
-      }).toThrow('Input Schema validation failed');
+    test('should report a validation error when credentials is not an object', async () => {
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        model: { model: 'google/gemini-2.5-flash' },
+        // @ts-expect-error testing invalid input
+        credentials: 'invalid-credentials',
+      });
+      const result = await bubble.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
     });
 
     test('should choose OpenAI credential for OpenAI models', () => {
@@ -327,20 +325,18 @@ describe('AIAgentBubble - Credential System', () => {
       expect(credential).toBe('test-google-key-456');
     });
 
-    test('should throw validation error for unsupported model providers', () => {
+    test('should route unsupported model providers to the NVIDIA NIM credential when resolving credentials', () => {
       const testCredentials = {
         [CredentialType.OPENAI_CRED]: 'test-openai-key-123',
         [CredentialType.GOOGLE_GEMINI_CRED]: 'test-google-key-456',
       };
-
-      expect(() => {
-        new AIAgentBubble({
-          message: 'Test message',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          model: { model: 'unsupported/model-name' as any },
-          credentials: testCredentials,
-        });
-      }).toThrow('Input Schema validation failed');
+      const bubble = new AIAgentBubble({
+        message: 'Test message',
+        model: { model: 'unsupported/model-name' },
+        credentials: testCredentials,
+      });
+      // Unknown catalog ids resolve to NVIDIA NIM (no throw); absent NIM cred -> undefined.
+      expect(bubble['chooseCredential']()).toBeUndefined();
     });
 
     test('should return undefined when required credential type is missing', () => {
