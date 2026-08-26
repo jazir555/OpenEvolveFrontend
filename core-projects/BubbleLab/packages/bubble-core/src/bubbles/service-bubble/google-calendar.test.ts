@@ -1,572 +1,571 @@
-{
-  /*
-   * Comprehensive Test Suite for google-calendar
-   * Generated: 2026-01-19T02:05:45.097870
-   *
-   * Security & Quality Tests:
-   * - Environment Validation (3 tests)
-   * - Authentication (3 tests)
-   * - Rate Limiting (3 tests)
-   * - Input Validation (5 tests)
-   * - Core Workflow Logic (10 tests)
-   * - Error Handling (5 tests)
-   * - Integration (3 tests)
-   *
-   * Total: 32 comprehensive tests
-   */
+/**
+ * Test Suite for GoogleCalendarBubble
+ *
+ * Rewritten to target the actual GoogleCalendarBubble API:
+ *  - discriminated-union params keyed on `operation`
+ *  - `action()` returns a BubbleResult wrapper `{ success, data, error }`
+ *  - invalid params are captured at construction (NOT thrown) and surfaced
+ *    as a controlled error from `action()`
+ *  - all network access goes through the global `fetch`, which is mocked here
+ */
 
-  import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-  import { GoogleCalendarBubble } from './google-calendar';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { GoogleCalendarBubble } from './google-calendar.js';
+import { CredentialType } from '@bubblelab/shared-schemas';
 
-  describe('google-calendar', () => {
-    let instance: GoogleCalendarBubble;
-    let mockContext: any;
+const mockCredentials = {
+  [CredentialType.GOOGLE_CALENDAR_CRED]: 'ya29.test-mock-token',
+};
 
-    beforeEach(() => {
-      // Setup mock environment
-      mockContext = {
-        env: {
-          API_KEY: 'test-api-key',
-          API_URL: 'https://api.test.com',
-          TIMEOUT: '5000',
-        },
-        logger: {
-          info: vi.fn(),
-          error: vi.fn(),
-          warn: vi.fn(),
-          debug: vi.fn(),
-        },
-      };
+/** Build a minimal JSON `Response`-like object for the mocked fetch. */
+function jsonResponse(body: unknown, init?: { ok?: boolean; status?: number }) {
+  return {
+    ok: init?.ok ?? true,
+    status: init?.status ?? 200,
+    statusText: init?.ok === false ? 'Error' : 'OK',
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as unknown as Response;
+}
 
-      // Initialize instance
-      instance = new GoogleCalendarBubble(mockContext);
+function errorResponse(status: number, message: string) {
+  return {
+    ok: false,
+    status,
+    statusText: message,
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => ({ error: { message } }),
+    text: async () => JSON.stringify({ error: { message } }),
+  } as unknown as Response;
+}
+
+describe('GoogleCalendarBubble', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================
+  // METADATA
+  // ========================================
+  describe('Bubble metadata', () => {
+    it('exposes the expected static metadata', () => {
+      expect(GoogleCalendarBubble.bubbleName).toBe('google-calendar');
+      expect(GoogleCalendarBubble.type).toBe('service');
+      expect(GoogleCalendarBubble.service).toBe('google-calendar');
+      expect(GoogleCalendarBubble.authType).toBe('oauth');
+      expect(GoogleCalendarBubble.alias).toBe('gcal');
+      expect(GoogleCalendarBubble.schema).toBeDefined();
+      expect(GoogleCalendarBubble.resultSchema).toBeDefined();
     });
 
-    afterEach(() => {
-      vi.clearAllMocks();
+    it('defaults to a list_events operation when constructed with no params', () => {
+      const bubble = new GoogleCalendarBubble();
+      expect(bubble.currentParams.operation).toBe('list_events');
     });
 
-    // ========================================
-    // ENVIRONMENT VALIDATION (3 tests)
-    // ========================================
-    describe('Environment Validation', () => {
-      it('should validate required environment variables', async () => {
-        // Arrange
-        const invalidEnv = {};
-
-        // Act & Assert
-        await expect(
-          new GoogleCalendarBubble({ env: invalidEnv })
-        ).rejects.toThrow('Missing required environment variables');
+    it('excludes credentials from currentParams', () => {
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
       });
-
-      it('should fail fast on critical missing vars', async () => {
-        // Arrange
-        const criticalEnv = {
-          API_KEY: '',  // Critical but empty
-        };
-
-        // Act & Assert
-        await expect(
-          new GoogleCalendarBubble({ env: criticalEnv })
-        ).rejects.toThrow('API_KEY');
-      });
-
-      it('should accept valid environment configuration', async () => {
-        // Arrange
-        const validEnv = {
-          API_KEY: 'valid-key',
-          API_URL: 'https://api.example.com',
-        };
-
-        // Act & Assert
-        const validInstance = new GoogleCalendarBubble({ env: validEnv });
-        expect(validInstance).toBeDefined();
-      });
-    });
-
-    // ========================================
-    // AUTHENTICATION (3 tests)
-    // ========================================
-    describe('Authentication', () => {
-      it('should accept valid API key', async () => {
-        // Arrange
-        const validKey = 'valid-api-key-123';
-
-        // Act
-        const result = await instance.authenticate(validKey);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.authenticated).toBe(true);
-      });
-
-      it('should reject invalid API key', async () => {
-        // Arrange
-        const invalidKey = 'invalid-key';
-
-        // Act & Assert
-        await expect(instance.authenticate(invalidKey)).rejects.toThrow('Unauthorized');
-      });
-
-      it('should handle missing API key', async () => {
-        // Arrange
-        const missingKey = '';
-
-        // Act & Assert
-        await expect(instance.authenticate(missingKey)).rejects.toThrow('API key is required');
-      });
-    });
-
-    // ========================================
-    // RATE LIMITING (3 tests)
-    // ========================================
-    describe('Rate Limiting', () => {
-      it('should allow requests within limit', async () => {
-        // Arrange
-        const requests = Array(5).fill(null).map((_, i) => ({ id: i }));
-
-        // Act
-        const results = await Promise.all(
-          requests.map(req => instance.execute(req))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should block requests exceeding limit', async () => {
-        // Arrange
-        const tooManyRequests = Array(150).fill(null).map((_, i) => ({ id: i }));
-
-        // Act & Assert
-        await expect(
-          Promise.all(tooManyRequests.map(req => instance.execute(req)))
-        ).rejects.toThrow('Rate limit exceeded');
-      });
-
-      it('should reset after window expires', async () => {
-        // Arrange
-        vi.useFakeTimers();
-
-        // Act
-        await instance.execute({ id: 1 });
-        vi.advanceTimersByTime(60000);  // Advance 1 minute
-
-        // Assert - should allow new request
-        const result = await instance.execute({ id: 2 });
-        expect(result.success).toBe(true);
-
-        vi.useRealTimers();
-      });
-    });
-
-    // ========================================
-    // INPUT VALIDATION (5 tests)
-    // ========================================
-    describe('Input Validation', () => {
-      it('should validate required fields', async () => {
-        // Arrange
-        const invalidInput = {};  // Missing required fields
-
-        // Act & Assert
-        await expect(instance.execute(invalidInput)).rejects.toThrow('Required');
-      });
-
-      it('should sanitize malicious input', async () => {
-        // Arrange
-        const maliciousInput = {
-          query: "<script>alert('xss')</script>",
-          code: "'; DROP TABLE users; --",
-        };
-
-        // Act
-        const result = await instance.execute(maliciousInput);
-
-        // Assert
-        expect(result sanitized).toBeDefined();
-        expect(result.data).not.toContain('<script>');
-      });
-
-      it('should validate data types', async () => {
-        // Arrange
-        const wrongType = {
-          count: "not-a-number",  // Should be number
-          enabled: "not-boolean", // Should be boolean
-        };
-
-        // Act & Assert
-        await expect(instance.execute(wrongType)).rejects.toThrow('Invalid type');
-      });
-
-      it('should validate field formats', async () => {
-        // Arrange
-        const invalidFormat = {
-          email: "not-an-email",
-          url: "not-a-url",
-        };
-
-        // Act & Assert
-        await expect(instance.execute(invalidFormat)).rejects.toThrow('Invalid format');
-      });
-
-      it('should handle edge cases', async () => {
-        // Arrange
-        const edgeCases = [
-          { value: null },
-          { value: undefined },
-          { value: "" },
-          { value: 0 },
-          { value: -1 },
-          { value: Number.MAX_SAFE_INTEGER },
-        ];
-
-        // Act & Assert
-        for (const testCase of edgeCases) {
-          const result = await instance.execute(testCase);
-          expect(result).toBeDefined();
-        }
-      });
-    });
-
-    // ========================================
-    // CORE WORKFLOW LOGIC (10 tests)
-    // ========================================
-    describe('Workflow Execution', () => {
-      it('should execute successfully with valid input', async () => {
-        // Arrange
-        const validInput = {
-          param1: 'value1',
-          param2: 'value2',
-        };
-
-        // Act
-        const result = await instance.execute(validInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-      });
-
-      it('should handle errors gracefully', async () => {
-        // Arrange
-        const errorInput = {
-          triggerError: true,
-        };
-
-        // Act
-        const result = await instance.execute(errorInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
-      });
-
-      it('should handle timeout', async () => {
-        // Arrange
-        vi.useFakeTimers();
-        const slowInput = {
-          delay: 10000,  // Longer than timeout
-        };
-
-        // Act & Assert
-        await expect(instance.execute(slowInput)).rejects.toThrow('Timeout');
-
-        vi.useRealTimers();
-      });
-
-      it('should process multiple items correctly', async () => {
-        // Arrange
-        const batchInput = {
-          items: [
-            { id: 1, name: 'item1' },
-            { id: 2, name: 'item2' },
-            { id: 3, name: 'item3' },
-          ],
-        };
-
-        // Act
-        const result = await instance.execute(batchInput);
-
-        // Assert
-        expect(result.processed).toBe(3);
-        expect(result.results).toHaveLength(3);
-      });
-
-      it('should handle empty input', async () => {
-        // Arrange
-        const emptyInput = {
-          items: [],
-        };
-
-        // Act
-        const result = await instance.execute(emptyInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-      });
-
-      it('should validate output schema', async () => {
-        // Arrange
-        const input = { valid: 'data' };
-
-        // Act
-        const result = await instance.execute(input);
-
-        // Assert
-        expect(result.data).toMatchObject({
-          // Expected schema fields
-        });
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentInputs = [1, 2, 3, 4, 5].map(id => ({ id }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentInputs.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should maintain state between steps', async () => {
-        // Arrange
-        const multiStepInput = {
-          step1: 'value1',
-          step2: 'value2',
-          step3: 'value3',
-        };
-
-        // Act
-        const result = await instance.execute(multiStepInput);
-
-        // Assert
-        expect(result.step1Result).toBeDefined();
-        expect(result.step2Result).toBeDefined();
-        expect(result.step3Result).toBeDefined();
-      });
-
-      it('should rollback on failure', async () => {
-        // Arrange
-        const failingInput = {
-          failAt: 'step2',
-        };
-
-        // Act
-        const result = await instance.execute(failingInput);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.rolledBack).toBe(true);
-      });
-
-      it('should log execution steps', async () => {
-        // Arrange
-        const input = { log: 'test' };
-
-        // Act
-        await instance.execute(input);
-
-        // Assert
-        expect(mockContext.logger.info).toHaveBeenCalled();
-        expect(mockContext.logger.debug).toHaveBeenCalled();
-      });
-    });
-
-    // ========================================
-    // ERROR HANDLING (5 tests)
-    // ========================================
-    describe('Error Handling', () => {
-      it('should handle network errors', async () => {
-        // Arrange
-        vi.stubGlobal('fetch', () =>
-          Promise.reject(new Error('Network error'))
-        );
-
-        // Act & Assert
-        await expect(instance.execute({})).rejects.toThrow('Network');
-
-        vi.unstubAllGlobals();
-      });
-
-      it('should handle API errors', async () => {
-        // Arrange
-        const apiError = new Error('API Error');
-        apiError['status'] = 500;
-
-        // Act & Assert
-        const result = await instance.execute({ triggerApiError: true });
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('API');
-      });
-
-      it('should sanitize error messages', async () => {
-        // Arrange
-        const errorWithSecret = new Error('Error with secret-api-key-123');
-
-        // Act
-        const result = await instance.execute({ triggerError: true });
-
-        // Assert
-        expect(result.error).not.toContain('secret-api-key-123');
-        expect(result.error).toContain('[REDACTED]');
-      });
-
-      it('should log errors with correlation ID', async () => {
-        // Arrange
-        const correlationId = 'test-correlation-123';
-
-        // Act
-        await instance.execute({
-          correlationId,
-          triggerError: true,
-        });
-
-        // Assert
-        expect(mockContext.logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({
-            correlationId,
-          })
-        );
-      });
-
-      it('should retry transient errors', async () => {
-        // Arrange
-        let attemptCount = 0;
-        vi.stubGlobal('fetch', () => {
-          attemptCount++;
-          if (attemptCount < 3) {
-            return Promise.reject(new Error('Transient error'));
-          }
-          return Promise.resolve(new Response());
-        });
-
-        // Act
-        const result = await instance.execute({});
-
-        // Assert
-        expect(attemptCount).toBe(3);
-        expect(result.success).toBe(true);
-
-        vi.unstubAllGlobals();
-      });
-    });
-
-    // ========================================
-    // INTEGRATION (3 tests)
-    // ========================================
-    describe('Integration', () => {
-      it('should work end-to-end', async () => {
-        // Arrange
-        const completeInput = {
-          step1: { data: 'value1' },
-          step2: { data: 'value2' },
-          step3: { data: 'value3' },
-        };
-
-        // Act
-        const result = await instance.execute(completeInput);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-        expect(result.metadata).toBeDefined();
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentExecutions = Array(10).fill(null).map((_, i) => ({
-          id: i,
-          data: `test-${i}`,
-        }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentExecutions.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(10);
-        expect(results.every(r => r.success)).toBe(true);
-        expect(results.every(r => r.data.id !== results[0].data.id)).toBe(true);
-      });
-
-      it('should recover from failures', async () => {
-        // Arrange
-        const failingThenSucceeding = [
-          { id: 1, shouldFail: true },
-          { id: 2, shouldFail: true },
-          { id: 3, shouldFail: false },
-        ];
-
-        // Act
-        const results = await Promise.allSettled(
-          failingThenSucceeding.map(input => instance.execute(input))
-        );
-
-        // Assert
-        const failures = results.filter(r => r.status === 'rejected');
-        const successes = results.filter(r => r.status === 'fulfilled');
-
-        expect(failures).toHaveLength(2);
-        expect(successes).toHaveLength(1);
-      });
-    });
-
-    // ========================================
-    // PERFORMANCE (3 tests)
-    // ========================================
-    describe('Performance', () => {
-      it('should complete within reasonable time', async () => {
-        // Arrange
-        const startTime = Date.now();
-
-        // Act
-        await instance.execute({ id: 1 });
-
-        // Assert
-        const executionTime = Date.now() - startTime;
-        expect(executionTime).toBeLessThan(5000);  // 5 seconds
-      });
-
-      it('should handle large datasets efficiently', async () => {
-        // Arrange
-        const largeDataset = {
-          items: Array(1000).fill(null).map((_, i) => ({
-            id: i,
-            data: `item-${i}`,
-          })),
-        };
-
-        // Act
-        const result = await instance.execute(largeDataset);
-
-        // Assert
-        expect(result.processed).toBe(1000);
-      });
-
-      it('should not leak memory', async () => {
-        // Arrange
-        const initialMemory = process.memoryUsage().heapUsed;
-
-        // Act
-        for (let i = 0; i < 100; i++) {
-          await instance.execute({ id: i });
-        }
-
-        // Assert
-        const finalMemory = process.memoryUsage().heapUsed;
-        const memoryIncrease = finalMemory - initialMemory;
-        expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);  // 50MB
-      });
+      expect(
+        (bubble.currentParams as Record<string, unknown>).credentials
+      ).toBeUndefined();
     });
   });
-}
+
+  // ========================================
+  // INPUT VALIDATION
+  // ========================================
+  // NOTE: the Bubble base class captures schema validation failures instead of
+  // throwing from the constructor, so we construct successfully and assert the
+  // controlled error surfaced by action().
+  describe('Input Validation', () => {
+    it('returns a controlled error for an unknown operation', async () => {
+      const bubble = new GoogleCalendarBubble({
+        // @ts-expect-error deliberately invalid operation
+        operation: 'not_a_real_operation',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns a controlled error when get_event is missing event_id', async () => {
+      const bubble = new GoogleCalendarBubble({
+        // @ts-expect-error event_id is required for get_event
+        operation: 'get_event',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
+      expect(result.error).toContain('event_id');
+    });
+
+    it('returns a controlled error when get_event has an empty event_id', async () => {
+      const bubble = new GoogleCalendarBubble({
+        operation: 'get_event',
+        event_id: '',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Event ID is required');
+    });
+
+    it('returns a controlled error when create_event is missing a summary', async () => {
+      const bubble = new GoogleCalendarBubble({
+        // @ts-expect-error summary/start/end are required for create_event
+        operation: 'create_event',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
+    });
+
+    it('rejects max_results above the documented ceiling', async () => {
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        max_results: 5000,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('max_results');
+    });
+
+    it('applies schema defaults for optional fields', () => {
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        credentials: mockCredentials,
+      });
+
+      const params = bubble.currentParams as Record<string, unknown>;
+      expect(params.calendar_id).toBe('primary');
+      expect(params.single_events).toBe(true);
+      expect(params.order_by).toBe('startTime');
+      expect(params.max_results).toBe(50);
+    });
+  });
+
+  // ========================================
+  // list_calendars
+  // ========================================
+  describe('list_calendars', () => {
+    it('returns the calendar list on success', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            { id: 'primary', summary: 'Me', accessRole: 'owner' },
+            { id: 'team@group.calendar.google.com', summary: 'Team' },
+          ],
+          nextPageToken: 'next-token',
+        })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        max_results: 10,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.operation).toBe('list_calendars');
+      expect(result.data?.calendars).toHaveLength(2);
+      expect(result.data?.next_page_token).toBe('next-token');
+    });
+
+    it('sends the bearer token and maxResults query param', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ items: [] })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        max_results: 7,
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toContain('/users/me/calendarList');
+      expect(url).toContain('maxResults=7');
+      expect((init.headers as Record<string, string>).Authorization).toBe(
+        'Bearer ya29.test-mock-token'
+      );
+    });
+
+    it('tolerates a response with no items array', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({}));
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.calendars).toEqual([]);
+    });
+  });
+
+  // ========================================
+  // list_events
+  // ========================================
+  describe('list_events', () => {
+    it('returns events and extracts Drive attachment file IDs', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          items: [
+            {
+              id: 'evt_1',
+              summary: 'Standup',
+              attachments: [
+                { fileId: 'drive_file_1', title: 'notes' },
+                { title: 'no-file-id' },
+              ],
+            },
+            { id: 'evt_2', summary: 'Retro' },
+          ],
+          nextPageToken: 'page-2',
+        })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        calendar_id: 'primary',
+        max_results: 25,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.events).toHaveLength(2);
+      expect(result.data?.events?.[0].driveAttachmentFileIds).toEqual([
+        'drive_file_1',
+      ]);
+      expect(result.data?.events?.[1].driveAttachmentFileIds).toEqual([]);
+      expect(result.data?.next_page_token).toBe('page-2');
+    });
+
+    it('returns an empty list when the calendar has no events', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ items: [] })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.events).toEqual([]);
+    });
+
+    it('forwards optional filters to the API', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ items: [] })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        calendar_id: 'work@example.com',
+        time_min: '2025-01-01T00:00:00Z',
+        time_max: '2025-01-31T00:00:00Z',
+        q: 'sprint',
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      const url = vi.mocked(global.fetch).mock.calls[0][0] as string;
+      expect(url).toContain(encodeURIComponent('work@example.com'));
+      expect(url).toContain('timeMin=');
+      expect(url).toContain('timeMax=');
+      expect(url).toContain('q=sprint');
+    });
+  });
+
+  // ========================================
+  // get_event / create_event / update_event / delete_event
+  // ========================================
+  describe('get_event', () => {
+    it('returns a single event', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'evt_1', summary: 'Standup' })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'get_event',
+        event_id: 'evt_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.event?.id).toBe('evt_1');
+      expect(result.data?.event?.driveAttachmentFileIds).toEqual([]);
+    });
+  });
+
+  describe('create_event', () => {
+    it('creates an event with attendees', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'evt_new', summary: 'Planning' })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'create_event',
+        summary: 'Planning',
+        start: { dateTime: '2025-05-01T10:00:00Z' },
+        end: { dateTime: '2025-05-01T11:00:00Z' },
+        attendees: [{ email: 'a@example.com' }],
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.operation).toBe('create_event');
+      expect(result.data?.event?.id).toBe('evt_new');
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body as string).summary).toBe('Planning');
+    });
+  });
+
+  describe('update_event', () => {
+    it('updates an existing event', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'evt_1', summary: 'Renamed' })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'update_event',
+        event_id: 'evt_1',
+        summary: 'Renamed',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.event?.summary).toBe('Renamed');
+    });
+  });
+
+  describe('delete_event', () => {
+    it('deletes an event', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        statusText: 'No Content',
+        headers: new Headers(),
+        text: async () => '',
+      } as unknown as Response);
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'delete_event',
+        event_id: 'evt_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.deleted).toBe(true);
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('DELETE');
+    });
+  });
+
+  // ========================================
+  // ERROR HANDLING
+  // ========================================
+  describe('Error Handling', () => {
+    it('surfaces API errors as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(500, 'Internal Server Error')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Google Calendar API error');
+      expect(result.error).toContain('500');
+    });
+
+    it('surfaces 401 Unauthorized as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'Unauthorized')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_events',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('401');
+    });
+
+    it('surfaces 404 Not Found for a missing event', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(404, 'Not Found')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'get_event',
+        event_id: 'missing',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('404');
+    });
+
+    it('surfaces network failures as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockRejectedValueOnce(
+        new Error('Network error: connection reset')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Network error');
+    });
+
+    it('does not leak the bearer token in the error message', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(403, 'Forbidden')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).not.toContain('ya29.test-mock-token');
+    });
+  });
+
+  // ========================================
+  // CREDENTIALS
+  // ========================================
+  describe('testCredential', () => {
+    it('resolves true when the calendarList probe succeeds', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ items: [] })
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+    });
+
+    it('rejects when the calendarList probe fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'Unauthorized')
+      );
+
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).rejects.toThrow(
+        'Google Calendar API error'
+      );
+    });
+
+    it('rejects when no credential is available', async () => {
+      const bubble = new GoogleCalendarBubble({
+        operation: 'list_calendars',
+      });
+
+      // chooseCredential() throws first when the credentials map is absent.
+      await expect(bubble.testCredential()).rejects.toThrow(
+        /credentials/i
+      );
+    });
+  });
+
+  // ========================================
+  // CONCURRENCY
+  // ========================================
+  describe('Concurrency', () => {
+    it('handles concurrent list_events calls independently', async () => {
+      vi.mocked(global.fetch).mockImplementation(async () =>
+        jsonResponse({ items: [{ id: 'evt_x' }] })
+      );
+
+      const bubbles = Array.from(
+        { length: 5 },
+        () =>
+          new GoogleCalendarBubble({
+            operation: 'list_events',
+            credentials: mockCredentials,
+          })
+      );
+
+      const results = await Promise.all(bubbles.map((b) => b.action()));
+
+      expect(results).toHaveLength(5);
+      expect(results.every((r) => r.success)).toBe(true);
+      expect(global.fetch).toHaveBeenCalledTimes(5);
+    });
+  });
+});

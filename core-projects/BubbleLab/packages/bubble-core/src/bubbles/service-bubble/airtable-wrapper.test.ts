@@ -520,15 +520,19 @@ describe('AirtableWrapperBubble', () => {
     });
 
     it('should validate record ID format', async () => {
-      expect(() => {
-        new AirtableWrapperBubble({
-          operation: 'getRecord',
-          baseId: mockBaseId,
-          tableId: mockTableId,
-          recordId: 'invalid-record-id',
-          credentials: { [CredentialType.AIRTABLE_CRED]: mockApiKey },
-        });
-      }).toThrow();
+      const bubble = new AirtableWrapperBubble({
+        operation: 'getRecord',
+        baseId: mockBaseId,
+        tableId: mockTableId,
+        recordId: 'invalid-record-id',
+        credentials: { [CredentialType.AIRTABLE_CRED]: mockApiKey },
+      });
+
+      // The base constructor is resilient: it does not throw on invalid params,
+      // but surfaces a controlled error from action() instead.
+      const result = await bubble.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('record');
     });
   });
 
@@ -677,8 +681,9 @@ describe('AirtableWrapperBubble', () => {
       });
 
       const stats = bubble.getDeduplicatorStats();
-      expect(stats).toHaveProperty('pendingRequests');
-      expect(stats).toHaveProperty('completedRequests');
+      expect(stats).toHaveProperty('totalProcessed');
+      expect(stats).toHaveProperty('duplicates');
+      expect(stats).toHaveProperty('byKey');
     });
   });
 });

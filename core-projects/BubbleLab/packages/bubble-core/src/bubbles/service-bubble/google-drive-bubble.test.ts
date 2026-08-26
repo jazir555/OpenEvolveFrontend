@@ -15,11 +15,51 @@
  * 11. revokeAccess
  * 12. getFileInfo
  * 13. updateMetadata
+ *
+ * NOTE ON THE BUBBLE CONTRACT (these tests were previously written against a
+ * contract the implementation never had):
+ *  - The Bubble base constructor does NOT throw on invalid params. It records a
+ *    `validationError` and `action()` returns `{ success: false, error }`.
+ *    Invalid-input cases therefore construct successfully and assert on
+ *    `await bubble.action()`.
+ *  - `performAction()` returns the raw operation envelope
+ *    `{ success, data, error, meta }`, so valid-input cases assert on
+ *    `result.data.*` via `performAction()`.
+ *  - Rate limiting is tracked per bubble INSTANCE (`rateLimitTracker` is an
+ *    instance field), so the rate-limit test reuses a single instance.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GoogleDriveBubble } from './google-drive-bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
+
+/** Build a mock `Response`. `json` is always present: makeRequest() always calls it. */
+function mockResponse(
+  body: unknown,
+  init?: { ok?: boolean; status?: number; text?: string }
+) {
+  return {
+    ok: init?.ok ?? true,
+    status: init?.status ?? 200,
+    statusText: init?.ok === false ? 'Error' : 'OK',
+    json: async () => body,
+    text: async () => init?.text ?? JSON.stringify(body),
+  } as unknown as Response;
+}
+
+/**
+ * A Buffer-like stub with an arbitrary reported length.
+ * Used to exercise the 5GB file-size guard without allocating gigabytes
+ * (V8 caps strings at ~512MB, so `'x'.repeat(6 * 1024 ** 3)` throws RangeError).
+ */
+function fakeBufferOfSize(size: number): Buffer {
+  const stub = Object.create(Buffer.prototype) as Buffer;
+  Object.defineProperty(stub, 'length', { value: size });
+  Object.defineProperty(stub, 'toString', {
+    value: () => 'stub-content',
+  });
+  return stub;
+}
 
 describe('GoogleDriveBubble', () => {
   let driveBubble: GoogleDriveBubble;
@@ -31,26 +71,24 @@ describe('GoogleDriveBubble', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    vi.useRealTimers();
   });
 
   describe('Operation 1: uploadFile', () => {
     it('should upload a file successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'test.txt',
           mimeType: 'text/plain',
           webViewLink: 'https://drive.google.com/file/d/file_123',
           size: 1024,
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -69,12 +107,11 @@ describe('GoogleDriveBubble', () => {
     });
 
     it('should validate file size limits', async () => {
-      const largeContent = 'x'.repeat(6 * 1024 * 1024 * 1024); // 6GB
-
+      // 6GB reported size — exceeds the 5GB MAX_FILE_SIZE guard.
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'large.txt',
-        content: largeContent,
+        content: fakeBufferOfSize(6 * 1024 * 1024 * 1024),
         credentials: mockCredentials,
       });
 
@@ -82,9 +119,14 @@ describe('GoogleDriveBubble', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('exceeds maximum allowed size');
+      // The guard runs before any network call.
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('should prevent path traversal attacks', async () => {
+      // The `fileName` refine rejects '..' at schema level. The base class
+      // captures that as a validationError rather than throwing, so the failure
+      // surfaces from action().
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: '../../../etc/passwd',
@@ -92,58 +134,56 @@ describe('GoogleDriveBubble', () => {
         credentials: mockCredentials,
       });
 
-      await expect(driveBubble.performAction()).rejects.toThrow();
+      const result = await driveBubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('path traversal');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('should handle upload rate limiting', async () => {
-      // Make 5 successful uploads
-      for (let i = 0; i < 5; i++) {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ id: `file_${i}`, name: `test${i}.txt` }),
-        } as Response);
-
-        driveBubble = new GoogleDriveBubble({
-          operation: 'uploadFile',
-          fileName: `test${i}.txt`,
-          content: 'content',
-          credentials: mockCredentials,
-        });
-
-        await driveBubble.performAction();
-      }
-
-      // 6th upload should fail due to rate limit
+      // Rate limiting is per-instance, so reuse one bubble for all 6 uploads.
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
-        fileName: 'test6.txt',
+        fileName: 'test.txt',
         content: 'content',
         credentials: mockCredentials,
       });
 
+      // MAX_UPLOAD_RATE is 5 per minute.
+      for (let i = 0; i < 5; i++) {
+        vi.mocked(global.fetch).mockResolvedValueOnce(
+          mockResponse({ id: `file_${i}`, name: `test${i}.txt` })
+        );
+
+        const ok = await driveBubble.performAction();
+        expect(ok.success).toBe(true);
+      }
+
+      // 6th upload should fail due to rate limit
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Rate limit exceeded');
+      // No 6th network call was made.
+      expect(global.fetch).toHaveBeenCalledTimes(5);
     });
   });
 
   describe('Operation 2: downloadFile', () => {
     it('should download a file successfully', async () => {
       vi.mocked(global.fetch)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        .mockResolvedValueOnce(
+          mockResponse({
             id: 'file_123',
             name: 'test.txt',
             mimeType: 'text/plain',
             webContentLink: 'https://drive.google.com/uc?id=file_123',
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          text: async () => 'Hello, World!',
-        } as Response);
+          })
+        )
+        .mockResolvedValueOnce(
+          mockResponse({}, { text: 'Hello, World!' })
+        );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'downloadFile',
@@ -161,18 +201,16 @@ describe('GoogleDriveBubble', () => {
 
     it('should export Google Docs format', async () => {
       vi.mocked(global.fetch)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        .mockResolvedValueOnce(
+          mockResponse({
             id: 'file_123',
             name: 'document',
             mimeType: 'application/vnd.google-apps.document',
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          text: async () => 'exported content',
-        } as Response);
+          })
+        )
+        .mockResolvedValueOnce(
+          mockResponse({}, { text: 'exported content' })
+        );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'downloadFile',
@@ -184,15 +222,15 @@ describe('GoogleDriveBubble', () => {
 
       expect(result.success).toBe(true);
       expect(result.data.mimeType).toContain('openxmlformats');
+      expect(result.data.content).toBe('exported content');
     });
   });
 
   describe('Operation 3: deleteFile', () => {
     it('should delete a file successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        status: 204,
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({}, { status: 204 })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'deleteFile',
@@ -210,15 +248,14 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 4: updateFile', () => {
     it('should update file content successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'test.txt',
           size: 2048,
           modifiedTime: '2024-01-01T12:00:00Z',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'updateFile',
@@ -237,14 +274,13 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 5: copyFile', () => {
     it('should copy a file successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_456',
           name: 'copy_of_test.txt',
           mimeType: 'text/plain',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'copyFile',
@@ -264,14 +300,13 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 6: createFolder', () => {
     it('should create a folder successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'folder_123',
           name: 'My Folder',
           mimeType: 'application/vnd.google-apps.folder',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'createFolder',
@@ -288,14 +323,13 @@ describe('GoogleDriveBubble', () => {
     });
 
     it('should create folder with parent', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'folder_456',
           name: 'Subfolder',
           parents: ['folder_123'],
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'createFolder',
@@ -313,9 +347,8 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 7: listFiles', () => {
     it('should list files successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           files: [
             {
               id: 'file_1',
@@ -337,8 +370,8 @@ describe('GoogleDriveBubble', () => {
             },
           ],
           nextPageToken: 'token_123',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'listFiles',
@@ -355,9 +388,8 @@ describe('GoogleDriveBubble', () => {
     });
 
     it('should handle pagination', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           files: [
             {
               id: 'file_3',
@@ -365,8 +397,8 @@ describe('GoogleDriveBubble', () => {
               mimeType: 'text/plain',
             },
           ],
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'listFiles',
@@ -379,14 +411,17 @@ describe('GoogleDriveBubble', () => {
 
       expect(result.success).toBe(true);
       expect(result.data.files).toHaveLength(1);
+      // pageToken is forwarded to the API
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toContain(
+        'pageToken=token_123'
+      );
     });
   });
 
   describe('Operation 8: searchFiles', () => {
     it('should search files successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           files: [
             {
               id: 'file_123',
@@ -394,8 +429,8 @@ describe('GoogleDriveBubble', () => {
               mimeType: 'application/pdf',
             },
           ],
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'searchFiles',
@@ -413,15 +448,14 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 9: shareFile', () => {
     it('should share file with user successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'perm_123',
           role: 'writer',
           type: 'user',
           emailAddress: 'user@example.com',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'shareFile',
@@ -450,15 +484,18 @@ describe('GoogleDriveBubble', () => {
         credentials: mockCredentials,
       });
 
-      await expect(driveBubble.performAction()).rejects.toThrow();
+      const result = await driveBubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('emailAddress');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 
   describe('Operation 10: getPermissions', () => {
     it('should get file permissions successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => [
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse([
           {
             id: 'perm_1',
             role: 'owner',
@@ -471,8 +508,8 @@ describe('GoogleDriveBubble', () => {
             type: 'user',
             emailAddress: 'writer@example.com',
           },
-        ],
-      } as Response);
+        ])
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getPermissions',
@@ -490,10 +527,9 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 11: revokeAccess', () => {
     it('should revoke access successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        status: 204,
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({}, { status: 204 })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'revokeAccess',
@@ -512,9 +548,8 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 12: getFileInfo', () => {
     it('should get file info successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'test.txt',
           mimeType: 'text/plain',
@@ -532,8 +567,8 @@ describe('GoogleDriveBubble', () => {
           ],
           webContentLink: 'https://drive.google.com/uc?id=file_123',
           webViewLink: 'https://drive.google.com/file/d/file_123',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -553,16 +588,15 @@ describe('GoogleDriveBubble', () => {
 
   describe('Operation 13: updateMetadata', () => {
     it('should update file metadata successfully', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'updated_name.txt',
           description: 'Updated description',
           starred: true,
           modifiedTime: '2024-01-01T12:00:00Z',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'updateMetadata',
@@ -585,11 +619,12 @@ describe('GoogleDriveBubble', () => {
 
   describe('Error Handling', () => {
     it('should handle authentication errors', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: async () => ({ error: { message: 'Invalid credentials' } }),
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Invalid credentials' } },
+          { ok: false, status: 401 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -604,11 +639,12 @@ describe('GoogleDriveBubble', () => {
     });
 
     it('should handle file not found', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({ error: { message: 'File not found' } }),
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'File not found' } },
+          { ok: false, status: 404 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -636,14 +672,28 @@ describe('GoogleDriveBubble', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('Network error');
     });
+
+    it('should surface a missing access token in credentials', async () => {
+      driveBubble = new GoogleDriveBubble({
+        operation: 'getFileInfo',
+        fileId: 'file_123',
+        credentials: {
+          [CredentialType.GOOGLE_DRIVE_CRED]: JSON.stringify({ foo: 'bar' }),
+        },
+      });
+
+      const result = await driveBubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('access token');
+    });
   });
 
   describe('Credential Testing', () => {
     it('should test valid credentials', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ user: { displayName: 'Test User' } }),
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({ user: { displayName: 'Test User' } })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -658,10 +708,9 @@ describe('GoogleDriveBubble', () => {
     });
 
     it('should test invalid credentials', async () => {
-      vi.mocked(global.fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-      } as Response);
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        mockResponse({}, { ok: false, status: 401 })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -672,6 +721,8 @@ describe('GoogleDriveBubble', () => {
 
       const isValid = await driveBubble.testCredential();
 
+      // 'invalid' is not parseable JSON, so getToken() throws and
+      // testCredential() swallows the error and reports false.
       expect(isValid).toBe(false);
     });
   });

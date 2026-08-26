@@ -24,6 +24,15 @@ import { AirtableBubble } from '../../bubbles/service-bubble/airtable-bubble.js'
 import { CredentialType } from '@bubblelab/shared-schemas';
 
 describe('Comprehensive Security Tests', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   describe('1. SQL Injection Prevention', () => {
     it('should sanitize SQL injection attempts in parameters', async () => {
       const maliciousInputs = [
@@ -129,15 +138,18 @@ describe('Comprehensive Security Tests', () => {
       ];
 
       for (const email of invalidEmails) {
-        expect(() => {
-          new StripeBubble({
-            operation: 'createCustomer',
-            email,
-            credentials: {
-              [CredentialType.STRIPE_CRED]: 'key',
-            },
-          });
-        }).toThrow();
+        const bubble = new StripeBubble({
+          operation: 'createCustomer',
+          email,
+          credentials: {
+            [CredentialType.STRIPE_CRED]: 'key',
+          },
+        });
+
+        // Constructor no longer throws; invalid input is reported as a
+        // controlled error from action()/safeAction() instead.
+        const result = await bubble.safeAction();
+        expect(result.success).toBe(false);
       }
     });
 
@@ -175,16 +187,19 @@ describe('Comprehensive Security Tests', () => {
       ];
 
       for (const maliciousPath of pathTraversalAttempts) {
-        expect(() => {
-          new GoogleDriveBubble({
-            operation: 'uploadFile',
-            fileName: maliciousPath,
-            content: 'malicious',
-            credentials: {
-              [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
-            },
-          });
-        }).toThrow();
+        const bubble = new GoogleDriveBubble({
+          operation: 'uploadFile',
+          fileName: maliciousPath,
+          content: 'malicious',
+          credentials: {
+            [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
+          },
+        });
+
+        // Constructor no longer throws; invalid input is reported as a
+        // controlled error from action()/safeAction() instead.
+        const result = await bubble.safeAction();
+        expect(result.success).toBe(false);
       }
     });
 
@@ -222,10 +237,10 @@ describe('Comprehensive Security Tests', () => {
         currency: 'usd',
       });
 
-      const result = await bubble.performAction();
+      const result = await bubble.safeAction();
 
-      expect(result.result.success).toBe(false);
-      expect(result.result.error).toContain('API key');
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/API (key|credentials)/i);
     });
 
     it('should reject invalid API keys', async () => {
@@ -283,7 +298,7 @@ describe('Comprehensive Security Tests', () => {
         fileName: 'test.txt',
         content: 'test',
         credentials: {
-          [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
+          [CredentialType.GOOGLE_DRIVE_CRED]: JSON.stringify({ accessToken: 'test-token' }),
         },
       });
 
@@ -314,7 +329,7 @@ describe('Comprehensive Security Tests', () => {
         fileName: 'test.txt',
         content: 'test',
         credentials: {
-          [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
+          [CredentialType.GOOGLE_DRIVE_CRED]: JSON.stringify({ accessToken: 'test-token' }),
         },
       });
 
@@ -355,16 +370,19 @@ describe('Comprehensive Security Tests', () => {
       ];
 
       for (const path of maliciousPaths) {
-        expect(() => {
-          new GoogleDriveBubble({
-            operation: 'uploadFile',
-            fileName: path,
-            content: 'malicious',
-            credentials: {
-              [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
-            },
-          });
-        }).toThrow();
+        const bubble = new GoogleDriveBubble({
+          operation: 'uploadFile',
+          fileName: path,
+          content: 'malicious',
+          credentials: {
+            [CredentialType.GOOGLE_DRIVE_CRED]: 'token',
+          },
+        });
+
+        // Constructor no longer throws; invalid input is reported as a
+        // controlled error from action()/safeAction() instead.
+        const result = await bubble.safeAction();
+        expect(result.success).toBe(false);
       }
     });
   });
@@ -495,16 +513,15 @@ describe('Comprehensive Security Tests', () => {
       const secret = 'whsec_test_secret';
 
       const crypto = await import('crypto');
-      const timestamp = Math.floor(Date.now() / 1000);
       const signature = crypto
         .createHmac('sha256', secret)
-        .update(`${timestamp}.${payload}`)
+        .update(payload)
         .digest('hex');
 
       const bubble = new WebhookBubble({
         operation: 'verifySignature',
         payload,
-        signature: `t=${timestamp},v1=${signature}`,
+        signature: `hmac-sha256=${signature}`,
         secret,
         credentials: {
           [CredentialType.WEBHOOK_CRED]: 'secret',

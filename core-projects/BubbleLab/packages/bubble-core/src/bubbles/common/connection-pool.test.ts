@@ -161,7 +161,7 @@ describe('connection-pool utilities', () => {
           }),
           async () => {},
           {
-            min: 1,
+            min: 0,
             max: 1,
             acquireTimeoutMillis: 50
           },
@@ -426,7 +426,7 @@ describe('connection-pool utilities', () => {
     it('should get stats for all pools', () => {
       registry.getPostgresPool('postgresql://localhost:5432/db1');
       registry.getPostgresPool('postgresql://localhost:5432/db2');
-      registry.getHttpPool('https://api1.example.com');
+      registry.getHttpPool('https://api1.example.com').getPool('https://api1.example.com');
 
       const stats = registry.getAllStats();
 

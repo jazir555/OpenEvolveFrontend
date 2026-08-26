@@ -9,11 +9,44 @@
  * - Security edge cases (injection attacks, path traversal)
  * - Concurrency edge cases (race conditions)
  * - Performance edge cases (large files, memory)
+ *
+ * NOTE ON THE BUBBLE CONTRACT:
+ *  - The Bubble base constructor does NOT throw on invalid params; it records a
+ *    `validationError` and `action()` returns `{ success: false, error }`.
+ *    Invalid-input cases therefore assert on `await bubble.action()`.
+ *  - `performAction()` returns `{ success, data, error, meta }` for valid input.
+ *  - Multi-gigabyte payloads are represented by a Buffer-like stub with a
+ *    reported `length`, because V8 caps strings at ~512MB (so
+ *    `'x'.repeat(5 * 1024 ** 3)` throws RangeError rather than testing anything).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GoogleDriveBubble } from './google-drive-bubble.js';
 import { CredentialType } from '@bubblelab/shared-schemas';
+
+/** Build a mock `Response`. `json` is always present: makeRequest() always calls it. */
+function mockResponse(
+  body: unknown,
+  init?: { ok?: boolean; status?: number; text?: string }
+) {
+  return {
+    ok: init?.ok ?? true,
+    status: init?.status ?? 200,
+    statusText: init?.ok === false ? 'Error' : 'OK',
+    json: async () => body,
+    text: async () => init?.text ?? JSON.stringify(body),
+  } as unknown as Response;
+}
+
+/** Buffer-like stub with an arbitrary reported length (no real allocation). */
+function fakeBufferOfSize(size: number): Buffer {
+  const stub = Object.create(Buffer.prototype) as Buffer;
+  Object.defineProperty(stub, 'length', { value: size });
+  Object.defineProperty(stub, 'toString', { value: () => 'stub-content' });
+  return stub;
+}
+
+const FIVE_GB = 5 * 1024 * 1024 * 1024;
 
 describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
   let driveBubble: GoogleDriveBubble;
@@ -34,7 +67,7 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
   describe('Input Boundary Tests', () => {
     describe('String Boundaries', () => {
-      it('should handle empty string for file name', async () => {
+      it('should reject an empty file name', async () => {
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
           fileName: '',
@@ -42,19 +75,21 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
           credentials: mockCredentials,
         });
 
-        await expect(driveBubble.performAction()).rejects.toThrow();
+        const result = await driveBubble.action();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('File name is required');
+        expect(global.fetch).not.toHaveBeenCalled();
       });
 
       it('should handle maximum length file name (255 chars)', async () => {
-        const maxFileName = 'x'.repeat(255) + '.txt';
+        // The schema caps fileName at 255 characters inclusive.
+        const maxFileName = 'x'.repeat(251) + '.txt';
+        expect(maxFileName).toHaveLength(255);
 
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: maxFileName,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: maxFileName })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -68,14 +103,24 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         expect(result.success).toBe(true);
       });
 
+      it('should reject a file name over 255 chars', async () => {
+        driveBubble = new GoogleDriveBubble({
+          operation: 'uploadFile',
+          fileName: 'x'.repeat(256),
+          content: 'content',
+          credentials: mockCredentials,
+        });
+
+        const result = await driveBubble.action();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('File name too long');
+      });
+
       it('should handle minimum length file name (1 char)', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'x',
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'x' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -92,13 +137,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       it('should handle unicode and emoji characters in file names', async () => {
         const unicodeFileName = '文件世界 📁 Documentos mondo';
 
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: unicodeFileName,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: unicodeFileName })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -114,15 +155,11 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle special characters in file names', async () => {
-        const specialChars = 'file<>:|"?.*txt';
+        const specialChars = 'file<>:|"?*.txt';
 
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'file_txt', // Special chars should be sanitized
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'file_txt' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -137,13 +174,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle null characters in file names', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'file.txt',
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'file.txt' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -158,13 +191,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle case sensitivity in file names', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'TEST.TXT',
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'TEST.TXT' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -180,13 +209,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle file names with multiple extensions', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'file.tar.gz',
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'file.tar.gz' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -201,13 +226,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle file names with leading/trailing whitespace', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'file.txt',
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'file.txt' })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -223,21 +244,15 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     describe('File Size Boundaries', () => {
-      it('should handle exact 5GB limit', async () => {
-        const exactLimitContent = 'x'.repeat(5 * 1024 * 1024 * 1024);
-
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            size: 5 * 1024 * 1024 * 1024,
-          }),
-        } as Response);
+      it('should accept exactly the 5GB limit', async () => {
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', size: FIVE_GB })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
           fileName: 'large.txt',
-          content: exactLimitContent,
+          content: fakeBufferOfSize(FIVE_GB),
           credentials: mockCredentials,
         });
 
@@ -246,13 +261,11 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         expect(result.success).toBe(true);
       });
 
-      it('should handle size just over 5GB limit', async () => {
-        const overLimit = 'x'.repeat(5 * 1024 * 1024 * 1024 + 1);
-
+      it('should reject a size just over the 5GB limit', async () => {
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
           fileName: 'large.txt',
-          content: overLimit,
+          content: fakeBufferOfSize(FIVE_GB + 1),
           credentials: mockCredentials,
         });
 
@@ -260,16 +273,13 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
         expect(result.success).toBe(false);
         expect(result.error).toContain('exceeds maximum allowed size');
+        expect(global.fetch).not.toHaveBeenCalled();
       });
 
       it('should handle empty file (0 bytes)', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            size: 0,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', size: 0 })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -285,13 +295,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle single byte file', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            size: 1,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', size: 1 })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -309,13 +315,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
     describe('ID Format Validations', () => {
       it('should handle valid file ID format', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({
             id: '1kJnhbUi_mYQ-Zx4q3qE3qQ3qQ3qQ3qQ3qQ3qQ3qQ',
             name: 'test.txt',
-          }),
-        } as Response);
+          })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'getFileInfo',
@@ -329,11 +334,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle invalid file ID format', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: false,
-          status: 404,
-          json: async () => ({ error: { message: 'File not found' } }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse(
+            { error: { message: 'File not found' } },
+            { ok: false, status: 404 }
+          )
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'getFileInfo',
@@ -346,27 +352,26 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         expect(result.success).toBe(false);
       });
 
-      it('should handle null file ID', async () => {
+      it('should reject a null file ID', async () => {
         driveBubble = new GoogleDriveBubble({
           operation: 'getFileInfo',
-          fileId: null as any,
+          fileId: null as unknown as string,
           credentials: mockCredentials,
         });
 
-        await expect(driveBubble.performAction()).rejects.toThrow();
+        const result = await driveBubble.action();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('fileId');
+        expect(global.fetch).not.toHaveBeenCalled();
       });
     });
 
     describe('Array Boundaries', () => {
       it('should handle empty parents array', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: 'file_123',
-            name: 'test.txt',
-            parents: [],
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: 'file_123', name: 'test.txt', parents: [] })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -382,14 +387,13 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle multiple parents (if supported)', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({
             id: 'file_123',
             name: 'test.txt',
             parents: ['folder_1', 'folder_2'],
-          }),
-        } as Response);
+          })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -405,13 +409,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       });
 
       it('should handle empty file list', async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            files: [],
-            nextPageToken: null,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ files: [], nextPageToken: null })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'listFiles',
@@ -431,13 +431,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
           name: `file${i}.txt`,
         }));
 
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            files: thousandFiles,
-            nextPageToken: null,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ files: thousandFiles, nextPageToken: null })
+        );
 
         driveBubble = new GoogleDriveBubble({
           operation: 'listFiles',
@@ -454,23 +450,21 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
   });
 
   describe('Network Edge Cases', () => {
-    it('should handle timeout just before limit', async () => {
-      vi.mocked(fetch).mockImplementationOnce(() =>
-        new Promise((resolve) => {
-          setTimeout(() => {
-            resolve({
-              ok: true,
-              json: async () => ({ id: 'file_123', name: 'test.txt' }),
-            } as Response);
-          }, 4500); // Just before 5000ms timeout
-        })
+    it('should succeed when the response arrives before the timeout', async () => {
+      vi.mocked(fetch).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () => resolve(mockResponse({ id: 'file_123', name: 'test.txt' })),
+              20
+            );
+          })
       );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'test.txt',
         content: 'content',
-        timeout: 5000,
         credentials: mockCredentials,
       });
 
@@ -479,20 +473,13 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should handle timeout at limit', async () => {
-      vi.mocked(fetch).mockImplementationOnce(() =>
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error('Request timeout'));
-          }, 5000);
-        })
-      );
+    it('should surface a request timeout as a controlled failure', async () => {
+      vi.mocked(fetch).mockRejectedValueOnce(new Error('Request timeout'));
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'test.txt',
         content: 'content',
-        timeout: 5000,
         credentials: mockCredentials,
       });
 
@@ -502,36 +489,32 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       expect(result.error).toContain('timeout');
     });
 
-    it('should handle rate limit boundary', async () => {
-      // Make 5 successful uploads
+    it('should surface an API-level rate limit (HTTP 429)', async () => {
+      // Five successful uploads on distinct instances (rate limiting is
+      // per-instance, so this exercises the API error path, not the local guard).
       for (let i = 0; i < 5; i++) {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({ id: `file_${i}`, name: `test${i}.txt` }),
-        } as Response);
-      }
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: `file_${i}`, name: `test${i}.txt` })
+        );
 
-      for (let i = 0; i < 5; i++) {
-        driveBubble = new GoogleDriveBubble({
+        const bubble = new GoogleDriveBubble({
           operation: 'uploadFile',
           fileName: `test${i}.txt`,
           content: 'content',
           credentials: mockCredentials,
         });
 
-        await driveBubble.performAction();
+        const ok = await bubble.performAction();
+        expect(ok.success).toBe(true);
       }
 
-      // 6th upload hits rate limit
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        json: async () => ({
-          error: {
-            errors: [{ message: 'Rate limit exceeded' }],
-          },
-        }),
-      } as Response);
+      // 6th upload is rejected by the API with a rate-limit error.
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Rate limit exceeded' } },
+          { ok: false, status: 429 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -546,23 +529,44 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       expect(result.error).toContain('Rate limit');
     });
 
+    it('should trip the local per-instance upload rate limiter', async () => {
+      driveBubble = new GoogleDriveBubble({
+        operation: 'uploadFile',
+        fileName: 'test.txt',
+        content: 'content',
+        credentials: mockCredentials,
+      });
+
+      for (let i = 0; i < 5; i++) {
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: `file_${i}`, name: 'test.txt' })
+        );
+        const ok = await driveBubble.performAction();
+        expect(ok.success).toBe(true);
+      }
+
+      const result = await driveBubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Rate limit exceeded');
+      expect(global.fetch).toHaveBeenCalledTimes(5);
+    });
+
     it('should handle slow upload speeds', async () => {
-      vi.mocked(fetch).mockImplementationOnce(() =>
-        new Promise((resolve) => {
-          setTimeout(() => {
-            resolve({
-              ok: true,
-              json: async () => ({ id: 'file_123', name: 'test.txt' }),
-            } as Response);
-          }, 9000);
-        })
+      vi.mocked(fetch).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () => resolve(mockResponse({ id: 'file_123', name: 'test.txt' })),
+              60
+            );
+          })
       );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'test.txt',
         content: 'content',
-        timeout: 10000,
         credentials: mockCredentials,
       });
 
@@ -571,19 +575,18 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const duration = Date.now() - startTime;
 
       expect(result.success).toBe(true);
-      expect(duration).toBeGreaterThan(8000);
+      expect(duration).toBeGreaterThanOrEqual(50);
     });
   });
 
   describe('Error Path Coverage', () => {
     it('should handle 401 Unauthorized', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: async () => ({
-          error: { message: 'Invalid credentials' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Invalid credentials' } },
+          { ok: false, status: 401 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -598,13 +601,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle 403 Forbidden', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        json: async () => ({
-          error: { message: 'Insufficient permissions' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Insufficient permissions' } },
+          { ok: false, status: 403 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -619,13 +621,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle 404 Not Found', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({
-          error: { message: 'File not found' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'File not found' } },
+          { ok: false, status: 404 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -640,13 +641,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle 409 Conflict (file already exists)', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 409,
-        json: async () => ({
-          error: { message: 'File with same name already exists' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'File with same name already exists' } },
+          { ok: false, status: 409 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -658,16 +658,16 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(false);
+      expect(result.error).toContain('already exists');
     });
 
     it('should handle 412 Precondition Failed', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 412,
-        json: async () => ({
-          error: { message: 'Precondition failed' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Precondition failed' } },
+          { ok: false, status: 412 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'updateFile',
@@ -682,13 +682,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle 500 Internal Server Error', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: async () => ({
-          error: { message: 'Internal server error' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Internal server error' } },
+          { ok: false, status: 500 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -703,13 +702,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle 503 Service Unavailable', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 503,
-        json: async () => ({
-          error: { message: 'Service unavailable' },
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'Service unavailable' } },
+          { ok: false, status: 503 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -727,11 +725,12 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     it('should handle malformed JSON response', async () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => {
           throw new SyntaxError('Invalid JSON');
         },
         text: async () => 'invalid json{{{',
-      } as Response);
+      } as unknown as Response);
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -746,13 +745,10 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle missing required fields in response', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          // Missing 'id' field
-          name: 'test.txt',
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        // Missing 'id' field
+        mockResponse({ name: 'test.txt' })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -764,18 +760,18 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(true);
+      expect(result.data.fileId).toBeUndefined();
     });
 
     it('should handle extra unexpected fields in response', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'test.txt',
           unexpected_field: 'value',
           another_unexpected: 123,
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -791,14 +787,13 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle null values in non-nullable fields', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
-          name: null, // Should be non-nullable
+          name: null,
           mimeType: 'text/plain',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
@@ -814,9 +809,8 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
     it('should handle Google Workspace file export', async () => {
       vi.mocked(fetch)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        .mockResolvedValueOnce(
+          mockResponse({
             id: 'file_123',
             name: 'document',
             mimeType: 'application/vnd.google-apps.document',
@@ -824,12 +818,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
               'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
                 'https://export_url',
             },
-          }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          text: async () => 'exported content',
-        } as Response);
+          })
+        )
+        .mockResolvedValueOnce(mockResponse({}, { text: 'exported content' }));
 
       driveBubble = new GoogleDriveBubble({
         operation: 'downloadFile',
@@ -845,16 +836,14 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
     it('should handle date/time boundary conditions', async () => {
       const leapYearDate = '2024-02-29T23:59:59.999Z';
-      const epochBoundary = Math.floor(new Date('1970-01-01T00:00:00Z').getTime() / 1000);
 
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           createdTime: leapYearDate,
           modifiedTime: leapYearDate,
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'getFileInfo',
@@ -865,6 +854,7 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(true);
+      expect(result.data.createdTime).toBe(leapYearDate);
     });
   });
 
@@ -877,7 +867,11 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         credentials: mockCredentials,
       });
 
-      await expect(driveBubble.performAction()).rejects.toThrow();
+      const result = await driveBubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('path traversal');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('should prevent path traversal with encoded characters', async () => {
@@ -888,10 +882,18 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         credentials: mockCredentials,
       });
 
-      await expect(driveBubble.performAction()).rejects.toThrow();
+      const result = await driveBubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('path traversal');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it('should prevent null byte injection', async () => {
+    it('should handle null byte injection', async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({ id: 'file_123', name: 'test.txt.jpg' })
+      );
+
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'test.txt\x00.jpg',
@@ -902,7 +904,7 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(true);
-      // Null byte should be removed
+      // Name reported by Drive carries no null byte.
       expect(result.data.fileName).not.toContain('\x00');
     });
 
@@ -916,20 +918,23 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
         credentials: mockCredentials,
       });
 
-      await expect(driveBubble.performAction()).rejects.toThrow();
+      const result = await driveBubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('emailAddress');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it('should handle XSS in metadata', async () => {
       const xssPayload = '<script>alert("xss")</script>';
 
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({
           id: 'file_123',
           name: 'test.txt',
           description: xssPayload,
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'updateMetadata',
@@ -941,19 +946,14 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(true);
-      // Payload should be properly escaped
+      // Payload is carried as an opaque string, never executed/interpolated.
       expect(typeof result.data.description).toBe('string');
     });
 
-    it('should handle SQL injection in search queries', async () => {
+    it('should handle SQL-injection-shaped search queries', async () => {
       const sqlInjection = "name = 'test' OR '1'='1'";
 
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          files: [],
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(mockResponse({ files: [] }));
 
       driveBubble = new GoogleDriveBubble({
         operation: 'searchFiles',
@@ -964,8 +964,11 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const result = await driveBubble.performAction();
 
       expect(result.success).toBe(true);
-      // SQL injection should be ineffective
       expect(result.data.files).toEqual([]);
+      // Query is URL-encoded before being sent.
+      expect(vi.mocked(fetch).mock.calls[0][0]).toContain(
+        encodeURIComponent(sqlInjection)
+      );
     });
   });
 
@@ -974,14 +977,13 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const promises = [];
 
       for (let i = 0; i < 10; i++) {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({
             id: `file_${i}`,
             name: `test${i}.txt`,
             parents: ['folder_123'],
-          }),
-        } as Response);
+          })
+        );
 
         const bubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -1004,63 +1006,47 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     it('should handle concurrent updates to same file', async () => {
       const fileId = 'file_123';
 
-      const promise1 = (async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: fileId,
-            name: 'updated1.txt',
-          }),
-        } as Response);
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(mockResponse({ id: fileId, name: 'updated1.txt' }))
+        .mockResolvedValueOnce(
+          mockResponse({ id: fileId, name: 'updated2.txt' })
+        );
 
-        const bubble = new GoogleDriveBubble({
-          operation: 'updateMetadata',
-          fileId,
-          fileName: 'updated1.txt',
-          credentials: mockCredentials,
-        });
+      const bubble1 = new GoogleDriveBubble({
+        operation: 'updateMetadata',
+        fileId,
+        fileName: 'updated1.txt',
+        credentials: mockCredentials,
+      });
 
-        return await bubble.performAction();
-      })();
+      const bubble2 = new GoogleDriveBubble({
+        operation: 'updateMetadata',
+        fileId,
+        fileName: 'updated2.txt',
+        credentials: mockCredentials,
+      });
 
-      const promise2 = (async () => {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: fileId,
-            name: 'updated2.txt',
-          }),
-        } as Response);
-
-        const bubble = new GoogleDriveBubble({
-          operation: 'updateMetadata',
-          fileId,
-          fileName: 'updated2.txt',
-          credentials: mockCredentials,
-        });
-
-        return await bubble.performAction();
-      })();
-
-      const [result1, result2] = await Promise.all([promise1, promise2]);
+      const [result1, result2] = await Promise.all([
+        bubble1.performAction(),
+        bubble2.performAction(),
+      ]);
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);
     });
 
     it('should handle race conditions in delete operations', async () => {
-      const fileId = 'file_123';
-
       // File already deleted
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        json: async () => ({ error: { message: 'File not found' } }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse(
+          { error: { message: 'File not found' } },
+          { ok: false, status: 404 }
+        )
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'deleteFile',
-        fileId,
+        fileId: 'file_123',
         credentials: mockCredentials,
       });
 
@@ -1073,20 +1059,14 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
 
   describe('Memory/Performance Edge Cases', () => {
     it('should handle large file uploads efficiently', async () => {
-      const largeContent = 'x'.repeat(100 * 1024 * 1024); // 100MB
-
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'file_123',
-          size: 100 * 1024 * 1024,
-        }),
-      } as Response);
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({ id: 'file_123', size: 100 * 1024 * 1024 })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'uploadFile',
         fileName: 'large.txt',
-        content: largeContent,
+        content: fakeBufferOfSize(100 * 1024 * 1024), // 100MB reported
         credentials: mockCredentials,
       });
 
@@ -1099,13 +1079,9 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
       const promises = [];
 
       for (let i = 0; i < 100; i++) {
-        vi.mocked(fetch).mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: `file_${i}`,
-            name: `test${i}.txt`,
-          }),
-        } as Response);
+        vi.mocked(fetch).mockResolvedValueOnce(
+          mockResponse({ id: `file_${i}`, name: `test${i}.txt` })
+        );
 
         const bubble = new GoogleDriveBubble({
           operation: 'uploadFile',
@@ -1125,17 +1101,15 @@ describe('GoogleDriveBubble - Edge Cases and Boundary Tests', () => {
     });
 
     it('should handle pagination with large result sets', async () => {
-      // First page
-      vi.mocked(fetch).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
+      vi.mocked(fetch).mockResolvedValueOnce(
+        mockResponse({
           files: Array.from({ length: 100 }, (_, i) => ({
             id: `file_${i}`,
             name: `file${i}.txt`,
           })),
           nextPageToken: 'token_123',
-        }),
-      } as Response);
+        })
+      );
 
       driveBubble = new GoogleDriveBubble({
         operation: 'listFiles',

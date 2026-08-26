@@ -8,7 +8,10 @@ global.fetch = mockFetch;
 
 describe('HttpBubble - Advanced Features', () => {
   beforeEach(() => {
-    mockFetch.mockClear();
+    mockFetch.mockReset();
+    // Some tests swap global.fetch for a bespoke mock; restore the shared one so
+    // later tests are not poisoned by a leftover implementation.
+    global.fetch = mockFetch;
     // Reset circuit breaker states
     (HttpBubble as any).circuitBreakerStates.clear();
   });
@@ -565,8 +568,6 @@ describe('HttpBubble - Advanced Features', () => {
     });
 
     it('should allow request after circuit breaker timeout', async () => {
-      // This test would need to manipulate time or use a short timeout
-      // For now, we'll just verify the structure
       const mockResponse = {
         ok: false,
         status: 503,
@@ -583,47 +584,54 @@ describe('HttpBubble - Advanced Features', () => {
         url: 'https://api.example.com/data',
         circuitBreakerEnabled: true,
         circuitBreakerThreshold: 2,
-        circuitBreakerTimeout: 100, // Short timeout for testing
+        // NOTE: the schema enforces circuitBreakerTimeout >= 1000. A smaller
+        // value fails validation, which leaves the bubble in its
+        // validation-error state and silently disables the circuit breaker.
+        circuitBreakerTimeout: 1000,
         retryEnabled: false,
       });
 
       // Trigger circuit breaker
       await httpBubble.performAction();
       await httpBubble.performAction();
+      expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      // Circuit should be open
+      // Circuit should be open — the blocked call short-circuits before fetch
       const blockedResult = await httpBubble.performAction();
       expect(blockedResult.error).toContain('Circuit breaker is open');
+      expect(blockedResult.metrics.circuitBreakerTripped).toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      // Wait for timeout
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Wait for the open window to elapse
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
-      // Should be allowed now (half-open state)
-      const result = await httpBubble.performAction();
-      // Result depends on fetch, but circuit should allow the attempt
-      expect(mockFetch).toHaveBeenCalledTimes(4); // 2 initial + 1 blocked + 1 after timeout
+      // Should be allowed now (half-open state) and hit the network again
+      await httpBubble.performAction();
+      expect(mockFetch).toHaveBeenCalledTimes(3);
     }, 10000);
   });
 
   describe('Timeout Handling', () => {
     it('should handle request timeout', async () => {
-      const controller = new AbortController();
-      const mockFetchWithTimeout = vi.fn(() =>
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            const error = new Error('Request timeout');
-            error.name = 'AbortError';
-            reject(error);
-          }, 100);
-        })
+      const mockFetchWithTimeout = vi.fn(
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => {
+              const error = new Error('Request timeout');
+              error.name = 'AbortError';
+              reject(error);
+            }, 20);
+          })
       );
 
-      global.fetch = mockFetchWithTimeout;
+      global.fetch = mockFetchWithTimeout as unknown as typeof fetch;
 
       const httpBubble = new HttpBubble({
         operation: 'get',
         url: 'https://api.example.com/data',
-        timeout: 50,
+        // NOTE: the schema enforces timeout >= 100. A smaller value fails
+        // validation and leaves the bubble without its parsed defaults.
+        timeout: 100,
         retryEnabled: false,
       });
 
@@ -632,6 +640,8 @@ describe('HttpBubble - Advanced Features', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('timeout');
       expect(result.errorCode).toBe('AbortError');
+      expect(result.status).toBe(0);
+      expect(result.metrics.totalAttempts).toBe(1);
     });
   });
 

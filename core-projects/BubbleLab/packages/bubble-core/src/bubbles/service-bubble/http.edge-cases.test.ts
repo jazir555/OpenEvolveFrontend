@@ -25,7 +25,10 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
   });
 
   beforeEach(() => {
-    mockFetch.mockClear();
+    // mockReset (not mockClear) so queued `mockResolvedValueOnce` values from a
+    // previous test cannot leak into the next one.
+    mockFetch.mockReset();
+    global.fetch = mockFetch;
   });
 
   describe('Input Boundary Tests', () => {
@@ -714,11 +717,19 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
     it('should handle binary response', async () => {
       const binaryData = Buffer.from([0x00, 0x01, 0x02, 0x03]);
 
+      // application/octet-stream is detected as binary, so the bubble reads the
+      // body via arrayBuffer() and base64-encodes it.
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         statusText: 'OK',
         text: vi.fn().mockResolvedValue(binaryData.toString()),
+        arrayBuffer: vi.fn().mockResolvedValue(
+          binaryData.buffer.slice(
+            binaryData.byteOffset,
+            binaryData.byteOffset + binaryData.byteLength
+          )
+        ),
         headers: new Map([['content-type', 'application/octet-stream']]),
       });
 
@@ -729,6 +740,9 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
       const result = await httpBubble.performAction();
 
       expect(result.success).toBe(true);
+      expect(result.isBase64).toBe(true);
+      expect(result.body).toBe(binaryData.toString('base64'));
+      expect(result.size).toBe(4);
     });
 
     it('should handle various content types', async () => {
@@ -748,6 +762,11 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
           status: 200,
           statusText: 'OK',
           text: vi.fn().mockResolvedValue('response'),
+          // Binary content types (octet-stream, multipart/form-data) are read
+          // through arrayBuffer(), so the mock must provide both readers.
+          arrayBuffer: vi
+            .fn()
+            .mockResolvedValue(new TextEncoder().encode('response').buffer),
           headers: new Map([['content-type', contentType]]),
         });
 
@@ -758,6 +777,7 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
         const result = await httpBubble.performAction();
 
         expect(result.success).toBe(true);
+        expect(result.contentType).toBe(contentType);
       }
     });
 
@@ -966,22 +986,19 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
   });
 
   describe('Redirect Handling', () => {
+    // NOTE: HttpBubble delegates redirect handling to fetch via the
+    // `redirect: 'follow' | 'manual'` request option — it never issues a second
+    // request itself. These tests assert the option is wired correctly and that
+    // whatever fetch returns is surfaced faithfully.
     it('should follow redirects when enabled', async () => {
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: false,
-          status: 302,
-          statusText: 'Found',
-          text: vi.fn().mockResolvedValue(''),
-          headers: new Map([['location', 'https://example.com/new']]),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          statusText: 'OK',
-          text: vi.fn().mockResolvedValue('final response'),
-          headers: new Map(),
-        });
+      // With redirect: 'follow', fetch resolves the FINAL response.
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: vi.fn().mockResolvedValue('final response'),
+        headers: new Map(),
+      });
 
       const httpBubble = new HttpBubble({
         url: 'https://example.com',
@@ -992,10 +1009,12 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
 
       expect(result.success).toBe(true);
       expect(result.body).toBe('final response');
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][1].redirect).toBe('follow');
     });
 
     it('should not follow redirects when disabled', async () => {
+      // With redirect: 'manual', fetch resolves the 302 itself.
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 302,
@@ -1013,7 +1032,9 @@ describe('HttpBubble - Edge Cases and Boundary Tests', () => {
 
       expect(result.success).toBe(false);
       expect(result.status).toBe(302);
+      expect(result.headers.location).toBe('https://example.com/new');
       expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch.mock.calls[0][1].redirect).toBe('manual');
     });
 
     it('should handle redirect loops', async () => {

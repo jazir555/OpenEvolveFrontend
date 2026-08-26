@@ -1,572 +1,579 @@
-{
-  /*
-   * Comprehensive Test Suite for insforge-db
-   * Generated: 2026-01-19T02:05:45.110570
-   *
-   * Security & Quality Tests:
-   * - Environment Validation (3 tests)
-   * - Authentication (3 tests)
-   * - Rate Limiting (3 tests)
-   * - Input Validation (5 tests)
-   * - Core Workflow Logic (10 tests)
-   * - Error Handling (5 tests)
-   * - Integration (3 tests)
-   *
-   * Total: 32 comprehensive tests
-   */
+/**
+ * Test Suite for InsForgeDbBubble
+ *
+ * The previous contents of this file were a generated placeholder that tested a
+ * non-existent API (`instance.authenticate()`, `instance.execute()`, an `env`
+ * context) and did not even parse. It has been rewritten against the real
+ * bubble:
+ *  - params: { query, allowedOperations, parameters, timeout, maxRows, credentials }
+ *  - SQL allow-listing + safety guards enforced in the constructor
+ *  - `action()` returns a BubbleResult wrapper `{ success, data, error }`
+ *  - schema failures are captured at construction (NOT thrown) and surfaced as a
+ *    controlled error from `action()`
+ *  - all network access goes through the global `fetch`, mocked here
+ */
 
-  import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-  import { InsForgeDbBubble } from './insforge-db';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { InsForgeDbBubble } from './insforge-db.js';
+import { CredentialType } from '@bubblelab/shared-schemas';
 
-  describe('insforge-db', () => {
-    let instance: InsForgeDbBubble;
-    let mockContext: any;
+const mockCredentials = {
+  [CredentialType.INSFORGE_BASE_URL]: 'https://insforge.test',
+  [CredentialType.INSFORGE_API_KEY]: 'ins_test_key',
+};
 
-    beforeEach(() => {
-      // Setup mock environment
-      mockContext = {
-        env: {
-          API_KEY: 'test-api-key',
-          API_URL: 'https://api.test.com',
-          TIMEOUT: '5000',
-        },
-        logger: {
-          info: vi.fn(),
-          error: vi.fn(),
-          warn: vi.fn(),
-          debug: vi.fn(),
-        },
-      };
+function jsonResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as unknown as Response;
+}
 
-      // Initialize instance
-      instance = new InsForgeDbBubble(mockContext);
+function errorResponse(status: number, text: string) {
+  return {
+    ok: false,
+    status,
+    statusText: 'Error',
+    json: async () => ({ error: text }),
+    text: async () => text,
+  } as unknown as Response;
+}
+
+describe('InsForgeDbBubble', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================
+  // METADATA & DEFAULTS
+  // ========================================
+  describe('Bubble metadata', () => {
+    it('exposes the expected static metadata', () => {
+      expect(InsForgeDbBubble.bubbleName).toBe('insforge-db');
+      expect(InsForgeDbBubble.type).toBe('service');
+      expect(InsForgeDbBubble.service).toBe('insforge');
+      expect(InsForgeDbBubble.authType).toBe('apikey');
+      expect(InsForgeDbBubble.alias).toBe('insforge');
+      expect(InsForgeDbBubble.schema).toBeDefined();
+      expect(InsForgeDbBubble.resultSchema).toBeDefined();
     });
 
-    afterEach(() => {
-      vi.clearAllMocks();
+    it('defaults to a read-only SELECT when constructed with no params', () => {
+      const bubble = new InsForgeDbBubble();
+      expect(bubble.currentParams.query).toBe('SELECT 1');
+      expect(bubble.currentParams.allowedOperations).toEqual(['SELECT']);
     });
 
-    // ========================================
-    // ENVIRONMENT VALIDATION (3 tests)
-    // ========================================
-    describe('Environment Validation', () => {
-      it('should validate required environment variables', async () => {
-        // Arrange
-        const invalidEnv = {};
-
-        // Act & Assert
-        await expect(
-          new InsForgeDbBubble({ env: invalidEnv })
-        ).rejects.toThrow('Missing required environment variables');
+    it('applies schema defaults', () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users',
+        credentials: mockCredentials,
       });
 
-      it('should fail fast on critical missing vars', async () => {
-        // Arrange
-        const criticalEnv = {
-          API_KEY: '',  // Critical but empty
-        };
-
-        // Act & Assert
-        await expect(
-          new InsForgeDbBubble({ env: criticalEnv })
-        ).rejects.toThrow('API_KEY');
-      });
-
-      it('should accept valid environment configuration', async () => {
-        // Arrange
-        const validEnv = {
-          API_KEY: 'valid-key',
-          API_URL: 'https://api.example.com',
-        };
-
-        // Act & Assert
-        const validInstance = new InsForgeDbBubble({ env: validEnv });
-        expect(validInstance).toBeDefined();
-      });
+      expect(bubble.currentParams.allowedOperations).toEqual([
+        'SELECT',
+        'WITH',
+      ]);
+      expect(bubble.currentParams.parameters).toEqual([]);
+      expect(bubble.currentParams.timeout).toBe(30000);
+      expect(bubble.currentParams.maxRows).toBe(1000);
     });
 
-    // ========================================
-    // AUTHENTICATION (3 tests)
-    // ========================================
-    describe('Authentication', () => {
-      it('should accept valid API key', async () => {
-        // Arrange
-        const validKey = 'valid-api-key-123';
-
-        // Act
-        const result = await instance.authenticate(validKey);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.authenticated).toBe(true);
+    it('excludes credentials from currentParams', () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
       });
-
-      it('should reject invalid API key', async () => {
-        // Arrange
-        const invalidKey = 'invalid-key';
-
-        // Act & Assert
-        await expect(instance.authenticate(invalidKey)).rejects.toThrow('Unauthorized');
-      });
-
-      it('should handle missing API key', async () => {
-        // Arrange
-        const missingKey = '';
-
-        // Act & Assert
-        await expect(instance.authenticate(missingKey)).rejects.toThrow('API key is required');
-      });
-    });
-
-    // ========================================
-    // RATE LIMITING (3 tests)
-    // ========================================
-    describe('Rate Limiting', () => {
-      it('should allow requests within limit', async () => {
-        // Arrange
-        const requests = Array(5).fill(null).map((_, i) => ({ id: i }));
-
-        // Act
-        const results = await Promise.all(
-          requests.map(req => instance.execute(req))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should block requests exceeding limit', async () => {
-        // Arrange
-        const tooManyRequests = Array(150).fill(null).map((_, i) => ({ id: i }));
-
-        // Act & Assert
-        await expect(
-          Promise.all(tooManyRequests.map(req => instance.execute(req)))
-        ).rejects.toThrow('Rate limit exceeded');
-      });
-
-      it('should reset after window expires', async () => {
-        // Arrange
-        vi.useFakeTimers();
-
-        // Act
-        await instance.execute({ id: 1 });
-        vi.advanceTimersByTime(60000);  // Advance 1 minute
-
-        // Assert - should allow new request
-        const result = await instance.execute({ id: 2 });
-        expect(result.success).toBe(true);
-
-        vi.useRealTimers();
-      });
-    });
-
-    // ========================================
-    // INPUT VALIDATION (5 tests)
-    // ========================================
-    describe('Input Validation', () => {
-      it('should validate required fields', async () => {
-        // Arrange
-        const invalidInput = {};  // Missing required fields
-
-        // Act & Assert
-        await expect(instance.execute(invalidInput)).rejects.toThrow('Required');
-      });
-
-      it('should sanitize malicious input', async () => {
-        // Arrange
-        const maliciousInput = {
-          query: "<script>alert('xss')</script>",
-          code: "'; DROP TABLE users; --",
-        };
-
-        // Act
-        const result = await instance.execute(maliciousInput);
-
-        // Assert
-        expect(result sanitized).toBeDefined();
-        expect(result.data).not.toContain('<script>');
-      });
-
-      it('should validate data types', async () => {
-        // Arrange
-        const wrongType = {
-          count: "not-a-number",  // Should be number
-          enabled: "not-boolean", // Should be boolean
-        };
-
-        // Act & Assert
-        await expect(instance.execute(wrongType)).rejects.toThrow('Invalid type');
-      });
-
-      it('should validate field formats', async () => {
-        // Arrange
-        const invalidFormat = {
-          email: "not-an-email",
-          url: "not-a-url",
-        };
-
-        // Act & Assert
-        await expect(instance.execute(invalidFormat)).rejects.toThrow('Invalid format');
-      });
-
-      it('should handle edge cases', async () => {
-        // Arrange
-        const edgeCases = [
-          { value: null },
-          { value: undefined },
-          { value: "" },
-          { value: 0 },
-          { value: -1 },
-          { value: Number.MAX_SAFE_INTEGER },
-        ];
-
-        // Act & Assert
-        for (const testCase of edgeCases) {
-          const result = await instance.execute(testCase);
-          expect(result).toBeDefined();
-        }
-      });
-    });
-
-    // ========================================
-    // CORE WORKFLOW LOGIC (10 tests)
-    // ========================================
-    describe('Workflow Execution', () => {
-      it('should execute successfully with valid input', async () => {
-        // Arrange
-        const validInput = {
-          param1: 'value1',
-          param2: 'value2',
-        };
-
-        // Act
-        const result = await instance.execute(validInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-      });
-
-      it('should handle errors gracefully', async () => {
-        // Arrange
-        const errorInput = {
-          triggerError: true,
-        };
-
-        // Act
-        const result = await instance.execute(errorInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
-      });
-
-      it('should handle timeout', async () => {
-        // Arrange
-        vi.useFakeTimers();
-        const slowInput = {
-          delay: 10000,  // Longer than timeout
-        };
-
-        // Act & Assert
-        await expect(instance.execute(slowInput)).rejects.toThrow('Timeout');
-
-        vi.useRealTimers();
-      });
-
-      it('should process multiple items correctly', async () => {
-        // Arrange
-        const batchInput = {
-          items: [
-            { id: 1, name: 'item1' },
-            { id: 2, name: 'item2' },
-            { id: 3, name: 'item3' },
-          ],
-        };
-
-        // Act
-        const result = await instance.execute(batchInput);
-
-        // Assert
-        expect(result.processed).toBe(3);
-        expect(result.results).toHaveLength(3);
-      });
-
-      it('should handle empty input', async () => {
-        // Arrange
-        const emptyInput = {
-          items: [],
-        };
-
-        // Act
-        const result = await instance.execute(emptyInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-      });
-
-      it('should validate output schema', async () => {
-        // Arrange
-        const input = { valid: 'data' };
-
-        // Act
-        const result = await instance.execute(input);
-
-        // Assert
-        expect(result.data).toMatchObject({
-          // Expected schema fields
-        });
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentInputs = [1, 2, 3, 4, 5].map(id => ({ id }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentInputs.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should maintain state between steps', async () => {
-        // Arrange
-        const multiStepInput = {
-          step1: 'value1',
-          step2: 'value2',
-          step3: 'value3',
-        };
-
-        // Act
-        const result = await instance.execute(multiStepInput);
-
-        // Assert
-        expect(result.step1Result).toBeDefined();
-        expect(result.step2Result).toBeDefined();
-        expect(result.step3Result).toBeDefined();
-      });
-
-      it('should rollback on failure', async () => {
-        // Arrange
-        const failingInput = {
-          failAt: 'step2',
-        };
-
-        // Act
-        const result = await instance.execute(failingInput);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.rolledBack).toBe(true);
-      });
-
-      it('should log execution steps', async () => {
-        // Arrange
-        const input = { log: 'test' };
-
-        // Act
-        await instance.execute(input);
-
-        // Assert
-        expect(mockContext.logger.info).toHaveBeenCalled();
-        expect(mockContext.logger.debug).toHaveBeenCalled();
-      });
-    });
-
-    // ========================================
-    // ERROR HANDLING (5 tests)
-    // ========================================
-    describe('Error Handling', () => {
-      it('should handle network errors', async () => {
-        // Arrange
-        vi.stubGlobal('fetch', () =>
-          Promise.reject(new Error('Network error'))
-        );
-
-        // Act & Assert
-        await expect(instance.execute({})).rejects.toThrow('Network');
-
-        vi.unstubAllGlobals();
-      });
-
-      it('should handle API errors', async () => {
-        // Arrange
-        const apiError = new Error('API Error');
-        apiError['status'] = 500;
-
-        // Act & Assert
-        const result = await instance.execute({ triggerApiError: true });
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('API');
-      });
-
-      it('should sanitize error messages', async () => {
-        // Arrange
-        const errorWithSecret = new Error('Error with secret-api-key-123');
-
-        // Act
-        const result = await instance.execute({ triggerError: true });
-
-        // Assert
-        expect(result.error).not.toContain('secret-api-key-123');
-        expect(result.error).toContain('[REDACTED]');
-      });
-
-      it('should log errors with correlation ID', async () => {
-        // Arrange
-        const correlationId = 'test-correlation-123';
-
-        // Act
-        await instance.execute({
-          correlationId,
-          triggerError: true,
-        });
-
-        // Assert
-        expect(mockContext.logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({
-            correlationId,
-          })
-        );
-      });
-
-      it('should retry transient errors', async () => {
-        // Arrange
-        let attemptCount = 0;
-        vi.stubGlobal('fetch', () => {
-          attemptCount++;
-          if (attemptCount < 3) {
-            return Promise.reject(new Error('Transient error'));
-          }
-          return Promise.resolve(new Response());
-        });
-
-        // Act
-        const result = await instance.execute({});
-
-        // Assert
-        expect(attemptCount).toBe(3);
-        expect(result.success).toBe(true);
-
-        vi.unstubAllGlobals();
-      });
-    });
-
-    // ========================================
-    // INTEGRATION (3 tests)
-    // ========================================
-    describe('Integration', () => {
-      it('should work end-to-end', async () => {
-        // Arrange
-        const completeInput = {
-          step1: { data: 'value1' },
-          step2: { data: 'value2' },
-          step3: { data: 'value3' },
-        };
-
-        // Act
-        const result = await instance.execute(completeInput);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-        expect(result.metadata).toBeDefined();
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentExecutions = Array(10).fill(null).map((_, i) => ({
-          id: i,
-          data: `test-${i}`,
-        }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentExecutions.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(10);
-        expect(results.every(r => r.success)).toBe(true);
-        expect(results.every(r => r.data.id !== results[0].data.id)).toBe(true);
-      });
-
-      it('should recover from failures', async () => {
-        // Arrange
-        const failingThenSucceeding = [
-          { id: 1, shouldFail: true },
-          { id: 2, shouldFail: true },
-          { id: 3, shouldFail: false },
-        ];
-
-        // Act
-        const results = await Promise.allSettled(
-          failingThenSucceeding.map(input => instance.execute(input))
-        );
-
-        // Assert
-        const failures = results.filter(r => r.status === 'rejected');
-        const successes = results.filter(r => r.status === 'fulfilled');
-
-        expect(failures).toHaveLength(2);
-        expect(successes).toHaveLength(1);
-      });
-    });
-
-    // ========================================
-    // PERFORMANCE (3 tests)
-    // ========================================
-    describe('Performance', () => {
-      it('should complete within reasonable time', async () => {
-        // Arrange
-        const startTime = Date.now();
-
-        // Act
-        await instance.execute({ id: 1 });
-
-        // Assert
-        const executionTime = Date.now() - startTime;
-        expect(executionTime).toBeLessThan(5000);  // 5 seconds
-      });
-
-      it('should handle large datasets efficiently', async () => {
-        // Arrange
-        const largeDataset = {
-          items: Array(1000).fill(null).map((_, i) => ({
-            id: i,
-            data: `item-${i}`,
-          })),
-        };
-
-        // Act
-        const result = await instance.execute(largeDataset);
-
-        // Assert
-        expect(result.processed).toBe(1000);
-      });
-
-      it('should not leak memory', async () => {
-        // Arrange
-        const initialMemory = process.memoryUsage().heapUsed;
-
-        // Act
-        for (let i = 0; i < 100; i++) {
-          await instance.execute({ id: i });
-        }
-
-        // Assert
-        const finalMemory = process.memoryUsage().heapUsed;
-        const memoryIncrease = finalMemory - initialMemory;
-        expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);  // 50MB
-      });
+      expect(
+        (bubble.currentParams as Record<string, unknown>).credentials
+      ).toBeUndefined();
     });
   });
-}
+
+  // ========================================
+  // SCHEMA VALIDATION
+  // ========================================
+  // The Bubble base constructor records schema failures instead of throwing.
+  describe('Schema Validation', () => {
+    it('returns a controlled error for an empty query', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: '',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Query is required');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns a controlled error for a non-positive timeout', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        timeout: 0,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('timeout');
+    });
+
+    it('returns a controlled error for an unknown SQL operation name', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        // @ts-expect-error 'MERGE' is not in the SqlOperations enum
+        allowedOperations: ['MERGE'],
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('allowedOperations');
+    });
+  });
+
+  // ========================================
+  // SQL SAFETY GUARDS (constructor-enforced)
+  // ========================================
+  // Unlike schema validation, these guards DO throw from the constructor:
+  // insforge-db.ts calls validateSqlOperation() after super().
+  describe('SQL Safety Guards', () => {
+    it('rejects an operation outside the allow-list', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: 'DELETE FROM users WHERE id = 1',
+            allowedOperations: ['SELECT'],
+            credentials: mockCredentials,
+          })
+      ).toThrow("SQL operation 'DELETE' is not allowed");
+    });
+
+    it('rejects DELETE without a WHERE clause', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: 'DELETE FROM users',
+            allowedOperations: ['DELETE'],
+            credentials: mockCredentials,
+          })
+      ).toThrow('DELETE queries must include a WHERE clause');
+    });
+
+    it('rejects UPDATE without a WHERE clause', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: "UPDATE users SET name = 'x'",
+            allowedOperations: ['UPDATE'],
+            credentials: mockCredentials,
+          })
+      ).toThrow('UPDATE queries must include a WHERE clause');
+    });
+
+    it('allows DELETE with a WHERE clause', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: 'DELETE FROM users WHERE id = $1',
+            allowedOperations: ['DELETE'],
+            parameters: [1],
+            credentials: mockCredentials,
+          })
+      ).not.toThrow();
+    });
+
+    it.each(['DROP', 'ALTER', 'TRUNCATE', 'GRANT', 'REVOKE'])(
+      'blocks the dangerous keyword %s',
+      (keyword) => {
+        expect(
+          () =>
+            new InsForgeDbBubble({
+              query: `SELECT * FROM users; ${keyword} TABLE users`,
+              allowedOperations: ['SELECT'],
+              credentials: mockCredentials,
+            })
+        ).toThrow('potentially dangerous operations');
+      }
+    );
+
+    it('allows WITH (CTE) queries by default', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: 'WITH t AS (SELECT 1) SELECT * FROM t',
+            credentials: mockCredentials,
+          })
+      ).not.toThrow();
+    });
+
+    it('is case-insensitive about the leading keyword', () => {
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: 'select * from users',
+            credentials: mockCredentials,
+          })
+      ).not.toThrow();
+    });
+
+    it('does not run the SQL guard when schema validation already failed', () => {
+      // `query` is invalid, so this.params holds raw input. The guard must be
+      // skipped rather than crashing on undefined.
+      expect(
+        () =>
+          new InsForgeDbBubble({
+            query: '',
+            credentials: mockCredentials,
+          })
+      ).not.toThrow();
+    });
+  });
+
+  // ========================================
+  // QUERY EXECUTION
+  // ========================================
+  describe('Query execution', () => {
+    it('returns rows for a successful array response', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse([
+          { id: 1, name: 'Ada' },
+          { id: 2, name: 'Grace' },
+        ])
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.rows).toHaveLength(2);
+      expect(result.data?.rowCount).toBe(2);
+      expect(result.data?.command).toBe('SELECT');
+      expect(result.data?.error).toBe('');
+      expect(JSON.parse(result.data!.cleanedJSONString)).toHaveLength(2);
+      expect(typeof result.data?.executionTime).toBe('number');
+    });
+
+    it('accepts a { rows: [...] } response shape', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ rows: [{ id: 1 }] })
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.rows).toEqual([{ id: 1 }]);
+    });
+
+    it('returns an empty result set without error', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse([]));
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users WHERE 1 = 0',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.rows).toEqual([]);
+      expect(result.data?.rowCount).toBe(0);
+      expect(result.data?.cleanedJSONString).toBe('[]');
+    });
+
+    it('truncates rows to maxRows but reports the full count', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse(Array.from({ length: 50 }, (_, i) => ({ id: i })))
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users',
+        maxRows: 10,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.rows).toHaveLength(10);
+      expect(result.data?.rowCount).toBe(50);
+    });
+
+    it('posts the query and parameters to the raw SQL endpoint', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse([]));
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users WHERE active = $1',
+        parameters: [true],
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toBe(
+        'https://insforge.test/api/database/advance/rawsql/unrestricted'
+      );
+      expect(init.method).toBe('POST');
+      expect((init.headers as Record<string, string>).Authorization).toBe(
+        'Bearer ins_test_key'
+      );
+      expect(JSON.parse(init.body as string)).toEqual({
+        query: 'SELECT * FROM users WHERE active = $1',
+        params: [true],
+      });
+    });
+
+    it('strips a trailing slash from the base URL', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse([]));
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_BASE_URL]: 'https://insforge.test/',
+          [CredentialType.INSFORGE_API_KEY]: 'ins_test_key',
+        },
+      });
+
+      await bubble.action();
+
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toBe(
+        'https://insforge.test/api/database/advance/rawsql/unrestricted'
+      );
+    });
+  });
+
+  // ========================================
+  // ERROR HANDLING
+  // ========================================
+  describe('Error handling', () => {
+    it('surfaces an HTTP failure as a controlled error result', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(500, 'relation "users" does not exist')
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT * FROM users',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.data?.error).toContain('InsForge query failed: 500');
+      expect(result.data?.rows).toEqual([]);
+      expect(result.data?.rowCount).toBeNull();
+      expect(result.data?.command).toBe('SELECT');
+    });
+
+    it('surfaces a network failure as a controlled error result', async () => {
+      vi.mocked(global.fetch).mockRejectedValueOnce(
+        new Error('Network error: ECONNREFUSED')
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.data?.error).toContain('Network error');
+    });
+
+    // NOTE: getCredentials() runs OUTSIDE performAction()'s try/catch, so
+    // credential problems propagate and the base class wraps them in a
+    // BubbleExecutionError rather than returning { success: false }.
+    it('reports a missing base URL without hitting the network', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_API_KEY]: 'ins_test_key',
+        },
+      });
+
+      await expect(bubble.action()).rejects.toThrow(
+        'InsForge base URL not provided'
+      );
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('reports a missing API key without hitting the network', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_BASE_URL]: 'https://insforge.test',
+        },
+      });
+
+      await expect(bubble.action()).rejects.toThrow(
+        'InsForge API key not provided'
+      );
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('reports entirely missing credentials', async () => {
+      const bubble = new InsForgeDbBubble({ query: 'SELECT 1' });
+
+      await expect(bubble.action()).rejects.toThrow(
+        'No InsForge credentials provided'
+      );
+    });
+
+    it('does not leak the API key in error messages', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'unauthorized')
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.data?.error).not.toContain('ins_test_key');
+    });
+  });
+
+  // ========================================
+  // CREDENTIALS
+  // ========================================
+  describe('testCredential', () => {
+    it('validates with base URL + API key via a probe query', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse([{ test: 1 }])
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(JSON.parse(init.body as string).query).toBe('SELECT 1 as test');
+    });
+
+    it('rejects when the probe query fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'bad key')
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).rejects.toThrow(
+        'InsForge credential validation failed: 401'
+      );
+    });
+
+    it('falls back to a health check when only the base URL is provided', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({ ok: true }));
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_BASE_URL]: 'https://insforge.test',
+        },
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toBe(
+        'https://insforge.test/api/health'
+      );
+    });
+
+    it('rejects when the health check fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(503, 'down')
+      );
+
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_BASE_URL]: 'https://insforge.test',
+        },
+      });
+
+      await expect(bubble.testCredential()).rejects.toThrow(
+        'InsForge health check failed: 503'
+      );
+    });
+
+    it('assumes valid when only an API key is provided (no URL to check)', async () => {
+      const bubble = new InsForgeDbBubble({
+        query: 'SELECT 1',
+        credentials: {
+          [CredentialType.INSFORGE_API_KEY]: 'ins_test_key',
+        },
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('rejects when no credentials are supplied at all', async () => {
+      const bubble = new InsForgeDbBubble({ query: 'SELECT 1' });
+
+      await expect(bubble.testCredential()).rejects.toThrow(
+        'No InsForge credentials provided'
+      );
+    });
+  });
+
+  // ========================================
+  // CONCURRENCY
+  // ========================================
+  describe('Concurrency', () => {
+    it('handles concurrent queries independently', async () => {
+      vi.mocked(global.fetch).mockImplementation(async () =>
+        jsonResponse([{ id: 1 }])
+      );
+
+      const bubbles = Array.from(
+        { length: 5 },
+        (_, i) =>
+          new InsForgeDbBubble({
+            query: `SELECT ${i + 1}`,
+            credentials: mockCredentials,
+          })
+      );
+
+      const results = await Promise.all(bubbles.map((b) => b.action()));
+
+      expect(results).toHaveLength(5);
+      expect(results.every((r) => r.success)).toBe(true);
+      expect(global.fetch).toHaveBeenCalledTimes(5);
+    });
+  });
+});

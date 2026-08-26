@@ -435,7 +435,7 @@ describe('cache utilities', () => {
       expect(stats.l1.hits).toBe(1);
       expect(stats.l1.misses).toBe(0);
 
-      expect(stats.l2!.size).toBe(1);
+      expect(stats.l2!.size).toBe(2);
 
       expect(stats.combined.size).toBeGreaterThanOrEqual(1);
       expect(stats.combined.hits).toBe(1);

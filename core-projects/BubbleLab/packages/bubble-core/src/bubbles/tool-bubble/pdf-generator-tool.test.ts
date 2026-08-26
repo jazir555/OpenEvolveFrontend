@@ -1,4 +1,3 @@
-{
   /*
    * Comprehensive Test Suite for pdf-generator-tool
    * Generated: 2026-01-19T02:05:45.148296
@@ -18,7 +17,12 @@
   import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
   import { PDFGeneratorTool } from './pdf-generator-tool';
 
-  describe('pdf-generator-tool', () => {
+  // Skipped: this auto-generated suite targets a generic template API
+  // (constructor({ env, logger }), authenticate(), execute()) that does not
+  // exist on the real tool (performAction + zod-params constructor). It also
+  // contains internally contradictory assertions (execute({}) is expected to
+  // reject both 'Required' and 'Network'), so it cannot be satisfied by a mock.
+  describe.skip('pdf-generator-tool', () => {
     let instance: PDFGeneratorTool;
     let mockContext: any;
 
@@ -185,7 +189,7 @@
         const result = await instance.execute(maliciousInput);
 
         // Assert
-        expect(result sanitized).toBeDefined();
+        expect(result.sanitized).toBeDefined();
         expect(result.data).not.toContain('<script>');
       });
 
@@ -569,4 +573,3 @@
       });
     });
   });
-}

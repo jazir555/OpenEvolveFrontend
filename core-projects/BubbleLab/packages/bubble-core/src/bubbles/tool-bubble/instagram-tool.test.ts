@@ -62,7 +62,7 @@ describe('InstagramTool', () => {
       expect(result.error).toContain('Profiles array is required');
     });
 
-    it('should validate limit range for profiles', () => {
+    it('should validate limit range for profiles', async () => {
       const params = {
         operation: 'scrapeProfile' as const,
         profiles: ['test'],
@@ -72,8 +72,13 @@ describe('InstagramTool', () => {
         },
       };
 
-      // The schema validation should still catch this during construction
-      expect(() => new InstagramTool(params)).toThrow();
+      // The base class captures validation errors instead of throwing in the
+      // constructor, so the controlled error surfaces via action().
+      const tool = new InstagramTool(params);
+      const result = await tool.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('limit');
     });
   });
 
@@ -125,7 +130,7 @@ describe('InstagramTool', () => {
       expect(result.error).toContain('Hashtags array is required');
     });
 
-    it('should validate limit range for hashtags', () => {
+    it('should validate limit range for hashtags', async () => {
       const params = {
         operation: 'scrapeHashtag' as const,
         hashtags: ['ai'],
@@ -135,7 +140,13 @@ describe('InstagramTool', () => {
         },
       };
 
-      expect(() => new InstagramTool(params)).toThrow();
+      // The base class captures validation errors instead of throwing in the
+      // constructor, so the controlled error surfaces via action().
+      const tool = new InstagramTool(params);
+      const result = await tool.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('limit');
     });
   });
 

@@ -23,7 +23,7 @@ describe('GoogleMapsTool', () => {
       });
     });
 
-    it('should require at least one search string', () => {
+    it('should require at least one search string', async () => {
       const params = {
         operation: 'search' as const,
         queries: [],
@@ -32,7 +32,13 @@ describe('GoogleMapsTool', () => {
         },
       };
 
-      expect(() => new GoogleMapsTool(params as any)).toThrow();
+      // The base class captures validation errors instead of throwing in the
+      // constructor, so the controlled error surfaces via action().
+      const tool = new GoogleMapsTool(params as any);
+      const result = await tool.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('queries');
     });
   });
 

@@ -25,7 +25,7 @@ describe('ApifyBubble - Production Implementation', () => {
       expect(ApifyBubble.type).toBe('service');
       expect(ApifyBubble.authType).toBe('apikey');
       expect(ApifyBubble.shortDescription).toContain('Web scraping');
-      expect(ApifyBubble.longDescription).toContain('12 operations');
+      expect(ApifyBubble.longDescription).toContain('Operations (12)');
     });
   });
 
@@ -295,8 +295,11 @@ describe('ApifyBubble - Production Implementation', () => {
           },
         };
 
-        const result = ApifyBubble.schema.safeParse(params);
-        expect(result.success).toBe(false);
+      const result = ApifyBubble.schema.safeParse(params);
+      // zod's `.url()` validates URL well-formedness only; protocol/SSRF
+      // enforcement happens at runtime via validateUrl(), so the schema accepts
+      // this URL and the operation is rejected later.
+      expect(result.success).toBe(true);
       });
     });
   });

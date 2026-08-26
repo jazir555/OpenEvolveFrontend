@@ -1,572 +1,868 @@
-{
-  /*
-   * Comprehensive Test Suite for google-drive
-   * Generated: 2026-01-19T02:05:45.106168
-   *
-   * Security & Quality Tests:
-   * - Environment Validation (3 tests)
-   * - Authentication (3 tests)
-   * - Rate Limiting (3 tests)
-   * - Input Validation (5 tests)
-   * - Core Workflow Logic (10 tests)
-   * - Error Handling (5 tests)
-   * - Integration (3 tests)
-   *
-   * Total: 32 comprehensive tests
-   */
+/**
+ * Test Suite for GoogleDriveBubble (google-drive.ts — the Drive + Docs bubble)
+ *
+ * The previous contents of this file were a generated placeholder that tested a
+ * non-existent API (`instance.authenticate()`, `instance.execute()`, an `env`
+ * context) and did not even parse. It has been rewritten against the real
+ * bubble:
+ *  - discriminated-union params keyed on `operation`
+ *    (upload_file / download_file / list_files / create_folder / delete_file /
+ *     get_file_info / share_file / move_file / get_doc / replace_text / copy_doc)
+ *  - `action()` returns a BubbleResult wrapper `{ success, data, error }`
+ *  - invalid params are captured at construction (NOT thrown) and surfaced as a
+ *    controlled error from `action()`
+ *  - all network access goes through the global `fetch`, mocked here
+ */
 
-  import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-  import { GoogleDriveBubble } from './google-drive';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { GoogleDriveBubble } from './google-drive.js';
+import { CredentialType } from '@bubblelab/shared-schemas';
 
-  describe('google-drive', () => {
-    let instance: GoogleDriveBubble;
-    let mockContext: any;
+const mockCredentials = {
+  [CredentialType.GOOGLE_DRIVE_CRED]: 'ya29.test-mock-token',
+};
 
-    beforeEach(() => {
-      // Setup mock environment
-      mockContext = {
-        env: {
-          API_KEY: 'test-api-key',
-          API_URL: 'https://api.test.com',
-          TIMEOUT: '5000',
-        },
-        logger: {
-          info: vi.fn(),
-          error: vi.fn(),
-          warn: vi.fn(),
-          debug: vi.fn(),
-        },
-      };
+function jsonResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+    arrayBuffer: async () => new TextEncoder().encode(JSON.stringify(body))
+      .buffer as ArrayBuffer,
+  } as unknown as Response;
+}
 
-      // Initialize instance
-      instance = new GoogleDriveBubble(mockContext);
+function binaryResponse(text: string, contentType = 'text/plain') {
+  const bytes = new TextEncoder().encode(text);
+  return {
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers({ 'content-type': contentType }),
+    json: async () => JSON.parse(text),
+    text: async () => text,
+    arrayBuffer: async () =>
+      bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength
+      ) as ArrayBuffer,
+  } as unknown as Response;
+}
+
+function errorResponse(status: number, message: string) {
+  return {
+    ok: false,
+    status,
+    statusText: message,
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => ({ error: { message } }),
+    text: async () => JSON.stringify({ error: { message } }),
+    arrayBuffer: async () => new ArrayBuffer(0),
+  } as unknown as Response;
+}
+
+/** Read the `q` search param from a recorded fetch call (URLSearchParams encodes spaces as `+`). */
+function queryParamOfCall(callIndex: number, name: string): string | null {
+  const url = new URL(vi.mocked(global.fetch).mock.calls[callIndex][0] as string);
+  return url.searchParams.get(name);
+}
+
+describe('GoogleDriveBubble (google-drive)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================
+  // METADATA
+  // ========================================
+  describe('Bubble metadata', () => {
+    it('exposes the expected static metadata', () => {
+      expect(GoogleDriveBubble.bubbleName).toBe('google-drive');
+      expect(GoogleDriveBubble.type).toBe('service');
+      expect(GoogleDriveBubble.service).toBe('google-drive');
+      expect(GoogleDriveBubble.authType).toBe('oauth');
+      expect(GoogleDriveBubble.alias).toBe('gdrive');
+      expect(GoogleDriveBubble.schema).toBeDefined();
+      expect(GoogleDriveBubble.resultSchema).toBeDefined();
     });
 
-    afterEach(() => {
-      vi.clearAllMocks();
+    it('defaults to a list_files operation when constructed with no params', () => {
+      const bubble = new GoogleDriveBubble();
+      expect(bubble.currentParams.operation).toBe('list_files');
     });
 
-    // ========================================
-    // ENVIRONMENT VALIDATION (3 tests)
-    // ========================================
-    describe('Environment Validation', () => {
-      it('should validate required environment variables', async () => {
-        // Arrange
-        const invalidEnv = {};
-
-        // Act & Assert
-        await expect(
-          new GoogleDriveBubble({ env: invalidEnv })
-        ).rejects.toThrow('Missing required environment variables');
+    it('excludes credentials from currentParams', () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
       });
-
-      it('should fail fast on critical missing vars', async () => {
-        // Arrange
-        const criticalEnv = {
-          API_KEY: '',  // Critical but empty
-        };
-
-        // Act & Assert
-        await expect(
-          new GoogleDriveBubble({ env: criticalEnv })
-        ).rejects.toThrow('API_KEY');
-      });
-
-      it('should accept valid environment configuration', async () => {
-        // Arrange
-        const validEnv = {
-          API_KEY: 'valid-key',
-          API_URL: 'https://api.example.com',
-        };
-
-        // Act & Assert
-        const validInstance = new GoogleDriveBubble({ env: validEnv });
-        expect(validInstance).toBeDefined();
-      });
+      expect(
+        (bubble.currentParams as Record<string, unknown>).credentials
+      ).toBeUndefined();
     });
 
-    // ========================================
-    // AUTHENTICATION (3 tests)
-    // ========================================
-    describe('Authentication', () => {
-      it('should accept valid API key', async () => {
-        // Arrange
-        const validKey = 'valid-api-key-123';
-
-        // Act
-        const result = await instance.authenticate(validKey);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.authenticated).toBe(true);
+    it('applies schema defaults for list_files', () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
       });
-
-      it('should reject invalid API key', async () => {
-        // Arrange
-        const invalidKey = 'invalid-key';
-
-        // Act & Assert
-        await expect(instance.authenticate(invalidKey)).rejects.toThrow('Unauthorized');
-      });
-
-      it('should handle missing API key', async () => {
-        // Arrange
-        const missingKey = '';
-
-        // Act & Assert
-        await expect(instance.authenticate(missingKey)).rejects.toThrow('API key is required');
-      });
-    });
-
-    // ========================================
-    // RATE LIMITING (3 tests)
-    // ========================================
-    describe('Rate Limiting', () => {
-      it('should allow requests within limit', async () => {
-        // Arrange
-        const requests = Array(5).fill(null).map((_, i) => ({ id: i }));
-
-        // Act
-        const results = await Promise.all(
-          requests.map(req => instance.execute(req))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should block requests exceeding limit', async () => {
-        // Arrange
-        const tooManyRequests = Array(150).fill(null).map((_, i) => ({ id: i }));
-
-        // Act & Assert
-        await expect(
-          Promise.all(tooManyRequests.map(req => instance.execute(req)))
-        ).rejects.toThrow('Rate limit exceeded');
-      });
-
-      it('should reset after window expires', async () => {
-        // Arrange
-        vi.useFakeTimers();
-
-        // Act
-        await instance.execute({ id: 1 });
-        vi.advanceTimersByTime(60000);  // Advance 1 minute
-
-        // Assert - should allow new request
-        const result = await instance.execute({ id: 2 });
-        expect(result.success).toBe(true);
-
-        vi.useRealTimers();
-      });
-    });
-
-    // ========================================
-    // INPUT VALIDATION (5 tests)
-    // ========================================
-    describe('Input Validation', () => {
-      it('should validate required fields', async () => {
-        // Arrange
-        const invalidInput = {};  // Missing required fields
-
-        // Act & Assert
-        await expect(instance.execute(invalidInput)).rejects.toThrow('Required');
-      });
-
-      it('should sanitize malicious input', async () => {
-        // Arrange
-        const maliciousInput = {
-          query: "<script>alert('xss')</script>",
-          code: "'; DROP TABLE users; --",
-        };
-
-        // Act
-        const result = await instance.execute(maliciousInput);
-
-        // Assert
-        expect(result sanitized).toBeDefined();
-        expect(result.data).not.toContain('<script>');
-      });
-
-      it('should validate data types', async () => {
-        // Arrange
-        const wrongType = {
-          count: "not-a-number",  // Should be number
-          enabled: "not-boolean", // Should be boolean
-        };
-
-        // Act & Assert
-        await expect(instance.execute(wrongType)).rejects.toThrow('Invalid type');
-      });
-
-      it('should validate field formats', async () => {
-        // Arrange
-        const invalidFormat = {
-          email: "not-an-email",
-          url: "not-a-url",
-        };
-
-        // Act & Assert
-        await expect(instance.execute(invalidFormat)).rejects.toThrow('Invalid format');
-      });
-
-      it('should handle edge cases', async () => {
-        // Arrange
-        const edgeCases = [
-          { value: null },
-          { value: undefined },
-          { value: "" },
-          { value: 0 },
-          { value: -1 },
-          { value: Number.MAX_SAFE_INTEGER },
-        ];
-
-        // Act & Assert
-        for (const testCase of edgeCases) {
-          const result = await instance.execute(testCase);
-          expect(result).toBeDefined();
-        }
-      });
-    });
-
-    // ========================================
-    // CORE WORKFLOW LOGIC (10 tests)
-    // ========================================
-    describe('Workflow Execution', () => {
-      it('should execute successfully with valid input', async () => {
-        // Arrange
-        const validInput = {
-          param1: 'value1',
-          param2: 'value2',
-        };
-
-        // Act
-        const result = await instance.execute(validInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-      });
-
-      it('should handle errors gracefully', async () => {
-        // Arrange
-        const errorInput = {
-          triggerError: true,
-        };
-
-        // Act
-        const result = await instance.execute(errorInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
-      });
-
-      it('should handle timeout', async () => {
-        // Arrange
-        vi.useFakeTimers();
-        const slowInput = {
-          delay: 10000,  // Longer than timeout
-        };
-
-        // Act & Assert
-        await expect(instance.execute(slowInput)).rejects.toThrow('Timeout');
-
-        vi.useRealTimers();
-      });
-
-      it('should process multiple items correctly', async () => {
-        // Arrange
-        const batchInput = {
-          items: [
-            { id: 1, name: 'item1' },
-            { id: 2, name: 'item2' },
-            { id: 3, name: 'item3' },
-          ],
-        };
-
-        // Act
-        const result = await instance.execute(batchInput);
-
-        // Assert
-        expect(result.processed).toBe(3);
-        expect(result.results).toHaveLength(3);
-      });
-
-      it('should handle empty input', async () => {
-        // Arrange
-        const emptyInput = {
-          items: [],
-        };
-
-        // Act
-        const result = await instance.execute(emptyInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-      });
-
-      it('should validate output schema', async () => {
-        // Arrange
-        const input = { valid: 'data' };
-
-        // Act
-        const result = await instance.execute(input);
-
-        // Assert
-        expect(result.data).toMatchObject({
-          // Expected schema fields
-        });
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentInputs = [1, 2, 3, 4, 5].map(id => ({ id }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentInputs.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
-      });
-
-      it('should maintain state between steps', async () => {
-        // Arrange
-        const multiStepInput = {
-          step1: 'value1',
-          step2: 'value2',
-          step3: 'value3',
-        };
-
-        // Act
-        const result = await instance.execute(multiStepInput);
-
-        // Assert
-        expect(result.step1Result).toBeDefined();
-        expect(result.step2Result).toBeDefined();
-        expect(result.step3Result).toBeDefined();
-      });
-
-      it('should rollback on failure', async () => {
-        // Arrange
-        const failingInput = {
-          failAt: 'step2',
-        };
-
-        // Act
-        const result = await instance.execute(failingInput);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.rolledBack).toBe(true);
-      });
-
-      it('should log execution steps', async () => {
-        // Arrange
-        const input = { log: 'test' };
-
-        // Act
-        await instance.execute(input);
-
-        // Assert
-        expect(mockContext.logger.info).toHaveBeenCalled();
-        expect(mockContext.logger.debug).toHaveBeenCalled();
-      });
-    });
-
-    // ========================================
-    // ERROR HANDLING (5 tests)
-    // ========================================
-    describe('Error Handling', () => {
-      it('should handle network errors', async () => {
-        // Arrange
-        vi.stubGlobal('fetch', () =>
-          Promise.reject(new Error('Network error'))
-        );
-
-        // Act & Assert
-        await expect(instance.execute({})).rejects.toThrow('Network');
-
-        vi.unstubAllGlobals();
-      });
-
-      it('should handle API errors', async () => {
-        // Arrange
-        const apiError = new Error('API Error');
-        apiError['status'] = 500;
-
-        // Act & Assert
-        const result = await instance.execute({ triggerApiError: true });
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('API');
-      });
-
-      it('should sanitize error messages', async () => {
-        // Arrange
-        const errorWithSecret = new Error('Error with secret-api-key-123');
-
-        // Act
-        const result = await instance.execute({ triggerError: true });
-
-        // Assert
-        expect(result.error).not.toContain('secret-api-key-123');
-        expect(result.error).toContain('[REDACTED]');
-      });
-
-      it('should log errors with correlation ID', async () => {
-        // Arrange
-        const correlationId = 'test-correlation-123';
-
-        // Act
-        await instance.execute({
-          correlationId,
-          triggerError: true,
-        });
-
-        // Assert
-        expect(mockContext.logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({
-            correlationId,
-          })
-        );
-      });
-
-      it('should retry transient errors', async () => {
-        // Arrange
-        let attemptCount = 0;
-        vi.stubGlobal('fetch', () => {
-          attemptCount++;
-          if (attemptCount < 3) {
-            return Promise.reject(new Error('Transient error'));
-          }
-          return Promise.resolve(new Response());
-        });
-
-        // Act
-        const result = await instance.execute({});
-
-        // Assert
-        expect(attemptCount).toBe(3);
-        expect(result.success).toBe(true);
-
-        vi.unstubAllGlobals();
-      });
-    });
-
-    // ========================================
-    // INTEGRATION (3 tests)
-    // ========================================
-    describe('Integration', () => {
-      it('should work end-to-end', async () => {
-        // Arrange
-        const completeInput = {
-          step1: { data: 'value1' },
-          step2: { data: 'value2' },
-          step3: { data: 'value3' },
-        };
-
-        // Act
-        const result = await instance.execute(completeInput);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-        expect(result.metadata).toBeDefined();
-      });
-
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentExecutions = Array(10).fill(null).map((_, i) => ({
-          id: i,
-          data: `test-${i}`,
-        }));
-
-        // Act
-        const results = await Promise.all(
-          concurrentExecutions.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(10);
-        expect(results.every(r => r.success)).toBe(true);
-        expect(results.every(r => r.data.id !== results[0].data.id)).toBe(true);
-      });
-
-      it('should recover from failures', async () => {
-        // Arrange
-        const failingThenSucceeding = [
-          { id: 1, shouldFail: true },
-          { id: 2, shouldFail: true },
-          { id: 3, shouldFail: false },
-        ];
-
-        // Act
-        const results = await Promise.allSettled(
-          failingThenSucceeding.map(input => instance.execute(input))
-        );
-
-        // Assert
-        const failures = results.filter(r => r.status === 'rejected');
-        const successes = results.filter(r => r.status === 'fulfilled');
-
-        expect(failures).toHaveLength(2);
-        expect(successes).toHaveLength(1);
-      });
-    });
-
-    // ========================================
-    // PERFORMANCE (3 tests)
-    // ========================================
-    describe('Performance', () => {
-      it('should complete within reasonable time', async () => {
-        // Arrange
-        const startTime = Date.now();
-
-        // Act
-        await instance.execute({ id: 1 });
-
-        // Assert
-        const executionTime = Date.now() - startTime;
-        expect(executionTime).toBeLessThan(5000);  // 5 seconds
-      });
-
-      it('should handle large datasets efficiently', async () => {
-        // Arrange
-        const largeDataset = {
-          items: Array(1000).fill(null).map((_, i) => ({
-            id: i,
-            data: `item-${i}`,
-          })),
-        };
-
-        // Act
-        const result = await instance.execute(largeDataset);
-
-        // Assert
-        expect(result.processed).toBe(1000);
-      });
-
-      it('should not leak memory', async () => {
-        // Arrange
-        const initialMemory = process.memoryUsage().heapUsed;
-
-        // Act
-        for (let i = 0; i < 100; i++) {
-          await instance.execute({ id: i });
-        }
-
-        // Assert
-        const finalMemory = process.memoryUsage().heapUsed;
-        const memoryIncrease = finalMemory - initialMemory;
-        expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);  // 50MB
-      });
+      const params = bubble.currentParams as Record<string, unknown>;
+      expect(params.max_results).toBe(100);
+      expect(params.include_folders).toBe(true);
+      expect(params.order_by).toBe('modifiedTime desc');
     });
   });
-}
+
+  // ========================================
+  // INPUT VALIDATION
+  // ========================================
+  // The base constructor records validation failures rather than throwing, so
+  // these assert on the controlled error returned by action().
+  describe('Input Validation', () => {
+    it('returns a controlled error for an unknown operation', async () => {
+      const bubble = new GoogleDriveBubble({
+        // @ts-expect-error deliberately invalid operation
+        operation: 'teleport_file',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('returns a controlled error when download_file is missing file_id', async () => {
+      const bubble = new GoogleDriveBubble({
+        // @ts-expect-error file_id is required
+        operation: 'download_file',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('file_id');
+    });
+
+    it('returns a controlled error for an empty file_id', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'get_file_info',
+        file_id: '',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('File ID is required');
+    });
+
+    it('returns a controlled error for an empty folder name', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'create_folder',
+        name: '',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Folder name is required');
+    });
+
+    it('rejects an invalid email address for share_file', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'share_file',
+        file_id: 'file_1',
+        email_address: 'not-an-email',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('email_address');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('rejects max_results above the documented ceiling', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        max_results: 5000,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('max_results');
+    });
+  });
+
+  // ========================================
+  // list_files
+  // ========================================
+  describe('list_files', () => {
+    it('returns the file list on success', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          files: [
+            { id: 'f1', name: 'a.txt', mimeType: 'text/plain' },
+            { id: 'f2', name: 'b.txt', mimeType: 'text/plain' },
+          ],
+          nextPageToken: 'page-2',
+        })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        max_results: 10,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.operation).toBe('list_files');
+      expect(result.data?.files).toHaveLength(2);
+      expect(result.data?.total_count).toBe(2);
+      expect(result.data?.next_page_token).toBe('page-2');
+    });
+
+    it('sends the bearer token and always filters out trashed files', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ files: [] })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toContain('/files?');
+      expect(queryParamOfCall(0, 'q')).toContain('trashed = false');
+      expect((init.headers as Record<string, string>).Authorization).toBe(
+        'Bearer ya29.test-mock-token'
+      );
+    });
+
+    it('scopes the query to a folder when folder_id is provided', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ files: [] })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        folder_id: 'folder_abc',
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      const url = vi.mocked(global.fetch).mock.calls[0][0] as string;
+      expect(url).toContain('/files?');
+      expect(queryParamOfCall(0, 'q')).toContain("'folder_abc' in parents");
+    });
+
+    it('excludes folders when include_folders is false', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ files: [] })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        include_folders: false,
+        credentials: mockCredentials,
+      });
+
+      await bubble.action();
+
+      expect(queryParamOfCall(0, 'q')).toContain(
+        "mimeType != 'application/vnd.google-apps.folder'"
+      );
+    });
+
+    it('returns an empty list when Drive returns no files', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({}));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.files).toEqual([]);
+      expect(result.data?.total_count).toBe(0);
+    });
+  });
+
+  // ========================================
+  // upload_file
+  // ========================================
+  describe('upload_file', () => {
+    it('uploads plain text content', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'file_new', name: 'notes.txt', mimeType: 'text/plain' })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'upload_file',
+        name: 'notes.txt',
+        content: 'hello world',
+        mimeType: 'text/plain',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.file?.id).toBe('file_new');
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toContain('/upload/drive/v3/files');
+      expect(url).toContain('uploadType=multipart');
+      expect(init.method).toBe('POST');
+      expect(
+        (init.headers as Record<string, string>)['Content-Type']
+      ).toContain('multipart/related');
+    });
+
+    it('places the file in a parent folder when requested', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'file_new', name: 'notes.txt', mimeType: 'text/plain' })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'upload_file',
+        name: 'notes.txt',
+        content: 'hello world',
+        parent_folder_id: 'folder_abc',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      const body = vi.mocked(global.fetch).mock.calls[0][1]?.body as Buffer;
+      expect(body.toString('utf8')).toContain('folder_abc');
+    });
+
+    it('returns a controlled failure for empty content', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'upload_file',
+        name: 'notes.txt',
+        content: '',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('File content is required');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('maps a 401 upload failure to an authentication message', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'Unauthorized')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'upload_file',
+        name: 'notes.txt',
+        content: 'hello',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Authentication failed');
+    });
+
+    it('maps a 403 upload failure to a permission message', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(403, 'Forbidden')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'upload_file',
+        name: 'notes.txt',
+        content: 'hello',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Permission denied');
+    });
+  });
+
+  // ========================================
+  // download_file
+  // ========================================
+  describe('download_file', () => {
+    it('downloads a regular text file as plain text', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(
+          jsonResponse({ name: 'notes.txt', mimeType: 'text/plain' })
+        )
+        .mockResolvedValueOnce(binaryResponse('file contents here'));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'download_file',
+        file_id: 'file_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.content).toBe('file contents here');
+      expect(result.data?.filename).toBe('notes.txt');
+      expect(result.data?.mimeType).toBe('text/plain');
+    });
+
+    it('requires an export format for Google Workspace files', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          name: 'doc',
+          mimeType: 'application/vnd.google-apps.document',
+        })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'download_file',
+        file_id: 'file_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Export format is required');
+    });
+
+    it('exports a Google Workspace file with the requested format', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(
+          jsonResponse({
+            name: 'doc',
+            mimeType: 'application/vnd.google-apps.document',
+          })
+        )
+        .mockResolvedValueOnce(binaryResponse('exported text'));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'download_file',
+        file_id: 'file_1',
+        export_format: 'text/plain',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.content).toBe('exported text');
+      expect(result.data?.mimeType).toBe('text/plain');
+
+      const exportUrl = vi.mocked(global.fetch).mock.calls[1][0] as string;
+      expect(exportUrl).toContain('/export?');
+      expect(exportUrl).toContain(encodeURIComponent('text/plain'));
+    });
+
+    it('base64-encodes binary downloads', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(
+          jsonResponse({ name: 'pic.png', mimeType: 'image/png' })
+        )
+        .mockResolvedValueOnce(binaryResponse('PNGDATA', 'image/png'));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'download_file',
+        file_id: 'file_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.content).toBe(
+        Buffer.from('PNGDATA', 'utf8').toString('base64')
+      );
+    });
+  });
+
+  // ========================================
+  // create_folder / delete_file / get_file_info
+  // ========================================
+  describe('create_folder', () => {
+    it('creates a folder at the Drive root', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'folder_1', name: 'Reports' })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'create_folder',
+        name: 'Reports',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.folder?.id).toBe('folder_1');
+
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.mimeType).toBe('application/vnd.google-apps.folder');
+      expect(body.parents).toBeUndefined();
+    });
+
+    it('creates a nested folder when parent_folder_id is provided', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'folder_2', name: 'Q1', parents: ['folder_1'] })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'create_folder',
+        name: 'Q1',
+        parent_folder_id: 'folder_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.parents).toEqual(['folder_1']);
+    });
+  });
+
+  describe('delete_file', () => {
+    it('trashes a file by default', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({}));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'delete_file',
+        file_id: 'file_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.deleted_file_id).toBe('file_1');
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body as string)).toEqual({ trashed: true });
+    });
+
+    it('permanently deletes when permanent is true', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({}));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'delete_file',
+        file_id: 'file_1',
+        permanent: true,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('DELETE');
+    });
+  });
+
+  describe('get_file_info', () => {
+    it('returns file metadata without permissions by default', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ id: 'file_1', name: 'notes.txt', mimeType: 'text/plain' })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'get_file_info',
+        file_id: 'file_1',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.file?.id).toBe('file_1');
+      expect(result.data?.permissions).toBeUndefined();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches permissions when include_permissions is true', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(
+          jsonResponse({ id: 'file_1', name: 'notes.txt', mimeType: 'text/plain' })
+        )
+        .mockResolvedValueOnce(
+          jsonResponse({
+            permissions: [
+              {
+                id: 'perm_1',
+                type: 'user',
+                role: 'owner',
+                emailAddress: 'me@example.com',
+              },
+            ],
+          })
+        );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'get_file_info',
+        file_id: 'file_1',
+        include_permissions: true,
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.permissions).toHaveLength(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ========================================
+  // share_file
+  // ========================================
+  describe('share_file', () => {
+    it('creates a permission and returns the share link', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(jsonResponse({ id: 'perm_1' }))
+        .mockResolvedValueOnce(
+          jsonResponse({ webViewLink: 'https://drive.google.com/file/d/file_1' })
+        );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'share_file',
+        file_id: 'file_1',
+        email_address: 'friend@example.com',
+        role: 'writer',
+        type: 'user',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      expect(result.data?.permission_id).toBe('perm_1');
+      expect(result.data?.share_link).toBe(
+        'https://drive.google.com/file/d/file_1'
+      );
+
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body).toMatchObject({
+        role: 'writer',
+        type: 'user',
+        emailAddress: 'friend@example.com',
+      });
+    });
+
+    it('omits emailAddress for anyone-type shares', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(jsonResponse({ id: 'perm_2' }))
+        .mockResolvedValueOnce(jsonResponse({ webViewLink: 'https://link' }));
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'share_file',
+        file_id: 'file_1',
+        type: 'anyone',
+        email_address: 'friend@example.com',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(true);
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.emailAddress).toBeUndefined();
+    });
+  });
+
+  // ========================================
+  // ERROR HANDLING
+  // ========================================
+  describe('Error Handling', () => {
+    it('surfaces a 500 API error as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(500, 'Internal Server Error')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Google Drive API error');
+      expect(result.error).toContain('500');
+    });
+
+    it('surfaces a 404 API error as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(404, 'Not Found')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'get_file_info',
+        file_id: 'missing',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('404');
+    });
+
+    it('surfaces network failures as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockRejectedValueOnce(
+        new Error('Network error: ECONNRESET')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Network error');
+    });
+
+    it('does not leak the bearer token in error messages', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(403, 'Forbidden')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).not.toContain('ya29.test-mock-token');
+    });
+
+    it('reports missing credentials as a controlled failure', async () => {
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+      });
+
+      const result = await bubble.action();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('credentials');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ========================================
+  // CREDENTIALS
+  // ========================================
+  describe('testCredential', () => {
+    it('resolves true when the about probe succeeds', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ user: { displayName: 'Test User' } })
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+    });
+
+    it('rejects when the about probe fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'Unauthorized')
+      );
+
+      const bubble = new GoogleDriveBubble({
+        operation: 'list_files',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).rejects.toThrow(
+        'Google Drive API error'
+      );
+    });
+
+    it('rejects when no credentials are supplied', async () => {
+      const bubble = new GoogleDriveBubble({ operation: 'list_files' });
+
+      await expect(bubble.testCredential()).rejects.toThrow(/credentials/i);
+    });
+  });
+
+  // ========================================
+  // CONCURRENCY
+  // ========================================
+  describe('Concurrency', () => {
+    it('handles concurrent list_files calls independently', async () => {
+      vi.mocked(global.fetch).mockImplementation(async () =>
+        jsonResponse({
+          files: [{ id: 'f1', name: 'a.txt', mimeType: 'text/plain' }],
+        })
+      );
+
+      const bubbles = Array.from(
+        { length: 5 },
+        () =>
+          new GoogleDriveBubble({
+            operation: 'list_files',
+            credentials: mockCredentials,
+          })
+      );
+
+      const results = await Promise.all(bubbles.map((b) => b.action()));
+
+      expect(results).toHaveLength(5);
+      expect(results.every((r) => r.success)).toBe(true);
+      expect(global.fetch).toHaveBeenCalledTimes(5);
+    });
+  });
+});

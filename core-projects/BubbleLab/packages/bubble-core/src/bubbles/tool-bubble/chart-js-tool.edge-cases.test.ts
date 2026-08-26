@@ -26,7 +26,7 @@ describe('ChartJSTool - Edge Cases and Boundary Tests', () => {
         const result = await tool.action();
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('at least one data point');
+        expect(result.error).toContain('Data array cannot be empty');
       });
 
       it('should handle single data point', async () => {

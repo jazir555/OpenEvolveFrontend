@@ -354,7 +354,11 @@ export class HttpBubble extends ServiceBubble<HttpBubbleParams, HttpBubbleResult
 
       // Handle AbortError (timeout)
       if (errorObj.name === 'AbortError') {
-        throw new Error(`Request timeout after ${this.params.timeout}ms`);
+        // Preserve the AbortError name so the surfaced result carries a
+        // meaningful `errorCode` for timeouts (see HttpBubbleResultSchema).
+        const timeoutError = new Error(`Request timeout after ${this.params.timeout}ms`);
+        timeoutError.name = 'AbortError';
+        throw timeoutError;
       }
 
       throw errorObj;

@@ -9,7 +9,7 @@ import {
   CircuitBreaker,
   CircuitBreakerState,
   CircuitBreakerConfig,
-} from '../../../security/circuit-breaker';
+} from '../../../../../apps/bubble-studio/src/lib/circuitBreaker.js';
 
 describe('Circuit Breaker Unit Tests', () => {
   let circuitBreaker: CircuitBreaker;

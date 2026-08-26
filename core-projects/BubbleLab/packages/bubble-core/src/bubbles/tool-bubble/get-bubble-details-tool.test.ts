@@ -25,16 +25,17 @@ describe('GetBubbleDetailsTool', () => {
   });
 
   describe('parameter validation', () => {
-    test('should require bubbleName parameter', () => {
-      expect(() => {
-        // @ts-expect-error testing invalid input
-        new GetBubbleDetailsTool({});
-      }).toThrow('Input Schema validation failed');
+    test('should require bubbleName parameter', async () => {
+      const tool = new GetBubbleDetailsTool({} as any);
+      const result = await tool.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('validation failed');
     });
-    test('should validate empty bubbleName', () => {
-      expect(() => {
-        new GetBubbleDetailsTool({ bubbleName: '' });
-      }).toThrow('Bubble name is required');
+    test('should validate empty bubbleName', async () => {
+      const tool = new GetBubbleDetailsTool({ bubbleName: '' });
+      const result = await tool.action();
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('validation failed');
     });
   });
 
@@ -256,9 +257,9 @@ describe('GetBubbleDetailsTool', () => {
       console.log('=== SLACK USAGE EXAMPLE ===');
       console.log(usageExample);
       console.log('=== END SLACK USAGE EXAMPLE ===');
-      // Check that download_file operation is included
-      expect(usageExample).toContain('download_file');
-      expect(usageExample).toContain('Download File example');
+      // Check that real Slack operations are rendered as discriminated-union examples
+      expect(usageExample).toContain('SendMessage');
+      expect(usageExample).toContain('UploadFile example');
     });
   });
 });

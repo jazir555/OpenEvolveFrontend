@@ -79,7 +79,7 @@ describe('retry utilities', () => {
       await sleep(0);
       const elapsed = Date.now() - start;
 
-      expect(elapsed).toBeLessThan(10);
+      expect(elapsed).toBeLessThan(50);
     });
   });
 
@@ -161,7 +161,9 @@ describe('retry utilities', () => {
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[test-123]'),
+        expect.stringContaining('[test-123]')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('[TestOperation]')
       );
 

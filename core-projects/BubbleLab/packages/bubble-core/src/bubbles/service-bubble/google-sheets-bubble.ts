@@ -1495,7 +1495,7 @@ export class GoogleSheetsBubble<
         (s: any) => s.properties.title === destSheet
       )?.properties.sheetId;
 
-      if (!sourceSheetId || !destSheetId) {
+      if (sourceSheetId === undefined || destSheetId === undefined) {
         throw new Error('Sheet not found');
       }
 

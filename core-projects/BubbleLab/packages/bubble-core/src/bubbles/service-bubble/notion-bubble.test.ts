@@ -1,572 +1,1000 @@
-{
-  /*
-   * Comprehensive Test Suite for notion-bubble
-   * Generated: 2026-01-19T02:05:45.110570
-   *
-   * Security & Quality Tests:
-   * - Environment Validation (3 tests)
-   * - Authentication (3 tests)
-   * - Rate Limiting (3 tests)
-   * - Input Validation (5 tests)
-   * - Core Workflow Logic (10 tests)
-   * - Error Handling (5 tests)
-   * - Integration (3 tests)
-   *
-   * Total: 32 comprehensive tests
-   */
+/**
+ * Test Suite for NotionBubble (notion-bubble.ts)
+ *
+ * The previous contents of this file were a generated placeholder that tested a
+ * non-existent API (`instance.authenticate()`, `instance.execute()`, an `env`
+ * context) and did not even parse. It has been rewritten against the real
+ * bubble:
+ *  - discriminated-union params keyed on camelCase `operation`
+ *    (createPage / getPage / updatePage / deletePage / queryDatabase /
+ *     createDatabase / createDatabaseEntry / updateDatabaseEntry /
+ *     getDatabaseEntries / appendBlocks / getBlocks / getBlock / updateBlock /
+ *     deleteBlock / search / searchPages / getDatabase)
+ *  - `performAction()` returns `{ operation, result }` — the per-operation
+ *    payload lives under `result`
+ *  - schema failures are captured at construction (NOT thrown) and surfaced as a
+ *    controlled error from `action()`
+ *  - credentials use CredentialType.NOTION_OAUTH_TOKEN
+ *  - all network access goes through the global `fetch`, mocked here
+ */
 
-  import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-  import { NotionBubble } from './notion-bubble';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { NotionBubble } from './notion-bubble.js';
+import { CredentialType } from '@bubblelab/shared-schemas';
 
-  describe('notion-bubble', () => {
-    let instance: NotionBubble;
-    let mockContext: any;
+const mockCredentials = {
+  [CredentialType.NOTION_OAUTH_TOKEN]: 'secret_test_notion_token',
+};
 
-    beforeEach(() => {
-      // Setup mock environment
-      mockContext = {
-        env: {
-          API_KEY: 'test-api-key',
-          API_URL: 'https://api.test.com',
-          TIMEOUT: '5000',
-        },
-        logger: {
-          info: vi.fn(),
-          error: vi.fn(),
-          warn: vi.fn(),
-          debug: vi.fn(),
-        },
-      };
+function jsonResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers({ 'content-type': 'application/json' }),
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as unknown as Response;
+}
 
-      // Initialize instance
-      instance = new NotionBubble(mockContext);
+function errorResponse(status: number, text: string) {
+  return {
+    ok: false,
+    status,
+    statusText: 'Error',
+    headers: new Headers(),
+    json: async () => ({ message: text }),
+    text: async () => text,
+  } as unknown as Response;
+}
+
+const PAGE_RESPONSE = {
+  id: 'page_123',
+  url: 'https://notion.so/page_123',
+  created_time: '2024-01-01T00:00:00.000Z',
+  last_edited_time: '2024-01-01T01:00:00.000Z',
+  archived: false,
+  parent: { type: 'page_id', page_id: 'parent_1' },
+  properties: {
+    title: { title: [{ text: { content: 'Test Page' } }] },
+  },
+};
+
+describe('NotionBubble (notion-bubble)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ========================================
+  // METADATA
+  // ========================================
+  describe('Bubble metadata', () => {
+    it('exposes the expected static metadata', () => {
+      expect(NotionBubble.bubbleName).toBe('notion');
+      expect(NotionBubble.type).toBe('service');
+      expect(NotionBubble.service).toBe('notion');
+      expect(NotionBubble.authType).toBe('apikey');
+      expect(NotionBubble.alias).toBe('notion');
+      expect(NotionBubble.schema).toBeDefined();
+      expect(NotionBubble.resultSchema).toBeDefined();
     });
 
-    afterEach(() => {
-      vi.clearAllMocks();
+    it('excludes credentials from currentParams', () => {
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+      expect(
+        (bubble.currentParams as Record<string, unknown>).credentials
+      ).toBeUndefined();
     });
 
-    // ========================================
-    // ENVIRONMENT VALIDATION (3 tests)
-    // ========================================
-    describe('Environment Validation', () => {
-      it('should validate required environment variables', async () => {
-        // Arrange
-        const invalidEnv = {};
+    it('applies schema defaults', () => {
+      const bubble = new NotionBubble({
+        operation: 'queryDatabase',
+        databaseId: 'db_123',
+        credentials: mockCredentials,
+      });
+      expect(
+        (bubble.currentParams as Record<string, unknown>).pageSize
+      ).toBe(100);
+    });
+  });
 
-        // Act & Assert
-        await expect(
-          new NotionBubble({ env: invalidEnv })
-        ).rejects.toThrow('Missing required environment variables');
+  // ========================================
+  // INPUT VALIDATION
+  // ========================================
+  // The base constructor records validation failures instead of throwing.
+  describe('Input Validation', () => {
+    it('returns a controlled error for an unknown operation', async () => {
+      const bubble = new NotionBubble({
+        // @ts-expect-error deliberately invalid operation
+        operation: 'explodeWorkspace',
+        credentials: mockCredentials,
       });
 
-      it('should fail fast on critical missing vars', async () => {
-        // Arrange
-        const criticalEnv = {
-          API_KEY: '',  // Critical but empty
-        };
+      const result = await bubble.action();
 
-        // Act & Assert
-        await expect(
-          new NotionBubble({ env: criticalEnv })
-        ).rejects.toThrow('API_KEY');
-      });
-
-      it('should accept valid environment configuration', async () => {
-        // Arrange
-        const validEnv = {
-          API_KEY: 'valid-key',
-          API_URL: 'https://api.example.com',
-        };
-
-        // Act & Assert
-        const validInstance = new NotionBubble({ env: validEnv });
-        expect(validInstance).toBeDefined();
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Input Schema validation failed');
+      expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    // ========================================
-    // AUTHENTICATION (3 tests)
-    // ========================================
-    describe('Authentication', () => {
-      it('should accept valid API key', async () => {
-        // Arrange
-        const validKey = 'valid-api-key-123';
-
-        // Act
-        const result = await instance.authenticate(validKey);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.authenticated).toBe(true);
+    it('requires a page ID for getPage', async () => {
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: '',
+        credentials: mockCredentials,
       });
 
-      it('should reject invalid API key', async () => {
-        // Arrange
-        const invalidKey = 'invalid-key';
+      const result = await bubble.action();
 
-        // Act & Assert
-        await expect(instance.authenticate(invalidKey)).rejects.toThrow('Unauthorized');
-      });
-
-      it('should handle missing API key', async () => {
-        // Arrange
-        const missingKey = '';
-
-        // Act & Assert
-        await expect(instance.authenticate(missingKey)).rejects.toThrow('API key is required');
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Page ID is required');
     });
 
-    // ========================================
-    // RATE LIMITING (3 tests)
-    // ========================================
-    describe('Rate Limiting', () => {
-      it('should allow requests within limit', async () => {
-        // Arrange
-        const requests = Array(5).fill(null).map((_, i) => ({ id: i }));
-
-        // Act
-        const results = await Promise.all(
-          requests.map(req => instance.execute(req))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
+    it('requires a title for createPage', async () => {
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: '',
+        credentials: mockCredentials,
       });
 
-      it('should block requests exceeding limit', async () => {
-        // Arrange
-        const tooManyRequests = Array(150).fill(null).map((_, i) => ({ id: i }));
+      const result = await bubble.action();
 
-        // Act & Assert
-        await expect(
-          Promise.all(tooManyRequests.map(req => instance.execute(req)))
-        ).rejects.toThrow('Rate limit exceeded');
-      });
-
-      it('should reset after window expires', async () => {
-        // Arrange
-        vi.useFakeTimers();
-
-        // Act
-        await instance.execute({ id: 1 });
-        vi.advanceTimersByTime(60000);  // Advance 1 minute
-
-        // Assert - should allow new request
-        const result = await instance.execute({ id: 2 });
-        expect(result.success).toBe(true);
-
-        vi.useRealTimers();
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Title is required');
     });
 
-    // ========================================
-    // INPUT VALIDATION (5 tests)
-    // ========================================
-    describe('Input Validation', () => {
-      it('should validate required fields', async () => {
-        // Arrange
-        const invalidInput = {};  // Missing required fields
-
-        // Act & Assert
-        await expect(instance.execute(invalidInput)).rejects.toThrow('Required');
+    it('requires a parent page ID for createPage', async () => {
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: '',
+        title: 'Hello',
+        credentials: mockCredentials,
       });
 
-      it('should sanitize malicious input', async () => {
-        // Arrange
-        const maliciousInput = {
-          query: "<script>alert('xss')</script>",
-          code: "'; DROP TABLE users; --",
-        };
+      const result = await bubble.action();
 
-        // Act
-        const result = await instance.execute(maliciousInput);
-
-        // Assert
-        expect(result sanitized).toBeDefined();
-        expect(result.data).not.toContain('<script>');
-      });
-
-      it('should validate data types', async () => {
-        // Arrange
-        const wrongType = {
-          count: "not-a-number",  // Should be number
-          enabled: "not-boolean", // Should be boolean
-        };
-
-        // Act & Assert
-        await expect(instance.execute(wrongType)).rejects.toThrow('Invalid type');
-      });
-
-      it('should validate field formats', async () => {
-        // Arrange
-        const invalidFormat = {
-          email: "not-an-email",
-          url: "not-a-url",
-        };
-
-        // Act & Assert
-        await expect(instance.execute(invalidFormat)).rejects.toThrow('Invalid format');
-      });
-
-      it('should handle edge cases', async () => {
-        // Arrange
-        const edgeCases = [
-          { value: null },
-          { value: undefined },
-          { value: "" },
-          { value: 0 },
-          { value: -1 },
-          { value: Number.MAX_SAFE_INTEGER },
-        ];
-
-        // Act & Assert
-        for (const testCase of edgeCases) {
-          const result = await instance.execute(testCase);
-          expect(result).toBeDefined();
-        }
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Parent page ID is required');
     });
 
-    // ========================================
-    // CORE WORKFLOW LOGIC (10 tests)
-    // ========================================
-    describe('Workflow Execution', () => {
-      it('should execute successfully with valid input', async () => {
-        // Arrange
-        const validInput = {
-          param1: 'value1',
-          param2: 'value2',
-        };
-
-        // Act
-        const result = await instance.execute(validInput);
-
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
+    it('requires at least one block for appendBlocks', async () => {
+      const bubble = new NotionBubble({
+        operation: 'appendBlocks',
+        blockId: 'page_123',
+        blocks: [],
+        credentials: mockCredentials,
       });
 
-      it('should handle errors gracefully', async () => {
-        // Arrange
-        const errorInput = {
-          triggerError: true,
-        };
+      const result = await bubble.action();
 
-        // Act
-        const result = await instance.execute(errorInput);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('At least one block is required');
+    });
 
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
+    it('requires a non-empty search query', async () => {
+      const bubble = new NotionBubble({
+        operation: 'search',
+        query: '',
+        credentials: mockCredentials,
       });
 
-      it('should handle timeout', async () => {
-        // Arrange
-        vi.useFakeTimers();
-        const slowInput = {
-          delay: 10000,  // Longer than timeout
-        };
+      const result = await bubble.action();
 
-        // Act & Assert
-        await expect(instance.execute(slowInput)).rejects.toThrow('Timeout');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Search query is required');
+    });
 
-        vi.useRealTimers();
+    it('rejects an invalid cover URL for createPage', async () => {
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'Hello',
+        cover: 'not-a-url',
+        credentials: mockCredentials,
       });
 
-      it('should process multiple items correctly', async () => {
-        // Arrange
-        const batchInput = {
-          items: [
-            { id: 1, name: 'item1' },
-            { id: 2, name: 'item2' },
-            { id: 3, name: 'item3' },
-          ],
-        };
+      const result = await bubble.action();
 
-        // Act
-        const result = await instance.execute(batchInput);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('cover');
+    });
 
-        // Assert
-        expect(result.processed).toBe(3);
-        expect(result.results).toHaveLength(3);
+    it('rejects a getBlocks pageSize above 100', async () => {
+      const bubble = new NotionBubble({
+        operation: 'getBlocks',
+        blockId: 'block_123',
+        pageSize: 500,
+        credentials: mockCredentials,
       });
 
-      it('should handle empty input', async () => {
-        // Arrange
-        const emptyInput = {
-          items: [],
-        };
+      const result = await bubble.action();
 
-        // Act
-        const result = await instance.execute(emptyInput);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('pageSize');
+    });
+  });
 
-        // Assert
-        expect(result).toBeDefined();
-        expect(result.success).toBe(true);
+  // ========================================
+  // PAGE OPERATIONS
+  // ========================================
+  describe('createPage', () => {
+    it('creates a page under a parent page', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse(PAGE_RESPONSE)
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'Test Page',
+        credentials: mockCredentials,
       });
 
-      it('should validate output schema', async () => {
-        // Arrange
-        const input = { valid: 'data' };
+      const { operation, result } = await bubble.performAction();
 
-        // Act
-        const result = await instance.execute(input);
+      expect(operation).toBe('createPage');
+      expect(result.success).toBe(true);
+      expect(result.pageId).toBe('page_123');
+      expect(result.title).toBe('Test Page');
+      expect(result.url).toBe('https://notion.so/page_123');
 
-        // Assert
-        expect(result.data).toMatchObject({
-          // Expected schema fields
-        });
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toBe('https://api.notion.com/v1/pages');
+      expect(init.method).toBe('POST');
+      const headers = init.headers as Record<string, string>;
+      expect(headers.Authorization).toBe('Bearer secret_test_notion_token');
+      expect(headers['Notion-Version']).toBe('2022-06-28');
+
+      const body = JSON.parse(init.body as string);
+      expect(body.parent).toEqual({ type: 'page_id', page_id: 'parent_1' });
+    });
+
+    it('maps an emoji icon and an http icon differently', async () => {
+      vi.mocked(global.fetch)
+        .mockResolvedValueOnce(jsonResponse(PAGE_RESPONSE))
+        .mockResolvedValueOnce(jsonResponse(PAGE_RESPONSE));
+
+      const emojiBubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'Emoji',
+        icon: '🚀',
+        credentials: mockCredentials,
       });
+      await emojiBubble.performAction();
 
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentInputs = [1, 2, 3, 4, 5].map(id => ({ id }));
+      expect(
+        JSON.parse(vi.mocked(global.fetch).mock.calls[0][1]?.body as string).icon
+      ).toEqual({ type: 'emoji', emoji: '🚀' });
 
-        // Act
-        const results = await Promise.all(
-          concurrentInputs.map(input => instance.execute(input))
-        );
-
-        // Assert
-        expect(results).toHaveLength(5);
-        expect(results.every(r => r.success)).toBe(true);
+      const urlBubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'External',
+        icon: 'https://example.com/icon.png',
+        credentials: mockCredentials,
       });
+      await urlBubble.performAction();
 
-      it('should maintain state between steps', async () => {
-        // Arrange
-        const multiStepInput = {
-          step1: 'value1',
-          step2: 'value2',
-          step3: 'value3',
-        };
-
-        // Act
-        const result = await instance.execute(multiStepInput);
-
-        // Assert
-        expect(result.step1Result).toBeDefined();
-        expect(result.step2Result).toBeDefined();
-        expect(result.step3Result).toBeDefined();
-      });
-
-      it('should rollback on failure', async () => {
-        // Arrange
-        const failingInput = {
-          failAt: 'step2',
-        };
-
-        // Act
-        const result = await instance.execute(failingInput);
-
-        // Assert
-        expect(result.success).toBe(false);
-        expect(result.rolledBack).toBe(true);
-      });
-
-      it('should log execution steps', async () => {
-        // Arrange
-        const input = { log: 'test' };
-
-        // Act
-        await instance.execute(input);
-
-        // Assert
-        expect(mockContext.logger.info).toHaveBeenCalled();
-        expect(mockContext.logger.debug).toHaveBeenCalled();
+      expect(
+        JSON.parse(vi.mocked(global.fetch).mock.calls[1][1]?.body as string).icon
+      ).toEqual({
+        type: 'external',
+        external: { url: 'https://example.com/icon.png' },
       });
     });
 
-    // ========================================
-    // ERROR HANDLING (5 tests)
-    // ========================================
-    describe('Error Handling', () => {
-      it('should handle network errors', async () => {
-        // Arrange
-        vi.stubGlobal('fetch', () =>
-          Promise.reject(new Error('Network error'))
-        );
+    it('strips script tags from the title (content sanitization)', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ ...PAGE_RESPONSE, properties: {} })
+      );
 
-        // Act & Assert
-        await expect(instance.execute({})).rejects.toThrow('Network');
-
-        vi.unstubAllGlobals();
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'Safe<script>alert("xss")</script>Title',
+        credentials: mockCredentials,
       });
 
-      it('should handle API errors', async () => {
-        // Arrange
-        const apiError = new Error('API Error');
-        apiError['status'] = 500;
+      const { result } = await bubble.performAction();
 
-        // Act & Assert
-        const result = await instance.execute({ triggerApiError: true });
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('API');
-      });
-
-      it('should sanitize error messages', async () => {
-        // Arrange
-        const errorWithSecret = new Error('Error with secret-api-key-123');
-
-        // Act
-        const result = await instance.execute({ triggerError: true });
-
-        // Assert
-        expect(result.error).not.toContain('secret-api-key-123');
-        expect(result.error).toContain('[REDACTED]');
-      });
-
-      it('should log errors with correlation ID', async () => {
-        // Arrange
-        const correlationId = 'test-correlation-123';
-
-        // Act
-        await instance.execute({
-          correlationId,
-          triggerError: true,
-        });
-
-        // Assert
-        expect(mockContext.logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({
-            correlationId,
-          })
-        );
-      });
-
-      it('should retry transient errors', async () => {
-        // Arrange
-        let attemptCount = 0;
-        vi.stubGlobal('fetch', () => {
-          attemptCount++;
-          if (attemptCount < 3) {
-            return Promise.reject(new Error('Transient error'));
-          }
-          return Promise.resolve(new Response());
-        });
-
-        // Act
-        const result = await instance.execute({});
-
-        // Assert
-        expect(attemptCount).toBe(3);
-        expect(result.success).toBe(true);
-
-        vi.unstubAllGlobals();
-      });
+      expect(result.success).toBe(true);
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      const sentTitle = body.properties.title.title[0].text.content;
+      expect(sentTitle).toBe('SafeTitle');
+      expect(sentTitle).not.toContain('<script>');
     });
 
-    // ========================================
-    // INTEGRATION (3 tests)
-    // ========================================
-    describe('Integration', () => {
-      it('should work end-to-end', async () => {
-        // Arrange
-        const completeInput = {
-          step1: { data: 'value1' },
-          step2: { data: 'value2' },
-          step3: { data: 'value3' },
-        };
+    it('returns a controlled failure when the API rejects the create', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(400, 'body.parent.page_id should be a valid uuid')
+      );
 
-        // Act
-        const result = await instance.execute(completeInput);
-
-        // Assert
-        expect(result.success).toBe(true);
-        expect(result.data).toBeDefined();
-        expect(result.metadata).toBeDefined();
+      const bubble = new NotionBubble({
+        operation: 'createPage',
+        parentPageId: 'parent_1',
+        title: 'Test Page',
+        credentials: mockCredentials,
       });
 
-      it('should handle concurrent executions', async () => {
-        // Arrange
-        const concurrentExecutions = Array(10).fill(null).map((_, i) => ({
-          id: i,
-          data: `test-${i}`,
-        }));
+      const { result } = await bubble.performAction();
 
-        // Act
-        const results = await Promise.all(
-          concurrentExecutions.map(input => instance.execute(input))
-        );
+      expect(result.success).toBe(false);
+      expect(result.pageId).toBe('');
+      expect(result.error).toContain('Notion API error: 400');
+    });
+  });
 
-        // Assert
-        expect(results).toHaveLength(10);
-        expect(results.every(r => r.success)).toBe(true);
-        expect(results.every(r => r.data.id !== results[0].data.id)).toBe(true);
+  describe('getPage', () => {
+    it('retrieves a page successfully', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse(PAGE_RESPONSE)
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
       });
 
-      it('should recover from failures', async () => {
-        // Arrange
-        const failingThenSucceeding = [
-          { id: 1, shouldFail: true },
-          { id: 2, shouldFail: true },
-          { id: 3, shouldFail: false },
-        ];
+      const { result } = await bubble.performAction();
 
-        // Act
-        const results = await Promise.allSettled(
-          failingThenSucceeding.map(input => instance.execute(input))
-        );
+      expect(result.success).toBe(true);
+      expect(result.pageId).toBe('page_123');
+      expect(result.title).toBe('Test Page');
+      expect(result.archived).toBe(false);
 
-        // Assert
-        const failures = results.filter(r => r.status === 'rejected');
-        const successes = results.filter(r => r.status === 'fulfilled');
-
-        expect(failures).toHaveLength(2);
-        expect(successes).toHaveLength(1);
-      });
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toBe(
+        'https://api.notion.com/v1/pages/page_123'
+      );
     });
 
-    // ========================================
-    // PERFORMANCE (3 tests)
-    // ========================================
-    describe('Performance', () => {
-      it('should complete within reasonable time', async () => {
-        // Arrange
-        const startTime = Date.now();
+    it('returns a controlled failure for a missing page', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(404, 'Could not find page')
+      );
 
-        // Act
-        await instance.execute({ id: 1 });
-
-        // Assert
-        const executionTime = Date.now() - startTime;
-        expect(executionTime).toBeLessThan(5000);  // 5 seconds
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'nonexistent',
+        credentials: mockCredentials,
       });
 
-      it('should handle large datasets efficiently', async () => {
-        // Arrange
-        const largeDataset = {
-          items: Array(1000).fill(null).map((_, i) => ({
-            id: i,
-            data: `item-${i}`,
-          })),
-        };
+      const { result } = await bubble.performAction();
 
-        // Act
-        const result = await instance.execute(largeDataset);
+      expect(result.success).toBe(false);
+      expect(result.pageId).toBe('nonexistent');
+      expect(result.error).toContain('404');
+    });
+  });
 
-        // Assert
-        expect(result.processed).toBe(1000);
+  describe('updatePage', () => {
+    it('updates page properties', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse(PAGE_RESPONSE)
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'updatePage',
+        pageId: 'page_123',
+        properties: { Status: { select: { name: 'Done' } } },
+        credentials: mockCredentials,
       });
 
-      it('should not leak memory', async () => {
-        // Arrange
-        const initialMemory = process.memoryUsage().heapUsed;
+      const { result } = await bubble.performAction();
 
-        // Act
-        for (let i = 0; i < 100; i++) {
-          await instance.execute({ id: i });
-        }
+      expect(result.success).toBe(true);
 
-        // Assert
-        const finalMemory = process.memoryUsage().heapUsed;
-        const memoryIncrease = finalMemory - initialMemory;
-        expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);  // 50MB
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body as string).properties).toEqual({
+        Status: { select: { name: 'Done' } },
       });
     });
   });
-}
+
+  describe('deletePage', () => {
+    it('archives a page by default', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(jsonResponse({}));
+
+      const bubble = new NotionBubble({
+        operation: 'deletePage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.pageId).toBe('page_123');
+      expect(result.archived).toBe(true);
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body as string)).toEqual({ archived: true });
+    });
+  });
+
+  // ========================================
+  // DATABASE OPERATIONS
+  // ========================================
+  describe('queryDatabase', () => {
+    it('queries a database successfully', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          results: [{ id: 'row_1' }, { id: 'row_2' }],
+          next_cursor: 'cursor_2',
+          has_more: true,
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'queryDatabase',
+        databaseId: 'db_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.results).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+      expect(result.hasMore).toBe(true);
+      expect(result.nextCursor).toBe('cursor_2');
+
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toBe(
+        'https://api.notion.com/v1/databases/db_123/query'
+      );
+    });
+
+    it('forwards filter, sorts and startCursor', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ results: [], has_more: false })
+      );
+
+      const filter = { property: 'Status', select: { equals: 'Done' } };
+      const sorts = [{ property: 'Name', direction: 'ascending' }];
+
+      const bubble = new NotionBubble({
+        operation: 'queryDatabase',
+        databaseId: 'db_123',
+        filter,
+        sorts,
+        startCursor: 'cursor_1',
+        pageSize: 25,
+        credentials: mockCredentials,
+      });
+
+      await bubble.performAction();
+
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.filter).toEqual(filter);
+      expect(body.sorts).toEqual(sorts);
+      expect(body.start_cursor).toBe('cursor_1');
+      expect(body.page_size).toBe(25);
+    });
+
+    it('returns an empty result set without error', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ results: [], has_more: false })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'queryDatabase',
+        databaseId: 'db_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.results).toEqual([]);
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+    });
+
+    it('returns a controlled failure when the query fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(404, 'Could not find database')
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'queryDatabase',
+        databaseId: 'nonexistent',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.results).toEqual([]);
+      expect(result.error).toContain('404');
+    });
+  });
+
+  describe('createDatabase', () => {
+    it('creates a database with a Name title property', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          id: 'db_new',
+          url: 'https://notion.so/db_new',
+          properties: { Name: { title: [{ text: { content: 'Tasks' } }] } },
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'createDatabase',
+        parentId: 'parent_1',
+        title: 'Tasks',
+        properties: { Status: { select: {} } },
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.databaseId).toBe('db_new');
+      expect(result.title).toBe('Tasks');
+
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.parent).toEqual({ type: 'page_id', page_id: 'parent_1' });
+      expect(body.properties.Name.title[0].text.content).toBe('Tasks');
+      expect(body.properties.Status).toEqual({ select: {} });
+    });
+  });
+
+  describe('createDatabaseEntry', () => {
+    it('creates a row with a database_id parent', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse(PAGE_RESPONSE)
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'createDatabaseEntry',
+        databaseId: 'db_123',
+        properties: { Name: { title: [{ text: { content: 'Row' } }] } },
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.pageId).toBe('page_123');
+
+      const body = JSON.parse(
+        vi.mocked(global.fetch).mock.calls[0][1]?.body as string
+      );
+      expect(body.parent).toEqual({
+        type: 'database_id',
+        database_id: 'db_123',
+      });
+    });
+  });
+
+  // ========================================
+  // BLOCK OPERATIONS
+  // ========================================
+  describe('appendBlocks', () => {
+    it('appends blocks successfully', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ children: [{ id: 'b1' }, { id: 'b2' }] })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'appendBlocks',
+        blockId: 'page_123',
+        blocks: [
+          {
+            object: 'block',
+            type: 'paragraph',
+            paragraph: { rich_text: [{ text: { content: 'Hello' } }] },
+          },
+          {
+            object: 'block',
+            type: 'paragraph',
+            paragraph: { rich_text: [{ text: { content: 'World' } }] },
+          },
+        ],
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.blockId).toBe('page_123');
+      expect(result.appendedBlocks).toBe(2);
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toBe(
+        'https://api.notion.com/v1/blocks/page_123/children'
+      );
+      expect(init.method).toBe('PATCH');
+    });
+
+    it('sanitizes script/iframe content inside appended blocks', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ children: [] })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'appendBlocks',
+        blockId: 'page_123',
+        blocks: [
+          {
+            object: 'block',
+            type: 'paragraph',
+            paragraph: {
+              rich_text: [
+                {
+                  text: {
+                    content: 'ok<script>steal()</script><iframe src="x"></iframe>',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      const sent = vi.mocked(global.fetch).mock.calls[0][1]?.body as string;
+      expect(sent).not.toContain('<script>');
+      expect(sent).not.toContain('<iframe');
+      expect(sent).toContain('ok');
+    });
+  });
+
+  describe('getBlocks', () => {
+    it('lists child blocks with pagination params', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          results: [{ id: 'b1' }],
+          next_cursor: 'cursor_2',
+          has_more: true,
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getBlocks',
+        blockId: 'page_123',
+        pageSize: 50,
+        startCursor: 'cursor_1',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.blocks).toHaveLength(1);
+      expect(result.hasMore).toBe(true);
+      expect(result.nextCursor).toBe('cursor_2');
+
+      const url = vi.mocked(global.fetch).mock.calls[0][0] as string;
+      expect(url).toContain('page_size=50');
+      expect(url).toContain('start_cursor=cursor_1');
+    });
+  });
+
+  describe('getBlock', () => {
+    it('retrieves a single block and its typed content', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          id: 'block_123',
+          type: 'paragraph',
+          paragraph: { rich_text: [{ text: { content: 'Hi' } }] },
+          created_time: '2024-01-01T00:00:00.000Z',
+          last_edited_time: '2024-01-01T01:00:00.000Z',
+          archived: false,
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getBlock',
+        blockId: 'block_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.blockId).toBe('block_123');
+      expect(result.type).toBe('paragraph');
+      expect(result.content).toEqual({
+        rich_text: [{ text: { content: 'Hi' } }],
+      });
+    });
+  });
+
+  describe('updateBlock', () => {
+    it('updates a block using its type as the body key', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          id: 'block_123',
+          type: 'heading_2',
+          heading_2: { rich_text: [{ text: { content: 'Updated' } }] },
+          last_edited_time: '2024-01-01T02:00:00.000Z',
+          archived: false,
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'updateBlock',
+        blockId: 'block_123',
+        type: 'heading_2',
+        content: { rich_text: [{ text: { content: 'Updated' } }] },
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.blockId).toBe('block_123');
+
+      const init = vi.mocked(global.fetch).mock.calls[0][1] as RequestInit;
+      expect(init.method).toBe('PATCH');
+      expect(JSON.parse(init.body as string).heading_2).toEqual({
+        rich_text: [{ text: { content: 'Updated' } }],
+      });
+    });
+  });
+
+  // ========================================
+  // SEARCH
+  // ========================================
+  describe('search', () => {
+    it('searches successfully', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({
+          results: [
+            { object: 'page', id: 'page_1' },
+            { object: 'page', id: 'page_2' },
+          ],
+          next_cursor: null,
+          has_more: false,
+        })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'search',
+        query: 'Test',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.results).toHaveLength(2);
+      expect(result.totalCount).toBe(2);
+
+      const [url, init] = vi.mocked(global.fetch).mock.calls[0] as [
+        string,
+        RequestInit,
+      ];
+      expect(url).toBe('https://api.notion.com/v1/search');
+      expect(JSON.parse(init.body as string).query).toBe('Test');
+    });
+
+    it('forwards the object-type filter', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ results: [], has_more: false })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'search',
+        query: 'Tasks',
+        filter: { value: 'database', property: 'object' },
+        credentials: mockCredentials,
+      });
+
+      await bubble.performAction();
+
+      expect(
+        JSON.parse(vi.mocked(global.fetch).mock.calls[0][1]?.body as string)
+          .filter
+      ).toEqual({ value: 'database', property: 'object' });
+    });
+
+    it('handles empty search results', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ results: [], has_more: false })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'search',
+        query: 'nothing-matches',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(true);
+      expect(result.results).toEqual([]);
+      expect(result.totalCount).toBe(0);
+    });
+  });
+
+  // ========================================
+  // ERROR HANDLING
+  // ========================================
+  describe('Error Handling', () => {
+    it('surfaces an authentication error as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'API token is invalid.')
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('401');
+    });
+
+    it('surfaces a network error as a controlled failure', async () => {
+      vi.mocked(global.fetch).mockRejectedValueOnce(
+        new Error('Network error: ECONNRESET')
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Network error');
+    });
+
+    it('surfaces a rate-limit (429) as RATE_LIMITED after waiting', async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          statusText: 'Too Many Requests',
+          headers: new Headers({ 'Retry-After': '1' }),
+          json: async () => ({}),
+          text: async () => 'rate limited',
+        } as unknown as Response);
+
+        const bubble = new NotionBubble({
+          operation: 'getPage',
+          pageId: 'page_123',
+          credentials: mockCredentials,
+        });
+
+        const pending = bubble.performAction();
+        await vi.advanceTimersByTimeAsync(2000);
+        const { result } = await pending;
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('RATE_LIMITED');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('does not leak the API token in error messages', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(403, 'Insufficient permissions')
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).not.toContain('secret_test_notion_token');
+    });
+
+    it('reports a missing NOTION_OAUTH_TOKEN entry', async () => {
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        // credentials object present but missing the Notion entry
+        credentials: { [CredentialType.OPENAI_CRED]: 'sk-test' },
+      });
+
+      const { result } = await bubble.performAction();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Notion API key is required');
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('throws from chooseCredential when the credentials map is absent', async () => {
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+      });
+
+      // chooseCredential() throws, and performAction() calls it before its
+      // try/catch, so the error propagates.
+      await expect(bubble.performAction()).rejects.toThrow(
+        'Notion API credentials are required'
+      );
+    });
+  });
+
+  // ========================================
+  // CREDENTIALS
+  // ========================================
+  describe('testCredential', () => {
+    it('resolves true when users/me succeeds', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        jsonResponse({ object: 'user', id: 'bot_1' })
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(true);
+      expect(vi.mocked(global.fetch).mock.calls[0][0]).toBe(
+        'https://api.notion.com/v1/users/me'
+      );
+    });
+
+    it('resolves false when users/me fails', async () => {
+      vi.mocked(global.fetch).mockResolvedValueOnce(
+        errorResponse(401, 'API token is invalid.')
+      );
+
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: mockCredentials,
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(false);
+    });
+
+    it('resolves false when the Notion token entry is absent', async () => {
+      const bubble = new NotionBubble({
+        operation: 'getPage',
+        pageId: 'page_123',
+        credentials: { [CredentialType.OPENAI_CRED]: 'sk-test' },
+      });
+
+      await expect(bubble.testCredential()).resolves.toBe(false);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+  });
+});
