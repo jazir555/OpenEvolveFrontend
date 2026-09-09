@@ -86,13 +86,32 @@ LIBRARY_PATH_ENV = "OPENEVOLVE_LIBRARY_PATH"
 
 
 def _is_real_openevolve(module: Any) -> bool:
-    """True when ``module`` is the real library package (regular pkg with api.py)."""
+    """True when ``module`` is the REAL library package, not a stub.
+
+    The repo ships a stub ``openevolve/`` package (IS_STUB=True) at the
+    repository root that also contains ``api.py``/``config.py``. Merely checking
+    for ``api.py`` mistakes that stub for the real library, which then fails at
+    ``config.Config.llm.models`` (the stub ``Config`` has no ``llm`` attribute).
+    The real package is uniquely identified by its ``controller`` module and the
+    ``openevolve._version`` package imported from its ``__init__``; the stub has
+    neither.
+    """
     module_file = getattr(module, "__file__", None)
     if not module_file:
         # Namespace package (no __init__.py) -> not the real library.
         return False
     try:
-        return (Path(module_file).parent / "api.py").is_file()
+        root = Path(module_file).parent
+        # The REAL library is uniquely identified by these three modules. The
+        # repo-root stub ``openevolve/`` exposes only api.py + config.py + a few
+        # bridges (and sets IS_STUB on its submodules, NOT on the top package),
+        # so positive identification must require the real package's
+        # ``controller`` (engine entry point) and ``_version`` modules.
+        return (
+            (root / "api.py").is_file()
+            and (root / "controller.py").is_file()
+            and (root / "_version.py").is_file()
+        )
     except Exception:  # pragma: no cover - defensive
         return False
 

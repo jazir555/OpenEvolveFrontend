@@ -91,19 +91,72 @@ def _build_bridge_request(
     problem_statement: str,
     context: Optional[str],
 ) -> Dict[str, Any]:
-    """Translate a stored workflow into the openevolve bridge request contract."""
+    """Translate a stored workflow into the openevolve bridge request contract.
+
+    A GUI-authored evolutionary workflow may carry three evolution inputs in its
+    ``parameters`` (or ``metadata.evolution_params``) that the bridge consumes
+    top-level::
+
+        initial_program / program   — the source of the program under evolution
+        evaluator / evaluator_code  — source of the ``evaluate(program_path)`` fn
+        llm / llm_config            — live-LLM credentials (name/api_key/api_base)
+
+    Without these, the bridge falls back to a synthesized trivial ``solve``
+    program. Forwarding them here is what lets a real algorithm-optimization
+    workflow drive the real engine end to end.
+    """
     parameters = dict(workflow.parameters or {})
+
+    # metadata.evolution_params is the legacy UI location for evolution inputs;
+    # create_workflow folds it into ``parameters`` already, but fold it again here
+    # so PUT-edited workflows (whose metadata diverged from parameters) keep
+    # working. It is a Pydantic model in the current schema, not a dict.
+    evolution: Dict[str, Any] = {}
+    metadata = workflow.metadata
+    if metadata is not None:
+        ep = getattr(metadata, "evolution_params", None)
+        if isinstance(ep, dict):
+            evolution.update(ep)
+
+    def _lift(*keys: str, default: Any = None) -> Any:
+        for source in (parameters, evolution):
+            for key in keys:
+                if key in source and source[key] not in (None, "", {}):
+                    return source[key]
+        return default
+
     # Never feed a previous run's result back in as an input parameter.
     parameters.pop("openevolve", None)
-    return {
+
+    initial_program = _lift("initial_program", "program")
+    evaluator = _lift("evaluator", "evaluator_code")
+
+    # Build the live-LLM block. A name AND api_key are required for the bridge to
+    # select a live model; everything else is optional (api_base defaults to the
+    # OpenAI-compatible base chosen by the caller, e.g. NVIDIA NIM).
+    llm_raw = _lift("llm", "llm_config", default={})
+    llm = dict(llm_raw) if isinstance(llm_raw, dict) else {}
+    if isinstance(llm.get("models"), list):
+        # Preserve explicit multi-model ensembles as-is.
+        pass
+
+    request: Dict[str, Any] = {
         "system": "evolutionary",
         "workflow_type": normalize_workflow_type(workflow.workflow_type),
         "workflow_id": workflow.id,
         "problem_statement": problem_statement,
         "context": context,
         "parameters": parameters,
-        "llm": parameters.get("llm") or parameters.get("llm_config") or {},
+        "llm": llm,
     }
+
+    # Surface the program/evaluator at top level (the bridge reads them there).
+    if isinstance(initial_program, str):
+        request["initial_program"] = initial_program
+    if isinstance(evaluator, str):
+        request["evaluator"] = evaluator
+
+    return request
 
 
 async def _run_openevolve_for_workflow(
@@ -415,6 +468,23 @@ def _init_db() -> None:
     conn.commit()
 
 
+def _normalize_dt(dt: Any) -> Optional[datetime]:
+    """Ensure a datetime is offset-aware (UTC). Handles strings, naive, and aware datetimes."""
+    if dt is None:
+        return None
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None
+    if hasattr(dt, "tzinfo") and dt.tzinfo is not None:
+        return dt
+    # Naive datetime — assume UTC
+    if hasattr(dt, "replace"):
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 def _workflow_to_dict(workflow: WorkflowResponse) -> Dict[str, Any]:
     """Convert WorkflowResponse to dictionary for database storage."""
     return {
@@ -454,7 +524,11 @@ def _load_workflows_from_db() -> None:
             row_dict["metadata"] = WorkflowMetadata.parse_raw(row_dict["metadata"]) if row_dict["metadata"] else None
             row_dict["parameters"] = json.loads(row_dict["parameters"]) if row_dict["parameters"] else {}
             row_dict["status"] = WorkflowStatus(row_dict["status"])
-            
+            row_dict["created_at"] = _normalize_dt(row_dict["created_at"])
+            row_dict["updated_at"] = _normalize_dt(row_dict["updated_at"])
+            row_dict["started_at"] = _normalize_dt(row_dict["started_at"])
+            row_dict["completed_at"] = _normalize_dt(row_dict["completed_at"])
+
             workflow = WorkflowResponse(**row_dict)
             _workflows[workflow.id] = workflow
         
@@ -613,8 +687,16 @@ async def list_workflows(
         if status_filter:
             filtered_workflows = [w for w in filtered_workflows if w.status.value == status_filter]
 
-        # Sort by created_at descending
-        filtered_workflows.sort(key=lambda w: w.created_at, reverse=True)
+        # Sort by created_at descending (handle mixed naive/aware datetimes)
+        def _sort_key(w) -> str:
+            dt = w.created_at
+            if hasattr(dt, "timestamp"):
+                try:
+                    return str(dt.timestamp())
+                except (OSError, ValueError):
+                    pass
+            return str(dt)
+        filtered_workflows.sort(key=_sort_key, reverse=True)
 
         # Paginate
         total = len(filtered_workflows)
@@ -817,6 +899,12 @@ async def start_workflow(
                 **(workflow.parameters or {}),
                 "openevolve": openevolve_result,
             }
+            workflow.status = WorkflowStatus.COMPLETED
+            workflow.completed_at = datetime.now(timezone.utc)
+            workflow.updated_at = datetime.now(timezone.utc)
+        else:
+            workflow.status = WorkflowStatus.FAILED
+            workflow.completed_at = datetime.now(timezone.utc)
             workflow.updated_at = datetime.now(timezone.utc)
 
         # Save to database
@@ -1432,7 +1520,14 @@ def _build_execution_result(workflow: WorkflowResponse, execution: Dict[str, Any
     completed_at = execution.get("completed_at")
     duration_seconds = None
     if started_at and completed_at:
-        duration_seconds = (completed_at - started_at).total_seconds()
+        try:
+            duration_seconds = (completed_at - started_at).total_seconds()
+        except TypeError:
+            # Mixed naive/aware datetimes — fall back to string parsing
+            try:
+                duration_seconds = float(completed_at) - float(started_at)
+            except (ValueError, TypeError):
+                duration_seconds = None
 
     raw_result = execution.get("result") or {}
 
