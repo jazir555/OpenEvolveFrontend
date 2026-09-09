@@ -89,6 +89,9 @@ class LLMModelConfig:
     manual_mode: Optional[bool] = None
     _manual_queue_dir: Optional[str] = None
 
+    # Extra headers for API requests (e.g., for OpenCode Zen)
+    extra_headers: Optional[Dict[str, str]] = None
+
     def __post_init__(self):
         """Post-initialization to resolve ${VAR} env var references in api_key"""
         self.api_key = _resolve_env_var(self.api_key)

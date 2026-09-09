@@ -44,6 +44,19 @@ def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+def _is_responses_model(model_name: str) -> bool:
+    """Check if model uses OpenAI Responses API (like muse-spark models)"""
+    model_lower = str(model_name).lower()
+    return model_lower.startswith("muse-spark-")
+
+
+def _get_opencode_session_id(extra_headers: Optional[Dict[str, str]]) -> str:
+    """Get or generate OpenCode session ID from headers"""
+    if extra_headers and "X-Session-ID" in extra_headers:
+        return extra_headers["X-Session-ID"]
+    return f"openevolve-{uuid.uuid4().hex[:12]}"
+
+
 class OpenAILLM(LLMInterface):
     """LLM interface using OpenAI-compatible APIs"""
 
@@ -82,11 +95,20 @@ class OpenAILLM(LLMInterface):
             # Set up API client (normal mode)
             # OpenAI client requires max_retries to be int, not None
             max_retries = self.retries if self.retries is not None else 0
+            extra_headers = getattr(model_cfg, "extra_headers", None)
+            
+            # Auto-generate OpenCode session ID for Responses API models if not provided
+            if _is_responses_model(self.model) and extra_headers is not None:
+                extra_headers = dict(extra_headers)  # Copy to avoid mutating original
+                if "X-Session-ID" not in extra_headers:
+                    extra_headers["X-Session-ID"] = _get_opencode_session_id(None)
+            
             self.client = openai.OpenAI(
                 api_key=self.api_key,
                 base_url=self.api_base,
                 timeout=self.timeout,
                 max_retries=max_retries,
+                default_headers=extra_headers,
             )
 
         # Only log unique models to reduce duplication
@@ -109,78 +131,85 @@ class OpenAILLM(LLMInterface):
         self, system_message: str, messages: List[Dict[str, str]], **kwargs
     ) -> str:
         """Generate text using a system message and conversational context"""
+        # Check if this model uses the Responses API
+        use_responses_api = _is_responses_model(self.model)
+
         # Prepare messages with system message
         formatted_messages = [{"role": "system", "content": system_message}]
         formatted_messages.extend(messages)
 
-        # Set up generation parameters
-        # Define OpenAI reasoning models that require max_completion_tokens
-        # These models don't support temperature/top_p and use different parameters
-        OPENAI_REASONING_MODEL_PREFIXES = (
-            # O-series reasoning models
-            "o1-",
-            "o1",  # o1, o1-mini, o1-preview
-            "o3-",
-            "o3",  # o3, o3-mini, o3-pro
-            "o4-",  # o4-mini
-            # GPT-5 series are also reasoning models
-            "gpt-5-",
-            "gpt-5",  # gpt-5, gpt-5-mini, gpt-5-nano
-            # The GPT OSS series are also reasoning models
-            "gpt-oss-120b",
-            "gpt-oss-20b",
-        )
+        # Convert messages to Responses API format if needed
+        if use_responses_api:
+            # Responses API uses a single input string with instructions
+            # Combine system message and user messages
+            input_parts = [system_message]
+            for msg in messages:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+                if role == "user":
+                    input_parts.append(content)
+            input_text = "\n\n".join(input_parts)
 
-        # Check if this is an OpenAI reasoning model based on model name pattern
-        # This works for all endpoints (OpenAI, Azure, OptiLLM, OpenRouter, etc.)
-        model_lower = str(self.model).lower()
-        is_openai_reasoning_model = model_lower.startswith(OPENAI_REASONING_MODEL_PREFIXES)
-
-        if is_openai_reasoning_model:
-            # For OpenAI reasoning models
+            # Set up generation parameters for Responses API
             params = {
                 "model": self.model,
-                "messages": formatted_messages,
-                "max_completion_tokens": kwargs.get("max_tokens", self.max_tokens),
+                "input": input_text,
+                "max_output_tokens": kwargs.get("max_tokens", self.max_tokens),
             }
-            # Add optional reasoning parameters if provided
+            # Temperature is not supported in Responses API for some models
+            temperature = kwargs.get("temperature", self.temperature)
+            if temperature is not None:
+                params["temperature"] = temperature
+
+            # Handle reasoning_effort
             reasoning_effort = kwargs.get("reasoning_effort", self.reasoning_effort)
             if reasoning_effort is not None:
-                params["reasoning_effort"] = reasoning_effort
-            if "verbosity" in kwargs:
-                params["verbosity"] = kwargs["verbosity"]
+                params["reasoning"] = {"effort": reasoning_effort}
         else:
-            # Standard parameters for all other models
-            params = {
-                "model": self.model,
-                "messages": formatted_messages,
-                "temperature": kwargs.get("temperature", self.temperature),
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-            }
-            top_p = kwargs.get("top_p", self.top_p)
-            if top_p is not None:
-                params["top_p"] = top_p
+            # Standard parameters for Chat Completions API
+            # Define OpenAI reasoning models that require max_completion_tokens
+            OPENAI_REASONING_MODEL_PREFIXES = (
+                "o1-", "o1", "o3-", "o3", "o4-", "gpt-5-", "gpt-5", "gpt-oss-120b", "gpt-oss-20b",
+            )
+            model_lower = str(self.model).lower()
+            is_openai_reasoning_model = model_lower.startswith(OPENAI_REASONING_MODEL_PREFIXES)
 
-            # Handle reasoning_effort for open source reasoning models.
-            reasoning_effort = kwargs.get("reasoning_effort", self.reasoning_effort)
-            if reasoning_effort is not None:
-                params["reasoning_effort"] = reasoning_effort
-
-        # Add seed parameter for reproducibility if configured
-        # Skip seed parameter for Google AI Studio endpoint as it doesn't support it
-        # Seed only makes sense for actual API calls
-        seed = kwargs.get("seed", self.random_seed)
-        if seed is not None:
-            if (
-                self.api_base
-                == "https://generativelanguage.googleapis.com/v1beta/openai/"
-            ):
-                logger.warning(
-                    "Skipping seed parameter as Google AI Studio endpoint doesn't support it. "
-                    "Reproducibility may be limited."
-                )
+            if is_openai_reasoning_model:
+                params = {
+                    "model": self.model,
+                    "messages": formatted_messages,
+                    "max_completion_tokens": kwargs.get("max_tokens", self.max_tokens),
+                }
+                reasoning_effort = kwargs.get("reasoning_effort", self.reasoning_effort)
+                if reasoning_effort is not None:
+                    params["reasoning_effort"] = reasoning_effort
+                if "verbosity" in kwargs:
+                    params["verbosity"] = kwargs["verbosity"]
             else:
-                params["seed"] = seed
+                params = {
+                    "model": self.model,
+                    "messages": formatted_messages,
+                    "temperature": kwargs.get("temperature", self.temperature),
+                    "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                }
+                top_p = kwargs.get("top_p", self.top_p)
+                if top_p is not None:
+                    params["top_p"] = top_p
+                reasoning_effort = kwargs.get("reasoning_effort", self.reasoning_effort)
+                if reasoning_effort is not None:
+                    params["reasoning_effort"] = reasoning_effort
+
+            # Add seed parameter for reproducibility if configured
+            seed = kwargs.get("seed", self.random_seed)
+            if seed is not None:
+                api_base = (self.api_base or "").rstrip("/")
+                if api_base == "https://generativelanguage.googleapis.com/v1beta/openai":
+                    logger.warning(
+                        "Skipping seed parameter as Google AI Studio endpoint doesn't support it. "
+                        "Reproducibility may be limited."
+                    )
+                else:
+                    params["seed"] = seed
 
         # Attempt the API call with retries
         retries = kwargs.get("retries", self.retries)
@@ -227,14 +256,27 @@ class OpenAILLM(LLMInterface):
 
         # Use asyncio to run the blocking API call in a thread pool
         loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None, lambda: self.client.chat.completions.create(**params)
-        )
-        # Logging of system prompt, user message and response content
-        logger = logging.getLogger(__name__)
-        logger.debug(f"API parameters: {params}")
-        logger.debug(f"API response: {response.choices[0].message.content}")
-        return response.choices[0].message.content
+        
+        # Check if this model uses the Responses API
+        use_responses_api = _is_responses_model(self.model)
+        
+        if use_responses_api:
+            # Use the Responses API for muse-spark models
+            response = await loop.run_in_executor(
+                None, lambda: self.client.responses.create(**params)
+            )
+            # Extract text from Responses API response
+            return response.output_text
+        else:
+            # Use standard Chat Completions API
+            response = await loop.run_in_executor(
+                None, lambda: self.client.chat.completions.create(**params)
+            )
+            # Logging of system prompt, user message and response content
+            logger = logging.getLogger(__name__)
+            logger.debug(f"API parameters: {params}")
+            logger.debug(f"API response: {response.choices[0].message.content}")
+            return response.choices[0].message.content
 
     async def _manual_wait_for_answer(
         self, params: Dict[str, Any], timeout: Optional[Union[int, float]]

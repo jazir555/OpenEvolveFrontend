@@ -19,8 +19,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
+import uuid
 import urllib.request
 from pathlib import Path
 
@@ -30,6 +32,9 @@ REPO_ROOT = BENCH_DIR.parent
 
 NV_API_BASE = "https://integrate.api.nvidia.com/v1"
 KIMI_MODEL = "moonshotai/kimi-k3"
+
+OCZ_API_BASE = "https://opencode.ai/zen/v1"
+OCZ_MODEL = "muse-spark-1.3-contributor-free"
 
 
 def _nvidia_key() -> str:
@@ -49,6 +54,14 @@ def _nvidia_key() -> str:
     raise SystemExit("NVIDIA_API_KEY not found in bubblelab-api/.env")
 
 
+def _ocz_key() -> str:
+    """Read the OpenCode Zen API key from the environment."""
+    key = os.environ.get("OPENCODE_API_KEY", "")
+    if not key:
+        raise SystemExit("OPENCODE_API_KEY not set in environment")
+    return key
+
+
 def _http(method: str, path: str, data: dict | None = None, timeout: float = 30.0):
     req = urllib.request.Request(
         BASE + path,
@@ -63,7 +76,7 @@ def _http(method: str, path: str, data: dict | None = None, timeout: float = 30.
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--llm", choices=["mock", "kimi"], default="mock")
+    ap.add_argument("--llm", choices=["mock", "kimi", "opencode-zen"], default="mock")
     ap.add_argument("--iterations", type=int, default=2)
     ap.add_argument("--population", type=int, default=4)
     ap.add_argument("--seed", type=int, default=42)
@@ -82,6 +95,21 @@ def main() -> int:
             "api_base": NV_API_BASE,
             "temperature": 0.7,
             "max_tokens": 4096,
+        }
+    elif args.llm == "opencode-zen":
+        session_id = str(uuid.uuid4())
+        llm = {
+            "name": OCZ_MODEL,
+            "provider": "openai",
+            "api_key": _ocz_key(),
+            "api_base": OCZ_API_BASE,
+            "temperature": 0.7,
+            "max_tokens": 4096,
+            "extra_headers": {
+                "X-Session-ID": session_id,
+                "User-Agent": "opencode/0.0.55",
+                "X-OpenCode-Version": "0.0.55",
+            },
         }
 
     parameters = {
