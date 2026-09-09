@@ -98,10 +98,13 @@ class OpenAILLM(LLMInterface):
             extra_headers = getattr(model_cfg, "extra_headers", None)
             
             # Auto-generate OpenCode session ID for Responses API models if not provided
-            if _is_responses_model(self.model) and extra_headers is not None:
-                extra_headers = dict(extra_headers)  # Copy to avoid mutating original
+            if _is_responses_model(self.model):
+                extra_headers = dict(extra_headers) if extra_headers else {}
                 if "X-Session-ID" not in extra_headers:
                     extra_headers["X-Session-ID"] = _get_opencode_session_id(None)
+                # Always add OpenCode identification headers for Responses API
+                extra_headers.setdefault("User-Agent", "opencode/0.0.55")
+                extra_headers.setdefault("X-OpenCode-Version", "0.0.55")
             
             self.client = openai.OpenAI(
                 api_key=self.api_key,
